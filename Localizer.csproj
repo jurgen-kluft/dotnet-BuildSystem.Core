@@ -1,0 +1,334 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" 
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E720AB27-BC86-42E8-A58F-F17990213770}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DataBuildSystem</RootNamespace>
+    <AssemblyName>DataBuildSystem.Localizer</AssemblyName>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <StartupObject>DataBuildSystem.Program</StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug\Localizer\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release\Localizer\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.CodeAnalysis.Common.3.5.0\lib\netstandard2.0\Microsoft.CodeAnalysis.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.CodeAnalysis.CSharp.3.5.0\lib\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.4.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Metadata, Version=1.4.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Reflection.Metadata.1.6.0\lib\netstandard2.0\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.6.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Encoding.CodePages, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Text.Encoding.CodePages.4.5.1\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.5.3\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BigfileBuilder\Bigfile.cs" />
+    <Compile Include="BigfileBuilder\BigfileBuilder.cs" />
+    <Compile Include="BigfileBuilder\BigfileFile.cs" />
+    <Compile Include="BigfileBuilder\BigfileMerger.cs" />
+    <Compile Include="BigfileBuilder\BigfileToc.cs" />
+    <Compile Include="BigfileBuilder\Config.cs" />
+    <Compile Include="Code\Compilers\AssemblyCompiler.cs" />
+    <Compile Include="Code\Compilers\CodeAsmCompiler.cs" />
+    <Compile Include="Code\Compilers\CopyCompiler.cs" />
+    <Compile Include="Code\Compilers\DataAssemblyManager.cs" />
+    <Compile Include="Code\Compilers\ExternalCompilerProcess.cs" />
+    <Compile Include="Code\Compilers\ExternalRootNodeCompiler.cs" />
+    <Compile Include="Code\Compilers\LocalizationCompiler.cs" />
+    <Compile Include="Code\Compilers\RootObjectNodeCompiler.cs" />
+    <Compile Include="Code\Providers\IBigfileProvider.cs" />
+    <Compile Include="Code\Providers\IExternalObjectProvider.cs" />
+    <Compile Include="Code\Providers\IFileIdsProvider.cs" />
+    <Compile Include="Code\Providers\IFilenameRegistrar.cs" />
+    <Compile Include="Code\Types\Compiler.cs" />
+    <Compile Include="Code\Types\ExternalRoot.cs" />
+    <Compile Include="Code\Types\FileId.cs" />
+    <Compile Include="Code\Types\FileIdList.cs" />
+    <Compile Include="Code\Types\FRect.cs" />
+    <Compile Include="Code\Types\FSize.cs" />
+    <Compile Include="Code\Types\FVector2.cs" />
+    <Compile Include="Code\Types\FVector3.cs" />
+    <Compile Include="Code\Types\FVector4.cs" />
+    <Compile Include="Code\Types\Fx16.cs" />
+    <Compile Include="Code\Types\Fx32.cs" />
+    <Compile Include="Code\Types\IAtom.cs" />
+    <Compile Include="Code\Types\ICompound.cs" />
+    <Compile Include="Code\Types\IDynamicClass.cs" />
+    <Compile Include="Code\Types\IDynamicMember.cs" />
+    <Compile Include="Code\Types\IRect.cs" />
+    <Compile Include="Code\Types\IRoot.cs" />
+    <Compile Include="Code\Types\LString.cs" />
+    <Compile Include="Code\Types\RGBA.cs" />
+    <Compile Include="Code\Types\RootObject.cs" />
+    <Compile Include="Code\Types\Size.cs" />
+    <Compile Include="Code\Utils\Attributes.cs" />
+    <Compile Include="Code\Utils\DataCompilerScheduler.cs" />
+    <Compile Include="Code\Utils\FileCommander.cs" />
+    <Compile Include="Code\Utils\Instanciate.cs" />
+    <Compile Include="Code\Utils\StringUtils.cs" />
+    <Compile Include="Config\IBuildSystemCompilerConfig.cs" />
+    <Compile Include="Config\IBuildSystemLocalizerConfig.cs" />
+    <Compile Include="Dependency\Config.cs" />
+    <Compile Include="Dependency\DependencySystem.cs" />
+    <Compile Include="Dependency\DependencySystemImp.cs" />
+    <Compile Include="Localization\LocalizationBuilder.cs" />
+    <Compile Include="Localization\Office.Excel\Collections\IndexedCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Collections\ReadOnlyCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Collections\SimpleCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Cell.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\CellCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ExcelCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ExcelIndexedCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ExcelObject.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Font.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\FontCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Format.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\FormatCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\HyperLinkCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\IExcelObject.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Palette.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\PaletteEntry.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\ArrayRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\Biff.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\BiffCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\BlankRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\BofRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\BoolErrRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\BoundSheetRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\CellRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\ContinueRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\DbCellRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\EofRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\FontRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\FormatRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\FormulaChildRangedRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\FormulaChildRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\FormulaRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\GenericBiff.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\HyperLinkOptions.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\HyperLinkRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\IndexRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\InvalidRecordIdException.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\LabelRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\LabelSstRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\MulBlankRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\MulRkRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\MultipleColCellRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\NumberRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\PaletteRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\RecordType.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\RkRec.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\RkRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\RowColXfCellRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\RowRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\SharedFormulaRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\SingleColCellRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\SstRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\StringValueRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\TableRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Records\XfRecord.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Row.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\RowCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Style.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\StyleCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\BoolErrValue.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FillPattern.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FontBoldness.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FontCharacterSet.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FontEscape.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FontFamily.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FontOptions.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FontUnderline.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\FormulaValue.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\HorizontalAlignment.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\LineStyle.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\Nibble.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\ParentStyleAttributes.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\RkValue.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\Rotation.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\RowHeight.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\RowOptionFlags.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\SheetType.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\TypeAndProtection.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\Version.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\VerticalAlignment.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\ValueTypes\VisibilityType.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Workbook.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\Worksheet.cs" />
+    <Compile Include="Localization\Office.Excel\Excel\WorksheetCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\CompoundFile.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Directory.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\DirectoryEntry.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\DirectoryEntryFactory.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\DirectoryEntryNameComparer.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\GenericDirectoryEntry.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\Constants.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\DeColor.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\DifSector.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\DirectorySector.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\DirectorySectorEntry.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\DirectorySectorEntryCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\FatSector.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\HeaderSector.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\MiniFatSector.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\Sect.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\Sector.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\SectorCollection.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\Sid.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\Stgty.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\Sectors\StorageSector.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\StorageEntry.cs" />
+    <Compile Include="Localization\Office.Excel\Storage\StreamEntry.cs" />
+    <Compile Include="Localization\Office.Excel\Text\Reader.cs" />
+    <Compile Include="Localizer\LocalizerMain.cs" />
+    <Compile Include="Localizer\Version.cs" />
+    <Compile Include="Properties\Md_Localizer.AssemblyInfo.cs" />
+    <Compile Include="Core\Assembly\AssemblyUtil.cs" />
+    <Compile Include="Core\Dependency\DependencyFile.cs" />
+    <Compile Include="Core\Dependency\DependencyInfo.cs" />
+    <Compile Include="Core\Endian.cs" />
+    <Compile Include="Core\Environment.cs" />
+    <Compile Include="Core\EPlatform.cs" />
+    <Compile Include="Core\ETerritory.cs" />
+    <Compile Include="Core\File\BinaryReader.cs" />
+    <Compile Include="Core\File\BinaryWriter.cs" />
+    <Compile Include="Core\File\BufferedBinaryWriter.cs" />
+    <Compile Include="Core\File\DataWriter.cs" />
+    <Compile Include="Core\File\DirectoryScanner.cs" />
+    <Compile Include="Core\File\Dirname.cs" />
+    <Compile Include="Core\File\DirUtils.cs" />
+    <Compile Include="Core\File\Filename.cs" />
+    <Compile Include="Core\File\FilenamePattern.cs" />
+    <Compile Include="Core\File\FileSize.cs" />
+    <Compile Include="Core\File\HtmlFile.cs" />
+    <Compile Include="Core\File\PatternMatcher.cs" />
+    <Compile Include="Core\File\StreamBuilder.cs" />
+    <Compile Include="Core\File\StreamContext.cs" />
+    <Compile Include="Core\File\StreamOffset.cs" />
+    <Compile Include="Core\File\StreamReference.cs" />
+    <Compile Include="Core\File\StreamUtils.cs" />
+    <Compile Include="Core\Hash\GUID.cs" />
+    <Compile Include="Core\Hash\GUID.Generator.cs" />
+    <Compile Include="Core\Hash\Hash128.cs" />
+    <Compile Include="Core\Hash\Hashing.cs" />
+    <Compile Include="Core\Math\Core\ComplexD.cs" />
+    <Compile Include="Core\Math\Core\ComplexF.cs" />
+    <Compile Include="Core\Math\Core\DVector2.cs" />
+    <Compile Include="Core\Math\Core\DVector3.cs" />
+    <Compile Include="Core\Math\Core\DVector4.cs" />
+    <Compile Include="Core\Math\Core\FVector2.cs" />
+    <Compile Include="Core\Math\Core\FVector3.cs" />
+    <Compile Include="Core\Math\Core\FVector4.cs" />
+    <Compile Include="Core\Math\Exceptions\Exceptions.cs" />
+    <Compile Include="Core\Math\Exceptions\ParseException.cs" />
+    <Compile Include="Core\Math\Math.cs" />
+    <Compile Include="Core\MetaData\C++.cs" />
+    <Compile Include="Core\MetaData\EGenericFormat.cs" />
+    <Compile Include="Core\MetaData\Generic.cs" />
+    <Compile Include="Core\MetaData\MetaCode.cs" />
+    <Compile Include="Core\MetaData\Reflection.cs" />
+    <Compile Include="Core\Process\Process.cs" />
+    <Compile Include="Core\Process\ProcessExecutor.cs" />
+    <Compile Include="Core\Process\ProcessInfo.cs" />
+    <Compile Include="Core\Process\ProcessReader.cs" />
+    <Compile Include="Core\Process\ProcessResult.cs" />
+    <Compile Include="Core\Process\ProcessUtil.cs" />
+    <Compile Include="Core\String\CommandLine.cs" />
+    <Compile Include="Core\String\CommandlineBuilder.cs" />
+    <Compile Include="Core\String\Indent.cs" />
+    <Compile Include="Core\String\StringScan.cs" />
+    <Compile Include="Core\String\StringTable.cs" />
+    <Compile Include="Core\String\StringTools.cs" />
+    <Compile Include="Core\Thread\AsyncCodeBlocks\Async.cs" />
+    <Compile Include="Core\Thread\AsyncCodeBlocks\AsyncCodeBlockTasks.cs" />
+    <Compile Include="Core\Thread\AsyncCodeBlocks\CodeException.cs" />
+    <Compile Include="Core\Thread\AsyncCodeBlocks\SerializableCodeBlock.cs" />
+    <Compile Include="Core\Thread\AsyncCodeBlocks\WaitableAsync.cs" />
+    <Compile Include="Core\Thread\LockFree\ObjectPool.cs" />
+    <Compile Include="Core\Thread\LockFree\Queue.cs" />
+    <Compile Include="Core\Thread\ManagedIOCP\ManagedIOCP.cs" />
+    <Compile Include="Core\Thread\ManagedIOCP\ManagedIOCPExceptions.cs" />
+    <Compile Include="Core\Thread\ThreadPool\GenericTask.cs" />
+    <Compile Include="Core\Thread\ThreadPool\Task.cs" />
+    <Compile Include="Core\Thread\ThreadPool\ThreadPool.cs" />
+    <Compile Include="Core\Thread\ThreadPool\WaitableGenericTask.cs" />
+    <Compile Include="Core\Thread\Utilities\StopWatch.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Localization\Office.Excel\ColorIndexReferenceForExcel.xls" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties BuildVersion_ConfigurationName="Release" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
