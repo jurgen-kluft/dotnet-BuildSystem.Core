@@ -44,7 +44,7 @@ namespace BigfilePacker
         /// Force building the bigfile, even if no assets have been modified
         /// </summary>
         bool ForceBuildingBigfile { get; }
-        
+
         #endregion
     }
 
@@ -83,7 +83,7 @@ namespace BigfilePacker
 
         public bool ClassIsBlob
         {
-            get 
+            get
             {
                 return true;
             }
@@ -99,14 +99,14 @@ namespace BigfilePacker
 
         public bool ForceBuildingBigfile
         {
-            get 
+            get
             {
                 return false;
             }
         }
 
-        public string DataDllFilename 
-        { 
+        public string DataDllFilename
+        {
             get
             {
                 return "Name.Data";
@@ -194,9 +194,9 @@ namespace BigfilePacker
 
         public static Filename CsProjFilename
         {
-            get 
+            get
             {
-                return new Filename(Name + ".Data." + PlatformName + ".csproj"); 
+                return new Filename(Name + ".Data." + PlatformName + ".csproj");
             }
         }
 
@@ -255,7 +255,7 @@ namespace BigfilePacker
                 return sConfig.DataRelocFileExtension;
             }
         }
-        
+
         #endregion
         #region Methods
 

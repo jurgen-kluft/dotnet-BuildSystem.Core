@@ -119,8 +119,6 @@ namespace Core
             }
         }
 
-		private static readonly bool _isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
 		private static int RunProcessAndWaitForExit(string fileName, string arguments, TimeSpan timeout, out string stdout)
 		{
 			var startInfo = new ProcessStartInfo
@@ -179,7 +177,7 @@ namespace Core
 		{
 			TimeSpan timeout = new TimeSpan(0, 0, 15);
 			string stdout;
-			if (_isWindows)
+			if (Core.Environment.IsWindows)
 			{
 				RunProcessAndWaitForExit("taskkill", $"/T /F /PID {process.Id}", timeout, out stdout);
 			}

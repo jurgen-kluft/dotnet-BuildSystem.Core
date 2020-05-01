@@ -16,6 +16,14 @@ namespace Core
     /// e.g. 
     ///             C:\Documents\Music\Beatles\HeyJude.mp3
     ///             \\cnshaw235\Documents\Music\Beatles\HeyJude.mp3
+    ///
+    /// On Mac OS this is giving us some trouble since it all seems to be behaving
+    /// almost as a network device. e.g. /Users/jurgen/Documents.
+    /// So on Mac we following these rules:
+    /// - H:\ is the users home directory
+    /// - U:\ means the directory is absolute
+    /// When passing in a path we determine if it is the user directory and convert
+    /// it to H:\
     /// 
     /// Properties
     ///     Extension                                                       (.mp3)
@@ -27,6 +35,7 @@ namespace Core
     ///     Name                                                            (HeyJude.mp3)
     ///     Relative                                                        (Documents\Music\Beatles\HeyJude.mp3)
     ///     Full                                                            (C:\Documents\Music\Beatles\HeyJude.mp3)
+    ///     System                                                          (Returns the filename ready to be used by the OS (Windows and Mac behave differently)
     ///     Levels                                                          (3)
     ///     
     /// Boolean
@@ -61,16 +70,16 @@ namespace Core
     {
         #region Internal Statics
 
-        private const bool sIgnoreCase = true;
-
-        private const char sSlash = '\\';
-        private const string sSlashStr = "\\";
-        private const string sDoubleSlash = "\\\\";
-        private const char sDot = '.';
-        private const char sSemi = ':';
-        private const string sDotStr = ".";
-        private const string sSemiSlash = ":\\";
-        private const string sIllegalNameChars = "/\\:*?<>|";
+        private static readonly bool sIgnoreCase = true;
+        private static readonly char sSlash = System.IO.Path.DirectorySeparatorChar;
+        private static readonly char sOtherSlash = System.IO.Path.DirectorySeparatorChar == '\\' ? '/' : '\\';
+        private static readonly string sSlashStr = "" + System.IO.Path.DirectorySeparatorChar;
+        private static readonly string sDoubleSlash = "" + System.IO.Path.DirectorySeparatorChar + System.IO.Path.DirectorySeparatorChar;
+        private static readonly char sDot = '.';
+        private static readonly char sSemi = ':';
+        private static readonly string sDotStr = ".";
+        private static readonly string sSemiSlash = ":" + sSlashStr;
+        private static readonly string sIllegalNameChars = "/\\:*?<>|";
 
         static internal string RemoveChars(string ioString, string inChars)
         {
@@ -125,7 +134,12 @@ namespace Core
 
         public Filename(string full)
         {
-            mFull = full.Replace('/', '\\');
+            mFull = full.Replace(sOtherSlash, sSlash);
+            if (mFull.StartsWith(Environment.HomeDirectory))
+            {
+                mFull = "H" + sSemi + mFull.Substring(Environment.HomeDirectory.Length);
+            }
+
             mHashCode = -1;
             ChangeFull(mFull);
         }
@@ -777,7 +791,7 @@ namespace Core
 
         public Filename MakeAbsolute()
         {
-            return MakeAbsolute(Environment.CurrentDirectory);
+            return MakeAbsolute(System.Environment.CurrentDirectory);
         }
 
         public Filename MakeAbsolute(Dirname dir)
@@ -813,7 +827,7 @@ namespace Core
 
         public Filename MakeRelative()
         {
-            return MakeRelative(Environment.CurrentDirectory);
+            return MakeRelative(System.Environment.CurrentDirectory);
         }
 
         public Filename MakeRelative(Dirname dir)
@@ -1023,7 +1037,18 @@ namespace Core
         /// <returns></returns>
         public override string ToString()
         {
-            return Full;
+            string deviceName;
+            bool isNetworkDevice;
+            sParseDevice(mFull, out deviceName, out isNetworkDevice);
+
+            if (isNetworkDevice || !String.IsNullOrEmpty(deviceName))
+            {
+                if (deviceName == "S")
+                {
+                    return mFull.Substring(2);
+                }
+            }
+            return Environment.HomeDirectory + mFull.Substring(2);
         }
 
         #endregion
@@ -1041,7 +1066,7 @@ namespace Core
 
         public static implicit operator string(Filename f)
         {
-            return f.Full;
+            return f.ToString();
         }
 
         #endregion
@@ -1049,14 +1074,14 @@ namespace Core
 
         public static bool UnitTest()
         {
-            Filename test0 = new Filename(@"C:\Temp\Test\Movie");
+            Filename test0 = new Filename(@"H:\Temp\Test\Movie");
             Debug.Assert(test0.Name == "Movie");
             Debug.Assert(test0.Extension == "");
-            Filename test1 = new Filename(@"C:\Temp\Test\Movie.avi");
+            Filename test1 = new Filename(@"H:\Temp\Test\Movie.avi");
             Debug.Assert(test1.Name == "Movie.avi");
             Filename test2 = new Filename(@"\\cnshaw235\Temp\Test\Movie.avi");
             Debug.Assert(test2.Name == "Movie.avi");
-            Filename test3 = new Filename(@"C:\Movie.avi");
+            Filename test3 = new Filename(@"H:\Movie.avi");
             Debug.Assert(test3.Name == "Movie.avi");
             Filename test4 = new Filename(@"Temp\Test\Movie.avi");
             Debug.Assert(test4.Name == "Movie.avi");
@@ -1064,16 +1089,16 @@ namespace Core
             Debug.Assert(test5.Name == "Movie.avi");
             Filename test6 = new Filename(@"Movie.avi");
             Debug.Assert(test6.Name == "Movie.avi");
-            Filename test7 = new Filename(@"C:\Temp\\Test\Movie.avi");
+            Filename test7 = new Filename(@"H:\Temp\\Test\Movie.avi");
             Debug.Assert(test7.Name == "Movie.avi");
 
-            test1 = test1.MakeRelative(@"C:\Temp");
+            test1 = test1.MakeRelative(@"H:\Temp");
             test2 = test2.MakeRelative(@"\\cnshaw235\Temp");
 
             Debug.Assert(test1.GetHashCode() == 0x5960ef95);
             Debug.Assert(test2.GetHashCode() == 0x5960ef95);
 
-            test1 = test1.MakeAbsolute(@"C:\Temp");
+            test1 = test1.MakeAbsolute(@"H:\Temp");
             test2 = test2.MakeAbsolute(@"\\cnshaw235\Temp");
 
             test3 = test3.LeveledDown("Temp");

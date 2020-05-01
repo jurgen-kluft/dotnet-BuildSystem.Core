@@ -17,6 +17,7 @@ namespace BigfilePacker
         #region Main
 
         // -name PMR2 -publishpath I:\Dev\PMRII_Export\Data\Publish.PS2 -srcpath I:\Dev\PMRII_Export\Data -dstpath I:\Dev\PMRII_Export\Data\Bin.PS2 -platform PS2 -toolpath I:\Dev\PMRII_Dev\Tools\Release
+        // -name TEST -publishpath H:/BuildSystem_TEST/Data/Publish.Mac -srcpath H:/BuildSystem_TEST/Data -dstpath H:/BuildSystem_TEST/Data/Bin.Mac -platform Mac -toolpath H:/BuildSystem_TEST/Tools/Release
         static int Main(string[] args)
         {
             CommandLine cmdLine = new CommandLine(args);

@@ -37,6 +37,7 @@ namespace Core
             switch (platform)
             {
                 case EPlatform.PC: return EEndian.LITTLE;
+                case EPlatform.MAC: return EEndian.LITTLE;
                 case EPlatform.XBOX_ONE: return EEndian.LITTLE;
                 case EPlatform.XBOX_ONE_X: return EEndian.LITTLE;
                 case EPlatform.PS4: return EEndian.LITTLE;

@@ -48,14 +48,15 @@ namespace Core
     {
         #region Internal Statics
 
-        private const bool sIgnoreCase = true;
-
-        private const char sSlash = '\\';
-        private const string sSlashStr = "\\";
-        private const string sDoubleSlash = "\\\\";
-        private const char sSemi = ':';
-        private const string sSemiSlash = ":\\";
-        private const string sIllegalNameChars = "/\\:*?<>|";
+        private static readonly bool sIgnoreCase = true;
+        private static readonly char sSlash = System.IO.Path.DirectorySeparatorChar;
+        private static readonly char sOtherSlash = System.IO.Path.DirectorySeparatorChar == '\\' ? '/' : '\\';
+        private static readonly string sSlashStr = "" + System.IO.Path.DirectorySeparatorChar;
+        private static readonly string sDoubleSlash = "" + System.IO.Path.DirectorySeparatorChar + System.IO.Path.DirectorySeparatorChar;
+        private static readonly char sSemi = ':';
+        //private static readonly string sDotStr = ".";
+        private static readonly string sSemiSlash = ":" + sSlashStr;
+        private static readonly string sIllegalNameChars = "/\\:*?<>|";
 
         static internal string RemoveChars(string ioString, string inChars)
         {
@@ -110,16 +111,16 @@ namespace Core
 
         public Dirname(string inRHS)
         {
-            mFull = inRHS.Replace('/', '\\');
+            mFull = inRHS.Replace(sOtherSlash, sSlash);
             mHashCode = mFull.GetHashCode();
-            ChangeFull(inRHS);
+            ChangeFull(mFull);
         }
 
         private Dirname(string inRHS, int hashcode)
         {
             mFull = inRHS;
             mHashCode = hashcode;
-            ChangeFull(inRHS);
+            ChangeFull(mFull);
         }
 
         public Dirname(Dirname inRHS)
@@ -465,7 +466,7 @@ namespace Core
 
         public Dirname MakeAbsolute()
         {
-            return MakeAbsolute(Environment.CurrentDirectory);
+            return MakeAbsolute(System.Environment.CurrentDirectory);
         }
 
         public Dirname MakeAbsolute(string absolutePath)
@@ -494,7 +495,7 @@ namespace Core
 
         public Dirname MakeRelative()
         {
-            return MakeRelative(Environment.CurrentDirectory);
+            return MakeRelative(System.Environment.CurrentDirectory);
         }
 
         public Dirname MakeRelative(string absolutePath)

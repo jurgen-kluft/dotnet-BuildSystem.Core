@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CSharp;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Linq;
@@ -86,15 +87,19 @@ namespace Core
 				List<SyntaxTree> parsedCode = new List<SyntaxTree>(sourceFilenames.Count);
 				foreach (Filename csfile in sourceFilenames)
 				{
-					string source_code = File.ReadAllText(csfile.Full);
+                    string source_filename = csfile;
+                    string source_code = File.ReadAllText(source_filename);
 					SyntaxTree parsed_code = CSharpSyntaxTree.ParseText(source_code);
 					parsedCode.Add(parsed_code);
 				}
 
 				CSharpCompilationOptions compilerOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, reportSuppressedDiagnostics: true, optimizationLevel: OptimizationLevel.Release, generalDiagnosticOption: ReportDiagnostic.Error);
 
-				var references = referencedAssemblies.Select(l => MetadataReference.CreateFromFile(l));
-				var compilation = CSharpCompilation.Create(
+                var references = new List<MetadataReference>();
+                references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+                referencedAssemblies.ForEach(l => references.Add(MetadataReference.CreateFromFile(path: l)));
+
+                var compilation = CSharpCompilation.Create(
 						"_" + Guid.NewGuid().ToString("D"),
 						references: references,
 						syntaxTrees: parsedCode,
