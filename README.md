@@ -21,11 +21,11 @@ following things will be done by the BuildSystem:
  - Anything derived from IAtom (standard types, see above)
  - Anything derived from ICompound
  - Anything derived from IDataCompiler
-  - AssetCompiler("objects/rock.asset", ESerialize.Reference / ESerialize.Embed)
-  - TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)
-  - MaterialCompiler("materials/stone.mat")
-  - ShaderCompiler("shaders/shadow.vs", EShaderFormat.VS_SPIRV)
-  - ShaderCompiler("shaders/shadow.ps", EShaderFormat.PS_SPIRV)
+  - ```AssetCompiler("objects/rock.asset", ESerialize.Reference / ESerialize.Embed)```
+  - ```TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)```
+  - ```MaterialCompiler("materials/stone.mat")```
+  - ```ShaderCompiler("shaders/shadow.vs", EShaderFormat.VS_SPIRV)```
+  - ```ShaderCompiler("shaders/shadow.ps", EShaderFormat.PS_SPIRV)```
 
 In your game runtime you can use the C++ files ``GameData.h`` to load and use it.
 
