@@ -8,7 +8,7 @@ using Core.MetaCode;
 
 namespace DataBuildSystem
 {
-    public static class ObjectTreeWalker
+    static class ObjectTreeWalker
     {
         #region Walk
 
@@ -119,9 +119,9 @@ namespace DataBuildSystem
 
             public Dictionary<Filename, Game.Data.FileId> items
             {
-                get 
+                get
                 {
-                    return mRegistry; 
+                    return mRegistry;
                 }
             }
 
@@ -216,7 +216,7 @@ namespace DataBuildSystem
             }
             catch (System.Exception)
             {
-                return false;            	
+                return false;
             }
         }
 
@@ -280,7 +280,7 @@ namespace DataBuildSystem
                     }
                     else
                     {
-                        foreach(Game.Data.IDataCompilerClient client in p.Value)
+                        foreach (Game.Data.IDataCompilerClient client in p.Value)
                             compilers.Add(client);
                     }
                 }
@@ -316,7 +316,7 @@ namespace DataBuildSystem
                 // - Compilers
                 // - FileId providers
                 // - Bigfile providers
-                ok = ObjectTreeWalker.Walk(mRoot, delegate(object compound)
+                ok = ObjectTreeWalker.Walk(mRoot, delegate (object compound)
                 {
                     Type compoundType = compound.GetType();
 
@@ -363,7 +363,7 @@ namespace DataBuildSystem
             mFileIdsProviders.Clear();
             mDataCompilerNodes.Clear();
 
-            bool ok = ObjectTreeWalker.Walk(mRoot, delegate(object compound)
+            bool ok = ObjectTreeWalker.Walk(mRoot, delegate (object compound)
             {
                 Type compoundType = compound.GetType();
 
@@ -581,7 +581,8 @@ namespace DataBuildSystem
             {
                 ObjectMember root = book.classes[0];
                 root.write(dataStreamWriter);
-            } dataStreamWriter.close();
+            }
+            dataStreamWriter.close();
 
             // Finalize the DataStream and obtain a database of the position of the 
             // 'Code.Class' objects in the DataStream.
@@ -629,7 +630,7 @@ namespace DataBuildSystem
                 StdDataStream.SizeOfBool = BuildSystemCompilerConfig.SizeOfBool;
                 stdDataStream.write(EGenericFormat.STD_FLAT, data, dataStreamWriter, reallocTableStreamWriter);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine("An exception occured: {0}", e.ToString());
             }
@@ -650,7 +651,7 @@ namespace DataBuildSystem
 
         public bool save(Dirname path, string fullNameWithoutExtension)
         {
-			//generateCppCodeAndData(root, fullNameWithoutExtension + ".rdf", fullNameWithoutExtension + ".rcf", fullNameWithoutExtension + ".rrf");
+            //generateCppCodeAndData(root, fullNameWithoutExtension + ".rdf", fullNameWithoutExtension + ".rcf", fullNameWithoutExtension + ".rrf");
             Filename dataFilename = new Filename(fullNameWithoutExtension + BuildSystemCompilerConfig.DataFileExtension);
             Filename relocFilename = new Filename(fullNameWithoutExtension + BuildSystemCompilerConfig.DataRelocFileExtension);
 
