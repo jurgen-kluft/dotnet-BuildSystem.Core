@@ -25,7 +25,7 @@ namespace BigfileFileReorder
 			}
 			System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
-			CommandLine arg = new CommandLine(Core.Environment.GetCommandLineArgs());
+			CommandLine arg = new CommandLine(System.Environment.GetCommandLineArgs());
 			if (string.Empty != arg["GUI"])
 			{
 				Application.EnableVisualStyles();

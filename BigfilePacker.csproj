@@ -12,8 +12,6 @@
     <AssemblyName>DataBuildSystem.BigfilePacker</AssemblyName>
     <StartupObject>BigfilePacker.Program</StartupObject>
     <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <PublishUrl>publish\</PublishUrl>
@@ -170,8 +168,6 @@
     <Compile Include="Core\File\StreamOffset.cs" />
     <Compile Include="Core\File\StreamReference.cs" />
     <Compile Include="Core\File\StreamUtils.cs" />
-    <Compile Include="Core\Hash\GUID.cs" />
-    <Compile Include="Core\Hash\GUID.Generator.cs" />
     <Compile Include="Core\Hash\Hash128.cs" />
     <Compile Include="Core\Hash\Hashing.cs" />
     <Compile Include="Core\Math\Core\ComplexD.cs" />

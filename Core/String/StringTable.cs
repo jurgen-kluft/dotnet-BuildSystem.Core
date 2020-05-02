@@ -7,61 +7,28 @@ namespace Core
     {
         #region Fields
 
-        private StreamReference mStreamReference;
-        private bool mAllLowerCase;
         private readonly Dictionary<string, int> mDictionary = new Dictionary<string, int>();
-        private readonly List<string> mStrings = new List<string>();
         private readonly List<uint> mHashes = new List<uint>();
         private readonly List<StreamReference> mReferences = new List<StreamReference>();
 
         #endregion
         #region Properties
 
-        public StreamReference reference
-        {
-            get
-            {
-                return mStreamReference;
-            }
-            set
-            {
-                mStreamReference = value;
-            }
-        }
+        public StreamReference reference { get; set; }
 
-        public bool forceLowerCase
-        {
-            get
-            {
-                return mAllLowerCase;
-            }
-            set
-            {
-                mAllLowerCase = value;
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                return mStrings.Count;
-            }
-        }
-
-        public List<string> All
-        {
-            get
-            {
-                return mStrings;
-            }
-        }
-
+        public List<string> All { get; } = new List<string>();
         public string this[int index]
         {
             get
             {
-                return mStrings[index];
+                return All[index];
+            }
+        }
+        public int Count
+        {
+            get
+            {
+                return All.Count;
             }
         }
 
@@ -71,17 +38,13 @@ namespace Core
         public void Add(string inString)
         {
             string str = inString;
-            if (mAllLowerCase)
-                str = str.ToLower();
-
-            uint hash = ComputeHashOf(str);
-
             int index;
             if (!mDictionary.TryGetValue(str, out index))
             {
-                mDictionary.Add(str, mStrings.Count);
+                mDictionary.Add(str, All.Count);
                 mReferences.Add(StreamReference.Instance);
-                mStrings.Add(str);
+                All.Add(str);
+                uint hash = ComputeHashOf(str);
                 mHashes.Add(hash);
             }
         }
@@ -97,8 +60,6 @@ namespace Core
         private int IndexOf(string inString)
         {
             string str = inString;
-            if (mAllLowerCase)
-                str = str.ToLower();
             return InternalIndexOf(str);
         }
 
@@ -128,8 +89,6 @@ namespace Core
         public StreamReference ReferenceOf(string inString)
         {
             string str = inString;
-            if (mAllLowerCase)
-                str = str.ToLower();
             return InternalReferenceOf(str);
         }
 
@@ -138,27 +97,23 @@ namespace Core
             mHashes.Clear();
             Dictionary<uint, string> hashToString = new Dictionary<uint, string>();
             Dictionary<uint, StreamReference> hashToReference = new Dictionary<uint, StreamReference>();
-            foreach (string s in mStrings)
+            foreach (string s in All)
             {
-                string str = s;
-                if (mAllLowerCase)
-                    str = str.ToLower();
-
-                uint hash = ComputeHashOf(str);
+                uint hash = ComputeHashOf(s);
                 mHashes.Add(hash);
-                hashToString.Add(hash, str);
+                hashToString.Add(hash, s);
                 hashToReference.Add(hash, InternalReferenceOf(s));
             }
 
             mHashes.Sort();
 
-            mStrings.Clear();
+            All.Clear();
             mReferences.Clear();
             foreach (uint hash in mHashes)
             {
                 string s;
                 hashToString.TryGetValue(hash, out s);
-                mStrings.Add(s);
+                All.Add(s);
                 StreamReference r;
                 hashToReference.TryGetValue(hash, out r);
                 mReferences.Add(r);
@@ -166,7 +121,7 @@ namespace Core
 
             int index = 0;
             mDictionary.Clear();
-            foreach (string s in mStrings)
+            foreach (string s in All)
             {
                 mDictionary.Add(s, index);
                 ++index;
@@ -199,7 +154,7 @@ namespace Core
                 // String References
                 writer.BeginBlock(referencesReference, EStreamAlignment.ALIGN_32);
                 {
-                    foreach (string s in mStrings)
+                    foreach (string s in All)
                     {
                         StreamReference r = InternalReferenceOf(s);
                         writer.Write(r);
@@ -209,7 +164,7 @@ namespace Core
                 // String Data
                 writer.BeginBlock(stringsReference, EStreamAlignment.ALIGN_32);
                 {
-                    foreach (string s in mStrings)
+                    foreach (string s in All)
                     {
                         StreamReference r = InternalReferenceOf(s);
                         if (writer.BeginBlock(r, EStreamAlignment.ALIGN_8))
@@ -333,9 +288,9 @@ namespace Core
                 {
                     for (int i = 0; i < mItems.Count; ++i)
                     {
-                        byte[] data = Hash128.ToBinary(mItems[i]);
+                        byte[] hashslice = mItems[i].Data;
                         writer.Mark(mReferences[i]);
-                        writer.Write(data);
+                        writer.Write(hashslice);
                     }
                     writer.EndBlock();
                 }

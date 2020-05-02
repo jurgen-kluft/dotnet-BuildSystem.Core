@@ -5,81 +5,226 @@ using System.IO;
 
 namespace Core
 {
-    public struct Hash128
+    public class Hash128
     {
-        #region Fields
+        public static readonly byte[] hash_null_ = new byte[16] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        public static readonly byte[] hash_error_ = new byte[16] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
-        private readonly static string sEmptyHashString = "00000000000000000000000000000000";
-        public readonly static Hash128 Empty = new Hash128(sEmptyHashString);
-        private const string sFormat = "{0:X16}{1:X16}";
+        public static Hash128 Null { get { return new Hash128(hash_null_, 0); } }
+        public static Hash128 Empty { get { return new Hash128(hash_null_, 0); } }
+        public static Hash128 Error { get { return new Hash128(hash_error_, 0); } }
 
-        private string mHash;
-
-        #endregion
-        #region Constructor
-
-        Hash128(string hash)
+        public bool IsErrorHash()
         {
-            if (String.IsNullOrEmpty(hash))
-                mHash = sEmptyHashString;
-            else
-                mHash = hash.ToUpper();
+            bool equal = (hash_[0] == hash_error_[0]);
+            for (int j = 1; j < Size && equal; j++)
+                equal = (hash_[j] == hash_error_[j]);
+            return equal;
         }
 
-        public Hash128(Hash128 other)
+        public bool IsNullHash()
         {
-            Debug.Assert(!String.IsNullOrEmpty(other.mHash));
-            mHash = other.mHash;
+            bool equal = (hash_[0] == hash_null_[0]);
+            for (int j = 1; j < Size && equal; j++)
+                equal = (hash_[j] == hash_null_[j]);
+            return equal;
         }
 
-        #endregion
-        #region Operators
-
-        public static bool operator ==(Hash128 a, Hash128 b)
+        private byte[] hash_;
+        private Hash128(byte[] _hash)
         {
-            Debug.Assert((object)a != null && (object)b != null);               // Never compare to null, create a MD5.Empty object as default!
-            int c = String.Compare(a.mHash, b.mHash);
-            return c == 0;
-        }
-        public static bool operator !=(Hash128 a, Hash128 b)
-        {
-            Debug.Assert((object)a != null && (object)b != null);               // Never compare to null, create a MD5.Empty object as default!
-            int c = String.Compare(a.mHash, b.mHash);
-            return c != 0;
-        }
-        public static bool operator <(Hash128 a, Hash128 b)
-        {
-            Debug.Assert((object)a != null && (object)b != null);               // Never compare to null, create a MD5.Empty object as default!
-            int c = String.Compare(a.mHash, b.mHash);
-            return c == -1;
-        }
-        public static bool operator <=(Hash128 a, Hash128 b)
-        {
-            Debug.Assert((object)a != null && (object)b != null);               // Never compare to null, create a MD5.Empty object as default!
-            int c = String.Compare(a.mHash, b.mHash);
-            return c==0 || c==-1;
-        }
-        public static bool operator >(Hash128 a, Hash128 b)
-        {
-            Debug.Assert((object)a != null && (object)b != null);               // Never compare to null, create a MD5.Empty object as default!
-            int c = String.Compare(a.mHash, b.mHash);
-            return c == 1;
-        }
-        public static bool operator >=(Hash128 a, Hash128 b)
-        {
-            Debug.Assert((object)a != null && (object)b != null);               // Never compare to null, create a MD5.Empty object as default!
-            int c = String.Compare(a.mHash, b.mHash);
-            return c == 1 || c ==0;
+            hash_ = _hash;
         }
 
-        #endregion
+        public Hash128()
+        {
+            hash_ = new byte[Size];
+            CopyFrom(hash_null_, 0);
+        }
+
+        public Hash128(Hash128 _other)
+        {
+            hash_ = new byte[Size];
+            CopyFrom(_other.Data, 0);
+        }
+
+        private Hash128(byte[] _array, int _start)
+        {
+            hash_ = new byte[Size];
+            CopyFrom(_array, _start);
+        }
+
+        public static readonly int Size = 16;
+
+        public static Hash128 ConstructTake(byte[] _hash)
+        {
+            return new Hash128(_hash);
+        }
+        public static Hash128 ConstructCopy(byte[] _hash)
+        {
+            return new Hash128(_hash, 0);
+        }
+        public static Hash128 ConstructCopy(byte[] _hash, int start)
+        {
+            return new Hash128(_hash, start);
+        }
+
+        public byte[] Data { get { return hash_; } }
+
+        public byte[] Release()
+        {
+            byte[] h = hash_;
+            hash_ = new byte[Size];
+            CopyFrom(hash_null_, 0);
+            return h;
+        }
+        public override int GetHashCode()
+        {
+            Int32 hashcode = BitConverter.ToInt32(hash_, Size - 4);
+            return hashcode;
+        }
+
+        public override string ToString()
+        {
+            int length = hash_.Length;
+            char[] chars = new char[length * 2];
+            for (int n = 0; n < length; n++)
+            {
+                int i = n * 2;
+                byte value = hash_[n];
+                byte bh = (byte)(value >> 4);
+                chars[i] = (char)((bh < 10) ? ('0' + bh) : ('A' + bh - 10));
+                byte bl = (byte)(value & 0xF);
+                chars[i+1] = (char)((bl < 10) ? ('0' + bl) : ('A' + bl - 10));
+            }
+            string str = new string(chars);
+            while (str.Length < 32)
+                str = "0" + str;
+            return str;
+        }
+
+        public static byte[] FromStringN(string _hashstr, int _size_in_bytes)
+        {
+            byte[] hash = new byte[_size_in_bytes];
+
+            int nc = 2 * _size_in_bytes;
+            string str = _hashstr;
+            while (str.Length < nc)
+                str = "0" + str;
+
+            for (int i = 0; i < nc; i += 2)
+            {
+                int b = 0;
+                for (int j = 0; j < 2; ++j)
+                {
+                    char c = str[i + j];
+                    Debug.Assert(Char.IsLetterOrDigit(c) && !Char.IsLower(c));
+
+                    int n = 0;
+                    if (c >= 'A' && c <= 'F')
+                        n = (byte)((int)10 + ((int)c - (int)'A'));
+                    else if (c >= 'a' && c <= 'f')
+                        n = (byte)((int)10 + ((int)c - (int)'a'));
+                    else if (c >= '0' && c <= '9')
+                        n = (byte)((int)0 + ((int)c - (int)'0'));
+
+                    Debug.Assert(n >= 0 && n <= 15);
+                    b = (byte)((b << 4) | n);
+                }
+
+                hash[i / 2] = (byte)b;
+            }
+            return hash;
+        }
+
+        public static Hash128 FromString(string _hashstr)
+        {
+            return ConstructTake(FromStringN(_hashstr, 32));
+        }
+
+        public static Hash128 FromDateTime(DateTime dt)
+        {
+            return FromString(String.Format("00000000000000{0:X16}", dt.Ticks));
+        }
+
+        public int Copy(Hash128 other)
+        {
+            return CopyFrom(other.Data, 0);
+        }
+
+        public int CopyFrom(byte[] _hash, int _offset)
+        {
+            for (int j = 0; j < Size; j++)
+                hash_[j] = _hash[_offset + j];
+            return Size;
+        }
+
+        public int CopyTo(byte[] _header)
+        {
+            return CopyTo(_header, 0);
+        }
+
+        public int CopyTo(byte[] _header, int _index)
+        {
+            for (int j = 0; j < Size; j++)
+                _header[j + _index] = hash_[j];
+            return Size;
+        }
+
+        public void WriteTo(BinaryWriter _writer)
+        {
+            _writer.Write(hash_);
+        }
+
+        public static bool operator ==(Hash128 b1, Hash128 b2)
+        {
+            bool equal = (b1.hash_[0] == b2.hash_[0]);
+            for (int j = 1; j < Size && equal; j++)
+                equal = (b1.hash_[j] == b2.hash_[j]);
+            return equal;
+        }
+        public static bool operator !=(Hash128 b1, Hash128 b2)
+        {
+            bool equal = (b1.hash_[0] == b2.hash_[0]);
+            for (int j = 1; j < Size && equal; j++)
+                equal = (b1.hash_[j] == b2.hash_[j]);
+            return equal == false;
+        }
+
+        public override bool Equals(object obj)
+        {
+            Hash128 h = (Hash128)obj;
+            return Compare(h) == 0;
+        }
+
+        public int Compare(Hash128 _other)
+        {
+            return Compare(_other.Data, 0);
+        }
+        public static int Compare(Hash128 a, Hash128 b)
+        {
+            return a.Compare(b);
+        }
+
+        public int Compare(byte[] _other, int _start)
+        {
+            for (int j = 0; j < Size; j++)
+            {
+                byte m = hash_[j];
+                byte o = _other[_start + j];
+                if (m < o) return -1;
+                else if (m > o) return 1;
+            }
+            return 0;
+        }
+
         #region Comparer (IEqualityComparer)
 
         public class Comparer : IEqualityComparer<Hash128>
         {
             public bool Equals(Hash128 a, Hash128 b)
             {
-                return a.mHash == b.mHash;
+                return Hash128.Compare(a, b) == 0;
             }
 
             public int GetHashCode(Hash128 r)
@@ -88,92 +233,41 @@ namespace Core
             }
         }
 
-        public static int Compare(Hash128 x, Hash128 y)
-        {
-            return String.Compare(x.mHash, y.mHash);
-        }
-
         #endregion
-        #region Object Methods
 
-        public override bool Equals(object obj)
+        public static void UnitTest()
         {
-            Hash128 h = (Hash128)obj;
-            return h.mHash == mHash;
-        }
-        
-        public override int GetHashCode()
-        {
-            return mHash.GetHashCode();
-        }
+            Hash128 h1 = new Hash128();
+            Hash128 h2 = new Hash128();
 
-        public override string ToString()
-        {
-            return mHash;
+            Hash128 h3 = new Hash128(Hash128.Error);
+            Hash128 h4 = new Hash128(Hash128.Error);
+
+            Debug.Assert(h1 == Hash128.Null);
+            Debug.Assert(h2 == Hash128.Null);
+            Debug.Assert(h1 != Hash128.Error);
+            Debug.Assert(h2 != Hash128.Error);
+            Debug.Assert(h1 == h2);
+            Debug.Assert(h1.Compare(h2) == 0);
+            Debug.Assert(h1.GetHashCode() == h2.GetHashCode());
+
+            Debug.Assert(h3 != Hash128.Null);
+            Debug.Assert(h4 != Hash128.Null);
+            Debug.Assert(h3 == Hash128.Error);
+            Debug.Assert(h4 == Hash128.Error);
+            Debug.Assert(h3 == h4);
+            Debug.Assert(h3.Compare(h4) == 0);
+            Debug.Assert(h3.GetHashCode() == h4.GetHashCode());
+
+            Debug.Assert(h1 != h3);
+            Debug.Assert(h2 != h4);
+
+            Debug.Assert(Hash128.Error != Hash128.Null);
+            Debug.Assert(Hash128.Error.Compare(Hash128.Null) == 1);
+            Debug.Assert(Hash128.Null.Compare(Hash128.Error) == -1);
+            Debug.Assert(Hash128.Error.GetHashCode() != Hash128.Null.GetHashCode());
         }
-
-        #endregion
-        #region Static From/To Methods
-
-        public static Hash128 FromLastFileWriteTime(DateTime dt)
-        {
-            if (dt.Ticks == 0x0701ce5a309a4000)
-                return Hash128.Empty;
-            return FromDateTime(dt);
-        }
-
-        public static Hash128 FromDateTime(DateTime dt)
-        {
-            return FromString(String.Format("00000000000000{0:X16}", dt.Ticks));
-        }
-
-        public static Hash128 FromString(string s)
-        {
-            if (StringTools.IsHexadecimalNumber(s, false))
-            {
-                Hash128 h = new Hash128(s);
-                return h;
-            }
-            else
-            {
-                return Hash128.Empty;
-            }
-        }
-
-        public static string ToString(Hash128 h)
-        {
-            return h.mHash;
-        }
-
-        public static byte[] ToBinary(Hash128 hash)
-        {
-            string s = hash.mHash;
-            byte[] h = new byte[16];
-            for (int i = 0; i < 16; ++i)
-            {
-                byte b = StringTools.HexToNibble(s[i * 2]);
-                b = (byte)(b << 4);
-                b |= StringTools.HexToNibble(s[i * 2 + 1]);
-                h[i] = b;
-            }
-            return h;
-        }
-
-        public static Hash128 FromBinary(byte[] hash)
-        {
-            string str = string.Empty;
-            for (int i = 0; i < 16; ++i)
-            {
-                byte b = hash[i];
-                str += StringTools.NibbleToHex((byte)(b & 0xF));
-                b = (byte)(b >> 4);
-                str += StringTools.NibbleToHex((byte)(b & 0xF));
-            }
-            return new Hash128(str);
-        }
-
-        #endregion
-    }
+    };
 
     static public class HashUtility
     {
@@ -184,13 +278,13 @@ namespace Core
             byte[] data = System.Text.Encoding.ASCII.GetBytes(str);
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(data);
 
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
 
         public static Hash128 compute(FileInfo s)
         {
             if (!s.Exists)
-                return Hash128.Empty;
+                return Hash128.Null;
 
             try
             {
@@ -198,24 +292,24 @@ namespace Core
                 {
                     byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(stream);
                     stream.Close();
-                    return Hash128.FromBinary(md5);
+                    return Hash128.ConstructTake(md5);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("[HashUtility:EXCEPTION]{0}", e);
-                return Hash128.Empty;
+                return Hash128.Null;
             }
         }
         public static Hash128 compute(FileStream s)
         {
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(s);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(MemoryStream s)
         {
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(s);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(bool[] v)
         {
@@ -223,7 +317,7 @@ namespace Core
             for (int i = 0; i < v.Length; i++)
                 buffer[i] = v[i] ? (byte)1 : (byte)0;
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(byte[] v)
         {
@@ -235,12 +329,12 @@ namespace Core
             md5Provider.TransformBlock(v1, 0, v1Length, v1, 0);
             md5Provider.TransformFinalBlock(v2, 0, v2Length);
             byte[] md5 = md5Provider.Hash;
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(byte[] v, int index, int count)
         {
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(v, index, count);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(sbyte[] v)
         {
@@ -252,7 +346,7 @@ namespace Core
             for (int i = 0; i < count; i++)
                 buffer[i] = (byte)v[index + i];
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(short[] v)
         {
@@ -263,7 +357,7 @@ namespace Core
                 buffer[i * 2 + 1] = (byte)(v[i] & 0xFF);
             }
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(ushort[] v)
         {
@@ -274,7 +368,7 @@ namespace Core
                 buffer[i * 2 + 1] = (byte)(v[i] & 0xFF);
             }
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(int[] v)
         {
@@ -287,7 +381,7 @@ namespace Core
                 buffer[i * 4 + 3] = (byte)(v[i] & 0xFF);
             }
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(uint[] v)
         {
@@ -300,7 +394,7 @@ namespace Core
                 buffer[i * 4 + 3] = (byte)(v[i] & 0xFF);
             }
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(Int64[] v)
         {
@@ -317,7 +411,7 @@ namespace Core
                 buffer[i * 8 + 7] = (byte)(v[i] & 0xFF);
             }
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(UInt64[] v)
         {
@@ -334,7 +428,7 @@ namespace Core
                 buffer[i * 8 + 7] = (byte)(v[i] & 0xFF);
             }
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
         public static Hash128 compute(float[] v)
         {
@@ -346,7 +440,7 @@ namespace Core
                     buffer[i * 4 + j] = floatBytes[j];
             }
             byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.FromBinary(md5);
+            return Hash128.ConstructTake(md5);
         }
 
         #endregion

@@ -213,7 +213,7 @@ namespace Core
             {
                 // Create default UInt8
                 if (dataObjectFieldValue == null)
-                    dataObjectFieldValue = new UInt64();
+                    dataObjectFieldValue = new UInt8();
 
                 MetaCode.UInt8Member m = mMemberGenerator.newUInt8Member((UInt8)dataObjectFieldValue, memberName) as MetaCode.UInt8Member;
                 member = m;
@@ -222,7 +222,7 @@ namespace Core
             {
                 // Create default Int16
                 if (dataObjectFieldValue == null)
-                    dataObjectFieldValue = new Int64();
+                    dataObjectFieldValue = new Int16();
 
                 MetaCode.Int16Member m = mMemberGenerator.newInt16Member((Int16)dataObjectFieldValue, memberName) as MetaCode.Int16Member;
                 member = m;
@@ -435,10 +435,6 @@ namespace Core
                     {
                         MetaCode.Member member = addMember(inClass, fieldValue, fieldType, fieldName);
                     }
-
-//                    Game.Data.Range[] range = dataObjectFieldInfo.GetCustomAttributes(typeof(Game.Data.Range), true) as Game.Data.Range[];
-//                    if (range!=null && range.Length > 0)
-//                        member.range = range[0];
                 }
             }
         }

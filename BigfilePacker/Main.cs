@@ -49,7 +49,7 @@ namespace BigfilePacker
             {
                 // Instanciate
                 bigFileConfig = AssemblyUtil.Create1<IBigfileConfig>(configAssembly);
-                if (bigFileConfig!=null)
+                if (bigFileConfig != null)
                     BigfileConfig.Init(bigFileConfig);
             }
 

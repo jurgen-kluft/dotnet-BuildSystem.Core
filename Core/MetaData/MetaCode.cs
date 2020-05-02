@@ -888,51 +888,17 @@ namespace Core
         {
             public static readonly UInt64Type sType = new UInt64Type(typeof(UInt64));
 
-            private StreamReference mReference = StreamReference.Empty; 
-            private readonly UInt64 mValue;
-
             public UInt64Member(string name, UInt64 value)
                 : base(sType, name, 8)
             {
-                mValue = value;
+                uint64 = value;
                 mAlignment = EStreamAlignment.ALIGN_64;
             }
 
-            public StreamReference reference
-            {
-                get
-                {
-                    return mReference;
-                }
-                set
-                {
-                    mReference = value;
-                }
-            }
-
-            public override object value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
-
-            public UInt64 uint64
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
-
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
+            public StreamReference reference { get; set; } = StreamReference.Empty;
+            public override object value { get { return uint64; } }
+            public UInt64 uint64 { get; }
+            public override bool IsDefault{ get { return uint64 == 0; } }
 
             public override Member Default()
             {
@@ -953,12 +919,10 @@ namespace Core
         {
             public static readonly FloatType sType = new FloatType(typeof(float));
 
-            private readonly float mValue;
-
             public FloatMember(string name, float value)
                 : base(sType, name, 4)
             {
-                mValue = value;
+                real = value;
                 mAlignment = EStreamAlignment.ALIGN_32;
             }
 
@@ -966,7 +930,7 @@ namespace Core
             {
                 get
                 {
-                    return mValue;
+                    return real;
                 }
             }
 
@@ -974,17 +938,11 @@ namespace Core
             {
                 get
                 {
-                    return mValue == 0.0f;
+                    return real == 0.0f;
                 }
             }
 
-            public float real
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public float real { get; }
 
             public override Member Default()
             {

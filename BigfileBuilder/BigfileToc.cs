@@ -87,9 +87,9 @@ namespace DataBuildSystem
                 return new TocEntry(fileOffset, fileSize, filename, type, contentHash);
             }
             public static ITocEntry Create(UInt32 fileSize, Filename filename, ECompressed type, Hash128 contentHash)
-			{
+            {
                 return new TocEntry(fileSize, filename, type, contentHash);
-			}
+            }
 
             public static IReadContext CreateReadTocContext(List<ITocEntry> table)
             {
@@ -141,20 +141,20 @@ namespace DataBuildSystem
             private Filename mFilename;
             private Hash128 mHash;
             private Hash128 mContentHash;
-			private StreamOffset[] mEmptyOffset = new StreamOffset[] { StreamOffset.Empty };
+            private StreamOffset[] mEmptyOffset = new StreamOffset[] { StreamOffset.Empty };
 
             #endregion
-			#region Constructor
+            #region Constructor
 
-			public TocEntry()
-			{
+            public TocEntry()
+            {
                 mFileOffsets = null;
-				mFilename = Filename.Empty;
+                mFilename = Filename.Empty;
                 mHash = Hash128.Empty;
                 mContentHash = Hash128.Empty;
                 size = 0;
                 compressed = false;
-			}
+            }
             public TocEntry(Filename filename, ECompressed type, Hash128 contentHash)
             {
                 mFileOffsets = null;
@@ -173,26 +173,26 @@ namespace DataBuildSystem
             }
             public TocEntry(UInt32 fileSize, Filename filename, ECompressed type, Hash128 contentHash)
                 : this(filename, type, contentHash)
-			{
-				mFileOffsets = null;
+            {
+                mFileOffsets = null;
                 size = fileSize;
             }
 
-			#endregion
+            #endregion
             #region Properties
 
             public StreamOffset[] offsets
             {
                 get
                 {
-					if (null == mFileOffsets)
-					{
-						return mEmptyOffset;
-					}
-					else
-					{
-						return mFileOffsets;
-					}
+                    if (null == mFileOffsets)
+                    {
+                        return mEmptyOffset;
+                    }
+                    else
+                    {
+                        return mFileOffsets;
+                    }
                 }
                 set
                 {
@@ -277,18 +277,18 @@ namespace DataBuildSystem
 
             public void addFileOffset(StreamOffset o)
             {
-				if (null != mFileOffsets && mFileOffsets.Length > 0)
-				{
-					StreamOffset[] newOffsets = new StreamOffset[mFileOffsets.Length + 1];
-					mFileOffsets.CopyTo(newOffsets, 0);
-					newOffsets[newOffsets.Length - 1] = o;
-					mFileOffsets = newOffsets;
-				}
-				else
-				{
-					mFileOffsets = new StreamOffset[1];
-					mFileOffsets[0] = o;
-				}
+                if (null != mFileOffsets && mFileOffsets.Length > 0)
+                {
+                    StreamOffset[] newOffsets = new StreamOffset[mFileOffsets.Length + 1];
+                    mFileOffsets.CopyTo(newOffsets, 0);
+                    newOffsets[newOffsets.Length - 1] = o;
+                    mFileOffsets = newOffsets;
+                }
+                else
+                {
+                    mFileOffsets = new StreamOffset[1];
+                    mFileOffsets[0] = o;
+                }
             }
 
             public void read(IBinaryReader reader, IReadContext context)
@@ -301,7 +301,7 @@ namespace DataBuildSystem
                 context.write(writer, this);
             }
 
-			#endregion
+            #endregion
 
             #region TocEntryHashComparer (IComparer<ITocEntry>)
 
@@ -315,7 +315,7 @@ namespace DataBuildSystem
             }
 
             #endregion
-		}
+        }
 
         /// <summary>
         /// The (32 bit) Toc (holding TocEntry[] with multiple file offsets) consists of 2 iterations
@@ -546,8 +546,7 @@ namespace DataBuildSystem
                     case 0: // Read the FilenameOffset(Int32)[]
                         {
                             byte[] hash = reader.ReadBytes(16);
-                            Hash128 h = Hash128.FromBinary(hash);
-                            e.hash = h;
+                            e.hash = Hash128.ConstructTake(hash);
                         }
                         break;
                 }
@@ -636,7 +635,7 @@ namespace DataBuildSystem
                             if (mIndex == 0)
                             {
                                 mMultiOffset = new List<Int32>(mCount);
-                                mOffset = (int) writer.Position + mCount*(sizeof (Int32) + sizeof (Int32));
+                                mOffset = (int)writer.Position + mCount * (sizeof(Int32) + sizeof(Int32));
                             }
 
                             if (e.offsets.Length == 0)
@@ -786,7 +785,7 @@ namespace DataBuildSystem
             private int mCount = 0;
             private int mIteration = 0;
             private int mIndex = 0;
-            
+
             #endregion
             #region IWriteContext Members
 
@@ -814,7 +813,7 @@ namespace DataBuildSystem
                 {
                     case 0:
                         {
-                            byte[] b = Hash128.ToBinary(e.hash);
+                            byte[] b = e.hash.Data;
                             writer.Write(b);
                         }
                         break;
@@ -876,13 +875,13 @@ namespace DataBuildSystem
             sConfig = config;
         }
 
-		public static bool exists(Filename filename)
+        public static bool exists(Filename filename)
         {
             Filename bigFileTocFilename = filename;
             bigFileTocFilename.Extension = sConfig.BigFileTocExtension;
             FileInfo fileInfo = new FileInfo(bigFileTocFilename);
-			return fileInfo.Exists;
-		}
+            return fileInfo.Exists;
+        }
 
         public void add(BigfileFile file, bool isCompressed)
         {
@@ -890,13 +889,13 @@ namespace DataBuildSystem
             if (mFilenameToFileEntryIndexDictionary.TryGetValue(file.filename, out index) == false)
             {
                 ITocEntry fileEntry = Factory.Create(file.offset, (UInt32)file.size, file.filename, isCompressed ? ECompressed.YES : ECompressed.NO, file.contenthash);
-                index = (UInt32) mTable.Count;
+                index = (UInt32)mTable.Count;
                 mTable.Add(fileEntry);
                 mFilenameToFileEntryIndexDictionary.Add(file.filename, index);
             }
             else
             {
-                Debug.Assert(file.size == mTable[(int) index].size);
+                Debug.Assert(file.size == mTable[(int)index].size);
                 mTable[(int)index].addFileOffset(file.offset);
             }
         }
@@ -908,36 +907,36 @@ namespace DataBuildSystem
         {
             mTable.Sort(new TocEntry.TocEntryHashComparer());
         }
-		public void copyFilesOrder(BigfileToc orgToc)
-		{
-			mTable.Clear();
-			mFilenameToFileEntryIndexDictionary.Clear();
+        public void copyFilesOrder(BigfileToc orgToc)
+        {
+            mTable.Clear();
+            mFilenameToFileEntryIndexDictionary.Clear();
 
-			for ( int i = 0; i < orgToc.Count; i++ )
-			{
-				ITocEntry oldEntry = orgToc.mTable[i];
-				bool isCompressed = (oldEntry.size & 0x80000000) == 0x80000000;
+            for (int i = 0; i < orgToc.Count; i++)
+            {
+                ITocEntry oldEntry = orgToc.mTable[i];
+                bool isCompressed = (oldEntry.size & 0x80000000) == 0x80000000;
                 ITocEntry newEntry = Factory.Create((UInt32)oldEntry.size, oldEntry.filename, isCompressed ? ECompressed.YES : ECompressed.NO, oldEntry.contenthash);
-				UInt32 index = (UInt32)mTable.Count;
-				mTable.Add(newEntry);
+                UInt32 index = (UInt32)mTable.Count;
+                mTable.Add(newEntry);
                 mFilenameToFileEntryIndexDictionary.Add(new Filename(oldEntry.filename), index);
-			}
-		}
-		public void copyFilesOrder(List<BigfileFile> srcBigfileFiles)
-		{
-			mTable.Clear();
-			mFilenameToFileEntryIndexDictionary.Clear();
+            }
+        }
+        public void copyFilesOrder(List<BigfileFile> srcBigfileFiles)
+        {
+            mTable.Clear();
+            mFilenameToFileEntryIndexDictionary.Clear();
 
-			for (int i = 0; i < srcBigfileFiles.Count; i++)
-			{
-				BigfileFile oldFile = srcBigfileFiles[i];
-				bool isCompressed = (oldFile.size & 0x80000000) == 0x80000000;
+            for (int i = 0; i < srcBigfileFiles.Count; i++)
+            {
+                BigfileFile oldFile = srcBigfileFiles[i];
+                bool isCompressed = (oldFile.size & 0x80000000) == 0x80000000;
                 ITocEntry newEntry = Factory.Create((UInt32)oldFile.size, oldFile.filename, isCompressed ? ECompressed.YES : ECompressed.NO, oldFile.contenthash);
-				UInt32 index = (UInt32)mTable.Count;
-				mTable.Add(newEntry);
-				mFilenameToFileEntryIndexDictionary.Add(new Filename(oldFile.filename), index);
-			}
-		}
+                UInt32 index = (UInt32)mTable.Count;
+                mTable.Add(newEntry);
+                mFilenameToFileEntryIndexDictionary.Add(new Filename(oldFile.filename), index);
+            }
+        }
 
         private static void sReadTable(List<ITocEntry> table, IReadContext context, FileStream stream, EEndian endian)
         {
@@ -965,7 +964,7 @@ namespace DataBuildSystem
             return fileStream;
         }
 
-		public bool load(Filename filename, EEndian endian)
+        public bool load(Filename filename, EEndian endian)
         {
             try
             {
@@ -980,7 +979,7 @@ namespace DataBuildSystem
                         sReadTable(mTable, Factory.CreateReadFdbContext(), bigFileFdbFileStream, endian);
                         sReadTable(mTable, Factory.CreateReadHdbContext(), bigFileHdbFileStream, endian);
                     }
-					catch (Exception e)
+                    catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                         return false;
@@ -995,7 +994,7 @@ namespace DataBuildSystem
                 Console.WriteLine(e.Message);
                 return false;
             }
-            
+
             return true;
         }
 
@@ -1052,7 +1051,7 @@ namespace DataBuildSystem
                         return false;
                     }
                 }
-                
+
                 bigFileTocFileStream.Close();
                 bigFileFdbFileStream.Close();
             }

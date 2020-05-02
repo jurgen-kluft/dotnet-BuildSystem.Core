@@ -572,8 +572,6 @@ namespace DataBuildSystem
 
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new StringTable();
-            stringTable.forceLowerCase = false;
-
             FileIdTable fileIdTable = new FileIdTable();
 
             // Compile every 'Code.Class' to the DataStream.

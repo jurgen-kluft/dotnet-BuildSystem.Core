@@ -15,7 +15,7 @@ namespace Core
             hash = 0;
             if (data.Length == count)
             {
-                foreach(byte b in data)
+                foreach (byte b in data)
                     hash = hash * 65599 + b;
             }
             else
@@ -84,7 +84,7 @@ namespace Core
             InternalHash(data, count, ref hash);
             return hash;
         }
-       
+
         #endregion
         #region UnitTest
 
@@ -110,7 +110,7 @@ namespace Core
                 return false;
             if (qqqqh != 0x75274362)
                 return false;
-            
+
             return true;
         }
         #endregion
@@ -149,13 +149,13 @@ namespace Core
 
             uint h = (uint)(seed ^ str.Length);
 
-            uint len4 =  (uint)(str.Length / 4);
+            uint len4 = (uint)(str.Length / 4);
             for (int i = 0; i < len4; i++)
             {
                 byte b1 = (byte)str[i];
-                byte b2 = (byte)str[i+1];
-                byte b3 = (byte)str[i+2];
-                byte b4 = (byte)str[i+3];
+                byte b2 = (byte)str[i + 1];
+                byte b3 = (byte)str[i + 2];
+                byte b4 = (byte)str[i + 3];
 
                 uint k;
                 k = b1;
@@ -203,7 +203,7 @@ namespace Core
             const uint m = 0x5bd1e995;
             const int r = 24;
             const uint seed = 0;
-            
+
             uint len = (uint)(str.Length);
 
             uint h1 = seed ^ len;
@@ -313,5 +313,179 @@ namespace Core
         }
 
         #endregion
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+    /* SHA-1 (FIPS 180-4) implementation                                                              */
+    /*                                                                                   MIT Licence  */
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+    public static class SHA1
+    {
+        private static readonly UInt32[] K = new uint[4] { 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 };
+
+        private static uint ReadUInt32(byte[] msg, uint offset)
+        {
+            uint u = msg[offset];
+            for (uint k = 1; k < 4; k++)
+            {
+                u = (u << 8) | msg[offset + k];
+            }
+            return u;
+        }
+        private static void WriteUInt32(byte[] msg, uint offset, uint value)
+        {
+            msg[offset + 0] = (byte)(value >> 24);
+            msg[offset + 1] = (byte)(value >> 16);
+            msg[offset + 2] = (byte)(value >> 8);
+            msg[offset + 3] = (byte)(value >> 0);
+        }
+
+        private static void Iterate(byte[] msg, uint msg_offset, uint[] W, uint[] H)
+        {
+            // 1 - prepare message schedule 'W'
+            for (uint j = 0; j < 16; j++)
+            {
+                W[j] = ReadUInt32(msg, msg_offset + (j * 4));
+            }
+
+            for (uint t = 16; t < 80; t++)
+            {
+                W[t] = SHA1.ROTL(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
+            }
+
+            // 2 - initialise five working variables a, b, c, d, e with previous hash value
+            uint a = H[0], b = H[1], c = H[2], d = H[3], e = H[4];
+
+            // 3 - main loop
+            for (uint s = 0; s < 4; s++)
+            {
+                for (uint t = 0; t < 20; t++)
+                {
+                    uint aa = (SHA1.ROTL(a, 5) + SHA1.F(s, b, c, d) + e + K[s] + W[t + (s * 20)]);
+                    e = d;
+                    d = c;
+                    c = SHA1.ROTL(b, 30);
+                    b = a;
+                    a = aa;
+                }
+            }
+
+            // 4 - compute the new intermediate hash value
+            H[0] = (H[0] + a);
+            H[1] = (H[1] + b);
+            H[2] = (H[2] + c);
+            H[3] = (H[3] + d);
+            H[4] = (H[4] + e);
+        }
+
+        public static Hash128 Compute(byte[] msg)
+        {
+            UInt32[] H = new UInt32[] { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 };
+            uint[] W = new uint[80];
+            byte[] Block = new byte[64];
+
+            uint L = (uint)msg.Length;
+            uint N = L / 64;
+            for (uint i = 0; i < N; i++)
+            {
+                Iterate(msg, i * 64, W, H);
+            }
+
+            L = (uint)(L + 1) - (N * 64) + 8; // +8 is the bytes used that contain the length in bits of the message
+            while (L != 0)
+            {
+                for (uint i = 0; i < 64; i++)
+                {
+                    uint msg_index = (N * 64) + i;
+                    if (msg_index < msg.Length)
+                    {
+                        Block[i] = msg[msg_index];
+                    }
+                    else if (msg_index == msg.Length)
+                    {
+                        Block[i++] = 0x80;
+                        for (; i < 64; i++)
+                            Block[i] = 0;
+                    }
+                    else
+                    {
+                        for (; i < 64; i++)
+                            Block[i] = 0;
+                    }
+                }
+
+                if (L <= 64)
+                {
+                    UInt64 bitlen = (UInt64)msg.Length * 8;
+                    WriteUInt32(Block, 56, (uint)(bitlen >> 32));
+                    WriteUInt32(Block, 60, (uint)(bitlen & 0xffffffff));
+                    L = 0;
+                }
+                else
+                {
+                    L -= 64;
+                }
+
+                Iterate(Block, 0, W, H);
+            }
+
+            byte[] data = new byte[16];
+            for (uint i = 0; i < 4; ++i)
+            {
+                WriteUInt32(data, i * 4, H[i]);
+            }
+
+            return Hash128.ConstructTake(data);
+        }
+
+        static uint F(uint s, uint x, uint y, uint z)
+        {
+            switch (s)
+            {
+                case 0: return (x & y) ^ (~x & z);          // Ch()
+                case 1: return x ^ y ^ z;                   // Parity()
+                case 2: return (x & y) ^ (x & z) ^ (y & z); // Maj()
+                case 3: return x ^ y ^ z;                   // Parity()
+            }
+            return 0;
+        }
+
+        static uint ROTL(uint x, int n)
+        {
+            return (x << n) | (x >> (32 - n));
+        }
+
+        #region UnitTest
+        public static Hash128 Compute_ASCII(string str)
+        {
+            byte[] data = System.Text.ASCIIEncoding.Default.GetBytes(str);
+            return Compute(data);
+        }
+
+        public static bool UnitTest()
+        {
+            string q = "abc";
+            string qq = "this is the time for all good men to come to the aid of their country...";
+            string qqq = ".. this is the time for all good men to come to the aid of their country...";
+            string qqqq = "... this is the time for all good men to come to the aid of their country...";
+
+            Hash128 qh = Compute_ASCII(q);
+            Hash128 qqh = Compute_ASCII(qq);
+            Hash128 qqqh = Compute_ASCII(qqq);
+            Hash128 qqqqh = Compute_ASCII(qqqq);
+
+            if (qh.ToString() != "A9993E364706816ABA3E25717850C26C")
+                return false;
+            if (qqh.ToString() != "90BAD383FFC8EF488D2019A1C2A8DDCE")
+                return false;
+            if (qqqh.ToString() != "49936E9D9F0F02B0998FAEE3B311A529")
+                return false;
+            if (qqqqh.ToString() != "544863DF61291E5610169DD5EEEA9A8E")
+                return false;
+
+            return true;
+        }
+        #endregion
+
     }
 }

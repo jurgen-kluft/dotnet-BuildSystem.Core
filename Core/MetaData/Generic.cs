@@ -50,7 +50,7 @@ namespace Core
 
             public UnresolvedReferencesLogger(StringTable stringTable, Dictionary<StreamReference, StreamContext> unresolvedReferences)
             {
-                mStringTable = stringTable; 
+                mStringTable = stringTable;
                 mUnresolvedReferences = unresolvedReferences;
             }
 
@@ -346,19 +346,34 @@ namespace Core
         {
             private readonly StringTable mStringTable;
 
-            private bool mNullMemberDone;
-            private bool mBool8MemberDone;
-            private bool mInt8MemberDone;
-            private bool mInt16MemberDone;
-            private bool mInt32MemberDone;
-            private bool mInt64MemberDone;
-            private bool mUInt8MemberDone;
-            private bool mUInt16MemberDone;
-            private bool mUInt32MemberDone;
-            private bool mUInt64MemberDone;
-            private bool mFloatMemberDone;
-            private bool mStringMemberDone;
-            private bool mFileIdMemberDone;
+            private UInt32 mDone = 0;
+            private enum EDone : UInt32
+            {
+                None = 0,
+                NullMemberDone = 1 << 1,
+                Bool8MemberDone = 1 << 2,
+                Int8MemberDone = 1 << 3,
+                Int16MemberDone = 1 << 4,
+                Int32MemberDone = 1 << 5,
+                Int64MemberDone = 1 << 6,
+                UInt8MemberDone = 1 << 7,
+                UInt16MemberDone = 1 << 8,
+                UInt32MemberDone = 1 << 9,
+                UInt64MemberDone = 1 << 10,
+                FloatMemberDone = 1 << 11,
+                StringMemberDone = 1 << 12,
+                FileIdMemberDone = 1 << 13,
+            };
+
+            private bool HasFlag(EDone d)
+            {
+                return (mDone & (UInt32)d) == (UInt32)d;
+            }
+
+            private void SetFlag(EDone d)
+            {
+                mDone = mDone | (UInt32)d;
+            }
 
             public StringTableWriter(StringTable strTable)
             {
@@ -377,9 +392,9 @@ namespace Core
 
             public bool writeNullMember(NullMember c)
             {
-                if (!mNullMemberDone)
+                if (!HasFlag(EDone.NullMemberDone))
                 {
-                    mNullMemberDone = true;
+                    SetFlag(EDone.NullMemberDone);
                     mStringTable.Add("void");
                     mStringTable.Add("void[]");
                 }
@@ -388,9 +403,9 @@ namespace Core
             }
             public bool writeBool8Member(BoolMember c)
             {
-                if (!mBool8MemberDone)
+                if (!HasFlag(EDone.Bool8MemberDone))
                 {
-                    mBool8MemberDone = true;
+                    SetFlag(EDone.Bool8MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -398,9 +413,9 @@ namespace Core
             }
             public bool writeInt8Member(Int8Member c)
             {
-                if (!mInt8MemberDone)
+                if (!HasFlag(EDone.Int8MemberDone))
                 {
-                    mInt8MemberDone = true;
+                    SetFlag(EDone.Int8MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -408,9 +423,9 @@ namespace Core
             }
             public bool writeInt16Member(Int16Member c)
             {
-                if (!mInt16MemberDone)
+                if (!HasFlag(EDone.Int16MemberDone))
                 {
-                    mInt16MemberDone = true;
+                    SetFlag(EDone.Int16MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -418,9 +433,9 @@ namespace Core
             }
             public bool writeInt32Member(Int32Member c)
             {
-                if (!mInt32MemberDone)
+                if (!HasFlag(EDone.Int32MemberDone))
                 {
-                    mInt32MemberDone = true;
+                    SetFlag(EDone.Int32MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -428,9 +443,9 @@ namespace Core
             }
             public bool writeInt64Member(Int64Member c)
             {
-                if (!mInt64MemberDone)
+                if (!HasFlag(EDone.Int64MemberDone))
                 {
-                    mInt64MemberDone = true;
+                    SetFlag(EDone.Int64MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -438,9 +453,9 @@ namespace Core
             }
             public bool writeUInt8Member(UInt8Member c)
             {
-                if (!mUInt8MemberDone)
+                if (!HasFlag(EDone.UInt8MemberDone))
                 {
-                    mUInt8MemberDone = true;
+                    SetFlag(EDone.UInt8MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -448,9 +463,9 @@ namespace Core
             }
             public bool writeUInt16Member(UInt16Member c)
             {
-                if (!mUInt16MemberDone)
+                if (!HasFlag(EDone.UInt16MemberDone))
                 {
-                    mUInt16MemberDone = true;
+                    SetFlag(EDone.UInt16MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -458,9 +473,9 @@ namespace Core
             }
             public bool writeUInt32Member(UInt32Member c)
             {
-                if (!mUInt32MemberDone)
+                if (!HasFlag(EDone.UInt32MemberDone))
                 {
-                    mUInt32MemberDone = true;
+                    SetFlag(EDone.UInt32MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -468,9 +483,9 @@ namespace Core
             }
             public bool writeUInt64Member(UInt64Member c)
             {
-                if (!mUInt64MemberDone)
+                if (!HasFlag(EDone.UInt64MemberDone))
                 {
-                    mUInt64MemberDone = true;
+                    SetFlag(EDone.UInt64MemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -478,9 +493,9 @@ namespace Core
             }
             public bool writeFloatMember(FloatMember c)
             {
-                if (!mFloatMemberDone)
+                if (!HasFlag(EDone.FloatMemberDone))
                 {
-                    mFloatMemberDone = true;
+                    SetFlag(EDone.FloatMemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -488,9 +503,9 @@ namespace Core
             }
             public bool writeStringMember(StringMember c)
             {
-                if (!mStringMemberDone)
+                if (!HasFlag(EDone.StringMemberDone))
                 {
-                    mStringMemberDone = true;
+                    SetFlag(EDone.StringMemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -499,9 +514,9 @@ namespace Core
             }
             public bool writeFileIdMember(FileIdMember c)
             {
-                if (!mFileIdMemberDone)
+                if (!HasFlag(EDone.FileIdMemberDone))
                 {
-                    mFileIdMemberDone = true;
+                    SetFlag(EDone.FileIdMemberDone);
                     mStringTable.Add(c.type.typeName);
                 }
                 mStringTable.Add(c.name.ToLower());
@@ -577,16 +592,16 @@ namespace Core
                 }
             }
 
-            public bool open() 
+            public bool open()
             {
                 return mStringTable != null && mWriter != null;
             }
-            
+
             public bool close()
             {
                 mStringTable = null;
                 mWriter = null;
-                return true; 
+                return true;
             }
 
             private void writeReference(StreamReference reference)
@@ -744,7 +759,7 @@ namespace Core
 
             public bool open()
             {
-                return mStringTable!=null && mWriter!=null;
+                return mStringTable != null && mWriter != null;
             }
 
             public bool close()
@@ -820,7 +835,7 @@ namespace Core
             public bool writeArrayMember(ArrayMember c)
             {
                 // The reference of this member can be null!
-                if (c.reference!=StreamReference.Empty && mWriter.BeginBlock(c.reference, c.alignment))
+                if (c.reference != StreamReference.Empty && mWriter.BeginBlock(c.reference, c.alignment))
                 {
                     foreach (Member m in c.members)
                     {
@@ -1139,7 +1154,7 @@ namespace Core
 
                 /// Write every 'SResource' in a new DataBlock so that
                 /// duplicate classes can be collapsed. 
-                if (c.reference!=StreamReference.Empty && mWriter.BeginBlock(c.reference, c.alignment))
+                if (c.reference != StreamReference.Empty && mWriter.BeginBlock(c.reference, c.alignment))
                 {
                     if (mDataFormat != EGenericFormat.STD_FLAT)
                     {
@@ -1407,7 +1422,7 @@ namespace Core
                 {
                     return new NullType();
                 }
-                
+
                 if (isAtom(type))
                 {
                     return new AtomType(type, type.Name);
@@ -1472,7 +1487,7 @@ namespace Core
 
                     ObjectMember c = classMember;
                     Type baseType = classType.BaseType;
-                    while (baseType!=null && baseType != typeof(object))
+                    while (baseType != null && baseType != typeof(object))
                     {
                         c.baseClass = new ObjectMember(content, newObjectType(baseType), "");
                         c = c.baseClass;
@@ -1528,8 +1543,7 @@ namespace Core
                 // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
                 StringTable stringTable = new StringTable();
                 stringTable.reference = StreamReference.Instance;
-                stringTable.forceLowerCase = false;
-                
+
                 // The FileIdTable to collect (and collapse duplicate) all FileIds
                 FileIdTable fileIdTable = new FileIdTable();
                 fileIdTable.reference = StreamReference.Instance;
