@@ -7,7 +7,7 @@ following things will be done by the BuildSystem:
 
 - It will search for IRoot and will treat it as the root of the game-data
 - It recognizes the following types:
-  - FileId; An Id that can be retrieved interacting with BigfileManager
+  - ``FileId``; An Id that can be retrieved interacting with BigfileManager
   - FileIdList; An array of FileId's
   - FRect/IRect; floating point and integer rectangle (left, right, top, bottom) compound
   - FSize/Size; floating point and integer size (width, height) compound
