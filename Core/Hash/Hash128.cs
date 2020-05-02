@@ -103,7 +103,7 @@ namespace Core
             return str;
         }
 
-        public static byte[] FromStringN(string _hashstr, int _size_in_bytes)
+        private static byte[] FromStringN(string _hashstr, int _size_in_bytes)
         {
             byte[] hash = new byte[_size_in_bytes];
 
@@ -273,14 +273,6 @@ namespace Core
     {
         #region Methods
 
-        public static Hash128 compute(string str)
-        {
-            byte[] data = System.Text.Encoding.ASCII.GetBytes(str);
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(data);
-
-            return Hash128.ConstructTake(md5);
-        }
-
         public static Hash128 compute(FileInfo s)
         {
             if (!s.Exists)
@@ -288,11 +280,11 @@ namespace Core
 
             try
             {
-                using (FileStream stream = new FileStream(s.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (FileStream fs = new FileStream(s.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(stream);
-                    stream.Close();
-                    return Hash128.ConstructTake(md5);
+                    MemoryStream ms = new MemoryStream();
+                    fs.CopyTo(ms);
+                    return compute(ms);
                 }
             }
             catch (Exception e)
@@ -301,23 +293,25 @@ namespace Core
                 return Hash128.Null;
             }
         }
-        public static Hash128 compute(FileStream s)
+        public static Hash128 compute(FileStream fs)
         {
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(s);
-            return Hash128.ConstructTake(md5);
+            MemoryStream ms = new MemoryStream();
+            fs.CopyTo(ms);
+            return compute(ms);
         }
-        public static Hash128 compute(MemoryStream s)
+        public static Hash128 compute(MemoryStream ms)
         {
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(s);
-            return Hash128.ConstructTake(md5);
+            byte[] data = ms.GetBuffer();
+            return SHA1.Compute(data);
         }
-        public static Hash128 compute(bool[] v)
+        public static Hash128 compute(bool[] values)
         {
-            byte[] buffer = new byte[v.Length];
-            for (int i = 0; i < v.Length; i++)
-                buffer[i] = v[i] ? (byte)1 : (byte)0;
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            MemoryStream ms = new MemoryStream();
+            foreach (var v in values)
+            {
+                ms.WriteByte(v ? (byte)1 : (byte)0);
+            }
+            return compute(ms);
         }
         public static Hash128 compute(byte[] v)
         {
@@ -325,16 +319,16 @@ namespace Core
         }
         public static Hash128 compute(byte[] v1, int v1Length, byte[] v2, int v2Length)
         {
-            System.Security.Cryptography.MD5 md5Provider = System.Security.Cryptography.MD5.Create();
-            md5Provider.TransformBlock(v1, 0, v1Length, v1, 0);
-            md5Provider.TransformFinalBlock(v2, 0, v2Length);
-            byte[] md5 = md5Provider.Hash;
-            return Hash128.ConstructTake(md5);
+            MemoryStream ms = new MemoryStream();
+            ms.Write(v1, 0, v1Length);
+            ms.Write(v2, 0, v2Length);
+            return compute(ms);
         }
         public static Hash128 compute(byte[] v, int index, int count)
         {
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(v, index, count);
-            return Hash128.ConstructTake(md5);
+            MemoryStream ms = new MemoryStream();
+            ms.Write(v, index, count);
+            return compute(ms);
         }
         public static Hash128 compute(sbyte[] v)
         {
@@ -342,105 +336,106 @@ namespace Core
         }
         public static Hash128 compute(sbyte[] v, int index, int count)
         {
-            byte[] buffer = new byte[count];
-            for (int i = 0; i < count; i++)
-                buffer[i] = (byte)v[index + i];
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
-        }
-        public static Hash128 compute(short[] v)
-        {
-            byte[] buffer = new byte[v.Length * 2];
-            for (int i = 0; i < v.Length; i++)
+            MemoryStream ms = new MemoryStream();
+            for (int i = index; i < count; ++i)
             {
-                buffer[i * 2 + 0] = (byte)(v[i] >> 8);
-                buffer[i * 2 + 1] = (byte)(v[i] & 0xFF);
+                ms.WriteByte((byte)v[i]);
             }
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            return compute(ms);
         }
-        public static Hash128 compute(ushort[] v)
+        public static Hash128 compute(short[] values)
         {
-            byte[] buffer = new byte[v.Length * 2];
-            for (int i = 0; i < v.Length; i++)
+            MemoryStream ms = new MemoryStream();
+            byte[] bytes = new byte[2];
+            foreach (var v in values)
             {
-                buffer[i * 2 + 0] = (byte)(v[i] >> 8);
-                buffer[i * 2 + 1] = (byte)(v[i] & 0xFF);
+                for (int i = 0; i < 2; ++i)
+                {
+                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                }
+                ms.Write(bytes, 0, bytes.Length);
             }
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            return compute(ms);
         }
-        public static Hash128 compute(int[] v)
+        public static Hash128 compute(ushort[] values)
         {
-            byte[] buffer = new byte[v.Length * 4];
-            for (int i = 0; i < v.Length; i++)
+            MemoryStream ms = new MemoryStream();
+            byte[] bytes = new byte[2];
+            foreach (var v in values)
             {
-                buffer[i * 4 + 0] = (byte)(v[i] >> 24);
-                buffer[i * 4 + 1] = (byte)(v[i] >> 16);
-                buffer[i * 4 + 2] = (byte)(v[i] >> 8);
-                buffer[i * 4 + 3] = (byte)(v[i] & 0xFF);
+                for (int i = 0; i < 2; ++i)
+                {
+                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                }
+                ms.Write(bytes, 0, bytes.Length);
             }
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            return compute(ms);
         }
-        public static Hash128 compute(uint[] v)
+        public static Hash128 compute(int[] values)
         {
-            byte[] buffer = new byte[v.Length * 4];
-            for (int i = 0; i < v.Length; i++)
+            MemoryStream ms = new MemoryStream();
+            byte[] bytes = new byte[8];
+            foreach (var v in values)
             {
-                buffer[i * 4 + 0] = (byte)(v[i] >> 24);
-                buffer[i * 4 + 1] = (byte)(v[i] >> 16);
-                buffer[i * 4 + 2] = (byte)(v[i] >> 8);
-                buffer[i * 4 + 3] = (byte)(v[i] & 0xFF);
+                for (int i = 0; i < 4; ++i)
+                {
+                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                }
+                ms.Write(bytes, 0, bytes.Length);
             }
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            return compute(ms);
         }
-        public static Hash128 compute(Int64[] v)
+        public static Hash128 compute(uint[] values)
         {
-            byte[] buffer = new byte[v.Length * 8];
-            for (int i = 0; i < v.Length; i++)
+            MemoryStream ms = new MemoryStream();
+            byte[] bytes = new byte[8];
+            foreach (var v in values)
             {
-                buffer[i * 8 + 0] = (byte)(v[i] >> 56);
-                buffer[i * 8 + 1] = (byte)(v[i] >> 48);
-                buffer[i * 8 + 2] = (byte)(v[i] >> 40);
-                buffer[i * 8 + 3] = (byte)(v[i] >> 32);
-                buffer[i * 8 + 4] = (byte)(v[i] >> 24);
-                buffer[i * 8 + 5] = (byte)(v[i] >> 16);
-                buffer[i * 8 + 6] = (byte)(v[i] >> 8);
-                buffer[i * 8 + 7] = (byte)(v[i] & 0xFF);
+                for (int i = 0; i < 4; ++i)
+                {
+                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                }
+                ms.Write(bytes, 0, bytes.Length);
             }
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            return compute(ms);
         }
-        public static Hash128 compute(UInt64[] v)
+        public static Hash128 compute(Int64[] values)
         {
-            byte[] buffer = new byte[v.Length * 8];
-            for (int i = 0; i < v.Length; i++)
+            MemoryStream ms = new MemoryStream();
+            byte[] bytes = new byte[8];
+            foreach (var v in values)
             {
-                buffer[i * 8 + 0] = (byte)(v[i] >> 56);
-                buffer[i * 8 + 1] = (byte)(v[i] >> 48);
-                buffer[i * 8 + 2] = (byte)(v[i] >> 40);
-                buffer[i * 8 + 3] = (byte)(v[i] >> 32);
-                buffer[i * 8 + 4] = (byte)(v[i] >> 24);
-                buffer[i * 8 + 5] = (byte)(v[i] >> 16);
-                buffer[i * 8 + 6] = (byte)(v[i] >> 8);
-                buffer[i * 8 + 7] = (byte)(v[i] & 0xFF);
+                for (int i = 0; i < 8; ++i)
+                {
+                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                }
+                ms.Write(bytes, 0, bytes.Length);
             }
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            return compute(ms);
         }
-        public static Hash128 compute(float[] v)
+        public static Hash128 compute(UInt64[] values)
         {
-            byte[] buffer = new byte[v.Length * 4];
-            for (int i = 0; i < v.Length; i++)
+            MemoryStream ms = new MemoryStream();
+            byte[] bytes = new byte[8];
+            foreach (var v in values)
             {
-                byte[] floatBytes = BitConverter.GetBytes(v[i]);
-                for (int j = 0; j < floatBytes.Length; j++)
-                    buffer[i * 4 + j] = floatBytes[j];
+                for (int i=0; i<8; ++i)
+                {
+                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                }
+                ms.Write(bytes, 0, bytes.Length);
             }
-            byte[] md5 = System.Security.Cryptography.MD5.Create().ComputeHash(buffer);
-            return Hash128.ConstructTake(md5);
+            return compute(ms);
+        }
+        public static Hash128 compute(float[] values)
+        {
+            MemoryStream ms = new MemoryStream();
+            foreach (var v in values)
+            {
+                byte[] bytes = BitConverter.GetBytes(v);
+                ms.Write(bytes, 0, bytes.Length);
+            }
+            return compute(ms);
         }
 
         #endregion

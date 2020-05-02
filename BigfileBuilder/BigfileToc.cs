@@ -159,7 +159,7 @@ namespace DataBuildSystem
             {
                 mFileOffsets = null;
                 mFilename = filename;
-                mHash = HashUtility.compute(mFilename.ToString().ToLower());
+                mHash = Hash128.FromString(mFilename.ToString().ToLower());
                 mContentHash = contentHash;
 
                 size = 0;

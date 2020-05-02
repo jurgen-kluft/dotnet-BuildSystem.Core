@@ -27,7 +27,7 @@ namespace Game.Data
 
         public static FileId NewInstance(Filename filename)
         {
-            FileId fileId = new FileId(HashUtility.compute(filename.ToString().ToLower()));
+            FileId fileId = new FileId(Hash128.FromString(filename.ToString().ToLower()));
             return fileId;
         }
 
