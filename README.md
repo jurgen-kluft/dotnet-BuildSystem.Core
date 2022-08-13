@@ -18,8 +18,8 @@ following things will be done by the BuildSystem:
   - ``float``/``double``; single and double float precision
   - ``Color``; 32-bit RGBA color
   - ``LString``; Localized string
- - Anything derived from ``IAtom`` (standard types, see above)
- - Anything derived from ``ICompound``
+ - Anything derived from ``IAtom`` (system types byte/short/..., see above)
+ - Anything derived from ``ICompound`` (mapped to a struct or class in C++)
  - Anything derived from ``IDataCompiler``
   - ```AssetCompiler("objects/rock.asset", ESerialize.Reference / ESerialize.Embed)```
   - ```TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)```
@@ -31,4 +31,12 @@ In your game runtime you can use the ``C++`` files ``GameData.h`` to load and us
 
 TODO:
 
+- Refactor 'Dependency' mechanism, could be a lot simpler and able to handle multi-threading so that
+  we can launch DataCompilers on a job system to improve compilation performance.
+  DataAssemblyManager::FileRegistrar should cache HashOf(Filename)->FileId and load it at each run so
+  as to keep FileIds 'consistent', in there we should also store the HashOf(TimeStamp/Content). 
+  When starting we can thus identify any 'changed'/'removed' dependency.
+
 - Examples
+- FMatrix3x3, FMatrix4x4
+- C# to C++ code (scripting for game-code or other necessary parts)
