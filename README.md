@@ -30,10 +30,17 @@ following things will be done by the BuildSystem:
 In your game runtime you can use the C++ files ``GameData.h`` to load and use it.
 
 
-TODO:
+TODO
+
+- Rethink the whole setup and steps to compile C# and compile the data.
+
+- FilePath could be hashed and for both the 'source' and 'cooked' we could just substite a 64-bit hash
+  and use that in the dependency file.
+  For the final resolve to replace files with a fileid_t we can again use the hashes.
 
 - Refactor 'Dependency' mechanism, could be a lot simpler and able to handle multi-threading so that
   we can launch DataCompilers on a job system to improve compilation performance.
+  
   DataAssemblyManager::FileRegistrar should cache HashOf(Filename)->FileId and load it at each run so
   as to keep FileIds 'consistent', in there we should also store the HashOf(TimeStamp/Content). 
   When starting we can thus identify any 'changed'/'removed' dependency.
