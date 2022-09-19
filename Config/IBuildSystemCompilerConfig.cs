@@ -44,7 +44,7 @@ namespace DataBuildSystem
         /// Force building the bigfile, even if no assets have been modified
         /// </summary>
         bool ForceBuildingBigfile { get; }
-        
+
         #endregion
     }
 
@@ -57,7 +57,7 @@ namespace DataBuildSystem
         public string DataRelocFileExtension { get { return ".gdr"; } }
         public bool LittleEndian { get { return true; } }
         public bool EnumIsInt32 { get { return false; } }
-        public int SizeOfBool { get { return 4; } }
+        public int SizeOfBool { get { return 1; } }
         public bool ForceBuildingBigfile { get { return false; } }
 
         #endregion
@@ -96,12 +96,12 @@ namespace DataBuildSystem
         public static bool platformPS4Pro { get { return sPlatform == EPlatform.PS4_PRO; } }
 
         public static bool targetPC { get { return sTarget == EPlatform.PC; } }
-		public static bool targetXboxOne { get { return sTarget == EPlatform.XBOX_ONE; } }
-		public static bool targetXboxOneX { get { return sTarget == EPlatform.XBOX_ONE_X; } }
-		public static bool targetPS4 { get { return sTarget == EPlatform.PS4; } }
-		public static bool targetPS4Pro { get { return sTarget == EPlatform.PS4_PRO; } }
+        public static bool targetXboxOne { get { return sTarget == EPlatform.XBOX_ONE; } }
+        public static bool targetXboxOneX { get { return sTarget == EPlatform.XBOX_ONE_X; } }
+        public static bool targetPS4 { get { return sTarget == EPlatform.PS4; } }
+        public static bool targetPS4Pro { get { return sTarget == EPlatform.PS4_PRO; } }
 
-		public static EEndian Endian { get { return sConfig.LittleEndian ? EEndian.LITTLE : EEndian.BIG; } }
+        public static EEndian Endian { get { return sConfig.LittleEndian ? EEndian.LITTLE : EEndian.BIG; } }
         public static string Name { get { return sName; } }
         public static EPlatform Platform { get { return sPlatform; } }
         public static string PlatformName { get { return sPlatform.ToString(); } }
@@ -126,9 +126,9 @@ namespace DataBuildSystem
         #endregion
         #region Methods
 
-        public static bool SourceCodeFilterDelegate(DirectoryScanner.FilterEvent e) 
-        { 
-            return (e.isFolder) ? BuildSystemCompilerConfig.FolderFilter(e.name) : BuildSystemCompilerConfig.FileFilter(e.name); 
+        public static bool SourceCodeFilterDelegate(DirectoryScanner.FilterEvent e)
+        {
+            return (e.isFolder) ? BuildSystemCompilerConfig.FolderFilter(e.name) : BuildSystemCompilerConfig.FileFilter(e.name);
         }
 
         public static bool FolderFilter(string folder)
@@ -166,11 +166,11 @@ namespace DataBuildSystem
             if (String.IsNullOrEmpty(target))
                 target = platform;
 
-			Core.Environment.addVariable("NAME", name);
-			Core.Environment.addVariable("PLATFORM", platform);
-			Core.Environment.addVariable("TARGET", target);
-			Core.Environment.addVariable("TERRITORY", territory);
-			Core.Environment.addVariable("SRCPATH", Core.Environment.expandVariables(srcPath));
+            Core.Environment.addVariable("NAME", name);
+            Core.Environment.addVariable("PLATFORM", platform);
+            Core.Environment.addVariable("TARGET", target);
+            Core.Environment.addVariable("TERRITORY", territory);
+            Core.Environment.addVariable("SRCPATH", Core.Environment.expandVariables(srcPath));
 
             sPlatform = fromString(platform, EPlatform.PC);
             sTarget = fromString(target, EPlatform.PC);
@@ -179,13 +179,13 @@ namespace DataBuildSystem
             sBuildBigfile = bigfile;
 
             sName = name;
-			sConfigFilename = new Filename(Core.Environment.expandVariables(config));
-			sSrcPath = new Dirname(Core.Environment.expandVariables(srcPath));
-			sSubPath = new Dirname(Core.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath));
-			sDstPath = new Dirname(Core.Environment.expandVariables(dstPath));
-			sDepPath = new Dirname(Core.Environment.expandVariables(depPath));
-			sToolPath = new Dirname(Core.Environment.expandVariables(toolPath));
-			sPublishPath = new Dirname(Core.Environment.expandVariables(publishPath));
+            sConfigFilename = new Filename(Core.Environment.expandVariables(config));
+            sSrcPath = new Dirname(Core.Environment.expandVariables(srcPath));
+            sSubPath = new Dirname(Core.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath));
+            sDstPath = new Dirname(Core.Environment.expandVariables(dstPath));
+            sDepPath = new Dirname(Core.Environment.expandVariables(depPath));
+            sToolPath = new Dirname(Core.Environment.expandVariables(toolPath));
+            sPublishPath = new Dirname(Core.Environment.expandVariables(publishPath));
 
             return true;
         }
