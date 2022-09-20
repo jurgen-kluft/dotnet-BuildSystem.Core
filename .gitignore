@@ -24,7 +24,7 @@ packages/
 !*.hlsl
 !*.fragment
 
-!*.html
+!*.md
 
 !*.ini
 !*.bat
