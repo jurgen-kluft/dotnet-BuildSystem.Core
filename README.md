@@ -11,11 +11,12 @@ following things will be done by the BuildSystem:
   - ``FileIdList``; An array of ``FileId``
   - ``FRect``/``IRect``; floating point and integer rectangle (left, right, top, bottom) compound
   - ``FSize``/``Size``; floating point and integer size (width, height) compound
-  - ``FVector2``/``FVector3``/``FVector4``;
-  - ``sbyte``/``short``/``int``/``int64``
-  - ``sbyte``/``ushort``/``uint``/``uint64``
+  - ``FVec2``/``FVec3``/``FVec4``;
+  - ``FMat22``/``FMat33``/``FMat44``;
+  - ``s8``/``s16``/``s32``/``s64``
+  - ``u8``/``u16``/``u32``/``u64``
   - ``fx16``/``fx32``
-  - ``float``/``double``; single and double float precision
+  - ``f32``/``f64``; single and double float precision
   - ``Color``; 32-bit RGBA color
   - ``LString``; Localized string
  - Anything derived from ``IAtom`` (system types byte/short/..., see above)
@@ -29,21 +30,3 @@ following things will be done by the BuildSystem:
 
 In your game runtime you can use the ``C++`` files ``GameData.h`` to load and use it.
 
-TODO
-
-- Rethink the whole setup and steps to compile C# and compile the data.
-
-- FilePath could be hashed and for both the 'source' and 'cooked' we could just substite a 64-bit hash
-  and use that in the dependency file.
-  For the final resolve to replace files with a fileid_t we can again use the hashes.
-
-- Refactor 'Dependency' mechanism, could be a lot simpler and able to handle multi-threading so that
-  we can launch DataCompilers on a job system to improve compilation performance.
-  
-  DataAssemblyManager::FileRegistrar should cache HashOf(Filename)->FileId and load it at each run so
-  as to keep FileIds 'consistent', in there we should also store the HashOf(TimeStamp/Content). 
-  When starting we can thus identify any 'changed'/'removed' dependency.
-
-- Examples
-- FMatrix3x3, FMatrix4x4
-- C# to C++ code (scripting for game-code or other necessary parts)

@@ -1,18 +1,24 @@
 # Design
 
 Game data with a FileId should not have to wait for any data compilation and so we should
-work on breaking this dependency.
+focus on breaking this dependency.
 
 - Requirements:
   - A FileId should be handed out immediately
-  - Files are cooked from `S:` to `D:`
+  - Files are cooked from source folder `S:` to target folder `T:`
   - Handle tens of million of files (10 to 100 million)
-  - Track file dependency (bi-directional)
+  - File dependency tracking (bi-directional)
   - Out-Of-Core databases (due to large memory usage)
   - Compilers are preferred to be wrapped as a Mananaged .DLL to eliminate start-up time
+    - e.g. Batch compiling shaders
+
+Are we going to allow Compilers create new Compilers? For example a `.FBX` Compiler,
+since such a file contains links to textures. Hmmm, we better have some intermediate format.
+So for such formats we need a tool that converts the data to a "C#" file that embeds the
+data and/or has Compilers to the Materials/Textures/TriData that it refers to.
 
 ```c++
-struct asset_header_t
+struct assethdr_t
 {
   u32 m_fileId_array_count;  
   // Followed by "m_fileId_array_count" * sizeof(u32) bytes
@@ -20,9 +26,9 @@ struct asset_header_t
 ```
 
 - Assumptions:
-  1. All cooked files have a binary header `asset_header_t`
-  2. The first 65536 FileId's are reserved and are used as `Tool Bundle` slots
-  3. Compilers always resolve to a main output file with 0 or many additional output files
+  1. All cooked files have a binary header `assethdr_t`
+  2. The first 65536 FileId's are reserved and are used as `Tool Bundle` Ids
+  3. Compilers always resolve to a main output file with 0 or more additional output files
      - Texture to Texture, e.g. `.PNG` to `.BC7`
      - Mesh to Mesh, e.g. `.FBX` to `.MDL` or `.PLY` to `.MDL`
      - ZoneCompiler, e.g. many input to many output, but there is one main `.zone` file
@@ -50,43 +56,69 @@ Databases:
   - e.g. A texture used by many materials
 - DependencyDB (fixed key, dynamic value)
   - FileId -> InOut:Array(FileId)
-  - e.g. A 
+  - e.g. A ZoneCompiler
 
 # Example
 
 TextureCompiler(`S:textures/hello.png`, ETextureFormat.BC7);
 TextureCompiler(`S:textures/hello.png`, ETextureFormat.SRGB);
+TextureCompiler(`S:textures/albedo.png`, ETextureFormat.BC7);
+TextureCompiler(`S:textures/roughness.png`, ETextureFormat.BC7);
+TextureCompiler(`S:textures/metalness.png`, ETextureFormat.BC7);
 
-Hash(`S::textures/hello.png`), FileId(5000), 0, 60Kb, date+time
-Hash(`D::textures/hello.png.bc7`), FileId(5001), 0, 60Kb, date+time
-Hash(`D::textures/hello.png.srgb`), FileId(5002), 0, 50Kb, date+time
+*Name of the material is the hash that is generated from a string that consists of the texture names, texture formats and parameters*
+*Should we include the parameters in the Hash?*
+MaterialCompiler(
+  Albedo = TextureCompiler(`S:textures/albedo.png`, ETextureFormat.BC7),
+  Roughness = TextureCompiler(`S:textures/roughness.png`, ETextureFormat.BC7),
+  Metalness = TextureCompiler(`S:textures/metalness.png`, ETextureFormat.BC7),
+  {parameters}
+)
+
+-- FileIdAndStateDB
+Hash(`S:textures/hello.png`), FileId(5000), 0, 60Kb, date+time
+Hash(`D:textures/hello.png.bc7`), FileId(5001), 0, 60Kb, date+time
+Hash(`D:textures/hello.png.srgb`), FileId(5002), 0, 50Kb, date+time
+Hash(`D:textures/albedo.png.bc7`), FileId(5003), 0, 60Kb, date+time
+Hash(`D:textures/roughness.png.bc7`), FileId(5004), 0, 60Kb, date+time
+Hash(`D:textures/metalness.png.bc7`), FileId(5005), 0, 60Kb, date+time
+Hash(`D:materials/30d116e7729c40e3854f426944c1992b.mtl`), FileId(5006), 0, 1Kb, date+time
 
 -- FilePathDB
-FileId(5000) -> `S::textures/hello.png`
-FileId(5001) -> `D::textures/hello.png.bc7`
-FileId(5002) -> `D::textures/hello.png.srgb`
+FileId(5000) -> `S:textures/hello.png`
+FileId(5001) -> `D:textures/hello.png.bc7`
+FileId(5002) -> `D:textures/hello.png.srgb`
+FileId(5003) -> `D:materials/30d116e7729c40e3854f426944c1992b.mtl`
 
 -- DependingDB
+FileId(5001) -> [](FileId(5000))
+FileId(5002) -> [](FileId(5000))
+FileId(5006) -> [](FileId(5003),FileId(5004),FileId(5005))
+
+-- DependencyDB
 FileId(5000) -> [](FileId(5001), FileId(5002))
-FileId(5000) -> [](FileId(5001), FileId(5002))
+FileId(5003) -> [](FileId(5006))
+FileId(5004) -> [](FileId(5006))
+FileId(5005) -> [](FileId(5006))
 
 -- Finding deleted/modified `D:` assets
-So the game data should have a root object that has a `asset_header_t` that lists all its
+So the game data should have a root object that has a `assethdr_t` that lists all its
 dependencies. With this we could scan and collect all required assets and find any *missing*
-assets/FileId's.
+assets/FileId's. This uses the FileIdAndStateDB.
 
 -- Finding deleted/modified `S:` assets
-Using the compiled game data C# files, the .DLL's. If they do not need any recompile we know
-that the databases should be up-to-date.
+When iterating over all the Compilers we can determine if any of the source/destination files
+are missing/out-of-date.
 
 -- Writing all Compilers in a database?
 When compiling the game data units and using reflection to find all Compilers, could we then not
 write all Compilers and their necessary variables to a database (including a Generation value)?
 
-Once we have this database we can then iterate over this database and kick of the Compilers to
+With this database we can iterate over all Compilers in this database and kick of the Compilers to
 do the actual asset cooking.
 
-The generation value is used to be able to 'ignore' old/stale entries that are not valid anymore.
+The generation value of each Compiler is used to be able to 'ignore' old/stale entries that are not
+valid anymore.
 
 # Dependency Analysis
 
