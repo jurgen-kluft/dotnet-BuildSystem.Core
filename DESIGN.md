@@ -71,13 +71,22 @@ FileId(5000) -> [](FileId(5001), FileId(5002))
 FileId(5000) -> [](FileId(5001), FileId(5002))
 
 -- Finding deleted/modified `D:` assets
-So the game data should have a root object that has a `asset_header_t` that lists all the
+So the game data should have a root object that has a `asset_header_t` that lists all its
 dependencies. With this we could scan and collect all required assets and find any *missing*
-assets.
+assets/FileId's.
 
 -- Finding deleted/modified `S:` assets
 Using the compiled game data C# files, the .DLL's. If they do not need any recompile we know
-that the databases should be up-to-date. So by 
+that the databases should be up-to-date.
+
+-- Writing all Compilers in a database?
+When compiling the game data units and using reflection to find all Compilers, could we then not
+write all Compilers and their necessary variables to a database (including a Generation value)?
+
+Once we have this database we can then iterate over this database and kick of the Compilers to
+do the actual asset cooking.
+
+The generation value is used to be able to 'ignore' old/stale entries that are not valid anymore.
 
 # Dependency Analysis
 
