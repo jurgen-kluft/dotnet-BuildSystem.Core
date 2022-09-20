@@ -6,7 +6,11 @@ namespace Core
         MAC,
 		XBOX_ONE,
 		XBOX_ONE_X,
+		XBOX_SERIES_S,
+		XBOX_SERIES_X,
 		PS4,
 		PS4_PRO,
+		PS5,
+		NINTENDO_SWITCH,
 	}
 }

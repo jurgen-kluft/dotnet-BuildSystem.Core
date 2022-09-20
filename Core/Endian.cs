@@ -36,14 +36,15 @@ namespace Core
         {
             switch (platform)
             {
-                case EPlatform.PC: return EEndian.LITTLE;
-                case EPlatform.MAC: return EEndian.LITTLE;
-                case EPlatform.XBOX_ONE: return EEndian.LITTLE;
-                case EPlatform.XBOX_ONE_X: return EEndian.LITTLE;
-                case EPlatform.PS4: return EEndian.LITTLE;
-                case EPlatform.PS4_PRO: return EEndian.LITTLE;
-                default: return EEndian.LITTLE;
+                case EPlatform.PC: 
+                case EPlatform.MAC: 
+                case EPlatform.XBOX_ONE: 
+                case EPlatform.XBOX_ONE_X: 
+                case EPlatform.PS4: 
+                case EPlatform.PS4_PRO: 
+                default: break;
             }
+            return EEndian.LITTLE;
         }
 
         public static IBinaryWriter CreateBinaryWriter(Stream s, EEndian endian)
@@ -85,7 +86,7 @@ namespace Core
         public void Convert(byte[] b, out double v) { v = BitConverter.ToDouble(b, 0); }
     }
 
-    public class xBigEndian : IEndian
+    public class BigEndian : IEndian
     {
         public bool little { get { return false; } }
         public bool big { get { return true; } }
