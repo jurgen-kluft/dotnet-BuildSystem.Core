@@ -80,116 +80,8 @@
     <Compile Include="BigfileBuilder\BigfileToc.cs" />
     <Compile Include="BigfileBuilder\Config.cs" />
     <Compile Include="BigfileBuilder\BigfileMerger.cs" />
-    <Compile Include="Code\Compilers\AssemblyCompiler.cs" />
-    <Compile Include="Code\Compilers\CodeAsmCompiler.cs" />
-    <Compile Include="Code\Compilers\CopyCompiler.cs" />
-    <Compile Include="Code\Compilers\DataAssemblyManager.cs" />
-    <Compile Include="Code\Compilers\ExternalCompilerProcess.cs" />
-    <Compile Include="Code\Compilers\ExternalRootNodeCompiler.cs" />
-    <Compile Include="Code\Compilers\LocalizationCompiler.cs" />
-    <Compile Include="Code\Compilers\RootObjectNodeCompiler.cs" />
-    <Compile Include="Code\Providers\IBigfileProvider.cs" />
-    <Compile Include="Code\Providers\IExternalObjectProvider.cs" />
-    <Compile Include="Code\Providers\IFileIdsProvider.cs" />
-    <Compile Include="Code\Providers\IFilenameRegistrar.cs" />
-    <Compile Include="Code\Types\Compiler.cs" />
-    <Compile Include="Code\Types\ExternalRoot.cs" />
-    <Compile Include="Code\Types\FileId.cs" />
-    <Compile Include="Code\Types\FileIdList.cs" />
-    <Compile Include="Code\Types\FRect.cs" />
-    <Compile Include="Code\Types\FSize.cs" />
-    <Compile Include="Code\Types\FVector2.cs" />
-    <Compile Include="Code\Types\FVector3.cs" />
-    <Compile Include="Code\Types\FVector4.cs" />
-    <Compile Include="Code\Types\Fx16.cs" />
-    <Compile Include="Code\Types\Fx32.cs" />
-    <Compile Include="Code\Types\IAtom.cs" />
-    <Compile Include="Code\Types\ICompound.cs" />
-    <Compile Include="Code\Types\IDynamicClass.cs" />
-    <Compile Include="Code\Types\IDynamicMember.cs" />
-    <Compile Include="Code\Types\IRect.cs" />
-    <Compile Include="Code\Types\IDataUnit.cs" />
-    <Compile Include="Code\Types\LString.cs" />
-    <Compile Include="Code\Types\RGBA.cs" />
-    <Compile Include="Code\Types\RootObject.cs" />
-    <Compile Include="Code\Types\Size.cs" />
-    <Compile Include="Code\Utils\Attributes.cs" />
-    <Compile Include="Code\Utils\DataCompilerScheduler.cs" />
-    <Compile Include="Code\Utils\FileCommander.cs" />
-    <Compile Include="Code\Utils\Instanciate.cs" />
-    <Compile Include="Code\Utils\StringUtils.cs" />
     <Compile Include="Config\IBuildSystemCompilerConfig.cs" />
     <Compile Include="Config\IBuildSystemLocalizerConfig.cs" />
-    <Compile Include="Core\Assembly\AssemblyUtil.cs" />
-    <Compile Include="Core\Dependency\DependencyFile.cs" />
-    <Compile Include="Core\Dependency\DependencyInfo.cs" />
-    <Compile Include="Core\Endian.cs" />
-    <Compile Include="Core\Environment.cs" />
-    <Compile Include="Core\EPlatform.cs" />
-    <Compile Include="Core\ETerritory.cs" />
-    <Compile Include="Core\File\BinaryReader.cs" />
-    <Compile Include="Core\File\BinaryWriter.cs" />
-    <Compile Include="Core\File\BufferedBinaryWriter.cs" />
-    <Compile Include="Core\File\DataWriter.cs" />
-    <Compile Include="Core\File\DirectoryScanner.cs" />
-    <Compile Include="Core\File\Dirname.cs" />
-    <Compile Include="Core\File\DirUtils.cs" />
-    <Compile Include="Core\File\Filename.cs" />
-    <Compile Include="Core\File\FilenamePattern.cs" />
-    <Compile Include="Core\File\FileSize.cs" />
-    <Compile Include="Core\File\HtmlFile.cs" />
-    <Compile Include="Core\File\PatternMatcher.cs" />
-    <Compile Include="Core\File\StreamBuilder.cs" />
-    <Compile Include="Core\File\StreamContext.cs" />
-    <Compile Include="Core\File\StreamOffset.cs" />
-    <Compile Include="Core\File\StreamReference.cs" />
-    <Compile Include="Core\File\StreamUtils.cs" />
-    <Compile Include="Core\Hash\GUID.cs" />
-    <Compile Include="Core\Hash\GUID.Generator.cs" />
-    <Compile Include="Core\Hash\Hash128.cs" />
-    <Compile Include="Core\Hash\Hashing.cs" />
-    <Compile Include="Core\Math\Core\ComplexD.cs" />
-    <Compile Include="Core\Math\Core\ComplexF.cs" />
-    <Compile Include="Core\Math\Core\DVector2.cs" />
-    <Compile Include="Core\Math\Core\DVector3.cs" />
-    <Compile Include="Core\Math\Core\DVector4.cs" />
-    <Compile Include="Core\Math\Core\FVector2.cs" />
-    <Compile Include="Core\Math\Core\FVector3.cs" />
-    <Compile Include="Core\Math\Core\FVector4.cs" />
-    <Compile Include="Core\Math\Exceptions\Exceptions.cs" />
-    <Compile Include="Core\Math\Exceptions\ParseException.cs" />
-    <Compile Include="Core\Math\Math.cs" />
-    <Compile Include="Core\MetaData\C++.cs" />
-    <Compile Include="Core\MetaData\EGenericFormat.cs" />
-    <Compile Include="Core\MetaData\Generic.cs" />
-    <Compile Include="Core\MetaData\MetaCode.cs" />
-    <Compile Include="Core\MetaData\Reflection.cs" />
-    <Compile Include="Core\Process\Process.cs" />
-    <Compile Include="Core\Process\ProcessExecutor.cs" />
-    <Compile Include="Core\Process\ProcessInfo.cs" />
-    <Compile Include="Core\Process\ProcessReader.cs" />
-    <Compile Include="Core\Process\ProcessResult.cs" />
-    <Compile Include="Core\Process\ProcessUtil.cs" />
-    <Compile Include="Core\String\CommandLine.cs" />
-    <Compile Include="Core\String\CommandlineBuilder.cs" />
-    <Compile Include="Core\String\Indent.cs" />
-    <Compile Include="Core\String\StringScan.cs" />
-    <Compile Include="Core\String\StringTable.cs" />
-    <Compile Include="Core\String\StringTools.cs" />
-    <Compile Include="Core\Thread\AsyncCodeBlocks\Async.cs" />
-    <Compile Include="Core\Thread\AsyncCodeBlocks\AsyncCodeBlockTasks.cs" />
-    <Compile Include="Core\Thread\AsyncCodeBlocks\CodeException.cs" />
-    <Compile Include="Core\Thread\AsyncCodeBlocks\SerializableCodeBlock.cs" />
-    <Compile Include="Core\Thread\AsyncCodeBlocks\WaitableAsync.cs" />
-    <Compile Include="Core\Thread\LockFree\ObjectPool.cs" />
-    <Compile Include="Core\Thread\LockFree\Queue.cs" />
-    <Compile Include="Core\Thread\ManagedIOCP\ManagedIOCP.cs" />
-    <Compile Include="Core\Thread\ManagedIOCP\ManagedIOCPExceptions.cs" />
-    <Compile Include="Core\Thread\ThreadPool\GenericTask.cs" />
-    <Compile Include="Core\Thread\ThreadPool\Task.cs" />
-    <Compile Include="Core\Thread\ThreadPool\ThreadPool.cs" />
-    <Compile Include="Core\Thread\ThreadPool\WaitableGenericTask.cs" />
-    <Compile Include="Core\Thread\Utilities\StopWatch.cs" />
     <Compile Include="Dependency\Config.cs" />
     <Compile Include="Dependency\DependencySystem.cs" />
     <Compile Include="Dependency\DependencySystemImp.cs" />
@@ -219,6 +111,16 @@
     <PreBuildEvent>
     </PreBuildEvent>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="Code\Code.csproj">
+      <Project>{9F3BCBF7-6428-420E-9834-DE5F66ABF462}</Project>
+      <Name>Code</Name>
+    </ProjectReference>
+    <ProjectReference Include="Core\Core.csproj">
+      <Project>{BF79F3BC-420E-6428-9834-DE5F66ABF462}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
       <UserProperties BuildVersion_ConfigurationName="Release" />
