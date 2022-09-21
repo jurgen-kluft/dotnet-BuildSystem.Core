@@ -6,15 +6,15 @@ namespace Game.Data
     {
         public static readonly FSize sEmpty = new FSize();
 
-        public float mWidth;													    ///< Size:Width
-        public float mHeight;													    ///< Size:Height
+        public float Width;													    ///< Size:Width
+        public float Height;													    ///< Size:Height
 
         public FSize(float width, float height)
         {
-            mWidth = width;
-            mHeight = height;
+            Width = width;
+            Height = height;
         }
 
-        public Array Values { get { float[] a = new float[] { mWidth, mHeight }; return a; } }
+        public Array Values { get { float[] a = new float[] { Width, Height }; return a; } }
     }
 }

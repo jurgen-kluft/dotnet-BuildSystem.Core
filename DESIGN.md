@@ -4,59 +4,40 @@ Game data with a FileId should not have to wait for any data compilation and so 
 focus on breaking this dependency.
 
 - Requirements:
-  - A FileId should be handed out immediately
+  - A FileId or HashId should be handed out immediately
+  - Compilers always resolve to a main output file with 0 or more additional output files
   - Files are cooked from source folder `S:` to target folder `T:`
-  - Handle tens of million of files (10 to 100 million)
-  - File dependency tracking (bi-directional)
-  - Out-Of-Core databases (due to large memory usage)
+  - Handle a maximum of a hundred of million files (max 100 million files)
+  - File dependency tracking
   - Compilers are preferred to be wrapped as a Mananaged .DLL to eliminate start-up time
     - e.g. Batch compiling shaders
+  - A BuildMachine that is required to deal with the maximum number of files better have
+    enough CPU memory (>= 128 GB)
 
 Are we going to allow Compilers create new Compilers? For example a `.FBX` Compiler,
-since such a file contains links to textures. Hmmm, we better have some intermediate format.
+since such a file contains links to textures. Answer is NO, we better have some intermediate format.
 So for such formats we need a tool that converts the data to a "C#" file that embeds the
 data and/or has Compilers to the Materials/Textures/TriData that it refers to.
 
-```c++
-struct assethdr_t
-{
-  u32 m_fileId_array_count;  
-  // Followed by "m_fileId_array_count" * sizeof(u32) bytes
-};
-```
-
 - Assumptions:
-  1. All cooked files have a binary header `assethdr_t`
-  2. The first 65536 FileId's are reserved and are used as `Tool Bundle` Ids
-  3. Compilers always resolve to a main output file with 0 or more additional output files
+
+  1. Compilers always resolve to a main output file with 0 or more additional output files
      - Texture to Texture, e.g. `.PNG` to `.BC7`
      - Mesh to Mesh, e.g. `.FBX` to `.MDL` or `.PLY` to `.MDL`
      - ZoneCompiler, e.g. many input to many output, but there is one main `.zone` file
        that depends on all the many output files.
-  4. A ToolBundle is a compiler together with all its .DLL's and configuration files.
+  2. A ToolBundle is a compiler together with all its .DLL's and configuration files.
      A ToolBundle has a unique FileId.
      A ToolBundle is hashed to know if it has changed.
+  3. Our BuildSystem is the only application that executes the Compilers. In a multi-threaded
+     environment care is taken to have multiple threads update files in source and target. 
+     But since we are NOT reading/writing many files at once we can manage this through a
+     custom interface.
 
 Types:
 
-- Hash(FilePath) -> 32 bytes (256-bit hash)
+- Hash(FilePath) -> 24 bytes (192-bit hash)
 - FileId         -> 4 bytes
-- Generation     -> 4 bytes
-- File Size      -> 4 bytes
-- Mod-Time       -> 8 bytes
-
-Databases:
-
-- FileIdAndStateDB (fixed key, fixed value)
-  - Hash(FilePath) -> FileId, Generation, Size/Mod-Time
-- FilePathDB (fixed key, dynamic value)
-  - FileId -> FilePath
-- DependingDB (fixed key, dynamic value)
-  - FileId -> UsedBy:Array(FileId)
-  - e.g. A texture used by many materials
-- DependencyDB (fixed key, dynamic value)
-  - FileId -> InOut:Array(FileId)
-  - e.g. A ZoneCompiler
 
 # Example
 
@@ -66,8 +47,6 @@ TextureCompiler(`S:textures/albedo.png`, ETextureFormat.BC7);
 TextureCompiler(`S:textures/roughness.png`, ETextureFormat.BC7);
 TextureCompiler(`S:textures/metalness.png`, ETextureFormat.BC7);
 
-*Name of the material is the hash that is generated from a string that consists of the texture names, texture formats and parameters*
-*Should we include the parameters in the Hash?*
 MaterialCompiler(
   Albedo = TextureCompiler(`S:textures/albedo.png`, ETextureFormat.BC7),
   Roughness = TextureCompiler(`S:textures/roughness.png`, ETextureFormat.BC7),
@@ -75,50 +54,32 @@ MaterialCompiler(
   {parameters}
 )
 
--- FileIdAndStateDB
-Hash(`S:textures/hello.png`), FileId(5000), 0, 60Kb, date+time
-Hash(`D:textures/hello.png.bc7`), FileId(5001), 0, 60Kb, date+time
-Hash(`D:textures/hello.png.srgb`), FileId(5002), 0, 50Kb, date+time
-Hash(`D:textures/albedo.png.bc7`), FileId(5003), 0, 60Kb, date+time
-Hash(`D:textures/roughness.png.bc7`), FileId(5004), 0, 60Kb, date+time
-Hash(`D:textures/metalness.png.bc7`), FileId(5005), 0, 60Kb, date+time
-Hash(`D:materials/30d116e7729c40e3854f426944c1992b.mtl`), FileId(5006), 0, 1Kb, date+time
+-- A specialized (in-memory) Key/Value Store (maximum 100 Million entries)
+(can be written in C/C++ and through managed C# used in the BuildSystem)
+(using the RedBlack Tree algorithm to insert/find/remove)
+Hash -> Index
+Node16B { Parent4B, Child4B[2], EntryIndex4B }
+Entry32B { Hash24B, NodeIndex4B, Value4B }
+Virtual Memory Array of 'rbnode_t'
+Virtual Memory Array of 'entry_t'
+We do not need a freelist, we can always do a swap-remove!
 
--- FilePathDB
-FileId(5000) -> `S:textures/hello.png`
-FileId(5001) -> `D:textures/hello.png.bc7`
-FileId(5002) -> `D:textures/hello.png.srgb`
-FileId(5003) -> `D:materials/30d116e7729c40e3854f426944c1992b.mtl`
+-- Our Pivot Point is the *Compiler*
+So we have one or more binary files that contain a 'list' of Compilers that need to be or have been
+executed. 
 
--- DependingDB
-FileId(5001) -> [](FileId(5000))
-FileId(5002) -> [](FileId(5000))
-FileId(5006) -> [](FileId(5003),FileId(5004),FileId(5005))
-
--- DependencyDB
-FileId(5000) -> [](FileId(5001), FileId(5002))
-FileId(5003) -> [](FileId(5006))
-FileId(5004) -> [](FileId(5006))
-FileId(5005) -> [](FileId(5006))
-
--- Finding deleted/modified `D:` assets
-So the game data should have a root object that has a `assethdr_t` that lists all its
-dependencies. With this we could scan and collect all required assets and find any *missing*
-assets/FileId's. This uses the FileIdAndStateDB.
-
--- Finding deleted/modified `S:` assets
+-- Finding deleted/modified `S:` and `T:` assets
 When iterating over all the Compilers we can determine if any of the source/destination files
 are missing/out-of-date.
 
--- Writing all Compilers in a database?
+-- Writing all Compilers in a structured log (and reading)
 When compiling the game data units and using reflection to find all Compilers, could we then not
-write all Compilers and their necessary variables to a database (including a Generation value)?
+write all Compilers and their necessary variables to a structured log. This structured log in terms 
+of file size can become huge (4, 8, 16GB or more) but it never has to be fully loaded into memory.
 
-With this database we can iterate over all Compilers in this database and kick of the Compilers to
-do the actual asset cooking.
-
-The generation value of each Compiler is used to be able to 'ignore' old/stale entries that are not
-valid anymore.
+With this log we can iterate over all Compilers and kick of the actual asset cooking. When we do
+this cooking pass we can have the compilers write themselves (again) to a structured log, this time
+with up-to-date information of the source and target files.
 
 # Dependency Analysis
 
@@ -134,10 +95,7 @@ For assets, we have an `.FBX` file which outputs a `.MDL`, this model is using m
 If one of the textures changes do I need to recompile the model, in this scenario that doesn't seem to be the case.
 
 But we could have a LevelCompiler that reads an `.FBX` file and outputs multiple `.zone_00_00` and `.pvs` files. 
-When one of those zone files is deleted we need to rebuild. So each zone file is added to the `FileIdAndStateDB` 
-database as well as the `DependingDB` database.
-
-But this could result in `stale` entries so we need to find out how we can `compact` the database.
+When one of those zone files is deleted we need to rebuild. 
 
 For audio, if audio files are cooked and the cooking is configured by a configuration file then when the configuration
 changes to audio files need to be recooked.
@@ -147,24 +105,8 @@ So we have hard dependencies that can be described as:
 - Tool Bundle: includes .exe and .config files
 
 
-When building the big
-
-
 # TODO
-
-- Rethink the whole setup and steps to compile C# and compile the data.
-
-- FilePath could be hashed and for both the 'source' and 'cooked' we could just substite a 64-bit hash
-  and use that in the dependency file.
-  For the final resolve to replace files with a fileid_t we can again use the hashes.
-
-- Refactor 'Dependency' mechanism, could be a lot simpler and able to handle multi-threading so that
-  we can launch DataCompilers on a job system to improve compilation performance.
   
-  DataAssemblyManager::FileRegistrar should cache HashOf(Filename)->FileId and load it at each run so
-  as to keep FileIds 'consistent', in there we should also store the HashOf(TimeStamp/Content). 
-  When starting we can thus identify any 'changed'/'removed' dependency.
-
 - Examples
-- FMatrix3x3, FMatrix4x4
+- FMat3x3, FMat4x4
 - C# to C++ code (scripting for game-code or other necessary parts)

@@ -6,15 +6,15 @@ namespace Game.Data
     {
         public static readonly Size sEmpty = new Size();
 
-        public int mWidth;													    ///< Size:Width
-        public int mHeight;													    ///< Size:Height
+        public int Width;													    ///< Size:Width
+        public int Height;													    ///< Size:Height
 
         public Size(int width, int height)
         {
-            mWidth = width;
-            mHeight = height;
+            Width = width;
+            Height = height;
         }
 
-        public Array Values { get { int[] a = new int[] { mWidth, mHeight }; return a; } }
+        public Array Values { get { int[] a = new int[] { Width, Height }; return a; } }
     }
 }

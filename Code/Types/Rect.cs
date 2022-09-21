@@ -6,19 +6,19 @@ namespace Game.Data
     {
         public static readonly Rect sEmpty = new Rect();
 
-        public int mLeft;													    ///< Left point of rectangle
-        public int mTop;													    ///< Top point of rectangle
-        public int mRight;													    ///< Right point of rectangle
-        public int mBottom;                                                     ///< Bottom point of rectangle
+        public int Left;													    ///< Left point of rectangle
+        public int Top;													    ///< Top point of rectangle
+        public int Right;													    ///< Right point of rectangle
+        public int Bottom;                                                     ///< Bottom point of rectangle
 
         public Rect(int left, int top, int right, int bottom)
         {
-            mLeft = left;
-            mTop = top;
-            mRight = right;
-            mBottom = bottom;
+            Left = left;
+            Top = top;
+            Right = right;
+            Bottom = bottom;
         }
 
-        public Array Values { get { int[] a = new int[] { mLeft, mTop, mRight, mBottom }; return a; } }
+        public Array Values { get { int[] a = new int[] { Left, Top, Right, Bottom }; return a; } }
     }
 }
