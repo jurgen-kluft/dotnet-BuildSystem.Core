@@ -4,28 +4,31 @@ namespace Game.Data
 {
     public struct FMat2x2 : ICompound
     {
-        public FVec2 mMatrix[2];
+        public readonly FVec2[] Mat;
 
         public FMat2x2(float v)
         {
-            mMatrix[0].X = v;
-            mMatrix[0].Y = v;
-            mMatrix[1].X = v;
-            mMatrix[1].Y = v;
+            Mat = new FVec2[2];
+            Mat[0].X = v;
+            Mat[0].Y = v;
+            Mat[1].X = v;
+            Mat[1].Y = v;
         }
         public FMat2x2(float x1, float y1, float x2, float y2)
         {
-            mMatrix[0].X = x1;
-            mMatrix[0].Y = y1;
-            mMatrix[1].X = x2;
-            mMatrix[1].Y = y2;
+            Mat = new FVec2[2];
+            Mat[0].X = x1;
+            Mat[0].Y = y1;
+            Mat[1].X = x2;
+            Mat[1].Y = y2;
         }
         public FMat2x2(FVec2 x, FVec2 y)
         {
-            mMatrix[0] = x;
-            mMatrix[1] = y;
+            Mat = new FVec2[2];
+            Mat[0] = x;
+            Mat[1] = y;
         }
 
-        public Array Values { get { float[] a = new float[] { mMatrix[0].X, mMatrix[0].Y, mMatrix[1].X, mMatrix[1].Y }; return a; } }
+        public Array Values { get { float[] a = new float[] { Mat[0].X, Mat[0].Y, Mat[1].X, Mat[1].Y }; return a; } }
     }
 }
