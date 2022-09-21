@@ -165,7 +165,7 @@ namespace DataBuildSystem
         #region Fields
 
         private Assembly mDataAssembly;
-        private Game.Data.IRoot mRoot;
+        private Game.Data.IDataUnit mRoot;
 
         private List<Game.Data.IDataCompiler> mCompilers;
         private List<Game.Data.IFileIdsProvider> mFileIdsProviders;
@@ -189,7 +189,7 @@ namespace DataBuildSystem
         #region Properties
 
         public Assembly assembly { get { return mDataAssembly; } }
-        public Game.Data.IRoot root { get { return mRoot; } }
+        public Game.Data.IDataUnit root { get { return mRoot; } }
         public Game.Data.IDataCompilationServer compilationServer { get { return mCompilationServer; } set { mCompilationServer = value; } }
 
         #endregion
@@ -211,7 +211,7 @@ namespace DataBuildSystem
 
             try
             {
-                mRoot = AssemblyUtil.Create1<Game.Data.IRoot>(mDataAssembly);
+                mRoot = AssemblyUtil.Create1<Game.Data.IDataUnit>(mDataAssembly);
                 return mRoot != null;
             }
             catch (System.Exception)

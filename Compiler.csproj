@@ -110,7 +110,7 @@
     <Compile Include="Code\Types\IDynamicMember.cs" />
     <Compile Include="Code\Providers\IExternalObjectProvider.cs" />
     <Compile Include="Code\Types\IRect.cs" />
-    <Compile Include="Code\Types\IRoot.cs" />
+    <Compile Include="Code\Types\IDataUnit.cs" />
     <Compile Include="Code\Types\LString.cs" />
     <Compile Include="Code\Types\RGBA.cs" />
     <Compile Include="Code\Types\RootObject.cs" />

@@ -5,7 +5,7 @@ You can use most of C# to initialize/construct data etc.. However once
 the C# files that define the game-data are compiled and instanciated the
 following things will be done by the BuildSystem:
 
-- It will search for ``IRoot`` and will treat it as the root of the game-data
+- It will search for ``IDataUnit`` and will treat it as the root of the game-data
 - It recognizes the following types:
   - ``FileId``; An Id that can be retrieved interacting with BigfileManager
   - ``FileIdList``; An array of ``FileId``

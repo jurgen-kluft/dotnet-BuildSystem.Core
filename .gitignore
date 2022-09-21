@@ -1,5 +1,7 @@
 #ignore all files
-*.*
+*
+!*/
+
 bin/
 obj/
 packages/

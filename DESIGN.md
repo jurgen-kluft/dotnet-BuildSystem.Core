@@ -27,7 +27,7 @@ data and/or has Compilers to the Materials/Textures/TriData that it refers to.
      - ZoneCompiler, e.g. many input to many output, but there is one main `.zone` file
        that depends on all the many output files.
   2. A ToolBundle is a compiler together with all its .DLL's and configuration files.
-     A ToolBundle has a unique FileId.
+     A ToolBundle has a unique Id.
      A ToolBundle is hashed to know if it has changed.
   3. Our BuildSystem is the only application that executes the Compilers. In a multi-threaded
      environment care is taken to have multiple threads update files in source and target. 
@@ -36,21 +36,21 @@ data and/or has Compilers to the Materials/Textures/TriData that it refers to.
 
 Types:
 
-- Hash(FilePath) -> 24 bytes (192-bit hash)
-- FileId         -> 4 bytes
+- Hash() -> 24 bytes (192-bit hash)
+- FileId -> 4 bytes
 
 # Example
 
-TextureCompiler(`S:textures/hello.png`, ETextureFormat.BC7);
-TextureCompiler(`S:textures/hello.png`, ETextureFormat.SRGB);
-TextureCompiler(`S:textures/albedo.png`, ETextureFormat.BC7);
-TextureCompiler(`S:textures/roughness.png`, ETextureFormat.BC7);
-TextureCompiler(`S:textures/metalness.png`, ETextureFormat.BC7);
+TextureCompiler(`textures/hello.png`, ETextureFormat.BC7);
+TextureCompiler(`textures/hello.png`, ETextureFormat.SRGB);
+TextureCompiler(`textures/albedo.png`, ETextureFormat.BC7);
+TextureCompiler(`textures/roughness.png`, ETextureFormat.BC7);
+TextureCompiler(`textures/metalness.png`, ETextureFormat.BC7);
 
 MaterialCompiler(
-  Albedo = TextureCompiler(`S:textures/albedo.png`, ETextureFormat.BC7),
-  Roughness = TextureCompiler(`S:textures/roughness.png`, ETextureFormat.BC7),
-  Metalness = TextureCompiler(`S:textures/metalness.png`, ETextureFormat.BC7),
+  Albedo = TextureCompiler(`textures/albedo.png`, ETextureFormat.BC7),
+  Roughness = TextureCompiler(`textures/roughness.png`, ETextureFormat.BC7),
+  Metalness = TextureCompiler(`textures/metalness.png`, ETextureFormat.BC7),
   {parameters}
 )
 
@@ -67,6 +67,21 @@ We do not need a freelist, we can always do a swap-remove!
 -- Our Pivot Point is the *Compiler*
 So we have one or more binary files that contain a 'list' of Compilers that need to be or have been
 executed. 
+
+-- Compilers
+So a Compiler needs to be able to write out a representation of itself to a structured log as well
+as being able to read itself from the structured log.
+
+Compiler (prototype of standard header)
+{
+    u32           binary_size;
+    u32           compiler_index;
+    u32           number_of_filenames;
+    const char**  filenames;
+
+    ... custom variables/data
+
+}
 
 -- Finding deleted/modified `S:` and `T:` assets
 When iterating over all the Compilers we can determine if any of the source/destination files
@@ -104,6 +119,21 @@ So we have hard dependencies that can be described as:
 
 - Tool Bundle: includes .exe and .config files
 
+# Data Units
+
+We would like to separate the project into compilation Units using the standard C# way using .csproj files and the .sln file.
+We can reference other Units like
+
+```c#
+   public class AllCharacters
+   {
+       Hero = new DataUnit("characters/hero/");
+       Enemies = new DataUnit[] {
+          new DataUnit("characters/enemies/wolf/"),
+          new DataUnit("characters/enemies/lion/"),
+       };
+   }
+```
 
 # TODO
   
