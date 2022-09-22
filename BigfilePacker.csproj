@@ -37,7 +37,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <IntermediateOutputPath>target\BigfilePacker\obj\</IntermediateOutputPath>
-    <BaseIntermediateOutputPath>target\BigfilePacker\obj\</BaseIntermediateOutputPath>    
+    <BaseIntermediateOutputPath>target\BigfilePacker\obj\</BaseIntermediateOutputPath>
     <OutputPath>target\BigfilePacker\bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -48,7 +48,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <IntermediateOutputPath>target\BigfilePacker\obj\</IntermediateOutputPath>
-    <BaseIntermediateOutputPath>target\BigfilePacker\obj\</BaseIntermediateOutputPath>    
+    <BaseIntermediateOutputPath>target\BigfilePacker\obj\</BaseIntermediateOutputPath>
     <OutputPath>target\BigfilePacker\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -160,6 +160,10 @@
     </PreBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="GameCode\GameCode.csproj">
+      <Project>{9f3bcbf7-6428-420e-9834-de5f66abf462}</Project>
+      <Name>GameCode</Name>
+    </ProjectReference>
     <ProjectReference Include="GameCore\GameCore.csproj">
       <Project>{BF79F3BC-420E-6428-9834-DE5F66ABF462}</Project>
       <Name>GameCore</Name>

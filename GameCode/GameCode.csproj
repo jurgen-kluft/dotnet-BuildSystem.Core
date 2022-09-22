@@ -53,6 +53,7 @@
     <Compile Include="Compilers\DataUnit.cs" />
     <Compile Include="Compilers\ExternalCompilerProcess.cs" />
     <Compile Include="Compilers\LocalizationCompiler.cs" />
+    <Compile Include="Config\IBigfileConfig.cs" />
     <Compile Include="Config\IBuildSystemCompilerConfig.cs" />
     <Compile Include="Config\IBuildSystemLocalizerConfig.cs" />
     <Compile Include="MetaData\C++.cs" />

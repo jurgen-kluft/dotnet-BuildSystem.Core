@@ -1,11 +1,14 @@
 using System;
 
-namespace GameData.AI
+namespace GameData
 {
-	public class DataUnit : IDataUnit
+	namespace AI
 	{
-		public string name { get { return "AI"; } }
+		public class DataRoot : IDataRoot
+		{
+			public string Name { get { return "AI"; } }
 
-		public string descr = "This is AI data";
+			public string descr = "This is AI data";
+		}
 	}
 }

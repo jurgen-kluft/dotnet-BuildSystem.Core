@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{77F4057C-7A8A-45F1-9CB7-811F7255371A}</ProjectGuid>
+    <ProjectGuid>{99AE83C4-F4C6-40F3-87F5-765C6FA57514}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Game.Data</RootNamespace>
-    <AssemblyName>Game.Data</AssemblyName>
+    <RootNamespace>GameData.Fonts</RootNamespace>
+    <AssemblyName>GameData.Fonts</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>Bin\Debug\Data\AI</OutputPath>
+    <OutputPath>..\Bin\Debug\Data\Fonts</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,7 +28,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>Bin\Release\Data\AI</OutputPath>
+    <OutputPath>..\Bin\Release\Data\Fonts</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,35 +39,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Numerics" />
+    <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameData.cs" />
-    <Compile Include="Config.PC.cs" />
-    <Compile Include="Config.WII.cs" />
+    <Compile Include="Fonts.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GameCode\GameCode.csproj">
+    <ProjectReference Include="..\..\GameCode\GameCode.csproj">
       <Project>{9f3bcbf7-6428-420e-9834-de5f66abf462}</Project>
       <Name>GameCode</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GameCore\GameCore.csproj">
+    <ProjectReference Include="..\..\GameCore\GameCore.csproj">
       <Project>{bf79f3bc-420e-6428-9834-de5f66abf462}</Project>
       <Name>GameCore</Name>
-    </ProjectReference>
-    <ProjectReference Include="AI\AI.csproj">
-      <Project>{cc921115-eaf3-4aa0-97b3-a15ed51c85c6}</Project>
-      <Name>AI</Name>
-    </ProjectReference>
-    <ProjectReference Include="Fonts\Fonts.csproj">
-      <Project>{99ae83c4-f4c6-40f3-87f5-765c6fa57514}</Project>
-      <Name>Fonts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

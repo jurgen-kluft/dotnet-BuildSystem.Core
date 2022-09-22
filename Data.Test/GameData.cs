@@ -1,18 +1,17 @@
 using System;
-using Game.Data.AI;
 
 namespace GameData
 {
-	public class DataUnit : IDataUnit
+	public class DataRoot : IDataRoot
 	{
-		public string name { get { return "Game Name"; } }
+		public string Name { get { return "Game Name"; } }
 
-		public IDynamicMember ai = new Game.Data.AI.DataUnit("AI", "AI/", EDataUnit.Embed);
-		public IDynamicMember fonts = new Game.Data.Fonts("Fonts", "Fonts/", EDataUnit.Embed);
-		public IDynamicMember menu = new DataUnit("Menu/", EDataUnit.Embed);
+		public DataUnit ai = new DataUnit("AI", "AI/", EDataUnit.Embed);
+		public DataUnit fonts = new DataUnit("Fonts", "Fonts/", EDataUnit.Embed);
+		public DataUnit menu = new DataUnit("Menu", "Menu/", EDataUnit.Embed);
 
-		public IDynamicMember cars = new DataUnit("Cars/", EDataUnit.External);
-		public IDynamicMember tracks = new DataUnit("Tracks/", EDataUnit.External);
-		public IDynamicMember tests = new DataUnit("Tests/", EDataUnit.External);
+		public DataUnit cars = new DataUnit("Cars", "Cars/", EDataUnit.External);
+		public DataUnit tracks = new DataUnit("Tracks", "Tracks/", EDataUnit.External);
+		public DataUnit tests = new DataUnit("Tests", "Tests/", EDataUnit.External);
 	}
 }

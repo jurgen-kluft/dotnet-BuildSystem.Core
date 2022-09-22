@@ -1,62 +1,27 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
+using GameCore;
 
 namespace GameData
 {
-    using GameCore;
-    using DataBuildSystem;
-
-    /// <summary>
-    /// This compiler will compile C# files into an assembly and instantiate a root object.
-    /// All IDataCompilers objects are transparently routed to the main dataCompilerServer.
-    /// </summary>
-    
-    public enum EDataUnit
+    public class DataUnit : IDataUnit, IDynamicMember
     {
-        External,
-        Embed,
-    }
+        public string mMemberName;
+        public string mDataUnitPath;
+        public EDataUnit mDataUnit;
 
-    public class DataUnit : IExternalObjectProvider
-    {
-        private readonly Filename mAsmFilename;
-        private readonly List<Filename> mSrcFilenames;
-        private readonly List<Filename> mIncludeFilenames;
-        private bool mValid = true;
-        private EDataCompilerStatus mStatus = EDataCompilerStatus.NONE;
-
-        private DataUnit(string _dllfilename)
+        public DataUnit(string membername, string unitpath) : this(membername, unitpath, EDataUnit.External)
         {
-            mAsmFilename = new Filename(Environment.expandVariables(_dllfilename));
-            mSrcFilenames = new List<Filename>();
-            mIncludeFilenames = new List<Filename>();
         }
 
-        public DataUnit(string _dllfilename, Filename _filename)
-            : this(_dllfilename)
+        public DataUnit(string membername, string unitpath, EDataUnit dataUnit)
         {
-            if (_filename.Extension == ".cs")
-                mSrcFilenames.Add(_filename);
-            else
-                mIncludeFilenames.Add(_filename);
+            mMemberName = membername;
+            mDataUnitPath = unitpath;
+            UnitType = dataUnit;
         }
-
-        public DataUnit(string _dllfilename, Filename[] _files)
-            : this(_dllfilename)
-        {
-            for (int i = 0; i < _files.Length; ++i)
-            {
-                string filename = Environment.expandVariables(_files[i]);
-                if (filename.EndsWith(".cs"))
-                    mSrcFilenames.Add(new Filename(filename));
-                else
-                    mIncludeFilenames.Add(new Filename(filename));
-            }
-        }
-
-        public EDataCompilerStatus status { get { return mStatus; } }
-
+        public EDataUnit UnitType { get; set; }
 
         public object extobject
         {
@@ -65,6 +30,9 @@ namespace GameData
                 return null;
             }
         }
+
+        public string name { get { return mMemberName; } }
+        public object value { get; set; }
     }
 }
 

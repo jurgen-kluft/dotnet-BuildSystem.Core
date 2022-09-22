@@ -8,8 +8,8 @@
     <ProjectGuid>{CC921115-EAF3-4AA0-97B3-A15ED51C85C6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Game.Data</RootNamespace>
-    <AssemblyName>Game.Data</AssemblyName>
+    <RootNamespace>GameData.AI</RootNamespace>
+    <AssemblyName>GameData.AI</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
@@ -43,6 +43,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AI.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\GameCode\GameCode.csproj">
+      <Project>{9f3bcbf7-6428-420e-9834-de5f66abf462}</Project>
+      <Name>GameCode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\GameCore\GameCore.csproj">
+      <Project>{bf79f3bc-420e-6428-9834-de5f66abf462}</Project>
+      <Name>GameCore</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

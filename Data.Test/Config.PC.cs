@@ -1,18 +1,11 @@
 using System;
-using xCore;
+using GameData;
+using DataBuildSystem;
 
 namespace DataBuildSystem
 {
-    public class DependencySystemCustomConfig : IDependencySystemConfig
-    {
-        public string	Extension				{ get { return ".dep"; } }
-        public bool		DateTimeComparison		{ get { return true; } }
-        public bool		BinaryComparison		{ get { return false; } }
-        public bool		FolderFilter(string folder) { return false; }
-        public bool		FileFilter(string folder)	{ return false; }
-    }
 
-    public class BigfileCustomConfig : IBigfileConfig
+    public class BigfileCustomConfigPC : IBigfileConfig
     {
         public string BigfileName { get { return "MJ"; } }
         public string BigFileExtension { get { return ".bfd"; } }
@@ -28,7 +21,7 @@ namespace DataBuildSystem
         public UInt32 WriteBufferSize { get { return 48 * 1024 * 1024; } }
     }
 	
-    public class BuildSystemCompilerCustomConfig : IBuildSystemCompilerConfig
+    public class BuildSystemCompilerCustomConfigPC : IBuildSystemCompilerConfig
     {
         public string DataFilename(string name) { return name; }
         public string DataFileExtension { get { return ".gdf"; } }
@@ -40,7 +33,7 @@ namespace DataBuildSystem
         public bool ForceBuildingBigfile { get { return false; } }
     }
 	
-    public class BuildSystemLocalizerConfig : IBuildSystemLocalizerConfig
+    public class BuildSystemLocalizerConfigPC : IBuildSystemLocalizerConfig
     {
         public bool LittleEndian { get { return true; } }
         public bool Unicode { get { return false; } }
