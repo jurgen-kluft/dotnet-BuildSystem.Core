@@ -5,6 +5,7 @@ namespace DataBuildSystem
 {
     public class BigfileCustomConfigWii : IBigfileConfig
     {
+        public string Platform { get { return "WII"; } }
         public string BigfileName { get { return "MJ"; } }
         public string BigFileExtension { get { return ".gda"; } }
         public string BigFileTocExtension { get { return ".gdt"; } }
@@ -21,6 +22,7 @@ namespace DataBuildSystem
 	
     public class BuildSystemCompilerCustomConfigWii : IBuildSystemCompilerConfig
     {
+        public string Platform { get { return "WII"; } }
         public string DataFilename(string name) { return name; }
         public string DataFileExtension { get { return ".rdf"; } }
         public string DataRelocFileExtension { get { return ".raf"; } }
@@ -33,6 +35,7 @@ namespace DataBuildSystem
 
     public class BuildSystemLocalizerConfigWii : IBuildSystemLocalizerConfig
     {
+        public string Platform { get { return "WII"; } }
         public bool LittleEndian { get { return false; } }
         public bool Unicode { get { return false; } }
         public string SubDepFileExtension { get { return ".sdep"; } }

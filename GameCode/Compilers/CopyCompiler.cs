@@ -5,51 +5,53 @@ using DataBuildSystem;
 
 namespace GameData
 {
-	public class CopyCompiler : IDataCompiler, IDataCompilerClient, IFileIdsProvider
+	/*
+	A Compiler will be executed when the Compiler is streaming-in the CompilersLog.BinaryStream.
+	
+	Binary data is loaded in block for block and compilers are constructed and executed, once
+	executed they are called to save themselves to a streaming-out object.
+	
+	TODO
+	- MeshCompiler
+	- MaterialCompiler
+	- TextureCompiler
+
+	 */
+
+	public class CopyCompiler : IDataCompiler, IDataCompilerClient
 	{
-		private readonly Filename mFilename;
-		private FileId fileId = new FileId();
+		private readonly string mFilename;
+		private FileId mFileId = new FileId();
 		private EDataCompilerStatus mStatus = EDataCompilerStatus.NONE;
 
 		public CopyCompiler(string filename)
 		{
-			filename = Environment.expandVariables(filename);
-			mFilename = new Filename(filename);
+			mFilename = Environment.expandVariables(filename);
 		}
 
-		public string group { get { return "CopyCompiler"; } }
-		public EDataCompilerStatus status { get { return mStatus; } }
+		public EDataCompilerStatus CompilerStatus { get { return mStatus; } }
 
-		public void csetup()
+		public void CompilerSetup()
 		{
 		}
 
-		public void csave(GameData.IDataCompilerStream stream)
+		public void CompilerSave(GameData.IDataCompilerLog stream)
 		{ 
 		}
 
-		public void cload(GameData.IDataCompilerStream stream)
+		public void CompilerLoad(GameData.IDataCompilerLog stream)
 		{ 
 		}
 
-		public void cteardown()
+		public void CompilerExecute()
 		{
 		}
 
-		public void onExecute()
-		{
-		}
-
-		public void onFinished()
+		public void CompilerFinished()
 		{
 
 		}
 
-		public void registerAt(IFileRegistrar registrar)
-		{
-			fileId = registrar.Add(mFilename);
-		}
-
-		public FileId[] fileIds { get { return new FileId[] { fileId }; } }
+		public FileId[] fileIds { get { return new FileId[] { mFileId }; } }
 	}
 }

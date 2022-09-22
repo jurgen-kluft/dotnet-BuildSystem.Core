@@ -16,7 +16,7 @@ namespace DataBuildSystem
         private readonly Dirname mBigfileFolder;
         private readonly Filename mBigfileFilename;
 
-        private List<Hash128> mFileHash = new List<Hash128>();
+        private List<Hash160> mFileHash = new List<Hash160>();
         private List<BigfileFile> mBigfileFiles = new List<BigfileFile>();
         private Dictionary<Filename, int> mFile = new Dictionary<Filename, int>(new FilenameInsensitiveComparer());
 
@@ -56,11 +56,11 @@ namespace DataBuildSystem
             {
                 i = mFileHash.Count;
                 mFile.Add(filename, i);
-                mFileHash.Add(Hash128.Empty);
+                mFileHash.Add(Hash160.Empty);
             }
             return i;
         }
-        public Int32 add(Filename filename, Hash128 md5)
+        public Int32 add(Filename filename, Hash160 md5)
         {
             int i;
             if (!mFile.TryGetValue(filename, out i))
@@ -79,11 +79,11 @@ namespace DataBuildSystem
             // Simulation
             // MD5 -> <Offset, Size> dictionary
             mBigfileFiles.Clear();
-            Dictionary<Hash128, BigfileFile> md5Dictionary = new Dictionary<Hash128, BigfileFile>();
+            Dictionary<Hash160, BigfileFile> md5Dictionary = new Dictionary<Hash160, BigfileFile>();
             foreach (KeyValuePair<Filename, int> p in mFile)
             {
                 Filename f = p.Key;
-                Hash128 fileHash = mFileHash[p.Value];
+                Hash160 fileHash = mFileHash[p.Value];
 
                 BigfileFile existingBigfileFile;
                 if (md5Dictionary.TryGetValue(fileHash, out existingBigfileFile))
@@ -173,11 +173,11 @@ namespace DataBuildSystem
             List<BigfileFile> bigfileFiles = new List<BigfileFile>();
 
             // MD5 -> <Offset, Size> dictionary
-            Dictionary<Hash128, BigfileFile> md5Dictionary = new Dictionary<Hash128, BigfileFile>();
+            Dictionary<Hash160, BigfileFile> md5Dictionary = new Dictionary<Hash160, BigfileFile>();
             foreach (KeyValuePair<Filename, int> p in mFile)
             {
                 Filename f = p.Key;
-                Hash128 fileHash = mFileHash[p.Value];
+                Hash160 fileHash = mFileHash[p.Value];
 
                 BigfileFile existingBigfileFile;
                 if (!md5Dictionary.TryGetValue(fileHash, out existingBigfileFile))
@@ -227,7 +227,7 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool load(Dirname dstPath, EEndian endian, Dictionary<Filename, Hash128> filenameToHashDictionary)
+        public bool load(Dirname dstPath, EEndian endian, Dictionary<Filename, Hash160> filenameToHashDictionary)
         {
             mFile.Clear();
             mFileHash.Clear();
@@ -246,7 +246,7 @@ namespace DataBuildSystem
                         Console.WriteLine("No info for file {0} with index {1}", dstPath + bff.filename, i);
                         return false;
                     }
-                    Hash128 hash;
+                    Hash160 hash;
                     if (!filenameToHashDictionary.TryGetValue(bff.filename, out hash))
                     {
                         filenameToHashDictionary.Add(bff.filename, bff.contenthash);

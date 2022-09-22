@@ -276,12 +276,12 @@ namespace GameData
             Member newUInt64Member(UInt64 content, string memberName);
             Member newFloatMember(float content, string memberName);
             Member newStringMember(string content, string memberName);
-            Member newFileIdMember(Hash128 content, string memberName);
+            Member newFileIdMember(Hash160 content, string memberName);
             Member newEnumMember(object content, string memberName);
             ObjectMember newObjectMember(Type objectType, object content, string memberName);
             ArrayMember newArrayMember(Type arrayType, object content, Member elementMember, string memberName);
             AtomMember newAtomMember(Type atomType, Member atomContentMember, string memberName);
-            FileIdMember newFileIdMember(Type atomType, Hash128 content, string memberName);
+            FileIdMember newFileIdMember(Type atomType, Hash160 content, string memberName);
             CompoundMember newCompoundMember(Type compoundType, object content, string memberName);
         }
 
@@ -1017,9 +1017,9 @@ namespace GameData
             public static readonly FileIdType sType = new FileIdType(typeof(GameData.FileId), typeof(GameData.FileId).Name);
 
             private StreamReference mStreamReference = StreamReference.Empty;
-            private readonly Hash128 mValue;
+            private readonly Hash160 mValue;
 
-            public FileIdMember(string name, Hash128 value)
+            public FileIdMember(string name, Hash160 value)
                 : base(sType, name, 4)
             {
                 mValue = value;
@@ -1038,7 +1038,7 @@ namespace GameData
             {
                 get
                 {
-                    return mValue == Hash128.Empty;
+                    return mValue == Hash160.Empty;
                 }
             }
 
@@ -1054,7 +1054,7 @@ namespace GameData
                 }
             }
 
-            public Hash128 id
+            public Hash160 id
             {
                 get
                 {
@@ -1064,7 +1064,7 @@ namespace GameData
 
             public override Member Default()
             {
-                return new FileIdMember(name, Hash128.Empty);
+                return new FileIdMember(name, Hash160.Empty);
             }
 
             public override bool write(IMemberWriter writer)

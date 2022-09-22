@@ -611,9 +611,9 @@ namespace GameData
                 mDataWriter.Write(0);
             }
 
-            internal Hash128 computeMD5()
+            internal Hash160 computeMD5()
             {
-                Hash128 dataHash = HashUtility.compute(mDataStream);
+                Hash160 dataHash = HashUtility.compute(mDataStream);
                 return dataHash;
             }
 
@@ -782,11 +782,11 @@ namespace GameData
             while (collapse)
             {
                 Dictionary<StreamReference, List<StreamReference>> duplicateDataBase = new Dictionary<StreamReference, List<StreamReference>>();
-                Dictionary<Hash128, StreamReference> dataMD5DataBase = new Dictionary<Hash128, StreamReference>();
+                Dictionary<Hash160, StreamReference> dataMD5DataBase = new Dictionary<Hash160, StreamReference>();
 
                 foreach (DataBlock d in mData)
                 {
-                    Hash128 md5 = d.computeMD5();
+                    Hash160 md5 = d.computeMD5();
                     if (dataMD5DataBase.ContainsKey(md5))
                     {
                         // Encountering a block of data which has a duplicate.

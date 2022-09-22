@@ -6,32 +6,32 @@ namespace GameData
 {
     public class FileId : IFileId
     {
-        private readonly Hash128 mFileId;
+        private readonly Hash160 mFileId;
         private readonly IFileIdsProvider mProvider;
 
         public FileId()
         {
-            mFileId = Hash128.Empty;
+            mFileId = Hash160.Empty;
             mProvider = null;
         }
-        private FileId(Hash128 id)
+        private FileId(Hash160 id)
         {
             mFileId = id;
             mProvider = null;
         }
         public FileId(IFileIdsProvider provider)
         {
-            mFileId = Hash128.Empty;
+            mFileId = Hash160.Empty;
             mProvider = provider;
         }
 
         public static FileId NewInstance(Filename filename)
         {
-            FileId fileId = new FileId(Hash128.FromString(filename.ToString().ToLower()));
+            FileId fileId = new FileId(Hash160.FromString(filename.ToString().ToLower()));
             return fileId;
         }
 
-        public Hash128 id
+        public Hash160 id
         {
             get
             {

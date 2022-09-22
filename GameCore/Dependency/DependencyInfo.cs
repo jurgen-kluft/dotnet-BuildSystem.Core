@@ -31,7 +31,7 @@ namespace GameCore
 
         private Filename mFilename;
         private Dirname mFolder;
-        private Hash128 mHash = Hash128.Empty;
+        private Hash160 mHash = Hash160.Empty;
         private EStatus mStatus = EStatus.UNINITIALIZED;
         private EMethod mMethod = EMethod.TIMESTAMP;
         private EDepRule mDepRule = EDepRule.ON_CHANGE;
@@ -53,10 +53,10 @@ namespace GameCore
         }
 
         public DepInfo(Filename filename, Dirname folder, EMethod method)
-            : this(filename, folder, method, Hash128.Empty)
+            : this(filename, folder, method, Hash160.Empty)
         {
         }
-        public DepInfo(Filename filename, Dirname folder, EMethod method, Hash128 hash)
+        public DepInfo(Filename filename, Dirname folder, EMethod method, Hash160 hash)
         {
             mFilename = filename;
             mFolder = folder;
@@ -93,7 +93,7 @@ namespace GameCore
 
         }
 
-        public Hash128 hash
+        public Hash160 hash
         {
             set
             {
@@ -146,7 +146,7 @@ namespace GameCore
 
         internal void init()
         {
-            hash = Hash128.Empty;
+            hash = Hash160.Empty;
             status = EStatus.UNINITIALIZED;
 
             update();
@@ -157,35 +157,35 @@ namespace GameCore
                 status = EStatus.UNCHANGED;
         }
 
-        private static Hash128 computeHash(string fullFilename, EMethod method)
+        private static Hash160 computeHash(string fullFilename, EMethod method)
         {
             switch (method)
             {
                 case DepInfo.EMethod.MD5:
                     {
                         FileInfo fileInfo = new FileInfo(fullFilename);
-                        return fileInfo.Exists ? HashUtility.compute(fileInfo) : Hash128.Empty;
+                        return fileInfo.Exists ? HashUtility.compute(fileInfo) : Hash160.Empty;
                     }
 
                 case DepInfo.EMethod.TIMESTAMP:
                     {
-                        Hash128 hash = Hash128.Empty;
+                        Hash160 hash = Hash160.Empty;
                         if (File.Exists(fullFilename))
-                            hash = Hash128.FromDateTime(File.GetLastWriteTime(fullFilename));
+                            hash = Hash160.FromDateTime(File.GetLastWriteTime(fullFilename));
                         return hash;
                     }
 
                 default:
-                    return Hash128.Empty;
+                    return Hash160.Empty;
             }
         }
 
         internal void update()
         {
-            Hash128 newHash = computeHash(mFullFilename, mMethod);
+            Hash160 newHash = computeHash(mFullFilename, mMethod);
             if (mDepRule == EDepRule.MUST_EXIST)
             {
-                if (newHash == Hash128.Empty || newHash != hash)
+                if (newHash == Hash160.Empty || newHash != hash)
                 {
                     status = EStatus.CHANGED;
                     hash = newHash;

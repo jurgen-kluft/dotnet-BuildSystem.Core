@@ -77,7 +77,7 @@ namespace DataBuildSystem
             // - deppath      %SRCPATH%\Dep.%PLATFORM%.%TARGET%
             // - pubpath      %SRCPATH%\Publish.%PLATFORM%.%TARGET%
             // - toolpath     I:\Dev\Game\Data\Tools
-            if (!BuildSystemCompilerConfig.init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
+            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
             {
                 Console.WriteLine("Usage: -name [NAME]");
                 Console.WriteLine("       -config [FILENAME]");
@@ -112,7 +112,7 @@ namespace DataBuildSystem
             // Inject ourselves with the referenced assemblies
             {
                 List<Filename> referencedAssemblies = new List<Filename>();
-                cmdLine.CollectIndexedParams(0, true, "asm", delegate(string param) { referencedAssemblies.Add(new Filename(param)); });
+                cmdLine.CollectIndexedParams(0, true, "asm", delegate (string param) { referencedAssemblies.Add(new Filename(param)); });
                 BuildSystemCompilerConfig.AddReferencedAssemblies(referencedAssemblies);
                 foreach (Filename assemblyFilename in referencedAssemblies)
                 {
@@ -126,7 +126,7 @@ namespace DataBuildSystem
             DataAssemblyManager dataAssemblyManager = new DataAssemblyManager();
             List<Filename> sourceFiles = new List<Filename>();
             List<Filename> csIncludes = new List<Filename>();
-            cmdLine.CollectIndexedParams(0, true, "file", delegate(string param) { if (param.EndsWith(".csi")) csIncludes.Add(new Filename(param)); else sourceFiles.Add(new Filename(param)); });
+            cmdLine.CollectIndexedParams(0, true, "file", delegate (string param) { if (param.EndsWith(".csi")) csIncludes.Add(new Filename(param)); else sourceFiles.Add(new Filename(param)); });
 
             Filename dataAssemblyFilename = new Filename(BuildSystemCompilerConfig.Name + ".dll");
             bool dataAssemblyCompiledSuccesfully = dataAssemblyManager.compileAsm(dataAssemblyFilename, sourceFiles.ToArray(), csIncludes.ToArray(), BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, BuildSystemCompilerConfig.ReferencedAssemblies);
@@ -147,24 +147,26 @@ namespace DataBuildSystem
             GameData.Instanciate.assembly = dataAssemblyManager.assembly;
 
             // BuildSystem.DataCompiler configuration
-            IBuildSystemCompilerConfig configForCompiler = AssemblyUtil.Create1<IBuildSystemCompilerConfig>(configDataAssembly);
-            if (configForCompiler != null)
-                BuildSystemCompilerConfig.Init(configForCompiler);
+            IBuildSystemCompilerConfig[] configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(configDataAssembly);
+            if (configsForCompiler.Length > 0)
+            {
+                foreach (var config in configsForCompiler)
+				{
+                    if (config.Platform == cmdLine["platform"])
+                        BuildSystemCompilerConfig.Init(config);
+                }
+            }
 
             // Bigfile configuration
-            IBigfileConfig configForBigfileBuilder = AssemblyUtil.Create1<IBigfileConfig>(configDataAssembly);
-            if (configForBigfileBuilder != null)
-                BigfileConfig.Init(configForBigfileBuilder);
-
-            // Dependency system configuration
-            // IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
-            // if (configForDependencySystem != null)
-            //     DependencySystemConfig.Init(configForDependencySystem);
-
-            // Create DependencySystem
-            // DependencySystem dependencySystem = new DependencySystem(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath);
-            Filename depFilesFilename = BuildSystemCompilerConfig.DepPath + new Filename(BigfileConfig.BigfileName);
-            // depFilesFilename.Extension = DependencySystemConfig.Extension;
+            IBigfileConfig[] configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(configDataAssembly);
+            if (configsForBigfileBuilder.Length > 0)
+			{
+                foreach (var config in configsForBigfileBuilder)
+                {
+                    if (config.Platform == cmdLine["platform"])
+                        BigfileConfig.Init(config);
+                }
+            }
 
             DateTime start = DateTime.Now;
             DateTime end = DateTime.Now;
@@ -181,15 +183,30 @@ namespace DataBuildSystem
                         start = DateTime.Now;
                         Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
 
-                        // dataAssemblyManager.setupDataCompilers(dependencySystem);
-                        // dataAssemblyManager.executeDataCompilers(dependencySystem, true);
-                        // dataAssemblyManager.teardownDataCompilers(dependencySystem);
-                        // dataAssemblyManager.finalizeDataCompilation(dependencySystem);
-
                         // TODO; need to implement the compiler streaming execution
 
-                        // If the .dll was loaded instead of compiled and if there where no assets recompiled than
-                        // we definitely do not need to build the game data.
+                        // TODO "Signature File Verification" of all 'Data Unit's
+
+                        // A 'Data Unit' consists of:
+                        //     - 'Game Data DLL'
+                        //     - 'Game Data Compiler Log'
+                        //     - 'Game Data Bigfile' and its TOC etc..
+
+                        // If all 'Data Unit's are verified then we have nothing to do.
+                        // 
+                        // If a 'Data Unit' was changed:
+                        //     - if the 'Game Data Compiler Log' doesn't exist collect all Compilers from the game data DLL and 
+                        //       generate a new 'Game Data Compiler Log'.
+                        //     - Job; stream-in 'Game Data Compiler Log' and pushing into 'Compiler Queue'
+                        //     - Job System that feeds of the 'Compiler Queue and executes and when finished pushes them to
+                        //       a Job that will save and delete them.
+                        //     - the 'Game Data Compiler Log' for saving is a Job that receives finished Compilers
+                        // 
+
+                        // Development: Do not merge all bigfiles into one
+
+                        // Development: Game has a large list of all bigfiles, their hash, their filehandle (if opened).
+
 
                         end = DateTime.Now;
                         Console.WriteLine("Data compilation complete -- ok (Duration: {0}s)", (end - start).TotalSeconds);

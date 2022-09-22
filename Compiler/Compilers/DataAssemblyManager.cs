@@ -258,7 +258,7 @@ namespace DataBuildSystem
         public void setupDataCompilers( )
         {
             foreach (GameData.IDataCompiler c in mCompilers)
-                c.csetup();
+                c.CompilerSetup();
         }
 
 

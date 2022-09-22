@@ -5,14 +5,14 @@ using System.IO;
 
 namespace GameCore
 {
-    public class Hash128
+    public class Hash160
     {
-        public static readonly byte[] hash_null_ = new byte[16] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-        public static readonly byte[] hash_error_ = new byte[16] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+        public static readonly byte[] hash_null_ = new byte[20] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        public static readonly byte[] hash_error_ = new byte[20] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
-        public static Hash128 Null { get { return new Hash128(hash_null_, 0); } }
-        public static Hash128 Empty { get { return new Hash128(hash_null_, 0); } }
-        public static Hash128 Error { get { return new Hash128(hash_error_, 0); } }
+        public static Hash160 Null { get { return new Hash160(hash_null_, 0); } }
+        public static Hash160 Empty { get { return new Hash160(hash_null_, 0); } }
+        public static Hash160 Error { get { return new Hash160(hash_error_, 0); } }
 
         public bool IsErrorHash()
         {
@@ -31,42 +31,42 @@ namespace GameCore
         }
 
         private byte[] hash_;
-        private Hash128(byte[] _hash)
+        private Hash160(byte[] _hash)
         {
             hash_ = _hash;
         }
 
-        public Hash128()
+        public Hash160()
         {
             hash_ = new byte[Size];
             CopyFrom(hash_null_, 0);
         }
 
-        public Hash128(Hash128 _other)
+        public Hash160(Hash160 _other)
         {
             hash_ = new byte[Size];
             CopyFrom(_other.Data, 0);
         }
 
-        private Hash128(byte[] _array, int _start)
+        private Hash160(byte[] _array, int _start)
         {
             hash_ = new byte[Size];
             CopyFrom(_array, _start);
         }
 
-        public static readonly int Size = 16;
+        public static readonly int Size = 20;
 
-        public static Hash128 ConstructTake(byte[] _hash)
+        public static Hash160 ConstructTake(byte[] _hash)
         {
-            return new Hash128(_hash);
+            return new Hash160(_hash);
         }
-        public static Hash128 ConstructCopy(byte[] _hash)
+        public static Hash160 ConstructCopy(byte[] _hash)
         {
-            return new Hash128(_hash, 0);
+            return new Hash160(_hash, 0);
         }
-        public static Hash128 ConstructCopy(byte[] _hash, int start)
+        public static Hash160 ConstructCopy(byte[] _hash, int start)
         {
-            return new Hash128(_hash, start);
+            return new Hash160(_hash, start);
         }
 
         public byte[] Data { get { return hash_; } }
@@ -137,17 +137,17 @@ namespace GameCore
             return hash;
         }
 
-        public static Hash128 FromString(string _hashstr)
+        public static Hash160 FromString(string _hashstr)
         {
             return ConstructTake(FromStringN(_hashstr, 32));
         }
 
-        public static Hash128 FromDateTime(DateTime dt)
+        public static Hash160 FromDateTime(DateTime dt)
         {
             return FromString(String.Format("00000000000000{0:X16}", dt.Ticks));
         }
 
-        public int Copy(Hash128 other)
+        public int Copy(Hash160 other)
         {
             return CopyFrom(other.Data, 0);
         }
@@ -176,14 +176,14 @@ namespace GameCore
             _writer.Write(hash_);
         }
 
-        public static bool operator ==(Hash128 b1, Hash128 b2)
+        public static bool operator ==(Hash160 b1, Hash160 b2)
         {
             bool equal = (b1.hash_[0] == b2.hash_[0]);
             for (int j = 1; j < Size && equal; j++)
                 equal = (b1.hash_[j] == b2.hash_[j]);
             return equal;
         }
-        public static bool operator !=(Hash128 b1, Hash128 b2)
+        public static bool operator !=(Hash160 b1, Hash160 b2)
         {
             bool equal = (b1.hash_[0] == b2.hash_[0]);
             for (int j = 1; j < Size && equal; j++)
@@ -193,15 +193,15 @@ namespace GameCore
 
         public override bool Equals(object obj)
         {
-            Hash128 h = (Hash128)obj;
+            Hash160 h = (Hash160)obj;
             return Compare(h) == 0;
         }
 
-        public int Compare(Hash128 _other)
+        public int Compare(Hash160 _other)
         {
             return Compare(_other.Data, 0);
         }
-        public static int Compare(Hash128 a, Hash128 b)
+        public static int Compare(Hash160 a, Hash160 b)
         {
             return a.Compare(b);
         }
@@ -220,14 +220,14 @@ namespace GameCore
 
         #region Comparer (IEqualityComparer)
 
-        public class Comparer : IEqualityComparer<Hash128>
+        public class Comparer : IEqualityComparer<Hash160>
         {
-            public bool Equals(Hash128 a, Hash128 b)
+            public bool Equals(Hash160 a, Hash160 b)
             {
-                return Hash128.Compare(a, b) == 0;
+                return Hash160.Compare(a, b) == 0;
             }
 
-            public int GetHashCode(Hash128 r)
+            public int GetHashCode(Hash160 r)
             {
                 return r.GetHashCode();
             }
@@ -237,24 +237,24 @@ namespace GameCore
 
         public static void UnitTest()
         {
-            Hash128 h1 = new Hash128();
-            Hash128 h2 = new Hash128();
+            Hash160 h1 = new Hash160();
+            Hash160 h2 = new Hash160();
 
-            Hash128 h3 = new Hash128(Hash128.Error);
-            Hash128 h4 = new Hash128(Hash128.Error);
+            Hash160 h3 = new Hash160(Hash160.Error);
+            Hash160 h4 = new Hash160(Hash160.Error);
 
-            Debug.Assert(h1 == Hash128.Null);
-            Debug.Assert(h2 == Hash128.Null);
-            Debug.Assert(h1 != Hash128.Error);
-            Debug.Assert(h2 != Hash128.Error);
+            Debug.Assert(h1 == Hash160.Null);
+            Debug.Assert(h2 == Hash160.Null);
+            Debug.Assert(h1 != Hash160.Error);
+            Debug.Assert(h2 != Hash160.Error);
             Debug.Assert(h1 == h2);
             Debug.Assert(h1.Compare(h2) == 0);
             Debug.Assert(h1.GetHashCode() == h2.GetHashCode());
 
-            Debug.Assert(h3 != Hash128.Null);
-            Debug.Assert(h4 != Hash128.Null);
-            Debug.Assert(h3 == Hash128.Error);
-            Debug.Assert(h4 == Hash128.Error);
+            Debug.Assert(h3 != Hash160.Null);
+            Debug.Assert(h4 != Hash160.Null);
+            Debug.Assert(h3 == Hash160.Error);
+            Debug.Assert(h4 == Hash160.Error);
             Debug.Assert(h3 == h4);
             Debug.Assert(h3.Compare(h4) == 0);
             Debug.Assert(h3.GetHashCode() == h4.GetHashCode());
@@ -262,10 +262,10 @@ namespace GameCore
             Debug.Assert(h1 != h3);
             Debug.Assert(h2 != h4);
 
-            Debug.Assert(Hash128.Error != Hash128.Null);
-            Debug.Assert(Hash128.Error.Compare(Hash128.Null) == 1);
-            Debug.Assert(Hash128.Null.Compare(Hash128.Error) == -1);
-            Debug.Assert(Hash128.Error.GetHashCode() != Hash128.Null.GetHashCode());
+            Debug.Assert(Hash160.Error != Hash160.Null);
+            Debug.Assert(Hash160.Error.Compare(Hash160.Null) == 1);
+            Debug.Assert(Hash160.Null.Compare(Hash160.Error) == -1);
+            Debug.Assert(Hash160.Error.GetHashCode() != Hash160.Null.GetHashCode());
         }
     };
 
@@ -273,10 +273,10 @@ namespace GameCore
     {
         #region Methods
 
-        public static Hash128 compute(FileInfo s)
+        public static Hash160 compute(FileInfo s)
         {
             if (!s.Exists)
-                return Hash128.Null;
+                return Hash160.Null;
 
             try
             {
@@ -290,21 +290,21 @@ namespace GameCore
             catch (Exception e)
             {
                 Console.WriteLine("[HashUtility:EXCEPTION]{0}", e);
-                return Hash128.Null;
+                return Hash160.Null;
             }
         }
-        public static Hash128 compute(FileStream fs)
+        public static Hash160 compute(FileStream fs)
         {
             MemoryStream ms = new MemoryStream();
             fs.CopyTo(ms);
             return compute(ms);
         }
-        public static Hash128 compute(MemoryStream ms)
+        public static Hash160 compute(MemoryStream ms)
         {
             byte[] data = ms.GetBuffer();
             return SHA1.Compute(data);
         }
-        public static Hash128 compute(bool[] values)
+        public static Hash160 compute(bool[] values)
         {
             MemoryStream ms = new MemoryStream();
             foreach (var v in values)
@@ -313,28 +313,28 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(byte[] v)
+        public static Hash160 compute(byte[] v)
         {
             return compute(v, 0, v.Length);
         }
-        public static Hash128 compute(byte[] v1, int v1Length, byte[] v2, int v2Length)
+        public static Hash160 compute(byte[] v1, int v1Length, byte[] v2, int v2Length)
         {
             MemoryStream ms = new MemoryStream();
             ms.Write(v1, 0, v1Length);
             ms.Write(v2, 0, v2Length);
             return compute(ms);
         }
-        public static Hash128 compute(byte[] v, int index, int count)
+        public static Hash160 compute(byte[] v, int index, int count)
         {
             MemoryStream ms = new MemoryStream();
             ms.Write(v, index, count);
             return compute(ms);
         }
-        public static Hash128 compute(sbyte[] v)
+        public static Hash160 compute(sbyte[] v)
         {
             return compute(v, 0, v.Length);
         }
-        public static Hash128 compute(sbyte[] v, int index, int count)
+        public static Hash160 compute(sbyte[] v, int index, int count)
         {
             MemoryStream ms = new MemoryStream();
             for (int i = index; i < count; ++i)
@@ -343,7 +343,7 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(short[] values)
+        public static Hash160 compute(short[] values)
         {
             MemoryStream ms = new MemoryStream();
             byte[] bytes = new byte[2];
@@ -357,7 +357,7 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(ushort[] values)
+        public static Hash160 compute(ushort[] values)
         {
             MemoryStream ms = new MemoryStream();
             byte[] bytes = new byte[2];
@@ -371,7 +371,7 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(int[] values)
+        public static Hash160 compute(int[] values)
         {
             MemoryStream ms = new MemoryStream();
             byte[] bytes = new byte[8];
@@ -385,7 +385,7 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(uint[] values)
+        public static Hash160 compute(uint[] values)
         {
             MemoryStream ms = new MemoryStream();
             byte[] bytes = new byte[8];
@@ -399,7 +399,7 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(Int64[] values)
+        public static Hash160 compute(Int64[] values)
         {
             MemoryStream ms = new MemoryStream();
             byte[] bytes = new byte[8];
@@ -413,7 +413,7 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(UInt64[] values)
+        public static Hash160 compute(UInt64[] values)
         {
             MemoryStream ms = new MemoryStream();
             byte[] bytes = new byte[8];
@@ -427,7 +427,7 @@ namespace GameCore
             }
             return compute(ms);
         }
-        public static Hash128 compute(float[] values)
+        public static Hash160 compute(float[] values)
         {
             MemoryStream ms = new MemoryStream();
             foreach (var v in values)

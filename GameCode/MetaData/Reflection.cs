@@ -142,7 +142,7 @@ namespace GameData
                 // A FileId is holding a Hash128 object
                 PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
                 object contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
-                Hash128 hash = (Hash128)contentObject;
+                Hash160 hash = (Hash160)contentObject;
 
                 MetaCode.FileIdMember fileIdMember = mMemberGenerator.newFileIdMember(dataObjectFieldValue.GetType(), hash, memberName);
                 member = fileIdMember;

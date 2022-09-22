@@ -23,7 +23,7 @@ namespace BigfileViewer
         {
             string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
-            if (!BuildSystemCompilerConfig.init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["folder"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
+            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["folder"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
             {
                 Console.WriteLine("Usage: -name [NAME]");
                 Console.WriteLine("       -config [FILENAME]");
@@ -104,7 +104,7 @@ namespace BigfileViewer
                 int instancesNum = file.offsets.Length;
 
                 string filenameStr = file.filename.ToString();
-                Hash128 hash = Hash128.FromString(filenameStr.ToLower());
+                Hash160 hash = Hash160.FromString(filenameStr.ToLower());
 
                 TreeGridNode srcFileNode = treeGridView1.Nodes.Add(hash.ToString(), file.size.ToString(), instancesNum.ToString(), null, filenameStr, "False");
                 DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)treeGridView1.GetNodeForRow(treeGridView1.RowCount - 1).Cells[3];

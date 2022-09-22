@@ -544,7 +544,7 @@ namespace GameCore
             Dirname currentDepInfo_folder = Dirname.Empty;
             DepInfo.EMethod currentDepInfo_method = DepInfo.EMethod.TIMESTAMP;
             DepInfo.EDepRule currentDepInfo_rule = DepInfo.EDepRule.ON_CHANGE;
-            Hash128 currentDepInfo_hash = Hash128.Empty;
+            Hash160 currentDepInfo_hash = Hash160.Empty;
 
             while (!reader.EndOfStream && !readOneDepFile)
             {
@@ -631,9 +631,9 @@ namespace GameCore
                     {
                         string hashStr = lineParts[1].Trim(' ', '\t');
                         if (currentDepInfoOpen)
-                            currentDepInfo_hash = Hash128.FromString(hashStr);
+                            currentDepInfo_hash = Hash160.FromString(hashStr);
                         else if (depfile != null)
-                            depfile.main.hash = Hash128.FromString(hashStr);
+                            depfile.main.hash = Hash160.FromString(hashStr);
                     }
                 }
                 else if (line.StartsWith("RULE="))
@@ -665,7 +665,7 @@ namespace GameCore
                         currentDepInfo_folder = Dirname.Empty;
                         currentDepInfo_method = DepInfo.EMethod.TIMESTAMP;
                         currentDepInfo_rule = DepInfo.EDepRule.ON_CHANGE;
-                        currentDepInfo_hash = Hash128.Empty;
+                        currentDepInfo_hash = Hash160.Empty;
                     }
                     else
                     {

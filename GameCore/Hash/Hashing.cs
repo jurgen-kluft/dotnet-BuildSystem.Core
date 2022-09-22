@@ -378,7 +378,7 @@ namespace GameCore
             H[4] = (H[4] + e);
         }
 
-        public static Hash128 Compute(byte[] msg)
+        public static Hash160 Compute(byte[] msg)
         {
             UInt32[] H = new UInt32[] { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 };
             uint[] W = new uint[80];
@@ -429,13 +429,13 @@ namespace GameCore
                 Iterate(Block, 0, W, H);
             }
 
-            byte[] data = new byte[16];
-            for (uint i = 0; i < 4; ++i)
+            byte[] data = new byte[20];
+            for (uint i = 0; i < 5; ++i)
             {
                 WriteUInt32(data, i * 4, H[i]);
             }
 
-            return Hash128.ConstructTake(data);
+            return Hash160.ConstructTake(data);
         }
 
         static uint F(uint s, uint x, uint y, uint z)
@@ -456,7 +456,7 @@ namespace GameCore
         }
 
         #region UnitTest
-        public static Hash128 Compute_ASCII(string str)
+        public static Hash160 Compute_ASCII(string str)
         {
             byte[] data = System.Text.ASCIIEncoding.Default.GetBytes(str);
             return Compute(data);
@@ -469,10 +469,10 @@ namespace GameCore
             string qqq = ".. this is the time for all good men to come to the aid of their country...";
             string qqqq = "... this is the time for all good men to come to the aid of their country...";
 
-            Hash128 qh = Compute_ASCII(q);
-            Hash128 qqh = Compute_ASCII(qq);
-            Hash128 qqqh = Compute_ASCII(qqq);
-            Hash128 qqqqh = Compute_ASCII(qqqq);
+            Hash160 qh = Compute_ASCII(q);
+            Hash160 qqh = Compute_ASCII(qq);
+            Hash160 qqqh = Compute_ASCII(qqq);
+            Hash160 qqqqh = Compute_ASCII(qqqq);
 
             if (qh.ToString() != "A9993E364706816ABA3E25717850C26C")
                 return false;

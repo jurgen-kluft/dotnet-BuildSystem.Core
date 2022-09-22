@@ -47,7 +47,7 @@ namespace DataBuildSystem
             foreach (Filename bfn in mBigfileFilenames)
             {
                 FileInfo fileInfo = new FileInfo(bfn);
-                Hash128 fileHash = HashUtility.compute(fileInfo);
+                Hash160 fileHash = HashUtility.compute(fileInfo);
                 bfb.add(bfn, fileHash);
 
                 //TODO: This needs to be implemented!

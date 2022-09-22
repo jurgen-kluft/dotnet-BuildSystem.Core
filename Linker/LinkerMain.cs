@@ -73,7 +73,7 @@ namespace DataBuildSystem
             // - DstPath      %SrcPath%\Bin.%PLATFORM%
             // - PubPath      %SrcPath%\Publish.%PLATFORM%
             // - ToolPath     %SrcPath%\Tools
-            if (!BuildSystemCompilerConfig.init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["folder"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
+            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["folder"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
             {
                 Console.WriteLine("Usage: -name [NAME]");
                 Console.WriteLine("       -config [FILENAME]");
@@ -245,15 +245,15 @@ namespace DataBuildSystem
             private Filename mFilename;
             public Int64 mFileSize;
             public Int64 mFileLastWriteTime;
-            public Hash128 mFileContentHash;
+            public Hash160 mFileContentHash;
             public bool mUsed;
             public bool mUpToDate;
 
             public FileEntry(Filename filename)
-                : this(filename, 0, 0, Hash128.Empty)
+                : this(filename, 0, 0, Hash160.Empty)
             {
             }
-            public FileEntry(Filename filename, Int64 filesize, Int64 filelastwritetime, Hash128 filecontenthash)
+            public FileEntry(Filename filename, Int64 filesize, Int64 filelastwritetime, Hash160 filecontenthash)
             {
                 mFilename = filename;
                 mFileSize = filesize;
@@ -278,7 +278,7 @@ namespace DataBuildSystem
                 get { return mFileLastWriteTime; }
                 set { mFileLastWriteTime = value; }
             }
-            public Hash128 contenthash
+            public Hash160 contenthash
             {
                 get { return mFileContentHash; }
                 set { mFileContentHash = value; }
@@ -300,7 +300,7 @@ namespace DataBuildSystem
                 {
                     mFileSize = 0;
                     mFileLastWriteTime = 0;
-                    mFileContentHash = Hash128.Empty;
+                    mFileContentHash = Hash160.Empty;
                     mUpToDate = false;
                 }
                 else
@@ -336,7 +336,7 @@ namespace DataBuildSystem
                         Filename filename = new Filename(items[0]);
                         Int64 filesize = StringTools.HexToInt64(items[1]);
                         Int64 filelastwritetime = StringTools.HexToInt64(items[2]);
-                        Hash128 filemd5 = Hash128.FromString(items[3]);
+                        Hash160 filemd5 = Hash160.FromString(items[3]);
                         outFileEntries.Add(filename, new FileEntry(filename, filesize, filelastwritetime, filemd5));
                     }
                 }

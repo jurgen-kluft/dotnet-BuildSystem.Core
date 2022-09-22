@@ -6,6 +6,7 @@ namespace DataBuildSystem
     {
         #region Methods & Properties
 
+        public string Platform { get { return "Default"; } }
         public string BigfileName { get { return "Game"; } }
         public string BigFileExtension { get { return ".gda"; } }
         public string BigFileTocExtension { get { return ".gdt"; } }

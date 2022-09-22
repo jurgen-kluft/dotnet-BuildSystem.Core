@@ -54,8 +54,8 @@ namespace DataBuildSystem
             UInt32 size { get; set; }
             bool compressed { get; set; }
             Filename filename { get; set; }
-            Hash128 hash { get; set; }
-            Hash128 contenthash { get; set; }
+            Hash160 hash { get; set; }
+            Hash160 contenthash { get; set; }
 
             #endregion
             #region FileOffset Methods
@@ -82,11 +82,11 @@ namespace DataBuildSystem
             {
                 return new TocEntry();
             }
-            public static ITocEntry Create(StreamOffset fileOffset, UInt32 fileSize, Filename filename, ECompressed type, Hash128 contentHash)
+            public static ITocEntry Create(StreamOffset fileOffset, UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileOffset, fileSize, filename, type, contentHash);
             }
-            public static ITocEntry Create(UInt32 fileSize, Filename filename, ECompressed type, Hash128 contentHash)
+            public static ITocEntry Create(UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileSize, filename, type, contentHash);
             }
@@ -139,8 +139,8 @@ namespace DataBuildSystem
             private StreamOffset[] mFileOffsets;
             private UInt32 mFileSize;
             private Filename mFilename;
-            private Hash128 mHash;
-            private Hash128 mContentHash;
+            private Hash160 mHash;
+            private Hash160 mContentHash;
             private StreamOffset[] mEmptyOffset = new StreamOffset[] { StreamOffset.Empty };
 
             #endregion
@@ -150,28 +150,28 @@ namespace DataBuildSystem
             {
                 mFileOffsets = null;
                 mFilename = Filename.Empty;
-                mHash = Hash128.Empty;
-                mContentHash = Hash128.Empty;
+                mHash = Hash160.Empty;
+                mContentHash = Hash160.Empty;
                 size = 0;
                 compressed = false;
             }
-            public TocEntry(Filename filename, ECompressed type, Hash128 contentHash)
+            public TocEntry(Filename filename, ECompressed type, Hash160 contentHash)
             {
                 mFileOffsets = null;
                 mFilename = filename;
-                mHash = Hash128.FromString(mFilename.ToString().ToLower());
+                mHash = Hash160.FromString(mFilename.ToString().ToLower());
                 mContentHash = contentHash;
 
                 size = 0;
                 compressed = (type == ECompressed.YES);
             }
-            public TocEntry(StreamOffset fileOffset, UInt32 fileSize, Filename filename, ECompressed type, Hash128 contentHash)
+            public TocEntry(StreamOffset fileOffset, UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
                 : this(filename, type, contentHash)
             {
                 mFileOffsets = new StreamOffset[] { fileOffset };
                 size = fileSize;
             }
-            public TocEntry(UInt32 fileSize, Filename filename, ECompressed type, Hash128 contentHash)
+            public TocEntry(UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
                 : this(filename, type, contentHash)
             {
                 mFileOffsets = null;
@@ -233,7 +233,7 @@ namespace DataBuildSystem
                 }
             }
 
-            public Hash128 hash
+            public Hash160 hash
             {
                 get
                 {
@@ -245,7 +245,7 @@ namespace DataBuildSystem
                 }
             }
 
-            public Hash128 contenthash
+            public Hash160 contenthash
             {
                 get
                 {
@@ -309,7 +309,7 @@ namespace DataBuildSystem
             {
                 public int Compare(ITocEntry x, ITocEntry y)
                 {
-                    int c = Hash128.Compare(x.hash, y.hash);
+                    int c = Hash160.Compare(x.hash, y.hash);
                     return c;
                 }
             }
@@ -546,7 +546,7 @@ namespace DataBuildSystem
                     case 0: // Read the FilenameOffset(Int32)[]
                         {
                             byte[] hash = reader.ReadBytes(16);
-                            e.hash = Hash128.ConstructTake(hash);
+                            e.hash = Hash160.ConstructTake(hash);
                         }
                         break;
                 }

@@ -32,6 +32,11 @@ namespace DataBuildSystem
         #region Properties
 
         /// <summary>
+        /// The platform this configuration is for
+        /// </summary>
+        string Platform { get; }
+
+        /// <summary>
         /// Endianness of the build
         /// </summary>
         bool LittleEndian { get; }
@@ -53,6 +58,7 @@ namespace DataBuildSystem
     {
         #region Properties
 
+        public string Platform { get { return "Default"; } }
         public bool LittleEndian { get { return true; } }
         public bool Unicode { get { return false; } }
         public string SubDepFileExtension { get { return ".sdep"; } }

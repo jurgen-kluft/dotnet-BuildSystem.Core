@@ -5,8 +5,8 @@ namespace GameData
 
     public interface IDataCompilerClient
     {
-        void onExecute();
-        void onFinished();
+        void CompilerExecute();
+        void CompilerFinished();
     }
 
 }

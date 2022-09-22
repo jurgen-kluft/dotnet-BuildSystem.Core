@@ -187,8 +187,8 @@ namespace GameCore
 
         private StreamReference mStreamReference;
         private readonly Dictionary<StreamReference, int> mReferenceToIndex = new Dictionary<StreamReference, int>();
-        private readonly Dictionary<Hash128, int> mHashToIndex = new Dictionary<Hash128, int>();
-        private readonly List<Hash128> mItems = new List<Hash128>();
+        private readonly Dictionary<Hash160, int> mHashToIndex = new Dictionary<Hash160, int>();
+        private readonly List<Hash160> mItems = new List<Hash160>();
         private readonly List<StreamReference> mReferences = new List<StreamReference>();
 
         #endregion
@@ -214,7 +214,7 @@ namespace GameCore
             }
         }
 
-        public List<Hash128> All
+        public List<Hash160> All
         {
             get
             {
@@ -222,7 +222,7 @@ namespace GameCore
             }
         }
 
-        public Hash128 this[int index]
+        public Hash160 this[int index]
         {
             get
             {
@@ -233,7 +233,7 @@ namespace GameCore
         #endregion
         #region Private Methods
 
-        private int InternalIndexOf(Hash128 inItem)
+        private int InternalIndexOf(Hash160 inItem)
         {
             int index;
             if (!mHashToIndex.TryGetValue(inItem, out index))
@@ -241,7 +241,7 @@ namespace GameCore
             return index;
         }
 
-        private StreamReference InternalReferenceOf(Hash128 inItem)
+        private StreamReference InternalReferenceOf(Hash160 inItem)
         {
             int index = InternalIndexOf(inItem);
             if (index == -1)
@@ -253,7 +253,7 @@ namespace GameCore
         #endregion
         #region Public Methods
 
-        public StreamReference Add(StreamReference inReference, Hash128 inItem)
+        public StreamReference Add(StreamReference inReference, Hash160 inItem)
         {
             int index;
             if (!mReferenceToIndex.TryGetValue(inReference, out index))
@@ -270,7 +270,7 @@ namespace GameCore
             }
         }
 
-        public StreamReference ReferenceOf(Hash128 inItem)
+        public StreamReference ReferenceOf(Hash160 inItem)
         {
             return InternalReferenceOf(inItem);
         }

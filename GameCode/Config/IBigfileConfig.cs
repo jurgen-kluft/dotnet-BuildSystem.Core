@@ -7,6 +7,11 @@ namespace DataBuildSystem
         #region Methods & Properties
 
         /// <summary>
+        /// The platform this configuration is for
+        /// </summary>
+        string Platform { get; }
+
+        /// <summary>
         /// The name of the big file
         /// </summary>
         string BigfileName { get; }

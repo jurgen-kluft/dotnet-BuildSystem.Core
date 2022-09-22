@@ -103,7 +103,7 @@
     <Compile Include="File\StreamOffset.cs" />
     <Compile Include="File\StreamReference.cs" />
     <Compile Include="File\StreamUtils.cs" />
-    <Compile Include="Hash\Hash128.cs" />
+    <Compile Include="Hash\Hash160.cs" />
     <Compile Include="Hash\Hashing.cs" />
     <Compile Include="Math\Core\ComplexD.cs" />
     <Compile Include="Math\Core\ComplexF.cs" />

@@ -7,6 +7,7 @@ namespace DataBuildSystem
 
     public class BigfileCustomConfigPC : IBigfileConfig
     {
+        public string Platform { get { return "PC"; } }
         public string BigfileName { get { return "MJ"; } }
         public string BigFileExtension { get { return ".bfd"; } }
         public string BigFileTocExtension { get { return ".bft"; } }
@@ -23,6 +24,7 @@ namespace DataBuildSystem
 	
     public class BuildSystemCompilerCustomConfigPC : IBuildSystemCompilerConfig
     {
+        public string Platform { get { return "PC"; } }
         public string DataFilename(string name) { return name; }
         public string DataFileExtension { get { return ".gdf"; } }
         public string DataRelocFileExtension { get { return ".gdr"; } }
@@ -35,6 +37,7 @@ namespace DataBuildSystem
 	
     public class BuildSystemLocalizerConfigPC : IBuildSystemLocalizerConfig
     {
+        public string Platform { get { return "PC"; } }
         public bool LittleEndian { get { return true; } }
         public bool Unicode { get { return false; } }
         public string SubDepFileExtension { get { return ".sdep"; } }

@@ -21,6 +21,7 @@ namespace GameData
             mDataUnitPath = unitpath;
             UnitType = dataUnit;
         }
+
         public EDataUnit UnitType { get; set; }
 
         public object extobject

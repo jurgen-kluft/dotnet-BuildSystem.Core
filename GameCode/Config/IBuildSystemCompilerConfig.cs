@@ -11,6 +11,11 @@ namespace DataBuildSystem
         #region Methods & Properties
 
         /// <summary>
+        /// The platform this configuration is for
+        /// </summary>
+        string Platform { get; }
+
+        /// <summary>
         /// The resource data file name
         /// </summary>
         string DataFilename(string name);
@@ -48,10 +53,10 @@ namespace DataBuildSystem
         #endregion
     }
 
-    public class BuildSystemCompilerDefaultConfig : IBuildSystemCompilerConfig
+    public class BuildSystemCompilerConfigDefault : IBuildSystemCompilerConfig
     {
         #region Methods & Properties
-
+        public string Platform { get { return "Default"; } }
         public string DataFilename(string name) { return "Game" + "." + name; }
         public string DataFileExtension { get { return ".gdf"; } }
         public string DataRelocFileExtension { get { return ".gdr"; } }
@@ -84,7 +89,7 @@ namespace DataBuildSystem
 
         private static bool sBuildBigfile = false;
 
-        private static IBuildSystemCompilerConfig sConfig = new BuildSystemCompilerDefaultConfig();
+        private static IBuildSystemCompilerConfig sConfig = new BuildSystemCompilerConfigDefault();
 
         #endregion
         #region Properties
@@ -158,7 +163,7 @@ namespace DataBuildSystem
             return false;
         }
 
-        public static bool init(string name, string config, bool bigfile, string platform, string target, string territory, string srcPath, string subPath, string dstPath, string depPath, string toolPath, string publishPath)
+        public static bool Init(string name, string config, bool bigfile, string platform, string target, string territory, string srcPath, string subPath, string dstPath, string depPath, string toolPath, string publishPath)
         {
             if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory) || String.IsNullOrEmpty(srcPath) || String.IsNullOrEmpty(dstPath) || String.IsNullOrEmpty(depPath) || String.IsNullOrEmpty(toolPath) || String.IsNullOrEmpty(publishPath))
                 return false;
@@ -207,7 +212,7 @@ namespace DataBuildSystem
             if (config != null)
                 sConfig = config;
             else
-                sConfig = new BuildSystemCompilerDefaultConfig();
+                sConfig = new BuildSystemCompilerConfigDefault();
         }
 
         public static T FromString<T>(string _string, T _default)

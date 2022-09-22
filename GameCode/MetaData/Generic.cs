@@ -1319,7 +1319,7 @@ namespace GameData
                 {
                 }
 
-                Dictionary<Hash128, StreamReference> referencesForFileIdDict = new Dictionary<Hash128, StreamReference>();
+                Dictionary<Hash160, StreamReference> referencesForFileIdDict = new Dictionary<Hash160, StreamReference>();
                 foreach (FileIdMember c in fileids)
                 {
                     StreamReference reference;
@@ -1411,7 +1411,7 @@ namespace GameData
             public Member newUInt64Member(UInt64 o, string memberName) { return new UInt64Member(memberName, o); }
             public Member newFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
             public Member newStringMember(string o, string memberName) { return new StringMember(memberName, o); }
-            public Member newFileIdMember(Hash128 o, string memberName) { return new FileIdMember(memberName, o); }
+            public Member newFileIdMember(Hash160 o, string memberName) { return new FileIdMember(memberName, o); }
             public Member newEnumMember(object o, string memberName) { return new Int32Member(memberName, (Int32)o); }
 
             #endregion
@@ -1511,7 +1511,7 @@ namespace GameData
                 AtomMember atom = new AtomMember(memberName, newAtomType(atomType), atomContentMember);
                 return atom;
             }
-            public FileIdMember newFileIdMember(Type fileidType, Hash128 content, string memberName)
+            public FileIdMember newFileIdMember(Type fileidType, Hash160 content, string memberName)
             {
                 FileIdMember fileid = new FileIdMember(memberName, content);
                 return fileid;

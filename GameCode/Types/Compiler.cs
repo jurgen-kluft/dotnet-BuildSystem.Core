@@ -21,10 +21,10 @@ namespace GameData
         public int Offset;
 	}
 
-    public interface IDataCompilerStream
+    public interface IDataCompilerLog
 	{
-        void Save(ByteSpan s);
-        void Load(ByteSpan s);
+        void CompilerSave(ByteSpan s);
+        void CompilerLoad(ByteSpan s);
     }
 
     /// <summary>
@@ -32,10 +32,10 @@ namespace GameData
     /// </summary>
     public interface IDataCompiler
     {
-        EDataCompilerStatus status { get; }
+        EDataCompilerStatus CompilerStatus { get; }
 
-        void csetup();
-        void csave(GameData.IDataCompilerStream stream);
-        void cload(GameData.IDataCompilerStream stream);
+        void CompilerSetup();
+        void CompilerSave(GameData.IDataCompilerLog stream);
+        void CompilerLoad(GameData.IDataCompilerLog stream);
     }
 }

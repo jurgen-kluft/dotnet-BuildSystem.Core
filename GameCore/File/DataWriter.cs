@@ -44,7 +44,7 @@ namespace GameCore
         {
             #region Fields
 
-            private Hash128 mHash = Hash128.Empty;
+            private Hash160 mHash = Hash160.Empty;
 
             private readonly EStreamAlignment mAlignment = EStreamAlignment.ALIGN_32;
             private readonly MemoryStream mDataStream = new MemoryStream();
@@ -127,7 +127,7 @@ namespace GameCore
                 for (int i = 0; i < v.Length; ++i)
                     mTypeWriter.Write((byte)EDataType.BYTE);
 
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 mDataWriter.Write(v);
             }
 
@@ -142,7 +142,7 @@ namespace GameCore
 
             internal void Write(float v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
                 mTypeWriter.Write((int) EDataType.FLOAT);
                 mDataWriter.Write(v);
@@ -150,7 +150,7 @@ namespace GameCore
 
             internal void Write(double v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
                 mTypeWriter.Write((UInt64) EDataType.DOUBLE);
                 mDataWriter.Write(v);
@@ -158,14 +158,14 @@ namespace GameCore
 
             internal void Write(SByte v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 mTypeWriter.Write((byte) EDataType.SBYTE);
                 mDataWriter.Write(v);
             }
 
             internal void Write(Int16 v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_16));
                 mTypeWriter.Write((short) EDataType.INT16);
                 mDataWriter.Write(v);
@@ -173,7 +173,7 @@ namespace GameCore
 
             internal void Write(Int32 v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
                 mTypeWriter.Write((Int32) EDataType.INT32);
                 mDataWriter.Write(v);
@@ -181,7 +181,7 @@ namespace GameCore
 
             internal void Write(Int64 v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
                 mTypeWriter.Write((Int64) EDataType.INT64);
                 mDataWriter.Write(v);
@@ -189,14 +189,14 @@ namespace GameCore
 
             internal void Write(Byte v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 mTypeWriter.Write((byte) EDataType.BYTE);
                 mDataWriter.Write(v);
             }
 
             internal void Write(UInt16 v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_16));
                 mTypeWriter.Write((UInt16) EDataType.UINT16);
                 mDataWriter.Write(v);
@@ -204,7 +204,7 @@ namespace GameCore
 
             internal void Write(UInt32 v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
                 mTypeWriter.Write((UInt32) EDataType.UINT32);
                 mDataWriter.Write(v);
@@ -212,7 +212,7 @@ namespace GameCore
 
             internal void Write(UInt64 v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
                 mTypeWriter.Write((UInt64) EDataType.UINT64);
                 mDataWriter.Write(v);
@@ -220,7 +220,7 @@ namespace GameCore
 
             internal void Write(StreamReference v)
             {
-                mHash = Hash128.Empty;
+                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
 
                 if (mReferenceContextDatabase.ContainsKey(v))
@@ -242,9 +242,9 @@ namespace GameCore
                 return mTypeWriter.Seek(pos) && mDataWriter.Seek(pos);
             }
 
-            internal Hash128 ComputeMD5()
+            internal Hash160 ComputeMD5()
             {
-                if (mHash == Hash128.Empty)
+                if (mHash == Hash160.Empty)
                 {
                     mHash = HashUtility.compute(mDataStream.GetBuffer(), (Int32) mDataStream.Length, mTypeStream.GetBuffer(), (Int32) mTypeStream.Length);
                 }
@@ -270,7 +270,7 @@ namespace GameCore
                 if (HoldsStreamReference(oldRef))
                 {
                     // Data will be modified, so MD5 will be invalid.
-                    mHash = Hash128.Empty;
+                    mHash = Hash160.Empty;
 
                     StreamContext oldContext = mReferenceContextDatabase[oldRef];
                     mReferenceContextDatabase.Remove(oldRef);
@@ -593,7 +593,7 @@ namespace GameCore
                 // to re-iterate again since a collapse changes the MD5 of a block due
                 // to the fact that references get replaced and this in turn can suddenly
                 // mean that some blocks are identical.
-                Dictionary<Hash128, StreamReference> md5ToDataBlockDatabase = new Dictionary<Hash128, StreamReference>(new Hash128.Comparer());
+                Dictionary<Hash160, StreamReference> md5ToDataBlockDatabase = new Dictionary<Hash160, StreamReference>(new Hash160.Comparer());
                 Dictionary<StreamReference, List<StreamReference>> duplicateDatabase = new Dictionary<StreamReference, List<StreamReference>>(new StreamReference.Comparer());
 
                 bool collapse = true;
@@ -605,7 +605,7 @@ namespace GameCore
                     foreach (KeyValuePair<StreamReference, DataBlock> p in finalDataBlockDatabase)
                     {
                         DataBlock block = p.Value;
-                        Hash128 md5 = block.ComputeMD5();
+                        Hash160 md5 = block.ComputeMD5();
                         if (md5ToDataBlockDatabase.ContainsKey(md5))
                         {
                             // Encountering a block of data which has a duplicate.

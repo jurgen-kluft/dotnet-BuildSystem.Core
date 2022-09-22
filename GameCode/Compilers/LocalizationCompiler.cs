@@ -19,17 +19,17 @@ namespace GameData
         }
 
         public string group { get { return "LocalizationCompiler"; } }
-        public EDataCompilerStatus status { get { return mStatus; } }
+        public EDataCompilerStatus CompilerStatus { get { return mStatus; } }
 
-        public void csetup()
+        public void CompilerSetup()
         {
         }
 
-        public void csave(GameData.IDataCompilerStream stream)
+        public void CompilerSave(GameData.IDataCompilerLog stream)
         {
         }
 
-        public void cload(GameData.IDataCompilerStream stream)
+        public void CompilerLoad(GameData.IDataCompilerLog stream)
         {
         }
 
@@ -37,7 +37,7 @@ namespace GameData
         {
         }
 
-        public void onExecute()
+        public void CompilerExecute()
         {
             //if (mDependencySystem.isModified(mSrcFilename))
             {
@@ -69,7 +69,7 @@ namespace GameData
             //}
         }
 
-        public void onFinished()
+        public void CompilerFinished()
         {
             //mDependencySystem = null;
         }
