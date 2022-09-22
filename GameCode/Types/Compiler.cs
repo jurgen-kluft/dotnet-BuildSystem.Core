@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Buffers;
+using DataBuildSystem;
+using GameCore;
 
 namespace GameData
 {
-    using DataBuildSystem;
-    using GameCore;
-
     public enum EDataCompilerStatus
     {
         NONE,
@@ -14,18 +13,16 @@ namespace GameData
         ERROR,
     }
 
-    public struct ByteSpan
-	{
-        public byte[] Data;
-        public int Length;
-        public int Offset;
-	}
-
-    public interface IDataCompilerLog
-	{
-        void CompilerSave(ByteSpan s);
-        void CompilerLoad(ByteSpan s);
+    /*
+    Compiler
+    {
+        ID
+        {
+            Length
+            Array(Byte)
+        }
     }
+    */
 
     /// <summary>
     /// The compiler interface
@@ -35,7 +32,7 @@ namespace GameData
         EDataCompilerStatus CompilerStatus { get; }
 
         void CompilerSetup();
-        void CompilerSave(GameData.IDataCompilerLog stream);
-        void CompilerLoad(GameData.IDataCompilerLog stream);
+        void CompilerWrite(IBinaryWriter stream);
+        void CompilerRead(IBinaryReader stream);
     }
 }
