@@ -187,6 +187,11 @@ namespace DataBuildSystem
 
                         // TODO "Signature File Verification" of all 'Data Unit's
 
+                        // TODO Hash->FileId
+                        //      Since in DEV mode we only need this per 'Data Unit' it should actually be sufficient to
+                        //      just resolve this just before building the Bigfile.
+                        //      Collect all the Hashes and assign them a FileId (Dictionary<Hash160, int>)
+
                         // A 'Data Unit' consists of:
                         //     - 'Game Data DLL'
                         //     - 'Game Data Compiler Log'
