@@ -197,6 +197,9 @@ namespace DataBuildSystem
                         //     - 'Game Data Compiler Log'
                         //     - 'Game Data Bigfile' and its TOC etc..
 
+                        // For each 'Data Unit' we need to detect if any of the source files that we are dependent on
+                        // have changed. We can do this with a up-to-date 'Game Data Compiler Log'.
+
                         // If all 'Data Unit's are verified then we have nothing to do.
                         // 
                         // If a 'Data Unit' was changed:

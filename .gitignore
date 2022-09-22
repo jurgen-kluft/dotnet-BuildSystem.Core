@@ -22,6 +22,7 @@ packages/
 !*.cs
 !*.csproj
 !*.resx
+!*.json
 
 !*.hlsl
 !*.fragment

@@ -68,7 +68,7 @@
     <Compile Include="Types\Compiler.cs" />
     <Compile Include="Types\FileId.cs" />
     <Compile Include="Types\FileIdList.cs" />
-    <Compile Include="Types\FMat2x2.cs" />
+    <Compile Include="Types\FMat22.cs" />
     <Compile Include="Types\FRect.cs" />
     <Compile Include="Types\FSize.cs" />
     <Compile Include="Types\FVec2.cs" />

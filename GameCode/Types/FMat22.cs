@@ -2,11 +2,11 @@ using System;
 
 namespace GameData
 {
-    public struct FMat2x2 : ICompound
+    public struct FMat22 : ICompound
     {
         public readonly FVec2[] Mat;
 
-        public FMat2x2(float v)
+        public FMat22(float v)
         {
             Mat = new FVec2[2];
             Mat[0].X = v;
@@ -14,7 +14,7 @@ namespace GameData
             Mat[1].X = v;
             Mat[1].Y = v;
         }
-        public FMat2x2(float x1, float y1, float x2, float y2)
+        public FMat22(float x1, float y1, float x2, float y2)
         {
             Mat = new FVec2[2];
             Mat[0].X = x1;
@@ -22,7 +22,7 @@ namespace GameData
             Mat[1].X = x2;
             Mat[1].Y = y2;
         }
-        public FMat2x2(FVec2 x, FVec2 y)
+        public FMat22(FVec2 x, FVec2 y)
         {
             Mat = new FVec2[2];
             Mat[0] = x;

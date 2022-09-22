@@ -5,18 +5,18 @@ You can use most of C# to initialize/construct data etc.. However once
 the C# files that define the game-data are compiled and instanciated the
 following things will be done by the BuildSystem:
 
-- It will search for ``IDataUnit`` and will treat it as the root of the game-data
+- It will search for ``IDataRoot`` and will treat it as the root of the DataUnit
 - It recognizes the following types:
   - ``FileId``; An Id that can be retrieved interacting with BigfileManager
   - ``FileIdList``; An array of ``FileId``
-  - ``FRect``/``IRect``; floating point and integer rectangle (left, right, top, bottom) compound
-  - ``FSize``/``Size``; floating point and integer size (width, height) compound
-  - ``FVec2``/``FVec3``/``FVec4``;
-  - ``FMat22``/``FMat33``/``FMat44``;
   - ``s8``/``s16``/``s32``/``s64``
   - ``u8``/``u16``/``u32``/``u64``
   - ``fx16``/``fx32``
   - ``f32``/``f64``; single and double float precision
+  - ``FRect``/``IRect``; floating point and integer rectangle (left, right, top, bottom) compound
+  - ``FSize``/``Size``; floating point and integer size (width, height) compound
+  - ``FVec2``/``FVec3``/``FVec4``;
+  - ``FMat22``/``FMat33``/``FMat44``;
   - ``Color``; 32-bit RGBA color
   - ``LString``; Localized string
  - Anything derived from ``IAtom`` (system types byte/short/..., see above)
@@ -28,5 +28,4 @@ following things will be done by the BuildSystem:
   - ```ShaderCompiler("shaders/shadow.vs", EShaderFormat.VS_SPIRV)```
   - ```ShaderCompiler("shaders/shadow.ps", EShaderFormat.PS_SPIRV)```
 
-In your game runtime you can use the ``C++`` files ``GameData.h`` to load and use it.
-
+In your game runtime you can use the `C++` library `cgamedata` to use it.
