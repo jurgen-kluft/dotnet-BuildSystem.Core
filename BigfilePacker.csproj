@@ -36,7 +36,9 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\BigfilePacker\</OutputPath>
+    <IntermediateOutputPath>target\BigfilePacker\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>target\BigfilePacker\obj\</BaseIntermediateOutputPath>    
+    <OutputPath>target\BigfilePacker\bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -45,7 +47,9 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\BigfilePacker\</OutputPath>
+    <IntermediateOutputPath>target\BigfilePacker\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>target\BigfilePacker\obj\</BaseIntermediateOutputPath>    
+    <OutputPath>target\BigfilePacker\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -99,11 +103,6 @@
     <Compile Include="BigfilePacker\Main.cs" />
     <Compile Include="BigfilePacker\Packer.cs" />
     <Compile Include="BigfilePacker\Version.cs" />
-    <Compile Include="Config\IBuildSystemCompilerConfig.cs" />
-    <Compile Include="Config\IBuildSystemLocalizerConfig.cs" />
-    <Compile Include="Dependency\Config.cs" />
-    <Compile Include="Dependency\DependencySystem.cs" />
-    <Compile Include="Dependency\DependencySystemImp.cs" />
     <Compile Include="Properties\Packer\AssemblyInfo.cs" />
     <Compile Include="Properties\Packer\Settings.Designer.cs" />
   </ItemGroup>
@@ -161,9 +160,9 @@
     </PreBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="Core\Core.csproj">
+    <ProjectReference Include="GameCore\GameCore.csproj">
       <Project>{BF79F3BC-420E-6428-9834-DE5F66ABF462}</Project>
-      <Name>Core</Name>
+      <Name>GameCore</Name>
     </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>

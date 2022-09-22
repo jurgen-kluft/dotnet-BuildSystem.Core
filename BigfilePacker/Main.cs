@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
-using Core;
+using GameCore;
 using DataBuildSystem;
 namespace BigfilePacker
 {
@@ -34,8 +34,8 @@ namespace BigfilePacker
             Console.WriteLine("------ BigfilePacker: v{0} (Platform: {1}) ------", version, Config.PlatformName);
 
             // Setup xEnvironment
-            Core.Environment.addVariable("NAME", Config.Name);
-            Core.Environment.addVariable("PLATFORM", Config.PlatformName);
+            GameCore.Environment.addVariable("NAME", Config.Name);
+            GameCore.Environment.addVariable("PLATFORM", Config.PlatformName);
 
             // Construct an assembly with the config object
             List<Filename> assemblyReferences = new List<Filename>();

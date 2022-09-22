@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Core;
+using GameCore;
 using DataBuildSystem;
 
 namespace BigfileFileReorder

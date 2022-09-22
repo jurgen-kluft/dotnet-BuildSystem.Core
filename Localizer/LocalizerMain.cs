@@ -22,7 +22,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
-using Core;
+using GameCore;
 
 namespace DataBuildSystem
 {
@@ -104,7 +104,7 @@ namespace DataBuildSystem
             if (!LocalizerConfig.ConfigFilename.IsEmpty)
             {
                 List<Filename> configSrcFiles = new List<Filename>();
-                configSrcFiles.Add(new Filename(Core.Environment.expandVariables(LocalizerConfig.ConfigFilename)));
+                configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(LocalizerConfig.ConfigFilename)));
                 Filename configAsmFilename = new Filename("Localizer" + "." + LocalizerConfig.ConfigFilename + ".dll");
                 Filename configAssemblyFilename = configAsmFilename;
                 configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], LocalizerConfig.SrcPath, LocalizerConfig.SubPath, LocalizerConfig.DstPath, LocalizerConfig.DepPath, referencedAssemblies.ToArray());
@@ -116,9 +116,9 @@ namespace DataBuildSystem
                 BuildSystemCompilerConfig.Init(configForBuildSystemCompiler);
 
             // Configuration for dependency system
-            IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
-            if (configForDependencySystem!=null)
-                DependencySystemConfig.Init(configForDependencySystem);
+            //IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
+            //if (configForDependencySystem!=null)
+            //    DependencySystemConfig.Init(configForDependencySystem);
 
             // Configuration for localizer
             IBuildSystemLocalizerConfig buildSystemLocalizerConfig = AssemblyUtil.Create1<IBuildSystemLocalizerConfig>(configDataAssembly) ?? new BuildSystemLocalizerDefaultConfig();

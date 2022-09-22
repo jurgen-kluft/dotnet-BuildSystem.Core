@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Excel = Net.Office.Excel;
-using Core;
+using GameCore;
 
 namespace DataBuildSystem
 {

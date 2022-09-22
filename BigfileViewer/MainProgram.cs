@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Forms;
-using Core;
+using GameCore;
 using DataBuildSystem;
 
 namespace BigfileViewer
@@ -22,7 +22,7 @@ namespace BigfileViewer
             }
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
-            CommandLine arg = new CommandLine(Core.Environment.GetCommandLineArgs());
+            CommandLine arg = new CommandLine(GameCore.Environment.GetCommandLineArgs());
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

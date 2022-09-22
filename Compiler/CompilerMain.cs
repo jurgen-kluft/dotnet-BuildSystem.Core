@@ -22,7 +22,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
-using Core;
+using GameCore;
 
 namespace DataBuildSystem
 {
@@ -137,14 +137,14 @@ namespace DataBuildSystem
             if (!BuildSystemCompilerConfig.ConfigFilename.IsEmpty)
             {
                 List<Filename> configSrcFiles = new List<Filename>();
-                configSrcFiles.Add(new Filename(Core.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
+                configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
                 Filename configAsmFilename = new Filename(BuildSystemCompilerConfig.Name + ".Compiler.Config.dll");
                 Filename configAssemblyFilename = configAsmFilename;
                 configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, BuildSystemCompilerConfig.ReferencedAssemblies);
             }
 
             // The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
-            Game.Data.Instanciate.assembly = dataAssemblyManager.assembly;
+            GameData.Instanciate.assembly = dataAssemblyManager.assembly;
 
             // BuildSystem.DataCompiler configuration
             IBuildSystemCompilerConfig configForCompiler = AssemblyUtil.Create1<IBuildSystemCompilerConfig>(configDataAssembly);
@@ -157,14 +157,14 @@ namespace DataBuildSystem
                 BigfileConfig.Init(configForBigfileBuilder);
 
             // Dependency system configuration
-            IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
-            if (configForDependencySystem != null)
-                DependencySystemConfig.Init(configForDependencySystem);
+            // IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
+            // if (configForDependencySystem != null)
+            //     DependencySystemConfig.Init(configForDependencySystem);
 
             // Create DependencySystem
-            DependencySystem dependencySystem = new DependencySystem(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath);
+            // DependencySystem dependencySystem = new DependencySystem(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath);
             Filename depFilesFilename = BuildSystemCompilerConfig.DepPath + new Filename(BigfileConfig.BigfileName);
-            depFilesFilename.Extension = DependencySystemConfig.Extension;
+            // depFilesFilename.Extension = DependencySystemConfig.Extension;
 
             DateTime start = DateTime.Now;
             DateTime end = DateTime.Now;
@@ -181,10 +181,12 @@ namespace DataBuildSystem
                         start = DateTime.Now;
                         Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
 
-                        dataAssemblyManager.setupDataCompilers(dependencySystem);
-                        dataAssemblyManager.executeDataCompilers(dependencySystem, true);
-                        dataAssemblyManager.teardownDataCompilers(dependencySystem);
-                        dataAssemblyManager.finalizeDataCompilation(dependencySystem);
+                        // dataAssemblyManager.setupDataCompilers(dependencySystem);
+                        // dataAssemblyManager.executeDataCompilers(dependencySystem, true);
+                        // dataAssemblyManager.teardownDataCompilers(dependencySystem);
+                        // dataAssemblyManager.finalizeDataCompilation(dependencySystem);
+
+                        // TODO; need to implement the compiler streaming execution
 
                         // If the .dll was loaded instead of compiled and if there where no assets recompiled than
                         // we definitely do not need to build the game data.

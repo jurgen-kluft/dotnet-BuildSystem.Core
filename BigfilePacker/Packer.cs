@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-using Core;
+using GameCore;
 using DataBuildSystem;
 namespace BigfilePacker
 {

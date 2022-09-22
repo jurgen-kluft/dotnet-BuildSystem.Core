@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 
-using Core;
+using GameCore;
 using DataBuildSystem;
 namespace BigfilePacker
 {

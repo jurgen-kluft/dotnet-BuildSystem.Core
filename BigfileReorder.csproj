@@ -33,7 +33,9 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\BigfileReorder\</OutputPath>
+    <IntermediateOutputPath>target\BigfileReorder\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>target\BigfileReorder\obj\</BaseIntermediateOutputPath>    
+    <OutputPath>target\BigfileReorder\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -42,7 +44,9 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\BigfileReorder\</OutputPath>
+    <IntermediateOutputPath>target\BigfileReorder\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>target\BigfileReorder\obj\</BaseIntermediateOutputPath>    
+    <OutputPath>target\BigfileReorder\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -137,11 +141,6 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="BigfileReorder\Version.cs" />
-    <Compile Include="Config\IBuildSystemCompilerConfig.cs" />
-    <Compile Include="Config\IBuildSystemLocalizerConfig.cs" />
-    <Compile Include="Dependency\Config.cs" />
-    <Compile Include="Dependency\DependencySystem.cs" />
-    <Compile Include="Dependency\DependencySystemImp.cs" />
     <Compile Include="Properties\Reorder\AssemblyInfo.cs" />
     <Compile Include="Properties\Reorder\Resources.Designer.cs" />
     <Compile Include="Properties\Reorder\Settings.Designer.cs" />
@@ -176,13 +175,13 @@
     </PreBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="Code\Code.csproj">
+    <ProjectReference Include="GameCode\GameCode.csproj">
       <Project>{9F3BCBF7-6428-420E-9834-DE5F66ABF462}</Project>
-      <Name>Code</Name>
+      <Name>GameCode</Name>
     </ProjectReference>
-    <ProjectReference Include="Core\Core.csproj">
+    <ProjectReference Include="GameCore\GameCore.csproj">
       <Project>{BF79F3BC-420E-6428-9834-DE5F66ABF462}</Project>
-      <Name>Core</Name>
+      <Name>GameCore</Name>
     </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>

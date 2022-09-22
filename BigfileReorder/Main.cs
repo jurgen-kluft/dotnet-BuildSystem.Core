@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Reflection;
-using Core;
+using GameCore;
 using DataBuildSystem;
 
 namespace BigfileFileReorder
@@ -48,8 +48,8 @@ namespace BigfileFileReorder
 			}
 
             // Setup xEnvironment
-            Core.Environment.addVariable("NAME", Config.Name);
-            Core.Environment.addVariable("PLATFORM", Config.PlatformName);
+            GameCore.Environment.addVariable("NAME", Config.Name);
+			GameCore.Environment.addVariable("PLATFORM", Config.PlatformName);
 
 			// Construct an assembly with the config object
             Filename configFilename = Config.SrcPath + new Filename(String.Format("Config.BigfileReorder.{0}.cs", Config.PlatformName));

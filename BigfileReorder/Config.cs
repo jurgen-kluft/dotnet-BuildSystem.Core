@@ -1,5 +1,5 @@
 using System;
-using Core;
+using GameCore;
 using DataBuildSystem;
 
 namespace BigfileFileReorder

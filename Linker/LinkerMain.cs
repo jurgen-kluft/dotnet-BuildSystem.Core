@@ -23,7 +23,7 @@ using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 
-using Core;
+using GameCore;
 
 namespace DataBuildSystem
 {
@@ -104,7 +104,7 @@ namespace DataBuildSystem
                 referencedAssemblies.Add(new Filename(Assembly.GetExecutingAssembly().Location));
 
                 List<Filename> configSrcFiles = new List<Filename>();
-                configSrcFiles.Add(new Filename(Core.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
+                configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
                 Filename configAsmFilename = new Filename(BuildSystemCompilerConfig.Name + "Linker.Config.dll");
                 Filename configAssemblyFilename = configAsmFilename;
                 configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, referencedAssemblies.ToArray());
@@ -122,9 +122,9 @@ namespace DataBuildSystem
             Filename bigFilename = new Filename(BuildSystemCompilerConfig.Name);
 
             // Dependency system configuration
-            IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
-            if (configForDependencySystem != null)
-                DependencySystemConfig.Init(configForDependencySystem);
+            /// IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
+            /// if (configForDependencySystem != null)
+            ///     DependencySystemConfig.Init(configForDependencySystem);
 
 
             /// Recursively load all node files from NODE items and collect FILE items

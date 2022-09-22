@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" 
-  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -21,7 +20,9 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>Bin\Debug\Compiler\</OutputPath>
+    <IntermediateOutputPath>target\Compiler\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>target\Compiler\obj\</BaseIntermediateOutputPath>    
+    <OutputPath>target\Compiler\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -30,7 +31,9 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>Bin\Release\Compiler\</OutputPath>
+    <IntermediateOutputPath>target\Compiler\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>target\Compiler\obj\</BaseIntermediateOutputPath>    
+    <OutputPath>target\Compiler\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -80,12 +83,7 @@
     <Compile Include="BigfileBuilder\BigfileMerger.cs" />
     <Compile Include="BigfileBuilder\BigfileToc.cs" />
     <Compile Include="BigfileBuilder\Config.cs" />
-    <Compile Include="Config\IBuildSystemCompilerConfig.cs" />
-    <Compile Include="Config\IBuildSystemLocalizerConfig.cs" />
-    <Compile Include="Dependency\Config.cs" />
-    <Compile Include="Dependency\DependencySystem.cs" />
-    <Compile Include="Dependency\DependencySystemImp.cs" />
-    <Compile Include="Code\Compilers\DataAssemblyManager.cs" />
+    <Compile Include="Compiler\Compilers\DataAssemblyManager.cs" />
     <Compile Include="Compiler\CompilerMain.cs" />
     <Compile Include="Compiler\Version.cs" />
     <Compile Include="Properties\Md_Compiler.AssemblyInfo.cs" />
@@ -98,28 +96,14 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="Code\Code.csproj">
+    <ProjectReference Include="GameCode\GameCode.csproj">
       <Project>{9F3BCBF7-6428-420E-9834-DE5F66ABF462}</Project>
-      <Name>Code</Name>
+      <Name>GameCode</Name>
     </ProjectReference>
-    <ProjectReference Include="Core\Core.csproj">
+    <ProjectReference Include="GameCore\GameCore.csproj">
       <Project>{BF79F3BC-420E-6428-9834-DE5F66ABF462}</Project>
-      <Name>Core</Name>
+      <Name>GameCore</Name>
     </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>

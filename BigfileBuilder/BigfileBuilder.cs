@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using Core;
+using GameCore;
 
 ///
 /// BuildTools: Just Another Bigfile Builder, given a list of files like described

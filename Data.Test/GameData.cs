@@ -1,7 +1,7 @@
 using System;
 using Game.Data.AI;
 
-namespace Game.Data
+namespace GameData
 {
 	public class DataUnit : IDataUnit
 	{

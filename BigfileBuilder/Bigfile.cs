@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Core;
+using GameCore;
 
 namespace DataBuildSystem
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using Core;
+using GameCore;
 
 ///
 /// BuildTools: Merging of multiple Bigfile and BigfileToc

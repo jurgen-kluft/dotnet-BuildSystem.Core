@@ -1,6 +1,6 @@
 using System;
 
-namespace Game.Data.Cars
+namespace GameData.Cars
 {
 	public class Cars : IDataUnit
 	{

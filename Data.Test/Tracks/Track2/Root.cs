@@ -1,6 +1,6 @@
 using System;
 
-namespace Game.Data
+namespace GameData
 {
 	public class Root : IDataUnit
 	{

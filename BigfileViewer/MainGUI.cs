@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using AdvancedDataGridView;
 using System.Collections.Generic;
-using Core;
+using GameCore;
 using DataBuildSystem;
 
 namespace BigfileViewer
@@ -60,7 +60,7 @@ namespace BigfileViewer
                 if (!BuildSystemCompilerConfig.ConfigFilename.IsEmpty)
                 {
                     List<Filename> configSrcFiles = new List<Filename>();
-                    configSrcFiles.Add(new Filename(Core.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
+                    configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
                     Filename configAsmFilename = new Filename(BuildSystemCompilerConfig.Name + ".BigfileViewer.Config.dll");
                     Filename configAssemblyFilename = configAsmFilename;
                     configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, referencedAssemblies.ToArray());
@@ -104,7 +104,7 @@ namespace BigfileViewer
                 int instancesNum = file.offsets.Length;
 
                 string filenameStr = file.filename.ToString();
-                Hash128 hash = HashUtility.compute(filenameStr.ToLower());
+                Hash128 hash = Hash128.FromString(filenameStr.ToLower());
 
                 TreeGridNode srcFileNode = treeGridView1.Nodes.Add(hash.ToString(), file.size.ToString(), instancesNum.ToString(), null, filenameStr, "False");
                 DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)treeGridView1.GetNodeForRow(treeGridView1.RowCount - 1).Cells[3];

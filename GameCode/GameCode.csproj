@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9F3BCBF7-6428-420E-9834-DE5F66ABF462}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DataBuildSystem</RootNamespace>
+    <AssemblyName>GameCode</AssemblyName>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <IntermediateOutputPath>..\target\GameCode\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>..\target\GameCode\obj\</BaseIntermediateOutputPath>
+    <OutputPath>..\target\GameCode\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <IntermediateOutputPath>..\target\GameCode\obj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>..\target\GameCode\obj\</BaseIntermediateOutputPath>
+    <OutputPath>..\target\GameCode\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Compilers\CopyCompiler.cs" />
+    <Compile Include="Compilers\DataUnit.cs" />
+    <Compile Include="Compilers\ExternalCompilerProcess.cs" />
+    <Compile Include="Compilers\LocalizationCompiler.cs" />
+    <Compile Include="Config\IBuildSystemCompilerConfig.cs" />
+    <Compile Include="Config\IBuildSystemLocalizerConfig.cs" />
+    <Compile Include="MetaData\C++.cs" />
+    <Compile Include="MetaData\EGenericFormat.cs" />
+    <Compile Include="MetaData\Generic.cs" />
+    <Compile Include="MetaData\MetaCode.cs" />
+    <Compile Include="MetaData\Reflection.cs" />
+    <Compile Include="Providers\IBigfileProvider.cs" />
+    <Compile Include="Providers\IExternalObjectProvider.cs" />
+    <Compile Include="Providers\IFileIdsProvider.cs" />
+    <Compile Include="Providers\IFilenameRegistrar.cs" />
+    <Compile Include="Types\Compiler.cs" />
+    <Compile Include="Types\FileId.cs" />
+    <Compile Include="Types\FileIdList.cs" />
+    <Compile Include="Types\FMat2x2.cs" />
+    <Compile Include="Types\FRect.cs" />
+    <Compile Include="Types\FSize.cs" />
+    <Compile Include="Types\FVec2.cs" />
+    <Compile Include="Types\FVec3.cs" />
+    <Compile Include="Types\FVec4.cs" />
+    <Compile Include="Types\Fx16.cs" />
+    <Compile Include="Types\Fx32.cs" />
+    <Compile Include="Types\IAtom.cs" />
+    <Compile Include="Types\ICompound.cs" />
+    <Compile Include="Types\IDynamicClass.cs" />
+    <Compile Include="Types\IDynamicMember.cs" />
+    <Compile Include="Types\IDataUnit.cs" />
+    <Compile Include="Types\LString.cs" />
+    <Compile Include="Types\Rect.cs" />
+    <Compile Include="Types\RootObject.cs" />
+    <Compile Include="Types\Size.cs" />
+    <Compile Include="Utils\Attributes.cs" />
+    <Compile Include="Utils\DataCompilerScheduler.cs" />
+    <Compile Include="Utils\FileCommander.cs" />
+    <Compile Include="Utils\Instanciate.cs" />
+    <Compile Include="Utils\StringUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GameCore\GameCore.csproj">
+      <Project>{bf79f3bc-420e-6428-9834-de5f66abf462}</Project>
+      <Name>GameCore</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
