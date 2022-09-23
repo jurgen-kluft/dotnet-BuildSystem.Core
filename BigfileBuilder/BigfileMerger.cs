@@ -8,6 +8,17 @@ using GameCore;
 ///
 namespace DataBuildSystem
 {
+    /// <redesign>
+    ///   
+    /// A FileId can be divided into {SectionId + FileId} so we
+    /// do not really have to 're-compute' the FileId's when merging
+    /// Bigfiles.
+    /// 
+    /// So we can actually merge TOC's and only need to patch the 
+    /// Offset of each TocEntry.
+    /// 
+    /// </redesign>
+
     public class BigfileMerger
     {
         #region Fields

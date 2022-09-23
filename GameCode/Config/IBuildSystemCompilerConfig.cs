@@ -45,11 +45,6 @@ namespace DataBuildSystem
         /// </summary>
         int SizeOfBool { get; }
 
-        /// <summary>
-        /// Force building the bigfile, even if no assets have been modified
-        /// </summary>
-        bool ForceBuildingBigfile { get; }
-
         #endregion
     }
 
@@ -63,7 +58,6 @@ namespace DataBuildSystem
         public bool LittleEndian { get { return true; } }
         public bool EnumIsInt32 { get { return false; } }
         public int SizeOfBool { get { return 1; } }
-        public bool ForceBuildingBigfile { get { return false; } }
 
         #endregion
     }
@@ -77,7 +71,6 @@ namespace DataBuildSystem
         private static ETerritory sTerritory = ETerritory.USA;
 
         private static string sName;
-        private static Filename sConfigFilename;
         private static Dirname sSrcPath;
         private static Dirname sSubPath;
         private static Dirname sDstPath;
@@ -116,7 +109,6 @@ namespace DataBuildSystem
         public static string TerritoryName { get { return sTerritory.ToString(); } }
         public static bool EnumIsInt32 { get { return sConfig.EnumIsInt32; } }
         public static int SizeOfBool { get { return sConfig.SizeOfBool; } }
-        public static bool BuildBigfile { get { return sBuildBigfile || sConfig.ForceBuildingBigfile; } }
         public static Dirname SrcPath { get { return sSrcPath; } }
         public static Dirname SubPath { get { return sSubPath; } }
         public static Dirname DstPath { get { return sDstPath; } }
@@ -125,7 +117,6 @@ namespace DataBuildSystem
         public static Dirname PubPath { get { return sPublishPath; } }
         public static string DataFileExtension { get { return sConfig.DataFileExtension; } }
         public static string DataRelocFileExtension { get { return sConfig.DataRelocFileExtension; } }
-        public static Filename ConfigFilename { get { return sConfigFilename; } }
         public static Filename[] ReferencedAssemblies { get { return sReferencedAssemblies.ToArray(); } }
 
         #endregion
@@ -163,7 +154,7 @@ namespace DataBuildSystem
             return false;
         }
 
-        public static bool Init(string name, string config, bool bigfile, string platform, string target, string territory, string srcPath, string subPath, string dstPath, string depPath, string toolPath, string publishPath)
+        public static bool Init(string name, bool bigfile, string platform, string target, string territory, string srcPath, string subPath, string dstPath, string depPath, string toolPath, string publishPath)
         {
             if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory) || String.IsNullOrEmpty(srcPath) || String.IsNullOrEmpty(dstPath) || String.IsNullOrEmpty(depPath) || String.IsNullOrEmpty(toolPath) || String.IsNullOrEmpty(publishPath))
                 return false;
@@ -184,7 +175,6 @@ namespace DataBuildSystem
             sBuildBigfile = bigfile;
 
             sName = name;
-            sConfigFilename = new Filename(GameCore.Environment.expandVariables(config));
             sSrcPath = new Dirname(GameCore.Environment.expandVariables(srcPath));
             sSubPath = new Dirname(GameCore.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath));
             sDstPath = new Dirname(GameCore.Environment.expandVariables(dstPath));

@@ -170,7 +170,6 @@ namespace DataBuildSystem
 
         private List<GameData.IDataCompiler> mCompilers;
         private List<GameData.IFileIdsProvider> mFileIdsProviders;
-        private List<GameData.IDataCompilerNode> mDataCompilerNodes;
 
         private FileRegistrar mFilenameRegistry;
 
@@ -181,7 +180,6 @@ namespace DataBuildSystem
         {
             mCompilers = new List<GameData.IDataCompiler>();
             mFileIdsProviders = new List<GameData.IFileIdsProvider>();
-            mDataCompilerNodes = new List<GameData.IDataCompilerNode>();
             mFilenameRegistry = new FileRegistrar();
         }
 
@@ -242,6 +240,8 @@ namespace DataBuildSystem
                     if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
                         return true;
 
+                    // TODO what about Array's or List<>'s of DataCompilers?
+
                     bool handled = false;
                     if (compound is GameData.IDataCompiler)
                     {
@@ -264,9 +264,7 @@ namespace DataBuildSystem
 
         public bool finalizeDataCompilation( )
         {
-
             mFileIdsProviders.Clear();
-            mDataCompilerNodes.Clear();
 
             bool ok = ObjectTreeWalker.Walk(mRoot, delegate (object compound)
             {
@@ -282,12 +280,6 @@ namespace DataBuildSystem
                     mFileIdsProviders.Add(f);
                     handled = true;
                 }
-                if (compound is GameData.IDataCompilerNode)
-                {
-                    GameData.IDataCompilerNode f = compound as GameData.IDataCompilerNode;
-                    mDataCompilerNodes.Add(f);
-                    handled = true;
-                }
 
                 return handled;
             });
@@ -296,21 +288,6 @@ namespace DataBuildSystem
             mFilenameRegistry.Clear();
             foreach (GameData.IFileIdsProvider c in mFileIdsProviders)
                 c.registerAt(mFilenameRegistry);
-
-            // The Node Info file
-            {
-                // + A list of all the 'sub node info' filenames
-                // + All the filenames in the FilenameRegistry
-                xTextStream ts = new xTextStream(BuildSystemCompilerConfig.DstPath + BuildSystemCompilerConfig.SubPath + new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileNodeExtension));
-                ts.Open(xTextStream.EMode.WRITE);
-                {
-                    foreach (GameData.IDataCompilerNode node in mDataCompilerNodes)
-                        ts.write.WriteLine("Node={0}", node.bigfileFilename);
-                    foreach (Filename f in mFilenameRegistry.items.Keys)
-                        ts.write.WriteLine("File={0}", f);
-                }
-                ts.Close();
-            }
 
             return true;
         }

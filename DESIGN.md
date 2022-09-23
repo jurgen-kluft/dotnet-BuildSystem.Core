@@ -145,5 +145,40 @@ We can reference other Units like
 # TODO
   
 - Examples
-- FMat3x3, FMat4x4
+- FMat33, FMat44
 - C# to C++ code (scripting for game-code or other necessary parts)
+
+# FileId
+
+FileId has changed to be a simple Index, it now has an extra 'Bigfile Index' indirection.
+
+```c++
+struct FileId
+{
+  u32 unit_index;
+  u32 file_index;
+};
+```
+
+# Bigfile Structure
+
+## Bigfile bft/bfn/bfh
+
+```c++
+
+struct BigfileTOC
+{
+  u32 number_of_units;   // How many TOC units
+  u32 offset_to_unit[];  // Offset to each TOC
+  TOCEntry TOC[];        // Array of TOC Entry 
+};
+
+// Same structure will apply to the Bigfile Filename and Hash files
+struct BigfileBFN
+{
+  u32 number_of_units;      // How many BFN units
+  u32 offset_to_unit[];     // Offset to each unit
+  u32 filenameOffsets[];    // Array of Offsets to filename
+};
+
+```

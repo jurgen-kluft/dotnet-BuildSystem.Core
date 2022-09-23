@@ -68,25 +68,21 @@ namespace DataBuildSystem
             // - target       NDS                                           (NDS/WII/PSP/PS2/PS3/XBOX/X360/PC)
             // - name         Game
             // - territory    Europe                                        (Europe/USA/Asia/Japan)
-            // - config       Config.%PLATFORM%.cs                          Configuration objects for BuildSystem, DependencySystem and BigfileBuilder
-            // - srcpath      I:\Dev\Game\Data\Data
-            // - file0        root.cs
-            // - file1        bases\concepts.cs
+            // - gddpath      I:\Dev\Game\Data\Data\Compiled
+            // - srcpath      I:\Dev\Game\Data\Assets
             // - subpath      AI                                            (AI, Boot, Levels, Menu\FrontEnd)
             // - dstpath      %SRCPATH%\Bin.%PLATFORM%.%TARGET%
             // - deppath      %SRCPATH%\Dep.%PLATFORM%.%TARGET%
             // - pubpath      %SRCPATH%\Publish.%PLATFORM%.%TARGET%
             // - toolpath     I:\Dev\Game\Data\Tools
-            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
+            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
             {
                 Console.WriteLine("Usage: -name [NAME]");
-                Console.WriteLine("       -config [FILENAME]");
                 Console.WriteLine("       -platform [PLATFORM]");
                 Console.WriteLine("       -target [PLATFORM]");
                 Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");
                 Console.WriteLine("       -srcpath [SRCPATH]");
                 Console.WriteLine("       -subpath [SUBPATH]");
-                Console.WriteLine("       -file* [FILENAME]");
                 Console.WriteLine("       -dstpath [DSTPATH]");
                 Console.WriteLine("       -deppath [DSTDEPPATH]");
                 Console.WriteLine("       -toolpath [TOOLPATH]");
@@ -133,18 +129,32 @@ namespace DataBuildSystem
             if (!dataAssemblyCompiledSuccesfully)
                 return Error();
 
-            Assembly configDataAssembly = null;
-            if (!BuildSystemCompilerConfig.ConfigFilename.IsEmpty)
-            {
-                List<Filename> configSrcFiles = new List<Filename>();
-                configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
-                Filename configAsmFilename = new Filename(BuildSystemCompilerConfig.Name + ".Compiler.Config.dll");
-                Filename configAssemblyFilename = configAsmFilename;
-                configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, BuildSystemCompilerConfig.ReferencedAssemblies);
-            }
-
             // The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
             GameData.Instanciate.assembly = dataAssemblyManager.assembly;
+
+            // TODO 
+
+            // Collect all Game Data DLL's that need to be processed.
+
+            // A 'Data Unit' consists of:
+            //     - Unique Hash
+            //     - 'Game Data DLL'
+            //     - 'Game Data Compiler Log'
+            //     - 'Game Data Bigfile/TOC/Filename/Hashes' BFN, BFH, BFT etc..
+
+            // Need a database that can map from 'Data Unit' Hash -> Index
+            // There is a dependency on this database on the generation of FileId's.
+            // If this file is deleted then ALL Game Data and Bigfiles have to be regenerated.
+            // The pollution of this database with stale items is ok, it does not rapidly increase
+            // memory usage.
+            // It mainly results in empty bigfile sections, each of them being an offset of 4 bytes.
+
+            // Foreach 'Data Unit'
+            //    Load the assembly
+
+
+            // Get the GameData.Root assembly, in there we should have all the configurations
+            Assembly gameDataRootAssembly = Assembly.LoadFile(BuildSystemCompilerConfig.DataFileExtension
 
             // BuildSystem.DataCompiler configuration
             IBuildSystemCompilerConfig[] configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(configDataAssembly);
@@ -192,13 +202,9 @@ namespace DataBuildSystem
                         //      just resolve this just before building the Bigfile.
                         //      Collect all the Hashes and assign them a FileId (Dictionary<Hash160, int>)
 
-                        // A 'Data Unit' consists of:
-                        //     - 'Game Data DLL'
-                        //     - 'Game Data Compiler Log'
-                        //     - 'Game Data Bigfile' and its TOC etc..
 
-                        // For each 'Data Unit' we need to detect if any of the source files that we are dependent on
-                        // have changed. We can do this with a up-to-date 'Game Data Compiler Log'.
+                        // For each 'Data Unit' we need to detect if any of the source assets that we are dependent on
+                        // have changed. We can do this with an up-to-date 'Game Data Compiler Log'.
 
                         // If all 'Data Unit's are verified then we have nothing to do.
                         // 

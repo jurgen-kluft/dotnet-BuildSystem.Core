@@ -5,8 +5,5 @@ using GameCore;
 
 namespace GameData
 {
-    public interface IDataCompilerNode
-    {
-        Filename bigfileFilename { get; }
-    }
+
 }
