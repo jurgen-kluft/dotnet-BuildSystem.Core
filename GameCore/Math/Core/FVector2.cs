@@ -14,10 +14,9 @@ namespace GameCore
 	/// <summary>
 	/// Represents 2-Dimentional vector of single-precision floating point numbers.
 	/// </summary>
-	[Serializable]
 	[TypeConverter(typeof(ExpandableObjectConverter))]
 	[StructLayout(LayoutKind.Sequential)]
-	public struct FVector2 : ISerializable, ICloneable
+	public struct FVector2 : ICloneable
 	{
 		#region Private fields
 		internal float mX;
@@ -132,20 +131,6 @@ namespace GameCore
 		public FVector2 Clone()
 		{
 			return new FVector2(this);
-		}
-		#endregion
-
-		#region ISerializable Members
-		/// <summary>
-		/// Populates a <see cref="SerializationInfo"/> with the data needed to serialize this object.
-		/// </summary>
-		/// <param name="info">The <see cref="SerializationInfo"/> to populate with data. </param>
-		/// <param name="context">The destination (see <see cref="StreamingContext"/>) for this serialization.</param>
-		[SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter=true)]
-		public void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			info.AddValue("X", mX);
-			info.AddValue("Y", mY);
 		}
 		#endregion
 

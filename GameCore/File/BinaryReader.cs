@@ -226,5 +226,76 @@ namespace GameCore
         #endregion
     }
 
+    public class BinaryFileReader : IBinaryReader
+    {
+        private IBinaryReader mBinaryReader;
+        private BinaryReader mBinaryFileReader;
+        private FileStream mFileStream;
+
+        public bool Open(string filepath)
+        {
+            mFileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
+            mBinaryFileReader = new BinaryReader(mFileStream);
+            mBinaryReader = new BinaryReaderLittleEndian(mBinaryFileReader);
+            return true;
+        }
+
+        public void Close()
+        {
+            mBinaryReader.Close();
+            mFileStream.Close();
+        }
+
+        public byte[] ReadBytes(int size)
+        {
+            return mBinaryReader.ReadBytes(size);
+        }
+        public sbyte ReadInt8()
+        {
+            return mBinaryReader.ReadInt8();
+        }
+        public byte ReadUInt8()
+        {
+            return mBinaryReader.ReadUInt8();
+        }
+        public Int16 ReadInt16()
+        {
+            return mBinaryReader.ReadInt16();
+        }
+        public UInt16 ReadUInt16()
+        {
+            return mBinaryReader.ReadUInt16();
+        }
+        public Int32 ReadInt32()
+        {
+            return mBinaryReader.ReadInt32();
+        }
+        public UInt32 ReadUInt32()
+        {
+            return mBinaryReader.ReadUInt32();
+        }
+        public Int64 ReadInt64()
+        {
+            return mBinaryReader.ReadInt64();
+        }
+        public UInt64 ReadUInt64()
+        {
+            return mBinaryReader.ReadUInt64();
+        }
+        public float ReadFloat()
+        {
+            return mBinaryReader.ReadFloat();
+        }
+        public double ReadDouble()
+        {
+            return mBinaryReader.ReadDouble();
+        }
+        public string ReadString()
+        {
+            return mBinaryReader.ReadString();
+        }
+
+    }
+
     #endregion
 }

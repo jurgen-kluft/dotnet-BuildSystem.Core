@@ -14,10 +14,9 @@ namespace GameCore
 	/// <summary>
 	/// Represents 2-Dimentional vector of double-precision floating point numbers.
 	/// </summary>
-	[Serializable]
 	[TypeConverter(typeof(ExpandableObjectConverter))]
 	[StructLayout(LayoutKind.Sequential)]
-	public struct DVector2 : ISerializable, ICloneable
+	public struct DVector2 : ICloneable
 	{
 		#region Private fields
 		internal double mX;
@@ -67,16 +66,6 @@ namespace GameCore
 		{
 			mX = vector.X;
 			mY = vector.Y;
-		}
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DVector2"/> class with serialized data.
-		/// </summary>
-		/// <param name="info">The object that holds the serialized object data.</param>
-		/// <param name="context">The contextual information about the source or destination.</param>
-		private DVector2(SerializationInfo info, StreamingContext context)
-		{
-			mX = info.GetSingle("X");
-			mY = info.GetSingle("Y");
 		}
 		#endregion
 
@@ -132,20 +121,6 @@ namespace GameCore
 		public DVector2 Clone()
 		{
 			return new DVector2(this);
-		}
-		#endregion
-
-		#region ISerializable Members
-		/// <summary>
-		/// Populates a <see cref="SerializationInfo"/> with the data needed to serialize this object.
-		/// </summary>
-		/// <param name="info">The <see cref="SerializationInfo"/> to populate with data. </param>
-		/// <param name="context">The destination (see <see cref="StreamingContext"/>) for this serialization.</param>
-		[SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter=true)]
-		public void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			info.AddValue("X", mX);
-			info.AddValue("Y", mY);
 		}
 		#endregion
 

@@ -95,7 +95,7 @@ namespace GameCore
                 byte bh = (byte)(value >> 4);
                 chars[i] = (char)((bh < 10) ? ('0' + bh) : ('A' + bh - 10));
                 byte bl = (byte)(value & 0xF);
-                chars[i+1] = (char)((bl < 10) ? ('0' + bl) : ('A' + bl - 10));
+                chars[i + 1] = (char)((bl < 10) ? ('0' + bl) : ('A' + bl - 10));
             }
             string str = new string(chars);
             while (str.Length < 32)
@@ -171,49 +171,67 @@ namespace GameCore
             return Size;
         }
 
-        public void WriteTo(BinaryWriter _writer)
+        public void WriteTo(IBinaryWriter _writer)
         {
-            _writer.Write(hash_);
+            _writer.Write(hash_, 0, Size);
+        }
+
+        public static Hash160 ReadFrom(IBinaryReader _reader)
+        {
+            byte[] hash = _reader.ReadBytes(Size);
+            return ConstructTake(hash);
         }
 
         public static bool operator ==(Hash160 b1, Hash160 b2)
         {
-            bool equal = (b1.hash_[0] == b2.hash_[0]);
-            for (int j = 1; j < Size && equal; j++)
-                equal = (b1.hash_[j] == b2.hash_[j]);
+            bool equal = sEquals(b1.hash_, 0, b2.hash_, 0);
             return equal;
         }
         public static bool operator !=(Hash160 b1, Hash160 b2)
         {
-            bool equal = (b1.hash_[0] == b2.hash_[0]);
-            for (int j = 1; j < Size && equal; j++)
-                equal = (b1.hash_[j] == b2.hash_[j]);
+            bool equal = sEquals(b1.hash_, 0, b2.hash_, 0);
             return equal == false;
         }
 
         public override bool Equals(object obj)
         {
-            Hash160 h = (Hash160)obj;
-            return Compare(h) == 0;
+            Hash160 _other = (Hash160)obj;
+            return sEquals(this.hash_, 0, _other.hash_, 0);
         }
 
         public int Compare(Hash160 _other)
         {
-            return Compare(_other.Data, 0);
+            return sCompare(this.hash_, 0, _other.hash_, 0);
         }
         public static int Compare(Hash160 a, Hash160 b)
         {
-            return a.Compare(b);
+            return sCompare(a.hash_, 0, b.hash_, 0);
         }
 
-        public int Compare(byte[] _other, int _start)
+        private static bool sEquals(byte[] _this, int _thisstart, byte[] _other, int _otherstart)
         {
             for (int j = 0; j < Size; j++)
             {
-                byte m = hash_[j];
-                byte o = _other[_start + j];
-                if (m < o) return -1;
-                else if (m > o) return 1;
+                byte m = _this[_thisstart++];
+                byte o = _other[_otherstart++];
+                if (m != o)
+                    return false;
+            }
+            return true;
+        }
+
+        private static int sCompare(byte[] _this, int _thisstart, byte[] _other, int _otherstart)
+        {
+            for (int j = 0; j < Size; j++)
+            {
+                byte m = _this[_thisstart++];
+                byte o = _other[_otherstart++];
+                if (m != o)
+                {
+                    if (m < o)
+                        return -1;
+                    return 1;
+                }
             }
             return 0;
         }
@@ -419,7 +437,7 @@ namespace GameCore
             byte[] bytes = new byte[8];
             foreach (var v in values)
             {
-                for (int i=0; i<8; ++i)
+                for (int i = 0; i < 8; ++i)
                 {
                     bytes[i] = (byte)(v >> ((7 - i) * 8));
                 }

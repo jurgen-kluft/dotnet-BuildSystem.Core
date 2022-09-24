@@ -320,5 +320,146 @@ namespace GameCore
         #endregion
     }
 
+    public class BinaryFileWriter : IBinaryWriter
+    {
+        private IBinaryWriter mBinaryWriter;
+        private BinaryWriter mBinaryFileWriter;
+        private FileStream mFileStream;
+
+        public bool Open(string filepath)
+        {
+            mFileStream = new FileStream(filepath, FileMode.Truncate);
+            mBinaryFileWriter = new BinaryWriter(mFileStream);
+            mBinaryWriter = new BinaryWriterLittleEndian(mBinaryFileWriter);
+            return true;
+        }
+
+        #region IBinaryWriter Members
+
+        public Int64 Write(byte[] data)
+        {
+            mBinaryWriter.Write(data, 0, data.Length);
+            return data.Length;
+        }
+
+        public Int64 Write(byte[] data, int index, int count)
+        {
+            Debug.Assert((index + count) <= data.Length);
+            mBinaryWriter.Write(data, index, count);
+            return count;
+        }
+
+        public Int64 Write(sbyte v)
+        {
+            mBinaryWriter.Write(v);
+            return 1;
+        }
+
+        public Int64 Write(byte v)
+        {
+            mBinaryWriter.Write(v);
+            return 1;
+        }
+
+        public Int64 Write(short v)
+        {
+            mBinaryWriter.Write(v);
+            return 2;
+        }
+
+        public Int64 Write(ushort v)
+        {
+            mBinaryWriter.Write(v);
+            return 2;
+        }
+
+        public Int64 Write(int v)
+        {
+            mBinaryWriter.Write(v);
+            return 4;
+        }
+
+        public Int64 Write(uint v)
+        {
+            mBinaryWriter.Write(v);
+            return 4;
+        }
+
+        public Int64 Write(long v)
+        {
+            mBinaryWriter.Write(v);
+            return 8;
+        }
+
+        public Int64 Write(ulong v)
+        {
+            mBinaryWriter.Write(v);
+            return 8;
+        }
+
+        public Int64 Write(float v)
+        {
+            mBinaryWriter.Write(v);
+            return 4;
+        }
+
+        public Int64 Write(double v)
+        {
+            mBinaryWriter.Write(v);
+            return 8;
+        }
+
+        public Int64 Write(string s)
+        {
+            byte[] data = System.Text.Encoding.ASCII.GetBytes(s);
+            Write(data);
+            Write((byte)0);
+            return s.Length + 1;
+        }
+
+        public Int64 Write(string s, bool ascii)
+        {
+            if (ascii)
+            {
+                return Write(s);
+            }
+            else
+            {
+                // Unicode
+                throw new NotImplementedException();
+            }
+        }
+        
+        public Int64 Position
+        {
+            get
+            {
+                return mBinaryFileWriter.BaseStream.Position;
+            }
+        }
+
+        public Int64 Length
+        {
+            get
+            {
+                return mBinaryFileWriter.BaseStream.Length;
+            }
+        }
+
+        public bool Seek(StreamOffset offset)
+        {
+            return mBinaryWriter.Seek(offset);
+        }
+
+        public void Close()
+        {
+            mBinaryWriter.Close();
+            mFileStream.Close();
+        }
+
+        #endregion        
+
+    }
+
     #endregion
 }

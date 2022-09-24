@@ -57,7 +57,7 @@ namespace GameCore
 
         void IDisposable.Dispose()
         {
-            thread.Abort();
+            //thread.Abort();
             WaitForExit();
         }
     }

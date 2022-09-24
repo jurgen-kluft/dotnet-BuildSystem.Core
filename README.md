@@ -13,7 +13,8 @@ following things will be done by the BuildSystem:
   - ``u8``/``u16``/``u32``/``u64``
   - ``fx16``/``fx32``
   - ``f32``/``f64``; single and double float precision
-  - ``FRect``/``IRect``; floating point and integer rectangle (left, right, top, bottom)   - - ``Array<>``; C style array of any type listed here
+  - ``FRect``/``IRect``; floating point and integer rectangle (left, right, top, bottom)
+  - ``Array<T>``; C style array of any type listed here
 compound
   - ``FSize``/``Size``; floating point and integer size (width, height) compound
   - ``FVec2``/``FVec3``/``FVec4``;

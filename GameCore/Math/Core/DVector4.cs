@@ -14,10 +14,9 @@ namespace GameCore
 	/// <summary>
 	/// Represents 4-Dimentional vector of double-precision floating point numbers.
 	/// </summary>
-	[Serializable]
 	[TypeConverter(typeof(ExpandableObjectConverter))]
 	[StructLayout(LayoutKind.Sequential)]
-	public struct DVector4 : ISerializable, ICloneable
+	public struct DVector4 : ICloneable
 	{
 		#region Private fields
 		internal double mX;
@@ -80,18 +79,7 @@ namespace GameCore
 			mZ = vector.Z;
 			mW = vector.W;
 		}
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DVector4"/> class with serialized data.
-		/// </summary>
-		/// <param name="info">The object that holds the serialized object data.</param>
-		/// <param name="context">The contextual information about the source or destination.</param>
-		private DVector4(SerializationInfo info, StreamingContext context)
-		{
-			mX = info.GetSingle("X");
-			mY = info.GetSingle("Y");
-			mZ = info.GetSingle("Z");
-			mW = info.GetSingle("W");
-		}
+
 		#endregion
 
 		#region Constants
@@ -172,22 +160,6 @@ namespace GameCore
 		public DVector4 Clone()
 		{
 			return new DVector4(this);
-		}
-		#endregion
-
-		#region ISerializable Members
-		/// <summary>
-		/// Populates a <see cref="SerializationInfo"/> with the data needed to serialize this object.
-		/// </summary>
-		/// <param name="info">The <see cref="SerializationInfo"/> to populate with data. </param>
-		/// <param name="context">The destination (see <see cref="StreamingContext"/>) for this serialization.</param>
-		[SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter=true)]
-		public void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			info.AddValue("X", mX);
-			info.AddValue("Y", mY);
-			info.AddValue("Z", mZ);
-			info.AddValue("W", mW);
 		}
 		#endregion
 

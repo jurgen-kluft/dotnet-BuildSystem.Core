@@ -13,10 +13,9 @@ namespace GameCore
 	/// <summary>
 	/// Represents a complex double-precision doubleing point number.
 	/// </summary>
-	[Serializable]
 	[TypeConverter(typeof(ExpandableObjectConverter))]
 	[StructLayout(LayoutKind.Sequential)]
-	public struct ComplexD : ICloneable, ISerializable
+	public struct ComplexD : ICloneable
 	{
 		private double _real;
 		private double _image;
@@ -110,20 +109,6 @@ namespace GameCore
 		}
 		#endregion
 	
-		#region ISerializable Members
-		/// <summary>
-		/// Populates a <see cref="SerializationInfo"/> with the data needed to serialize the target object.
-		/// </summary>
-		/// <param name="info">The <see cref="SerializationInfo"/> to populate with data. </param>
-		/// <param name="context">The destination (see <see cref="StreamingContext"/>) for this serialization.</param>
-		[SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter=true)]
-		public void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			info.AddValue("Real", this.Real);
-			info.AddValue("Imaginary", this.Imaginary);
-		}
-		#endregion
-
 		#region Public Static Parse Methods
 		/// <summary>
 		/// Converts the specified string to its <see cref="ComplexD"/> equivalent.

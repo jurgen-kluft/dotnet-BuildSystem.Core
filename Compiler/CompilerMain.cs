@@ -103,9 +103,10 @@ namespace DataBuildSystem
             //     - Index
             //     - 'Game Data DLL' (.DLL)
             //     - 'Game Data Compiler Log' (.GDL)
+            //     - 'Game Data File' and 'Game Data Relocation File' (.GDF, .GDR)
             //     - 'Game Data Bigfile/TOC/Filename/Hashes' (.BFN, .BFH, .BFT, .BFD)
 
-            // datapath   = path with all the gamedata DLL's
+            // gddpath    = path with all the gamedata DLL's
             // srcpath    = path containing all the 'intermediate' assets (TGA, PGN, TRI, processed FBX files)
             // dstpath    = path containing all the 'cooked' assets and databases
             // pubpath    = path where all the 'Game Data' files and Bigfiles will be written (they are also written in the dstpath)
