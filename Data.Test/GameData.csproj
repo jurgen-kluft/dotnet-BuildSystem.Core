@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>GameData.Root</AssemblyName>
     <OutputType>library</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
@@ -15,5 +15,16 @@
   <ItemGroup>
     <Compile Include="*.cs" />
   </ItemGroup>
+
+  <Target Name="CopyGameDataDLL" AfterTargets="Build">
+    <ItemGroup>
+      <DataFiles Include="$(OutputPath)\$(AssemblyName).dll"/>
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(DataFiles)"
+      DestinationFolder="$(SolutionDir)\GameData.Compiled"
+      SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
