@@ -143,14 +143,77 @@ namespace DataBuildSystem
             //     - 'Game Data Bigfile/TOC/Filename/Hashes' BFN, BFH, BFT etc..
 
             // Need a database that can map from 'Data Unit' Hash -> Index
-            // There is a dependency on this database on the generation of FileId's.
+            // There is a dependency on this database by the generation of FileId's.
             // If this file is deleted then ALL Game Data and Bigfiles have to be regenerated.
-            // The pollution of this database with stale items is ok, it does not rapidly increase
-            // memory usage.
+            // The pollution of this database with stale items is ok, it does not impact memory usage.
             // It mainly results in empty bigfile sections, each of them being an offset of 4 bytes.
 
-            // Foreach 'Data Unit'
-            //    Load the assembly
+            // DataUnit can be saved and loaded from a BinaryFile
+            // So we can create a DataUnits.Db file.
+
+            //
+            // Foreach 'Game Data DLL' construct/use-existing DataUnit
+            //    Associated with a 'Game Data DLL'
+            //    Generate the hash for the DataUnit (from the name of the DLL)
+            //    
+            //
+            // Sort DataUnits by Hash
+            // Foreach DataUnit
+            //    Register the hash and get the index    
+            //
+            // Foreach DataUnit
+            //    Check the date-time and size signature of:
+            //       - 'Game Data DLL'
+            //       - 'Game Data Compiler Log'
+            //       - 'Game Data File' and 'Game Data Relocation File'
+            //       - 'BigFile Toc/Filename/Hash Files'
+            //       - Check if source files have changed
+           
+            //    If all up-to-date then done
+            //    Else
+            //       Case A:
+            //           - 'BigFile Toc/Filename/Hash Files' is out-of-date/missing
+            //           - Load 'Game Data Compiler Log'
+            //           - Using 'Game Data Compiler Log' check if all 'source' files are up-to-date
+            //             - If not up-to-date execute 'Game Data Compiler Log'
+            //           - Build a database of Hash-FileId, sort Hashes and assign FileId
+            //           - Load the 'Game Data DLL', inject with GameCore and GameCode
+            //              - Find IDataRoot object
+            //              - Instanciate the root object
+            //              - Hand-out all the FileId's
+            
+            //       Case B:
+            //           - 'Game Data DLL' is out-of-date
+            //              - Load the 'Game Data DLL', inject with GameCore and GameCode
+            //              - Find IDataRoot object
+            //              - Instanciate the root object
+            //              - Collect all IDataCompiler objects
+            //              - Load 'Game Data Compiler Log'
+            //                - See if there are any missing/added/changed IDataCompiler objects
+            //                - So a IDataCompiler needs to build a unique Hash of itself!
+            //                - Save 'Game Data Compiler Log'
+
+            //       Case C:
+            //           - 'Game Data Compiler Log' is out-of-date or missing
+            //           - This is bad, we have lost our source to target dependency information
+            //           - So we have to rebuild the log and all the data
+            //           - And after that the 'Game Data File' and 'Game Data Relocation File' and
+            //             'Game Data File' and 'Game Data Relocation File'.
+
+            //       Case D:
+            //           - 'Game Data File' and 'Game Data Relocation File' are out-of-date or missing
+            //           - Using 'Game Data Compiler Log' check if all 'source' files are up-to-date
+            //           - If any source file is out-of-date 
+            //             - Execute 'Game Data Compiler Log'
+            //           - Build a database of Hash-FileId, sort Hashes and assign FileId
+            //           - Load the 'Game Data DLL', inject with GameCore and GameCode
+            //              - Find IDataRoot object
+            //              - Instanciate the root object
+            //              - Hand-out all the FileId's
+            //              - Save 'Game Data File' and 'Game Data Relocation File'
+
+
+            // Note: We can add the dependency information to the file headers of all the destination files.
 
 
             // Get the GameData.Root assembly, in there we should have all the configurations
