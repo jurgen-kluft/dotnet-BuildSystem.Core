@@ -6,11 +6,11 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), Compiler.sln))\</SolutionDir>
     <!-- Output paths -->
-    <BaseIntermediateOutputPath>$(SolutionDir)bin\obj\$(MSBuildProjectName)\$(Configuration)\</BaseIntermediateOutputPath>
-    <IntermediateOutputPath>$(SolutionDir)bin\obj\$(MSBuildProjectName)\$(Configuration)\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>$(SolutionDir)target\obj\$(MSBuildProjectName)\$(Configuration)\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(SolutionDir)target\obj\$(MSBuildProjectName)\$(Configuration)\</IntermediateOutputPath>
     <MSBuildProjectExtensionsPath>$(IntermediateOutputPath)\</MSBuildProjectExtensionsPath>
-    <OutputPath>$(SolutionDir)bin\out\$(MSBuildProjectName)\$(Configuration)\</OutputPath>
+    <OutputPath>$(SolutionDir)target\out\$(MSBuildProjectName)\$(Configuration)\</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
-    <!-- DocumentationFile>$(SolutionDir)bin\doc\$(Configuration)\$(MSBuildProjectName).xml</DocumentationFile-->
+    <!-- DocumentationFile>$(SolutionDir)target\doc\$(Configuration)\$(MSBuildProjectName).xml</DocumentationFile-->
   </PropertyGroup>
 </Project>
