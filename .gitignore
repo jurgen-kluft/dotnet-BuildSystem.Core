@@ -16,13 +16,14 @@ packages/
 !*.h
 !*.inl
 
-!*.build
+!*.sln
+!*.csproj
+!Directory.Build.props
 
 !*.go
 !*.lua
 
 !*.cs
-!*.csproj
 !*.resx
 !*.json
 
