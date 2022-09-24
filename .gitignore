@@ -27,8 +27,8 @@ packages/
 !*.resx
 !*.json
 
-!*.hlsl
-!*.fragment
+!*.sh
+!*.bat
 
 !*.md
 
