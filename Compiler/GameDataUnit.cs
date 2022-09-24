@@ -26,10 +26,11 @@ namespace DataBuildSystem
     {
         public Hash160 Hash { get; set; }
         public Int32 Index { get; set; }
+        private EGameDataUnit Flags { get; set; }
 
         public bool IsUpToDate(EGameDataUnit u)
         {
-            return false;
+            return Flags.HasFlag(u);
         }
     }
 }
