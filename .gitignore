@@ -8,6 +8,8 @@ packages/
 
 #except the following files
 !.gitignore
+!LICENSE
+
 !*.cpp
 !*.hpp
 !*.c
