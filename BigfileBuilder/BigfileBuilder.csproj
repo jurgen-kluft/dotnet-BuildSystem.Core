@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>library</OutputType>
@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GameCode\GameCode.csproj" />
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
   </ItemGroup>
 
 </Project>

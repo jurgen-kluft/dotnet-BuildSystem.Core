@@ -71,16 +71,17 @@ namespace DataBuildSystem
         private static ETerritory sTerritory = ETerritory.USA;
 
         private static string sName;
+        private static Dirname sBasePath;
         private static Dirname sSrcPath;
+        private static Dirname sGddPath;
         private static Dirname sSubPath;
         private static Dirname sDstPath;
-        private static Dirname sDepPath;
-        private static Dirname sToolPath;
         private static Dirname sPublishPath;
+        private static Dirname sToolPath;
 
         private static List<Filename> sReferencedAssemblies = new List<Filename>();
 
-        private static bool sBuildBigfile = false;
+        //private static bool sBuildBigfile = false;
 
         private static IBuildSystemCompilerConfig sConfig = new BuildSystemCompilerConfigDefault();
 
@@ -109,12 +110,13 @@ namespace DataBuildSystem
         public static string TerritoryName { get { return sTerritory.ToString(); } }
         public static bool EnumIsInt32 { get { return sConfig.EnumIsInt32; } }
         public static int SizeOfBool { get { return sConfig.SizeOfBool; } }
+        public static Dirname BasePath { get { return sBasePath; } }
         public static Dirname SrcPath { get { return sSrcPath; } }
+        public static Dirname GddPath { get { return sGddPath; } }
         public static Dirname SubPath { get { return sSubPath; } }
         public static Dirname DstPath { get { return sDstPath; } }
-        public static Dirname DepPath { get { return sDepPath; } }
-        public static Dirname ToolPath { get { return sToolPath; } }
         public static Dirname PubPath { get { return sPublishPath; } }
+        public static Dirname ToolPath { get { return sToolPath; } }
         public static string DataFileExtension { get { return sConfig.DataFileExtension; } }
         public static string DataRelocFileExtension { get { return sConfig.DataRelocFileExtension; } }
         public static Filename[] ReferencedAssemblies { get { return sReferencedAssemblies.ToArray(); } }
@@ -132,6 +134,8 @@ namespace DataBuildSystem
             if (folder.StartsWith("bin.", true, CultureInfo.InvariantCulture))
                 return true;
             if (folder.StartsWith("publish.", true, CultureInfo.InvariantCulture))
+                return true;
+            if (folder.EndsWith(".git", true, CultureInfo.InvariantCulture))
                 return true;
             if (folder.EndsWith(".svn", true, CultureInfo.InvariantCulture))
                 return true;
@@ -154,9 +158,9 @@ namespace DataBuildSystem
             return false;
         }
 
-        public static bool Init(string name, bool bigfile, string platform, string target, string territory, string srcPath, string subPath, string dstPath, string depPath, string toolPath, string publishPath)
+        public static bool Init(string name, string platform, string target, string territory, string basePath, string srcPath, string gddPath, string subPath, string dstPath, string publishPath, string toolPath)
         {
-            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory) || String.IsNullOrEmpty(srcPath) || String.IsNullOrEmpty(dstPath) || String.IsNullOrEmpty(depPath) || String.IsNullOrEmpty(toolPath) || String.IsNullOrEmpty(publishPath))
+            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory) || String.IsNullOrEmpty(srcPath) || String.IsNullOrEmpty(gddPath) || String.IsNullOrEmpty(dstPath) || String.IsNullOrEmpty(publishPath) || String.IsNullOrEmpty(toolPath))
                 return false;
 
             if (String.IsNullOrEmpty(target))
@@ -166,21 +170,20 @@ namespace DataBuildSystem
             GameCore.Environment.addVariable("PLATFORM", platform);
             GameCore.Environment.addVariable("TARGET", target);
             GameCore.Environment.addVariable("TERRITORY", territory);
-            GameCore.Environment.addVariable("SRCPATH", GameCore.Environment.expandVariables(srcPath));
+            GameCore.Environment.addVariable("BASEPATH", GameCore.Environment.expandVariables(basePath));
 
             sPlatform = FromString(platform, EPlatform.PC);
             sTarget = FromString(target, EPlatform.PC);
             sTerritory = FromString(territory, ETerritory.USA);
 
-            sBuildBigfile = bigfile;
-
             sName = name;
+            sBasePath = new Dirname(GameCore.Environment.expandVariables(basePath));
             sSrcPath = new Dirname(GameCore.Environment.expandVariables(srcPath));
+            sGddPath = new Dirname(GameCore.Environment.expandVariables(gddPath));
             sSubPath = new Dirname(GameCore.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath));
             sDstPath = new Dirname(GameCore.Environment.expandVariables(dstPath));
-            sDepPath = new Dirname(GameCore.Environment.expandVariables(depPath));
-            sToolPath = new Dirname(GameCore.Environment.expandVariables(toolPath));
             sPublishPath = new Dirname(GameCore.Environment.expandVariables(publishPath));
+            sToolPath = new Dirname(GameCore.Environment.expandVariables(toolPath));
 
             return true;
         }

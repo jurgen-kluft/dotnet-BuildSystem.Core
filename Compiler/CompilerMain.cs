@@ -1,23 +1,3 @@
-#region Copyright
-/// 
-/// BuildSystem.DataCompiler
-/// Copyright (C) 2009 J.J.Kluft
-/// 
-/// This program is free software: you can redistribute it and/or modify
-/// it under the terms of the GNU General Public License as published by
-/// the Free Software Foundation, either version 3 of the License, or
-/// (at your option) any later version.
-/// 
-/// This program is distributed in the hope that it will be useful,
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-/// GNU General Public License for more details.
-/// 
-/// You should have received a copy of the GNU General Public License
-/// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-///
-#endregion
-
 using System;
 using System.IO;
 using System.Reflection;
@@ -28,15 +8,6 @@ namespace DataBuildSystem
 {
     using Int8 = SByte;
     using UInt8 = Byte;
-
-    /// <summary>
-    /// 
-    /// A separate application that loads the MJ.bfn and:
-    /// 
-    ///   1) Either generates one single BigfileToc
-    ///   2) Both generates a BigfileToc and a Bigfile plus resolves all FileId's to an index
-    ///   
-    /// </summary>
 
     class Program
     {
@@ -55,38 +26,39 @@ namespace DataBuildSystem
         #endregion
         #region Main
 
-        // -name track3 -platform PC -target PC -territory Europe -srcpath i:\HgDev\.NET_BuildSystem\Data.Test -folder Tracks\Track3 -config Config.%PLATFORM%.cs -dstpath i:\HgDev\.NET_BuildSystem\Data.Test\Bin.PC -deppath i:\HgDev\.NET_BuildSystem\Data.Test\Dep.PC -toolpath i:\HgDev\.NET_BuildSystem\Data.Test\Tools -pubpath i:\HgDev\.NET_BuildSystem\Data.Test\Publish.PC
-        // -name MJ -platform PC  -territory Europe -srcpath i:\HgDev\.NET_BuildSystem\Data.Test -file root.cs -config Config.%PLATFORM%.cs -pubPath %SRCPATH%\Publish.%PLATFORM% -dstpath %SRCPATH%\Bin.%PLATFORM% -deppath %SRCPATH%\Dep.%PLATFORM% -toolpath i:\HgDev\.NET_BuildSystem\Data.Test\Tools
-        // -name MJ -platform PC  -territory Europe -srcpath D:\Dev\.NET_BuildSystem\Data.Test -file root.cs -config Config.%PLATFORM%.cs -pubPath %SRCPATH%\Publish.%PLATFORM% -dstpath %SRCPATH%\Bin.%PLATFORM% -deppath %SRCPATH%\Dep.%PLATFORM% -toolpath %SRCPATH%\Data.Test\Tools
+        // -name track3 -platform PC -target PC -territory Europe -srcpath i:\Data\Assets -gddpath i:\Data\Gdd -subpath Tracks\Track3 -dstpath i:\Data\Bin.PC -pubpath i:\Data\Publish.PC -toolpath i:\Data\Tools
+        // -name MJ -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
+        // -name MJ -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
 
         static int Main(string[] args)
         {
             CommandLine cmdLine = new CommandLine(args);
 
             // On the command-line we have:
-            // - platform     NDS                                           (NDS/WII/PSP/PS2/PS3/XBOX/X360/PC)
-            // - target       NDS                                           (NDS/WII/PSP/PS2/PS3/XBOX/X360/PC)
+            // - platform     PC                                            (PS4/PS5/XBOXONE/XSX/PC)
+            // - target       PC                                            (PS4/PS5/XBOXONE/XSX/PC)
             // - name         Game
             // - territory    Europe                                        (Europe/USA/Asia/Japan)
-            // - gddpath      I:\Dev\Game\Data\Data\Compiled
-            // - srcpath      I:\Dev\Game\Data\Assets
-            // - subpath      AI                                            (AI, Boot, Levels, Menu\FrontEnd)
-            // - dstpath      %SRCPATH%\Bin.%PLATFORM%.%TARGET%
-            // - deppath      %SRCPATH%\Dep.%PLATFORM%.%TARGET%
-            // - pubpath      %SRCPATH%\Publish.%PLATFORM%.%TARGET%
-            // - toolpath     I:\Dev\Game\Data\Tools
-            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
+            // - basepath     i:\Data                                       (Can be set and used as %BASEPATH%)
+            // - gddpath      %BASEPATH%\Gdd\Compiled
+            // - srcpath      %BASEPATH%\Assets
+            // - subpath                                                    (AI, Boot, Levels, Menu\FrontEnd)
+            // - dstpath      %BASEPATH%\Bin.%PLATFORM%.%TARGET%
+            // - pubpath      %BASEPATH%\Publish.%PLATFORM%.%TARGET%
+            // - toolpath     %BASEPATH%\Tools
+            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["basepath"], cmdLine["srcpath"], cmdLine["gddpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["pubpath"], cmdLine["toolpath"]))
             {
                 Console.WriteLine("Usage: -name [NAME]");
                 Console.WriteLine("       -platform [PLATFORM]");
                 Console.WriteLine("       -target [PLATFORM]");
                 Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");
+                Console.WriteLine("       -basepath [BASEPATH]");
                 Console.WriteLine("       -srcpath [SRCPATH]");
+                Console.WriteLine("       -gddpath [GDDPATH]");
                 Console.WriteLine("       -subpath [SUBPATH]");
                 Console.WriteLine("       -dstpath [DSTPATH]");
-                Console.WriteLine("       -deppath [DSTDEPPATH]");
-                Console.WriteLine("       -toolpath [TOOLPATH]");
                 Console.WriteLine("       -pubpath [PUBLISHPATH]");
+                Console.WriteLine("       -toolpath [TOOLPATH]");
                 Console.WriteLine();
                 Console.WriteLine("Press a key");
                 Console.ReadKey();
@@ -99,9 +71,9 @@ namespace DataBuildSystem
             // Record the total build time
             DateTime buildStart = DateTime.Now;
 
-            // Create the destination, dependency and publish output paths
+            // Create the destination, gdd and publish output paths
             DirUtils.Create(BuildSystemCompilerConfig.DstPath);
-            DirUtils.Create(BuildSystemCompilerConfig.DepPath);
+            DirUtils.Create(BuildSystemCompilerConfig.GddPath);
             DirUtils.Create(BuildSystemCompilerConfig.PubPath);
 
             // Referenced assemblies, we always include ourselves
@@ -124,17 +96,9 @@ namespace DataBuildSystem
             List<Filename> csIncludes = new List<Filename>();
             cmdLine.CollectIndexedParams(0, true, "file", delegate (string param) { if (param.EndsWith(".csi")) csIncludes.Add(new Filename(param)); else sourceFiles.Add(new Filename(param)); });
 
-            Filename dataAssemblyFilename = new Filename(BuildSystemCompilerConfig.Name + ".dll");
-            bool dataAssemblyCompiledSuccesfully = dataAssemblyManager.compileAsm(dataAssemblyFilename, sourceFiles.ToArray(), csIncludes.ToArray(), BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, BuildSystemCompilerConfig.ReferencedAssemblies);
-            if (!dataAssemblyCompiledSuccesfully)
-                return Error();
-
-            // The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
-            GameData.Instanciate.assembly = dataAssemblyManager.assembly;
-
             // TODO  Write up full design with all possible cases of data modification
 
-            // A 'Data Unit' consists of (.GDU):
+            // A 'Game Data Unit' consists of (.GDU):
             //     - Unique Hash
             //     - Index
             //     - 'Game Data DLL' (.DLL)
@@ -221,7 +185,11 @@ namespace DataBuildSystem
             // Note: We could mitigate this by adding full dependency information as a file header of each target file.
 
             // Get the GameData.Root assembly, in there we should have all the configurations
-            Assembly gameDataRootAssembly = Assembly.LoadFile(BuildSystemCompilerConfig.DataFileExtension
+            Assembly gameDataRootAssembly = Assembly.LoadFile(Path.Join(BuildSystemCompilerConfig.GddPath, "GameData.Root.DLL"));
+            Assembly configDataAssembly = gameDataRootAssembly;
+
+            // The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
+            GameData.Instanciate.assembly = gameDataRootAssembly;
 
             // BuildSystem.DataCompiler configuration
             IBuildSystemCompilerConfig[] configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(configDataAssembly);
@@ -260,29 +228,12 @@ namespace DataBuildSystem
                         start = DateTime.Now;
                         Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
 
-                        // TODO; need to implement the compiler streaming execution
-
-                        // TODO "Signature File Verification" of all 'Data Unit's
+                        // TODO need to implement the compiler streaming execution
 
                         // TODO Hash->FileId
-                        //      Since in DEV mode we only need this per 'Data Unit' it should actually be sufficient to
+                        //      Since in DEV mode we only need this per 'Game Data Unit' it should actually be sufficient to
                         //      just resolve this just before building the Bigfile.
-                        //      Collect all the Hashes and assign them a FileId (Dictionary<Hash160, int>)
-
-
-                        // For each 'Data Unit' we need to detect if any of the source assets that we are dependent on
-                        // have changed. We can do this with an up-to-date 'Game Data Compiler Log'.
-
-                        // If all 'Data Unit's are verified then we have nothing to do.
-                        // 
-                        // If a 'Data Unit' was changed:
-                        //     - if the 'Game Data Compiler Log' doesn't exist collect all Compilers from the game data DLL and 
-                        //       generate a new 'Game Data Compiler Log'.
-                        //     - Job; stream-in 'Game Data Compiler Log' and pushing into 'Compiler Queue'
-                        //     - Job System that feeds of the 'Compiler Queue and executes and when finished pushes them to
-                        //       a Job that will save and delete them.
-                        //     - the 'Game Data Compiler Log' for saving is a Job that receives finished Compilers
-                        // 
+                        //      Collect all the Hashes and assign them a FileId (Dictionary<Hash160, UInt64>)
 
                         // Development: Do not merge all bigfiles into one
 

@@ -60,25 +60,10 @@ namespace GameData
             mProcess = new Process(BuildSystemCompilerConfig.ToolPath+binarizer, workDir, timeOutInMinutes);
 
             FileCommander.createDirectoryOnDisk(BuildSystemCompilerConfig.DstPath);
-            FileCommander.createDirectoryOnDisk(BuildSystemCompilerConfig.DepPath);
 
-            const string additionalExtension = ".tdep";
+            //const string additionalExtension = ".tdep";
 
             mProcessHasBeenModified = true;
-            DepFile processDepFile = new DepFile(binarizer, BuildSystemCompilerConfig.ToolPath);
-            processDepFile.extension = additionalExtension;
-            if (!processDepFile.load(BuildSystemCompilerConfig.DepPath))
-            {
-                processDepFile.save(BuildSystemCompilerConfig.DepPath);
-            }
-            else
-            {
-                mProcessHasBeenModified = processDepFile.isModified();
-                if (mProcessHasBeenModified)
-                {
-                    processDepFile.save(BuildSystemCompilerConfig.DepPath);
-                }
-            }
         }
 
         #endregion

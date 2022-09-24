@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DataBuildSystem.Compiler")]
 [assembly: AssemblyDescription("Data Compiler responsible for compiling .cs data files and compiling assets.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Virtuos Games")]
-[assembly: AssemblyProduct("Game Data (C#) Compiler")]
-[assembly: AssemblyCopyright("Copyright © 2009 Virtuos Games")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Game Data Compiler")]
+[assembly: AssemblyCopyright("Copyright © 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

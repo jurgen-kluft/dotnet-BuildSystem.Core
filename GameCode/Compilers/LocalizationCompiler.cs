@@ -16,6 +16,7 @@ namespace GameData
         public LocalizationCompiler(string localizationFile)
         {
             mSrcFilename = new Filename(localizationFile).ChangedExtension(".loc").PushedExtension(".ids").PushedExtension(".lst");
+            mDstFilenames = new List<Filename>();
         }
 
         public string group { get { return "LocalizationCompiler"; } }
@@ -25,11 +26,11 @@ namespace GameData
         {
         }
 
-        public void CompilerSave(GameData.IDataCompilerLog stream)
+        public void CompilerWrite(IBinaryWriter stream)
         {
         }
 
-        public void CompilerLoad(GameData.IDataCompilerLog stream)
+        public void CompilerRead(IBinaryReader stream)
         {
         }
 

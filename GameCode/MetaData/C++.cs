@@ -487,8 +487,6 @@ namespace GameData
 
         private class DataBlock
         {
-            private static readonly MD5CryptoServiceProvider sMd5Service = new MD5CryptoServiceProvider();
-
             private StreamReference mReference;
             private readonly MemoryStream mDataStream = new MemoryStream();
             private readonly IBinaryWriter mDataWriter;

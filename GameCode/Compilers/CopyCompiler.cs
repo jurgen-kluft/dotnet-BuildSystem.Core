@@ -26,7 +26,7 @@ namespace GameData
 
 		public CopyCompiler(string filename)
 		{
-			mFilename = Environment.expandVariables(filename);
+			mFilename = GameCore.Environment.expandVariables(filename);
 		}
 
 		public EDataCompilerStatus CompilerStatus { get { return mStatus; } }
@@ -35,11 +35,11 @@ namespace GameData
 		{
 		}
 
-		public void CompilerSave(GameData.IDataCompilerLog stream)
+		public void CompilerWrite(IBinaryWriter stream)
 		{ 
 		}
 
-		public void CompilerLoad(GameData.IDataCompilerLog stream)
+		public void CompilerRead(IBinaryReader stream)
 		{ 
 		}
 
