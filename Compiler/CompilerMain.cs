@@ -132,24 +132,30 @@ namespace DataBuildSystem
             // The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
             GameData.Instanciate.assembly = dataAssemblyManager.assembly;
 
-            // TODO 
+            // TODO  Write up full design with all possible cases of data modification
 
-            // Collect all Game Data DLL's that need to be processed.
-
-            // A 'Data Unit' consists of:
+            // A 'Data Unit' consists of (.GDU):
             //     - Unique Hash
-            //     - 'Game Data DLL'
-            //     - 'Game Data Compiler Log'
-            //     - 'Game Data Bigfile/TOC/Filename/Hashes' BFN, BFH, BFT etc..
+            //     - Index
+            //     - 'Game Data DLL' (.DLL)
+            //     - 'Game Data Compiler Log' (.GDL)
+            //     - 'Game Data Bigfile/TOC/Filename/Hashes' (.BFN, .BFH, .BFT, .BFD)
 
-            // Need a database that can map from 'Data Unit' Hash -> Index
+            // datapath   = path with all the gamedata DLL's
+            // srcpath    = path containing all the 'intermediate' assets (TGA, PGN, TRI, processed FBX files)
+            // dstpath    = path containing all the 'cooked' assets and databases
+            // pubpath    = path where all the 'Game Data' files and Bigfiles will be written (they are also written in the dstpath)
+
+            // Collect all Game Data DLL's that need to be processed
+
+            // Need a database that can map from Hash -> Index
             // There is a dependency on this database by the generation of FileId's.
             // If this file is deleted then ALL Game Data and Bigfiles have to be regenerated.
             // The pollution of this database with stale items is ok, it does not impact memory usage.
             // It mainly results in empty bigfile sections, each of them being an offset of 4 bytes.
 
             // DataUnit can be saved and loaded from a BinaryFile
-            // So we can create a DataUnits.Db file.
+            // So we can create a DataUnits.slog file.
 
             //
             // Foreach 'Game Data DLL' construct/use-existing DataUnit
@@ -212,9 +218,7 @@ namespace DataBuildSystem
             //              - Hand-out all the FileId's
             //              - Save 'Game Data File' and 'Game Data Relocation File'
 
-
-            // Note: We can add the dependency information to the file headers of all the destination files.
-
+            // Note: We could mitigate this by adding full dependency information as a file header of each target file.
 
             // Get the GameData.Root assembly, in there we should have all the configurations
             Assembly gameDataRootAssembly = Assembly.LoadFile(BuildSystemCompilerConfig.DataFileExtension
