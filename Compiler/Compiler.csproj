@@ -4,12 +4,18 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BigfileBuilder\BigfileBuilder.csproj" />
     <ProjectReference Include="..\GameCode\GameCode.csproj" />
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Compilers/*.cs" />
+    <Compile Include="*.cs" />
   </ItemGroup>
 
 </Project>

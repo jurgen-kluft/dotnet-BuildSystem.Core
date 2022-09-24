@@ -13,6 +13,7 @@ namespace GameCore
     /// e.g. 
     ///             C:\Documents\Music\Beatles
     ///             \\cnshaw235\Documents\Music\Beatles
+    ///             ~/Data/Assets
     /// 
     /// Properties
     ///     Device                                                          (e.g. C:\)
@@ -148,8 +149,16 @@ namespace GameCore
                 bool isNetworkDevice;
                 sParseDevice(mFull, out deviceName, out isNetworkDevice);
 
-                if (deviceName.Length != 0)
-                    return (isNetworkDevice) ? sDoubleSlash + deviceName : deviceName + sSemi;
+                if (System.OperatingSystem.IsMacOS())
+                {
+
+                }
+                else
+                {
+                    if (deviceName.Length != 0)
+                        return (isNetworkDevice) ? sDoubleSlash + deviceName : deviceName + sSemi;
+                }
+
                 return string.Empty;
             }
             set
@@ -162,15 +171,25 @@ namespace GameCore
         {
             get
             {
-                string deviceName;
-                bool isNetworkDevice;
-                sParseDevice(mFull, out deviceName, out isNetworkDevice);
-                return deviceName;
+                if (!System.OperatingSystem.IsMacOS())
+                {
+                    string deviceName;
+                    bool isNetworkDevice;
+                    sParseDevice(mFull, out deviceName, out isNetworkDevice);
+                    return deviceName;
+                }
+                else
+                {
+                    return string.Empty;
+                }
             }
             set
             {
-                string device = RemoveChars(value, sIllegalNameChars);
-                ChangeDevice(device);
+                if (!System.OperatingSystem.IsMacOS())
+                {
+                    string device = RemoveChars(value, sIllegalNameChars);
+                    ChangeDevice(device);
+                }
             }
         }
 
@@ -267,16 +286,28 @@ namespace GameCore
 
         private static void sConstructFull(string deviceName, bool isNetworkDevice, string path, out string outFull, out int outHashCode)
         {
-            string device = isNetworkDevice ? (sDoubleSlash + deviceName) : (deviceName + sSemi);
-            outFull = (deviceName.Length != 0) ? (device + sSlashStr + path) : path;
+            string device = string.Empty;
+            if (!System.OperatingSystem.IsMacOS())
+            {
+                device = isNetworkDevice ? (sDoubleSlash + deviceName) : (deviceName + sSemi);
+                outFull = (deviceName.Length != 0) ? (device + sSlashStr + path) : path;
+            } else {
+                outFull = (deviceName.Length != 0) ? (device + sSlashStr + path) : "/" + path;
+            }
             outHashCode = outFull.ToLower().GetHashCode();
         }
 
         private static void sParseDevice(string inFull, out string outDevice, out bool outIsNetworkDevice)
         {
-            string device;
+            if (System.OperatingSystem.IsMacOS())
+            {
+                outDevice = string.Empty;
+                outIsNetworkDevice = false;
+                return;
+            }
 
             // Device
+            string device;
             bool networkDevice = inFull.StartsWith(sDoubleSlash);
             if (networkDevice)
             {
@@ -366,10 +397,17 @@ namespace GameCore
             }
             else
             {
-                int semiSlashIndex = inPathWithDevice.IndexOf(sSemiSlash);
-                if (semiSlashIndex >= 0)
+                if (!System.OperatingSystem.IsMacOS())
                 {
-                    outPath = inPathWithDevice.Substring(semiSlashIndex + 2);
+                    int semiSlashIndex = inPathWithDevice.IndexOf(sSemiSlash);
+                    if (semiSlashIndex >= 0)
+                    {
+                        outPath = inPathWithDevice.Substring(semiSlashIndex + 2);
+                    }
+                }
+                else
+                {
+                    outPath = inPathWithDevice;
                 }
             }
         }

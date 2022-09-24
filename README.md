@@ -9,13 +9,12 @@ following things will be done by the BuildSystem:
 - It recognizes the following types:
   - ``DataUnit``; A reference to a ``IDataRoot`` that exists in another ``GameData...DLL``
   - ``FileId``; An Id that can be retrieved interacting with BigfileManager
-  - ``s8``/``s16``/``s32``/``s64``
-  - ``u8``/``u16``/``u32``/``u64``
-  - ``fx16``/``fx32``
+  - ``s8``/``s16``/``s32``/``s64``;
+  - ``u8``/``u16``/``u32``/``u64``;
+  - ``fx16``/``fx32``;
   - ``f32``/``f64``; single and double float precision
   - ``FRect``/``IRect``; floating point and integer rectangle (left, right, top, bottom)
   - ``Array<T>``; C style array of any type listed here
-compound
   - ``FSize``/``Size``; floating point and integer size (width, height) compound
   - ``FVec2``/``FVec3``/``FVec4``;
   - ``FMat22``/``FMat33``/``FMat44``;
@@ -24,7 +23,7 @@ compound
  - Anything derived from ``IAtom`` (system types s8/s16/..., see above)
  - Anything derived from ``ICompound`` (mapped to a struct or class in C++)
  - Anything derived from ``IDataCompiler``
-  - ```MeshCompiler("objects/rock.asset")```
+  - ```MeshCompiler("objects/rock.ply")```
   - ```TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)```
   - ```MaterialCompiler("materials/stone.mat")```
   - ```ShaderCompiler("shaders/shadow.vs", EShaderFormat.VS_SPIRV)```

@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Runtime.Loader;
+
 using GameCore;
 
 namespace DataBuildSystem
@@ -30,6 +32,7 @@ namespace DataBuildSystem
         // -name MJ -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
         // -name MJ -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
 
+        // -name "MJ" -platform "MAC" -target "MAC" -territory "Europe" -basepath "/Users/obnosis1" -srcpath "/Users/obnosis1/Data/Assets" -gddpath "/Users/obnosis1/Data/GameData" -pubpath "/Users/obnosis1/Data/Publish.%PLATFORM%" -dstpath "/Users/obnosis1/Data/Bin.%PLATFORM%" -toolpath "/Users/obnosis1/Data/Tools"
         static int Main(string[] args)
         {
             CommandLine cmdLine = new CommandLine(args);
@@ -60,8 +63,6 @@ namespace DataBuildSystem
                 Console.WriteLine("       -pubpath [PUBLISHPATH]");
                 Console.WriteLine("       -toolpath [TOOLPATH]");
                 Console.WriteLine();
-                Console.WriteLine("Press a key");
-                Console.ReadKey();
                 return 1;
             }
 
@@ -76,6 +77,15 @@ namespace DataBuildSystem
             DirUtils.Create(BuildSystemCompilerConfig.GddPath);
             DirUtils.Create(BuildSystemCompilerConfig.PubPath);
 
+            string gameDataRootDllName = "GameData.Root.DLL";
+
+            Console.WriteLine("dll path: " + BuildSystemCompilerConfig.GddPath.Full + "/" + gameDataRootDllName);
+
+            // Using 'AssemblyLoadContext' so that we can also Unload the GameData DLL
+            AssemblyLoadContext gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
+            byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath.Full + "/" + gameDataRootDllName);
+            Assembly gameDataRootAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
+            
             // Referenced assemblies, we always include ourselves
             // Inject ourselves with the referenced assemblies
             {
@@ -96,97 +106,7 @@ namespace DataBuildSystem
             List<Filename> csIncludes = new List<Filename>();
             cmdLine.CollectIndexedParams(0, true, "file", delegate (string param) { if (param.EndsWith(".csi")) csIncludes.Add(new Filename(param)); else sourceFiles.Add(new Filename(param)); });
 
-            // TODO  Write up full design with all possible cases of data modification
-
-            // A 'Game Data Unit' consists of (.GDU):
-            //     - Unique Hash
-            //     - Index
-            //     - 'Game Data DLL' (.DLL)
-            //     - 'Game Data Compiler Log' (.GDL)
-            //     - 'Game Data File' and 'Game Data Relocation File' (.GDF, .GDR)
-            //     - 'Game Data Bigfile/TOC/Filename/Hashes' (.BFN, .BFH, .BFT, .BFD)
-
-            // gddpath    = path with all the gamedata DLL's
-            // srcpath    = path containing all the 'intermediate' assets (TGA, PGN, TRI, processed FBX files)
-            // dstpath    = path containing all the 'cooked' assets and databases
-            // pubpath    = path where all the 'Game Data' files and Bigfiles will be written (they are also written in the dstpath)
-
-            // Collect all Game Data DLL's that need to be processed
-
-            // Need a database that can map from Hash -> Index
-            // There is a dependency on this database by the generation of FileId's.
-            // If this file is deleted then ALL Game Data and Bigfiles have to be regenerated.
-            // The pollution of this database with stale items is ok, it does not impact memory usage.
-            // It mainly results in empty bigfile sections, each of them being an offset of 4 bytes.
-
-            // DataUnit can be saved and loaded from a BinaryFile
-            // So we can create a DataUnits.slog file.
-
-            //
-            // Foreach 'Game Data DLL' construct/use-existing DataUnit
-            //    Associated with a 'Game Data DLL'
-            //    Generate the hash for the DataUnit (from the name of the DLL)
-            //    
-            //
-            // Sort DataUnits by Hash
-            // Foreach DataUnit
-            //    Register the hash and get the index    
-            //
-            // Foreach DataUnit
-            //    Check the date-time and size signature of:
-            //       - 'Game Data DLL'
-            //       - 'Game Data Compiler Log'
-            //       - 'Game Data File' and 'Game Data Relocation File'
-            //       - 'BigFile Toc/Filename/Hash Files'
-            //       - Check if source files have changed
-           
-            //    If all up-to-date then done
-            //    Else
-            //       Case A:
-            //           - 'BigFile Toc/Filename/Hash Files' is out-of-date/missing
-            //           - Load 'Game Data Compiler Log'
-            //           - Using 'Game Data Compiler Log' check if all 'source' files are up-to-date
-            //             - If not up-to-date execute 'Game Data Compiler Log'
-            //           - Build a database of Hash-FileId, sort Hashes and assign FileId
-            //           - Load the 'Game Data DLL', inject with GameCore and GameCode
-            //              - Find IDataRoot object
-            //              - Instanciate the root object
-            //              - Hand-out all the FileId's
-            
-            //       Case B:
-            //           - 'Game Data DLL' is out-of-date
-            //              - Load the 'Game Data DLL', inject with GameCore and GameCode
-            //              - Find IDataRoot object
-            //              - Instanciate the root object
-            //              - Collect all IDataCompiler objects
-            //              - Load 'Game Data Compiler Log'
-            //                - See if there are any missing/added/changed IDataCompiler objects
-            //                - So a IDataCompiler needs to build a unique Hash of itself!
-            //                - Save 'Game Data Compiler Log'
-
-            //       Case C:
-            //           - 'Game Data Compiler Log' is out-of-date or missing
-            //           - This is bad, we have lost our source to target dependency information
-            //           - So we have to rebuild the log and all the data
-            //           - And after that the 'Game Data File' and 'Game Data Relocation File' and
-            //             'Game Data File' and 'Game Data Relocation File'.
-
-            //       Case D:
-            //           - 'Game Data File' and 'Game Data Relocation File' are out-of-date or missing
-            //           - Using 'Game Data Compiler Log' check if all 'source' files are up-to-date
-            //           - If any source file is out-of-date 
-            //             - Execute 'Game Data Compiler Log'
-            //           - Build a database of Hash-FileId, sort Hashes and assign FileId
-            //           - Load the 'Game Data DLL', inject with GameCore and GameCode
-            //              - Find IDataRoot object
-            //              - Instanciate the root object
-            //              - Hand-out all the FileId's
-            //              - Save 'Game Data File' and 'Game Data Relocation File'
-
-            // Note: We could mitigate this by adding full dependency information as a file header of each target file.
-
             // Get the GameData.Root assembly, in there we should have all the configurations
-            Assembly gameDataRootAssembly = Assembly.LoadFile(Path.Join(BuildSystemCompilerConfig.GddPath, "GameData.Root.DLL"));
             Assembly configDataAssembly = gameDataRootAssembly;
 
             // The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
@@ -197,7 +117,7 @@ namespace DataBuildSystem
             if (configsForCompiler.Length > 0)
             {
                 foreach (var config in configsForCompiler)
-				{
+                {
                     if (config.Platform == cmdLine["platform"])
                         BuildSystemCompilerConfig.Init(config);
                 }
@@ -206,7 +126,7 @@ namespace DataBuildSystem
             // Bigfile configuration
             IBigfileConfig[] configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(configDataAssembly);
             if (configsForBigfileBuilder.Length > 0)
-			{
+            {
                 foreach (var config in configsForBigfileBuilder)
                 {
                     if (config.Platform == cmdLine["platform"])

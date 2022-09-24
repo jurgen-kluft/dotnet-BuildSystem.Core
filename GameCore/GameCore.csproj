@@ -4,10 +4,25 @@
     <OutputType>library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="ActorFlow/*.cs" />
+    <Compile Include="Assembly/*.cs" />
+    <Compile Include="Dependency/*.cs" />
+    <Compile Include="File/*.cs" />
+    <Compile Include="Hash/*.cs" />
+    <Compile Include="Math/*.cs" />
+    <Compile Include="Math/Core/*.cs" />
+    <Compile Include="Math/Exceptions/*.cs" />
+    <Compile Include="Process/*.cs" />
+    <Compile Include="String/*.cs" />
+    <Compile Include="*.cs" />
   </ItemGroup>
 
 </Project>

@@ -4,10 +4,21 @@
     <OutputType>library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Compilers/*.cs" />
+    <Compile Include="Config/*.cs" />
+    <Compile Include="MetaData/*.cs" />
+    <Compile Include="Providers/*.cs" />
+    <Compile Include="Types/*.cs" />
+    <Compile Include="Utils/*.cs" />
   </ItemGroup>
 
 </Project>

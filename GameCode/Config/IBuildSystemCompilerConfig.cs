@@ -124,11 +124,6 @@ namespace DataBuildSystem
         #endregion
         #region Methods
 
-        public static bool SourceCodeFilterDelegate(DirectoryScanner.FilterEvent e)
-        {
-            return (e.isFolder) ? BuildSystemCompilerConfig.FolderFilter(e.name) : BuildSystemCompilerConfig.FileFilter(e.name);
-        }
-
         public static bool FolderFilter(string folder)
         {
             if (folder.StartsWith("bin.", true, CultureInfo.InvariantCulture))
@@ -158,13 +153,34 @@ namespace DataBuildSystem
             return false;
         }
 
-        public static bool Init(string name, string platform, string target, string territory, string basePath, string srcPath, string gddPath, string subPath, string dstPath, string publishPath, string toolPath)
+        public static bool Init(string name, string platform, string target, string territory, string basePath, string srcPath, string gddPath, string subPath, string dstPath, string pubPath, string toolPath)
         {
-            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory) || String.IsNullOrEmpty(srcPath) || String.IsNullOrEmpty(gddPath) || String.IsNullOrEmpty(dstPath) || String.IsNullOrEmpty(publishPath) || String.IsNullOrEmpty(toolPath))
+            Console.WriteLine("name: " + name);
+            Console.WriteLine("platform: " + platform);
+            Console.WriteLine("target: " + target);
+            Console.WriteLine("territory: " + territory);
+            Console.WriteLine("base path: " + basePath);
+            Console.WriteLine("src path: " + srcPath);
+            Console.WriteLine("gdd path: " + gddPath);
+            Console.WriteLine("sub path: " + subPath);
+            Console.WriteLine("dst path: " + dstPath);
+
+            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory))
+                return false;
+            if (String.IsNullOrEmpty(basePath) || String.IsNullOrEmpty(srcPath))
+                return false;
+            if (String.IsNullOrEmpty(gddPath))
+                return false;
+            if (String.IsNullOrEmpty(dstPath))
+                return false;
+            if (String.IsNullOrEmpty(pubPath))
+                return false;
+            if (String.IsNullOrEmpty(toolPath))
                 return false;
 
             if (String.IsNullOrEmpty(target))
                 target = platform;
+
 
             GameCore.Environment.addVariable("NAME", name);
             GameCore.Environment.addVariable("PLATFORM", platform);
@@ -182,8 +198,11 @@ namespace DataBuildSystem
             sGddPath = new Dirname(GameCore.Environment.expandVariables(gddPath));
             sSubPath = new Dirname(GameCore.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath));
             sDstPath = new Dirname(GameCore.Environment.expandVariables(dstPath));
-            sPublishPath = new Dirname(GameCore.Environment.expandVariables(publishPath));
+            sPublishPath = new Dirname(GameCore.Environment.expandVariables(pubPath));
             sToolPath = new Dirname(GameCore.Environment.expandVariables(toolPath));
+
+            Console.WriteLine("BasePath: {0}", sBasePath);
+            Console.WriteLine("GddPath: {0}", sGddPath);
 
             return true;
         }
