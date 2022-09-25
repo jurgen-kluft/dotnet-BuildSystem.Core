@@ -31,13 +31,13 @@ namespace GameCore
 
     public class xTextStream
     {
-        private Filename mFilename;
+        private string mFilename;
 
         private FileStream mFileStream;
         private StreamWriter mWriter;
         private StreamReader mReader;
 
-        public xTextStream(Filename filename)
+        public xTextStream(string filename)
         {
             mFilename = filename;
         }
@@ -48,7 +48,7 @@ namespace GameCore
             WRITE,
         }
 
-        public Filename filename { get { return mFilename;  } }
+        public string filename { get { return mFilename;  } }
         public StreamWriter write { get { return mWriter; } }
         public StreamReader read { get { return mReader; } }
 
@@ -96,14 +96,14 @@ namespace GameCore
 
     public class xBinaryStream
     {
-        private Filename mFilename;
+        private string mFilename;
         private EEndian mEndian;
 
         private FileStream mFileStream;
         private IBinaryWriter mWriter;
         private IBinaryReader mReader;
 
-        public xBinaryStream(Filename filename, EEndian endian)
+        public xBinaryStream(string filename, EEndian endian)
         {
             mFilename = filename;
             mEndian = endian;
@@ -115,7 +115,7 @@ namespace GameCore
             WRITE,
         }
 
-        public Filename filename { get { return mFilename; } }
+        public string filename { get { return mFilename; } }
         public EEndian endian { get { return mEndian; } }
         public IBinaryWriter write { get { return mWriter; } }
         public IBinaryReader read { get { return mReader; } }

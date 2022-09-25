@@ -5,13 +5,9 @@ namespace GameCore
 {
     public static class DirUtils
     {
-        public static bool Create(Dirname dir)
+        public static bool Create(string dir)
         {
-            if (!dir.HasDevice)
-                dir = dir.MakeAbsolute();
-
             Directory.CreateDirectory(dir.ToString());
-
             return true;
         }
     }

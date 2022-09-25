@@ -9,7 +9,7 @@ namespace GameData
 {
     public static class FileCommander
     {
-        public static bool createDirectoryOnDisk(Dirname inPath)
+        public static bool createDirectoryOnDisk(string inPath)
         {
             try
             {
@@ -26,12 +26,12 @@ namespace GameData
             return true;
         }
 
-        public static bool createDirectoryOnDisk(Dirname basePath, Filename filename)
+        public static bool createDirectoryOnDisk(string basePath, string filename)
         {
             try
             {
-                Filename f = basePath + filename;
-                DirUtils.Create(f.AbsolutePath);
+                string f = Path.Join(basePath, filename);
+                DirUtils.Create(f);
             }
             catch (Exception e)
             {
@@ -41,7 +41,7 @@ namespace GameData
             return true;
         }
 
-        public static bool copyFromTo(Dirname srcPath, Filename srcFilename, Dirname dstPath, Filename dstFilename)
+        public static bool copyFromTo(string srcPath, string srcFilename, string dstPath, string dstFilename)
         {
             try
             {
@@ -70,10 +70,10 @@ namespace GameData
             }
         }
 
-        public static bool copy(Dirname srcPath, Dirname dstPath, List<Filename> dstFilenames)
+        public static bool copy(string srcPath, string dstPath, List<string> dstFilenames)
         {
             bool result = true;
-            foreach(Filename filename in dstFilenames)
+            foreach(string filename in dstFilenames)
                 if (!copyFromTo(srcPath, filename, dstPath, filename))
                     result = false;
             return result;

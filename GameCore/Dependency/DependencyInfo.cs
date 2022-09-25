@@ -23,151 +23,78 @@ namespace GameCore
             MUST_EXIST,
         }
 
-        public enum EMethod
+        public enum EDepMethod
         {
             TIMESTAMP,
-            MD5,
+            HASH,
         }
-
-        private Filename mFilename;
-        private Dirname mFolder;
-        private Hash160 mHash = Hash160.Empty;
-        private EStatus mStatus = EStatus.UNINITIALIZED;
-        private EMethod mMethod = EMethod.TIMESTAMP;
-        private EDepRule mDepRule = EDepRule.ON_CHANGE;
-
-        // Caching
-        private string mFullFilename = string.Empty;
 
         #endregion
         #region Constructors
 
         private DepInfo()
-            : this(Filename.Empty, Dirname.Empty, EMethod.TIMESTAMP)
+            : this(-1, string.Empty, string.Empty, EDepMethod.TIMESTAMP)
         {
         }
 
-        public DepInfo(Filename filename, Dirname folder)
-            : this(filename, folder, EMethod.TIMESTAMP)
+        public DepInfo(int index, string filename, string folder)
+            : this(index, filename, folder, EDepMethod.TIMESTAMP)
         {
         }
 
-        public DepInfo(Filename filename, Dirname folder, EMethod method)
-            : this(filename, folder, method, Hash160.Empty)
+        public DepInfo(int index, string filename, string folder, EDepMethod method)
+            : this(index, filename, folder, method, Hash160.Empty)
         {
         }
-        public DepInfo(Filename filename, Dirname folder, EMethod method, Hash160 hash)
+        public DepInfo(int index, string filename, string folder, EDepMethod method, Hash160 hash)
         {
-            mFilename = filename;
-            mFolder = folder;
-            mFullFilename = mFolder + mFilename;
-            mHash = hash;
-            mMethod = method;
+            Index = index;
+            Filename = filename;
+            Folder = folder;
+            Full = Path.Join(Folder, Filename);
+            Hash = hash;
+            Method = method;
         }
 
         #endregion
         #region Properties
 
-        public Filename filename
-        {
-            get
-            {
-                return mFilename;
-            }
-        }
-
-        public Dirname folder
-        {
-            get
-            {
-                return mFolder;
-            }
-        }
-
-        public string full
-        {
-            get
-            {
-                return mFullFilename;
-            }
-
-        }
-
-        public Hash160 hash
-        {
-            set
-            {
-                mHash = value;
-            }
-            get
-            {
-                return mHash;
-            }
-        }
-
-        public EStatus status
-        {
-            set
-            {
-                mStatus = value;
-            }
-            get
-            {
-                return mStatus;
-            }
-        }
-
-        public EMethod method
-        {
-            set
-            {
-                mMethod = value;
-            }
-            get
-            {
-                return mMethod;
-            }
-        }
-
-        public EDepRule deprule
-        {
-            set
-            {
-                mDepRule = value;
-            }
-            get
-            {
-                return mDepRule;
-            }
-        }
+        public int Index {get; set; }
+        public string Filename {get; private set; }
+        public string Folder {get; private set; }
+        public string Full {get; set; }
+        public Hash160 Hash {get; set; } = Hash160.Empty;
+        public EStatus Status {get; set; }= EStatus.UNINITIALIZED;
+        public EDepMethod Method {get; set; }= EDepMethod.TIMESTAMP;
+        public EDepRule Rule {get; set; }= EDepRule.ON_CHANGE;
 
         #endregion
         #region Methods
 
         internal void init()
         {
-            hash = Hash160.Empty;
-            status = EStatus.UNINITIALIZED;
+            Hash = Hash160.Empty;
+            Status = EStatus.UNINITIALIZED;
 
             update();
 
             // The update told us that the file is there so we can modify it
             // to the initial state 'UNCHANGED'.
-            if (status == EStatus.CHANGED)
-                status = EStatus.UNCHANGED;
+            if (Status == EStatus.CHANGED)
+                Status = EStatus.UNCHANGED;
         }
 
-        private static Hash160 computeHash(string fullFilename, EMethod method)
+        private static Hash160 computeHash(string fullFilename, EDepMethod method)
         {
             switch (method)
             {
-                case DepInfo.EMethod.MD5:
+                case DepInfo.EDepMethod.HASH:
                     {
                         FileInfo fileInfo = new FileInfo(fullFilename);
                         return fileInfo.Exists ? HashUtility.compute(fileInfo) : Hash160.Empty;
                     }
 
-                case DepInfo.EMethod.TIMESTAMP:
+                case DepInfo.EDepMethod.TIMESTAMP:
                     {
                         Hash160 hash = Hash160.Empty;
                         if (File.Exists(fullFilename))
@@ -182,43 +109,43 @@ namespace GameCore
 
         internal void update()
         {
-            Hash160 newHash = computeHash(mFullFilename, mMethod);
-            if (mDepRule == EDepRule.MUST_EXIST)
+            Hash160 newHash = computeHash(Full, Method);
+            if (Rule == EDepRule.MUST_EXIST)
             {
-                if (newHash == Hash160.Empty || newHash != hash)
+                if (newHash == Hash160.Empty || newHash != Hash)
                 {
-                    status = EStatus.CHANGED;
-                    hash = newHash;
+                    Status = EStatus.CHANGED;
+                    Hash = newHash;
                 }
                 else
                 {
-                    status = EStatus.UNCHANGED;
+                    Status = EStatus.UNCHANGED;
                 }
             }
             else
             {
-                if (hash == newHash)
+                if (Hash == newHash)
                 {
-                    status = EStatus.UNCHANGED;
+                    Status = EStatus.UNCHANGED;
                 }
                 else
                 {
-                    status = EStatus.CHANGED;
-                    hash = newHash;
+                    Status = EStatus.CHANGED;
+                    Hash = newHash;
                 }
             }
         }
 
-        public void setFilenameAndFolder(Filename filename, Dirname folder)
+        public void setFilenameAndFolder(string filename, string folder)
         {
-            mFilename = filename;
-            mFolder = folder;
-            mFullFilename = folder + filename;
+            Filename = filename;
+            Folder = folder;
+            Full = Path.Join(folder + filename);
         }
 
         public bool checkifEqual(DepInfo other)
         {
-            return (mFullFilename == other.mFullFilename);
+            return (Full == other.Full);
         }
 
         #endregion
@@ -231,7 +158,7 @@ namespace GameCore
             if ((object)a == null || (object)b == null)
                 return false;
 
-            return a.mFullFilename == b.mFullFilename && a.mHash == b.mHash;
+            return a.Full == b.Full && a.Hash == b.Hash;
         }
         public static bool operator !=(DepInfo a, DepInfo b)
         {
@@ -244,12 +171,12 @@ namespace GameCore
         public override bool Equals(object obj)
         {
             DepInfo depInfo = (DepInfo)obj;
-            return depInfo.mFullFilename == mFullFilename && depInfo.mHash == mHash;
+            return depInfo.Full == Full && depInfo.Hash == Hash;
         }
 
         public override int GetHashCode()
         {
-            return mFullFilename.GetHashCode();
+            return Full.GetHashCode();
         }
 
         #endregion

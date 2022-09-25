@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace GameCore
 {
@@ -315,144 +316,302 @@ namespace GameCore
         #endregion
     }
 
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
-    /* SHA-1 (FIPS 180-4) implementation                                                              */
-    /*                                                                                   MIT Licence  */
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
     public static class SHA1
     {
-        private static readonly UInt32[] K = new uint[4] { 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 };
-
-        private static uint ReadUInt32(byte[] msg, uint offset)
+        public sealed class SHA1Hash
         {
-            uint u = msg[offset];
-            for (uint k = 1; k < 4; k++)
+            private SHA1Context ctx;
+
+            public SHA1Hash()
             {
-                u = (u << 8) | msg[offset + k];
+                ctx = new();
             }
-            return u;
+
+            public void Init()
+            {
+                ctx.Init();
+            }
+
+            public Hash160 Compute(byte[] buf, int len)
+            {
+                ctx.Init();
+                SHA1Imp.Update(ctx, buf, len);
+                return SHA1Imp.Finalize(ctx);
+            }
+
+            public void Update(byte[] buf, int len) =>
+                SHA1Imp.Update(ctx, buf, len);
+
+            public Hash160 Finalize() => SHA1Imp.Finalize(ctx);
         }
-        private static void WriteUInt32(byte[] msg, uint offset, uint value)
+
+        sealed class SHA1Context
         {
-            msg[offset + 0] = (byte)(value >> 24);
-            msg[offset + 1] = (byte)(value >> 16);
-            msg[offset + 2] = (byte)(value >> 8);
-            msg[offset + 3] = (byte)(value >> 0);
+            public uint[] State;
+            public uint[] Count;
+            public byte[] Buffer;
+
+            public SHA1Context()
+            {
+                State = new uint[5];
+                Count = new uint[2];
+                Buffer = new byte[64];
+                Init();
+            }
+
+            public void Init()
+            {
+                State[0] = 0x67452301;
+                State[1] = 0xEFCDAB89;
+                State[2] = 0x98BADCFE;
+                State[3] = 0x10325476;
+                State[4] = 0xC3D2E1F0;
+                Count[0] = Count[1] = 0;
+            }
         }
 
-        private static void Iterate(byte[] msg, uint msg_offset, uint[] W, uint[] H)
+        static class SHA1Imp
         {
-            // 1 - prepare message schedule 'W'
-            for (uint j = 0; j < 16; j++)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static uint Rol(uint value, int bits) =>
+                ((value) << (bits)) | ((value) >> (32 - (bits)));
+
+            // LITTLE_ENDIAN
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static uint Blk0(int i, uint[] block) =>
+                (block[i] = (Rol(block[i], 24) & 0xFF00FF00) | (Rol(block[i], 8) & 0x00FF00FF));
+
+            // BIG_ENDIAN
+            /*
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static uint Blk0(int i, uint[] block) =>
+                block[i];
+             */
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static uint Blk(int i, uint[] block) =>
+                (block[i & 15] = Rol(block[(i + 13) & 15] ^ block[(i + 8) & 15] ^ block[(i + 2) & 15] ^ block[i & 15], 1));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void R0(uint v, ref uint w, uint x, uint y, ref uint z, int i, uint[] block)
             {
-                W[j] = ReadUInt32(msg, msg_offset + (j * 4));
+                z += ((w & (x ^ y)) ^ y) + Blk0(i, block) + 0x5A827999 + Rol(v, 5); w = Rol(w, 30);
             }
 
-            for (uint t = 16; t < 80; t++)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void R1(uint v, ref uint w, uint x, uint y, ref uint z, int i, uint[] block)
             {
-                W[t] = SHA1.ROTL(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
+                z += ((w & (x ^ y)) ^ y) + Blk(i, block) + 0x5A827999 + Rol(v, 5); w = Rol(w, 30);
             }
 
-            // 2 - initialise five working variables a, b, c, d, e with previous hash value
-            uint a = H[0], b = H[1], c = H[2], d = H[3], e = H[4];
-
-            // 3 - main loop
-            for (uint s = 0; s < 4; s++)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void R2(uint v, ref uint w, uint x, uint y, ref uint z, int i, uint[] block)
             {
-                for (uint t = 0; t < 20; t++)
+                z += (w ^ x ^ y) + Blk(i, block) + 0x6ED9EBA1 + Rol(v, 5); w = Rol(w, 30);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void R3(uint v, ref uint w, uint x, uint y, ref uint z, int i, uint[] block)
+            {
+                z += (((w | x) & y) | (w & x)) + Blk(i, block) + 0x8F1BBCDC + Rol(v, 5); w = Rol(w, 30);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void R4(uint v, ref uint w, uint x, uint y, ref uint z, int i, uint[] block)
+            {
+                z += (w ^ x ^ y) + Blk(i, block) + 0xCA62C1D6 + Rol(v, 5); w = Rol(w, 30);
+            }
+
+            private static void Copy(uint[] block, byte[] buffer, int ofs)
+            {
+                int i = 0;
+                int j = 0;
+                uint x = 0x0;
+
+                while (i < 64)
                 {
-                    uint aa = (SHA1.ROTL(a, 5) + SHA1.F(s, b, c, d) + e + K[s] + W[t + (s * 20)]);
-                    e = d;
-                    d = c;
-                    c = SHA1.ROTL(b, 30);
-                    b = a;
-                    a = aa;
+                    x = x >> 8;
+                    x = x | ((uint)(buffer[ofs++] << 24));
+                    if ((i & 0x3) == 3)
+                    {
+                        block[j++] = x;
+                        x = 0x0;
+                    }
+                    i++;
                 }
             }
 
-            // 4 - compute the new intermediate hash value
-            H[0] = (H[0] + a);
-            H[1] = (H[1] + b);
-            H[2] = (H[2] + c);
-            H[3] = (H[3] + d);
-            H[4] = (H[4] + e);
-        }
-
-        public static Hash160 Compute(byte[] msg)
-        {
-            UInt32[] H = new UInt32[] { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 };
-            uint[] W = new uint[80];
-            byte[] Block = new byte[64];
-
-            uint L = (uint)msg.Length;
-            uint N = L / 64;
-            for (uint i = 0; i < N; i++)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void Copy(byte[] dest, int destOfs, byte[] src, int srcOfs, int count)
             {
-                Iterate(msg, i * 64, W, H);
+                for (int i = 0; i < count; i++)
+                    dest[destOfs++] = src[srcOfs++];
             }
 
-            L = (uint)(L + 1) - (N * 64) + 8; // +8 is the bytes used that contain the length in bits of the message
-            while (L != 0)
+            public static void Update(SHA1Context context, byte[] data, int len)
             {
-                for (uint i = 0; i < 64; i++)
-                {
-                    uint msg_index = (N * 64) + i;
-                    if (msg_index < msg.Length)
-                    {
-                        Block[i] = msg[msg_index];
-                    }
-                    else if (msg_index == msg.Length)
-                    {
-                        Block[i++] = 0x80;
-                        for (; i < 64; i++)
-                            Block[i] = 0;
-                    }
-                    else
-                    {
-                        for (; i < 64; i++)
-                            Block[i] = 0;
-                    }
-                }
+                uint i;
 
-                if (L <= 64)
+                uint j;
+
+                j = context.Count[0];
+                if ((context.Count[0] += (uint)len << 3) < j)
+                    context.Count[1]++;
+                context.Count[1] += (uint)len >> 29;
+                j = (j >> 3) & 63;
+                if ((j + len) > 63)
                 {
-                    UInt64 bitlen = (UInt64)msg.Length * 8;
-                    WriteUInt32(Block, 56, (uint)(bitlen >> 32));
-                    WriteUInt32(Block, 60, (uint)(bitlen & 0xffffffff));
-                    L = 0;
+                    i = 64 - j;
+
+                    Copy(context.Buffer, (int)j, data, 0, (int)i);
+                    Transform(context.State, context.Buffer, 0);
+                    for (; i + 63 < len; i += 64)
+                    {
+                        Transform(context.State, data, (int)i);
+                    }
+                    j = 0;
                 }
                 else
+                    i = 0;
+                Copy(context.Buffer, (int)j, data, (int)i, (int)(len - i));
+            }
+
+            private static void Transform(uint[] state, byte[] buffer, int ofs)
+            {
+
+                uint a, b, c, d, e;
+                uint[] block = new uint[16];
+
+                Copy(block, buffer, ofs);
+
+                /* Copy context->state[] to working vars */
+                a = state[0];
+                b = state[1];
+                c = state[2];
+                d = state[3];
+                e = state[4];
+                /* 4 rounds of 20 operations each. Loop unrolled. */
+                R0(a, ref b, c, d, ref e, 0, block);
+                R0(e, ref a, b, c, ref d, 1, block);
+                R0(d, ref e, a, b, ref c, 2, block);
+                R0(c, ref d, e, a, ref b, 3, block);
+                R0(b, ref c, d, e, ref a, 4, block);
+                R0(a, ref b, c, d, ref e, 5, block);
+                R0(e, ref a, b, c, ref d, 6, block);
+                R0(d, ref e, a, b, ref c, 7, block);
+                R0(c, ref d, e, a, ref b, 8, block);
+                R0(b, ref c, d, e, ref a, 9, block);
+                R0(a, ref b, c, d, ref e, 10, block);
+                R0(e, ref a, b, c, ref d, 11, block);
+                R0(d, ref e, a, b, ref c, 12, block);
+                R0(c, ref d, e, a, ref b, 13, block);
+                R0(b, ref c, d, e, ref a, 14, block);
+                R0(a, ref b, c, d, ref e, 15, block);
+                R1(e, ref a, b, c, ref d, 16, block);
+                R1(d, ref e, a, b, ref c, 17, block);
+                R1(c, ref d, e, a, ref b, 18, block);
+                R1(b, ref c, d, e, ref a, 19, block);
+                R2(a, ref b, c, d, ref e, 20, block);
+                R2(e, ref a, b, c, ref d, 21, block);
+                R2(d, ref e, a, b, ref c, 22, block);
+                R2(c, ref d, e, a, ref b, 23, block);
+                R2(b, ref c, d, e, ref a, 24, block);
+                R2(a, ref b, c, d, ref e, 25, block);
+                R2(e, ref a, b, c, ref d, 26, block);
+                R2(d, ref e, a, b, ref c, 27, block);
+                R2(c, ref d, e, a, ref b, 28, block);
+                R2(b, ref c, d, e, ref a, 29, block);
+                R2(a, ref b, c, d, ref e, 30, block);
+                R2(e, ref a, b, c, ref d, 31, block);
+                R2(d, ref e, a, b, ref c, 32, block);
+                R2(c, ref d, e, a, ref b, 33, block);
+                R2(b, ref c, d, e, ref a, 34, block);
+                R2(a, ref b, c, d, ref e, 35, block);
+                R2(e, ref a, b, c, ref d, 36, block);
+                R2(d, ref e, a, b, ref c, 37, block);
+                R2(c, ref d, e, a, ref b, 38, block);
+                R2(b, ref c, d, e, ref a, 39, block);
+                R3(a, ref b, c, d, ref e, 40, block);
+                R3(e, ref a, b, c, ref d, 41, block);
+                R3(d, ref e, a, b, ref c, 42, block);
+                R3(c, ref d, e, a, ref b, 43, block);
+                R3(b, ref c, d, e, ref a, 44, block);
+                R3(a, ref b, c, d, ref e, 45, block);
+                R3(e, ref a, b, c, ref d, 46, block);
+                R3(d, ref e, a, b, ref c, 47, block);
+                R3(c, ref d, e, a, ref b, 48, block);
+                R3(b, ref c, d, e, ref a, 49, block);
+                R3(a, ref b, c, d, ref e, 50, block);
+                R3(e, ref a, b, c, ref d, 51, block);
+                R3(d, ref e, a, b, ref c, 52, block);
+                R3(c, ref d, e, a, ref b, 53, block);
+                R3(b, ref c, d, e, ref a, 54, block);
+                R3(a, ref b, c, d, ref e, 55, block);
+                R3(e, ref a, b, c, ref d, 56, block);
+                R3(d, ref e, a, b, ref c, 57, block);
+                R3(c, ref d, e, a, ref b, 58, block);
+                R3(b, ref c, d, e, ref a, 59, block);
+                R4(a, ref b, c, d, ref e, 60, block);
+                R4(e, ref a, b, c, ref d, 61, block);
+                R4(d, ref e, a, b, ref c, 62, block);
+                R4(c, ref d, e, a, ref b, 63, block);
+                R4(b, ref c, d, e, ref a, 64, block);
+                R4(a, ref b, c, d, ref e, 65, block);
+                R4(e, ref a, b, c, ref d, 66, block);
+                R4(d, ref e, a, b, ref c, 67, block);
+                R4(c, ref d, e, a, ref b, 68, block);
+                R4(b, ref c, d, e, ref a, 69, block);
+                R4(a, ref b, c, d, ref e, 70, block);
+                R4(e, ref a, b, c, ref d, 71, block);
+                R4(d, ref e, a, b, ref c, 72, block);
+                R4(c, ref d, e, a, ref b, 73, block);
+                R4(b, ref c, d, e, ref a, 74, block);
+                R4(a, ref b, c, d, ref e, 75, block);
+                R4(e, ref a, b, c, ref d, 76, block);
+                R4(d, ref e, a, b, ref c, 77, block);
+                R4(c, ref d, e, a, ref b, 78, block);
+                R4(b, ref c, d, e, ref a, 79, block);
+                /* Add the working vars back into context.state[] */
+                state[0] += a;
+                state[1] += b;
+                state[2] += c;
+                state[3] += d;
+                state[4] += e;
+            }
+
+            public static Hash160 Finalize(SHA1Context context)
+            {
+                int i;
+                var finalcount = new byte[8];
+                var c = new byte[1];
+
+                for (i = 0; i < 8; i++)
                 {
-                    L -= 64;
+                    finalcount[i] = (byte)((context.Count[(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) & 255);      /* Endian independent */
                 }
-
-                Iterate(Block, 0, W, H);
+                c[0] = 0x80;
+                Update(context, c, 1);
+                while ((context.Count[0] & 504) != 448)
+                {
+                    c[0] = 0x00;
+                    Update(context, c, 1);
+                }
+                Update(context, finalcount, 8); /* Should cause a SHA1Transform() */
+                var hash = new byte[20];
+                for (i = 0; i < 20; i++)
+                {
+                    hash[i] = (byte)((context.State[i >> 2] >> ((3 - (i & 3)) * 8)) & 255);
+                }
+                return Hash160.ConstructTake(hash);
             }
-
-            byte[] data = new byte[20];
-            for (uint i = 0; i < 5; ++i)
-            {
-                WriteUInt32(data, i * 4, H[i]);
-            }
-
-            return Hash160.ConstructTake(data);
         }
 
-        static uint F(uint s, uint x, uint y, uint z)
+        public static Hash160 Compute(byte[] data)
         {
-            switch (s)
-            {
-                case 0: return (x & y) ^ (~x & z);          // Ch()
-                case 1: return x ^ y ^ z;                   // Parity()
-                case 2: return (x & y) ^ (x & z) ^ (y & z); // Maj()
-                case 3: return x ^ y ^ z;                   // Parity()
-            }
-            return 0;
-        }
-
-        static uint ROTL(uint x, int n)
-        {
-            return (x << n) | (x >> (32 - n));
+            SHA1Context ctx = new();
+            ctx.Init();
+            SHA1Imp.Update(ctx, data, data.Length);
+            return SHA1Imp.Finalize(ctx);
         }
 
         #region UnitTest

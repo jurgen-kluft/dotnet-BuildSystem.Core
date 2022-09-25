@@ -18,7 +18,7 @@ namespace GameCore
         #endregion
         #region Constructor
 
-        public Process(Filename application, Dirname workDir, int timeOutInMinutes)
+        public Process(string application, string workDir, int timeOutInMinutes)
         {
             mInfo = new ProcessInfo(application);
             mInfo.WorkingDirectory = workDir;

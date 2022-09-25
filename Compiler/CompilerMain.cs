@@ -79,11 +79,11 @@ namespace DataBuildSystem
 
             string gameDataRootDllName = "GameData.Root.DLL";
 
-            Console.WriteLine("dll path: " + BuildSystemCompilerConfig.GddPath.Full + "/" + gameDataRootDllName);
+            Console.WriteLine("dll path: " + BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
 
             // Using 'AssemblyLoadContext' so that we can also Unload the GameData DLL
             AssemblyLoadContext gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath.Full + "/" + gameDataRootDllName);
+            byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
             Assembly gameDataRootAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
             
             // Referenced assemblies, we always include ourselves
@@ -169,7 +169,7 @@ namespace DataBuildSystem
                         Console.WriteLine("------ Generating game data started: Project: {0}", resourceFilename);
 
                         // The resource data
-                        if (!dataAssemblyManager.save(BuildSystemCompilerConfig.PubPath + BuildSystemCompilerConfig.SubPath, resourceFilename))
+                        if (!dataAssemblyManager.save(Path.Join(BuildSystemCompilerConfig.PubPath, BuildSystemCompilerConfig.SubPath), resourceFilename))
                         {
                             end = DateTime.Now;
                             Console.WriteLine("Generating game data finished -- error (Duration: {0}s)", (end - start).TotalSeconds);

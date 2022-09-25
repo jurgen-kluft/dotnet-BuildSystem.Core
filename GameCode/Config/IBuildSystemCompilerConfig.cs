@@ -70,15 +70,6 @@ namespace DataBuildSystem
         private static EPlatform sTarget = EPlatform.PC;
         private static ETerritory sTerritory = ETerritory.USA;
 
-        private static string sName;
-        private static Dirname sBasePath;
-        private static Dirname sSrcPath;
-        private static Dirname sGddPath;
-        private static Dirname sSubPath;
-        private static Dirname sDstPath;
-        private static Dirname sPublishPath;
-        private static Dirname sToolPath;
-
         private static List<Filename> sReferencedAssemblies = new List<Filename>();
 
         //private static bool sBuildBigfile = false;
@@ -101,7 +92,7 @@ namespace DataBuildSystem
         public static bool TargetPS4Pro { get { return sTarget == EPlatform.PS4_PRO; } }
 
         public static EEndian Endian { get { return sConfig.LittleEndian ? EEndian.LITTLE : EEndian.BIG; } }
-        public static string Name { get { return sName; } }
+        public static string Name { get; private set; }
         public static EPlatform Platform { get { return sPlatform; } }
         public static string PlatformName { get { return sPlatform.ToString(); } }
         public static EPlatform Target { get { return sTarget; } }
@@ -110,13 +101,13 @@ namespace DataBuildSystem
         public static string TerritoryName { get { return sTerritory.ToString(); } }
         public static bool EnumIsInt32 { get { return sConfig.EnumIsInt32; } }
         public static int SizeOfBool { get { return sConfig.SizeOfBool; } }
-        public static Dirname BasePath { get { return sBasePath; } }
-        public static Dirname SrcPath { get { return sSrcPath; } }
-        public static Dirname GddPath { get { return sGddPath; } }
-        public static Dirname SubPath { get { return sSubPath; } }
-        public static Dirname DstPath { get { return sDstPath; } }
-        public static Dirname PubPath { get { return sPublishPath; } }
-        public static Dirname ToolPath { get { return sToolPath; } }
+        public static string BasePath { get; private set;}
+        public static string SrcPath { get; private set;}
+        public static string GddPath { get; private set;}
+        public static string SubPath { get; private set;}
+        public static string DstPath { get; private set;}
+        public static string PubPath { get; private set;}
+        public static string ToolPath{ get; private set;}
         public static string DataFileExtension { get { return sConfig.DataFileExtension; } }
         public static string DataRelocFileExtension { get { return sConfig.DataRelocFileExtension; } }
         public static Filename[] ReferencedAssemblies { get { return sReferencedAssemblies.ToArray(); } }
@@ -192,17 +183,14 @@ namespace DataBuildSystem
             sTarget = FromString(target, EPlatform.PC);
             sTerritory = FromString(territory, ETerritory.USA);
 
-            sName = name;
-            sBasePath = new Dirname(GameCore.Environment.expandVariables(basePath));
-            sSrcPath = new Dirname(GameCore.Environment.expandVariables(srcPath));
-            sGddPath = new Dirname(GameCore.Environment.expandVariables(gddPath));
-            sSubPath = new Dirname(GameCore.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath));
-            sDstPath = new Dirname(GameCore.Environment.expandVariables(dstPath));
-            sPublishPath = new Dirname(GameCore.Environment.expandVariables(pubPath));
-            sToolPath = new Dirname(GameCore.Environment.expandVariables(toolPath));
-
-            Console.WriteLine("BasePath: {0}", sBasePath);
-            Console.WriteLine("GddPath: {0}", sGddPath);
+            Name = name;
+            BasePath = GameCore.Environment.expandVariables(basePath);
+            SrcPath = GameCore.Environment.expandVariables(srcPath);
+            GddPath = GameCore.Environment.expandVariables(gddPath);
+            SubPath = GameCore.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath);
+            DstPath = GameCore.Environment.expandVariables(dstPath);
+            PubPath = GameCore.Environment.expandVariables(pubPath);
+            ToolPath = GameCore.Environment.expandVariables(toolPath);
 
             return true;
         }

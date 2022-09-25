@@ -290,7 +290,6 @@ namespace GameCore
     static public class HashUtility
     {
         #region Methods
-
         public static Hash160 compute(FileInfo s)
         {
             if (!s.Exists)
@@ -298,11 +297,26 @@ namespace GameCore
 
             try
             {
-                using (FileStream fs = new FileStream(s.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                SHA1.SHA1Hash Sha1Hasher = new();
+                Sha1Hasher.Init();
+                byte[] block = new byte[256 * 1024];
+
+                using (FileStream fs = new (s.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    MemoryStream ms = new MemoryStream();
-                    fs.CopyTo(ms);
-                    return compute(ms);
+                    Int64 total = fs.Length;
+                    Int64 offset = 0;
+                    int stride = (256 * 1024);
+                    while (offset < total)
+                    {
+                        if ((offset + stride) > total)
+                        {
+                            stride = (int)(total - offset);
+                        }
+                        fs.Read(block, 0, stride);
+                        offset += stride;
+                        Sha1Hasher.Update(block, stride);
+                    }
+                    return Sha1Hasher.Finalize();
                 }
             }
             catch (Exception e)
@@ -310,12 +324,6 @@ namespace GameCore
                 Console.WriteLine("[HashUtility:EXCEPTION]{0}", e);
                 return Hash160.Null;
             }
-        }
-        public static Hash160 compute(FileStream fs)
-        {
-            MemoryStream ms = new MemoryStream();
-            fs.CopyTo(ms);
-            return compute(ms);
         }
         public static Hash160 compute(MemoryStream ms)
         {

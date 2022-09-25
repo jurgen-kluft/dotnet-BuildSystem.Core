@@ -30,13 +30,13 @@ namespace GameCore
         #endregion
         #region Constructors
 
-        private DepFile() : this(Filename.Empty, Dirname.Empty)
+        private DepFile() : this(string.Empty, string.Empty)
         {
         }
 
-        public DepFile(Filename filename, Dirname folder)
+        public DepFile(string filename, string folder)
         {
-            mMain = new DepInfo(filename, folder);
+            mMain = new DepInfo(0, filename, folder);
             mExtension = ".dep";
 
             mIn = new List<DepInfo>();
@@ -116,14 +116,14 @@ namespace GameCore
             if (mState == EDependencyState.LOADED)
                 update();
 
-            if (mMain.status != DepInfo.EStatus.UNCHANGED)
+            if (mMain.Status != DepInfo.EStatus.UNCHANGED)
                 return true;
 
             foreach (DepInfo d in mIn)
-                if (d.status != DepInfo.EStatus.UNCHANGED)
+                if (d.Status != DepInfo.EStatus.UNCHANGED)
                     return true;
             foreach (DepInfo d in mOut)
-                if (d.status != DepInfo.EStatus.UNCHANGED)
+                if (d.Status != DepInfo.EStatus.UNCHANGED)
                     return true;
             return false;
         }
@@ -133,18 +133,18 @@ namespace GameCore
 
         private void addIn(DepInfo depInfoIN)
         {
-            if (!mInMap.ContainsKey(depInfoIN.full))
+            if (!mInMap.ContainsKey(depInfoIN.Full))
             {
-                mInMap.Add(depInfoIN.full, mIn.Count);
+                mInMap.Add(depInfoIN.Full, mIn.Count);
                 mIn.Add(depInfoIN);
             }
         }
 
         private void addOut(DepInfo depInfoOUT)
         {
-            if (!mOutMap.ContainsKey(depInfoOUT.full))
+            if (!mOutMap.ContainsKey(depInfoOUT.Full))
             {
-                mOutMap.Add(depInfoOUT.full, mOut.Count);
+                mOutMap.Add(depInfoOUT.Full, mOut.Count);
                 mOut.Add(depInfoOUT);
             }
         }
@@ -155,31 +155,31 @@ namespace GameCore
             {
                 writer.WriteLine("FILE={");
                 {
-                    writer.WriteLine("\tFILENAME={0}", mMain.filename);
-                    writer.WriteLine("\tFOLDER={0}", mMain.folder);
+                    writer.WriteLine("\tFILENAME={0}", mMain.Filename);
+                    writer.WriteLine("\tFOLDER={0}", mMain.Folder);
                     writer.WriteLine("\tUSERKEY={0}", userKey);
-                    writer.WriteLine("\tMETHOD={0}", mMain.method);
-                    writer.WriteLine("\tRULE={0}", mMain.deprule);
-                    writer.WriteLine("\tHASH={0}", mMain.hash);
+                    writer.WriteLine("\tMETHOD={0}", mMain.Method);
+                    writer.WriteLine("\tRULE={0}", mMain.Rule);
+                    writer.WriteLine("\tHASH={0}", mMain.Hash);
 
                     foreach (DepInfo d in mIn)
                     {
                         writer.WriteLine("\tIN={");
-                        writer.WriteLine("\t\tFILENAME={0}", d.filename);
-                        writer.WriteLine("\t\tFOLDER={0}", d.folder);
-                        writer.WriteLine("\t\tMETHOD={0}", d.method);
-                        writer.WriteLine("\t\tRULE={0}", d.deprule);
-                        writer.WriteLine("\t\tHASH={0}", d.hash);
+                        writer.WriteLine("\t\tFILENAME={0}", d.Filename);
+                        writer.WriteLine("\t\tFOLDER={0}", d.Folder);
+                        writer.WriteLine("\t\tMETHOD={0}", d.Method);
+                        writer.WriteLine("\t\tRULE={0}", d.Rule);
+                        writer.WriteLine("\t\tHASH={0}", d.Hash);
                         writer.WriteLine("\t}");
                     }
                     foreach (DepInfo d in mOut)
                     {
                         writer.WriteLine("\tOUT={");
-                        writer.WriteLine("\t\tFILENAME={0}", d.filename);
-                        writer.WriteLine("\t\tFOLDER={0}", d.folder);
-                        writer.WriteLine("\t\tMETHOD={0}", d.method);
-                        writer.WriteLine("\t\tRULE={0}", d.deprule);
-                        writer.WriteLine("\t\tHASH={0}", d.hash);
+                        writer.WriteLine("\t\tFILENAME={0}", d.Filename);
+                        writer.WriteLine("\t\tFOLDER={0}", d.Folder);
+                        writer.WriteLine("\t\tMETHOD={0}", d.Method);
+                        writer.WriteLine("\t\tRULE={0}", d.Rule);
+                        writer.WriteLine("\t\tHASH={0}", d.Hash);
                         writer.WriteLine("\t}");
                     }
                 }
@@ -197,20 +197,20 @@ namespace GameCore
         #endregion
         #region Public Methods
 
-        public void addIn(Filename filename, Dirname folder)
+        public void addIn(string filename, string folder)
         {
-            DepInfo di = new DepInfo(filename, folder);
+            DepInfo di = new DepInfo(0, filename, folder);
             addIn(di);
         }
-        public void addIn(Filename filename, Dirname folder, DepInfo.EDepRule rule)
+        public void addIn(string filename, string folder, DepInfo.EDepRule rule)
         {
-            DepInfo di = new DepInfo(filename, folder);
-            di.deprule = rule;
+            DepInfo di = new DepInfo(0, filename, folder);
+            di.Rule = rule;
             addIn(di);
         }
-        public void addIn(Filename filename, Dirname folder, DepInfo.EMethod method)
+        public void addIn(string filename, string folder, DepInfo.EDepMethod method)
         {
-            DepInfo di = new DepInfo(filename, folder, method);
+            DepInfo di = new DepInfo(0, filename, folder, method);
             addIn(di);
         }
 
@@ -220,20 +220,20 @@ namespace GameCore
             mInMap.Clear();
         }
 
-        public void addOut(Filename filename, Dirname folder)
+        public void addOut(string filename, string folder)
         {
-            DepInfo di = new DepInfo(filename, folder);
+            DepInfo di = new DepInfo(0, filename, folder);
             addOut(di);
         }
-        public void addOut(Filename filename, Dirname folder, DepInfo.EDepRule rule)
+        public void addOut(string filename, string folder, DepInfo.EDepRule rule)
         {
-            DepInfo di = new DepInfo(filename, folder);
-            di.deprule = rule;
+            DepInfo di = new DepInfo(0, filename, folder);
+            di.Rule = rule;
             addOut(di);
         }
-        public void addOut(Filename filename, Dirname folder, DepInfo.EMethod method)
+        public void addOut(string filename, string folder, DepInfo.EDepMethod method)
         {
-            DepInfo di = new DepInfo(filename, folder, method);
+            DepInfo di = new DepInfo(0, filename, folder, method);
             addOut(di);
         }
 
@@ -243,7 +243,7 @@ namespace GameCore
             mOutMap.Clear();
         }
 
-        public bool hasIn(Filename fullFilename)
+        public bool hasIn(string fullFilename)
         {
             int i;
             if (mInMap.TryGetValue(fullFilename, out i))
@@ -251,7 +251,7 @@ namespace GameCore
             return false;
         }
 
-        public bool hasOut(Filename fullFilename)
+        public bool hasOut(string fullFilename)
         {
             int i;
             if (mOutMap.TryGetValue(fullFilename, out i))
@@ -300,11 +300,11 @@ namespace GameCore
             return true;
         }
 
-        public bool delete(Dirname dstPath)
+        public bool delete(string dstPath)
         {
             try
             {
-                string depFilename = dstPath + "\\" + mMain.filename + extension;
+                string depFilename = dstPath + "\\" + mMain.Filename + extension;
                 File.Delete(depFilename);
             }
             catch (Exception)
@@ -314,7 +314,7 @@ namespace GameCore
             return true;
         }
 
-        public bool save(Dirname dstPath)
+        public bool save(string dstPath)
         {
             try
             {
@@ -331,11 +331,11 @@ namespace GameCore
                     }
                 }
 
-                Filename depFilename = dstPath + mMain.filename.PushedExtension(extension);
+                string depFilename = dstPath + mMain.Filename + extension;
 
                 // Directory exists at destination ?
-                if (!Directory.Exists(depFilename.AbsolutePath))
-                    Directory.CreateDirectory(depFilename.AbsolutePath);
+                if (!Directory.Exists(depFilename))
+                    Directory.CreateDirectory(depFilename);
 
                 xTextStream ts = new xTextStream(depFilename);
                 ts.Open(xTextStream.EMode.WRITE);
@@ -351,14 +351,14 @@ namespace GameCore
             }
         }
 
-        public bool load(Dirname dstPath)
+        public bool load(string dstPath)
         {
             clearIn();
             clearOut();
 
             try
             {
-                FileInfo fileInfo = new FileInfo(dstPath + main.filename + extension);
+                FileInfo fileInfo = new FileInfo(dstPath + main.Filename + extension);
                 if (fileInfo.Exists == false)
                     return false;
 
@@ -405,13 +405,13 @@ namespace GameCore
 
             foreach (DepInfo d in mIn)
             {
-                if (!other.mInMap.ContainsKey(d.filename))
+                if (!other.mInMap.ContainsKey(d.Filename))
                     return false;
             }
 
             foreach (DepInfo d in mOut)
             {
-                if (!other.mOutMap.ContainsKey(d.filename))
+                if (!other.mOutMap.ContainsKey(d.Filename))
                     return false;
             }
 
@@ -467,18 +467,18 @@ namespace GameCore
         #endregion
         #region Public Static Methods
 
-        public static DepFile sCreate(Filename filename, Dirname folder)
+        public static DepFile sCreate(string filename, string folder)
         {
             DepFile depFile = new DepFile(filename, folder);
             return depFile;
         }
 
-        public static DepFile sCreate(Filename srcFilename, Dirname srcFolder, Filename dstFilename, Dirname dstFolder)
+        public static DepFile sCreate(string srcFilename, string srcFolder, string dstFilename, string dstFolder)
         {
             return sCreate(srcFilename, srcFolder, dstFilename, dstFolder, string.Empty);
         }
 
-        public static DepFile sCreate(Filename srcFilename, Dirname srcFolder, Filename dstFilename, Dirname dstFolder, string userKey)
+        public static DepFile sCreate(string srcFilename, string srcFolder, string dstFilename, string dstFolder, string userKey)
         {
             DepFile depFile = new DepFile(srcFilename, srcFolder);
             depFile.userKey = userKey;
@@ -486,22 +486,22 @@ namespace GameCore
             return depFile;
         }
 
-        public static DepFile sCreate(Filename MainFilename, Dirname srcFolder, Filename[] OutFilenames, Dirname dstFolder)
+        public static DepFile sCreate(string MainFilename, string srcFolder, string[] OutFilenames, string dstFolder)
         {
-            return sCreate(MainFilename, new Filename[0], srcFolder, OutFilenames, dstFolder, string.Empty);
+            return sCreate(MainFilename, new string[0], srcFolder, OutFilenames, dstFolder, string.Empty);
         }
         
-        public static DepFile sCreate(Filename MainFilename, Dirname srcFolder, Filename[] OutFilenames, Dirname dstFolder, string userKey)
+        public static DepFile sCreate(string MainFilename, string srcFolder, string[] OutFilenames, string dstFolder, string userKey)
         {
-            return sCreate(MainFilename, new Filename[0], srcFolder, OutFilenames, dstFolder, userKey);
+            return sCreate(MainFilename, new string[0], srcFolder, OutFilenames, dstFolder, userKey);
         }
 
-        public static DepFile sCreate(Filename MainFilename, Filename[] AdditionalInFilenames, Dirname srcFolder, Filename[] OutFilenames, Dirname dstFolder)
+        public static DepFile sCreate(string MainFilename, string[] AdditionalInFilenames, string srcFolder, string[] OutFilenames, string dstFolder)
         {
             return sCreate(MainFilename, AdditionalInFilenames, srcFolder, OutFilenames, dstFolder, string.Empty);
         }
 
-        public static DepFile sCreate(Filename MainFilename, Filename[] AdditionalInFilenames, Dirname srcFolder, Filename[] OutFilenames, Dirname dstFolder, string userKey)
+        public static DepFile sCreate(string MainFilename, string[] AdditionalInFilenames, string srcFolder, string[] OutFilenames, string dstFolder, string userKey)
         {
             DepFile depFile = new DepFile(MainFilename, srcFolder);
             try
@@ -510,12 +510,12 @@ namespace GameCore
 
                 if (AdditionalInFilenames != null)
                 {
-                    foreach (Filename i in AdditionalInFilenames)
+                    foreach (string i in AdditionalInFilenames)
                         depFile.addIn(i, srcFolder);
                 }
                 if (OutFilenames != null)
                 {
-                    foreach (Filename i in OutFilenames)
+                    foreach (string i in OutFilenames)
                         depFile.addOut(i, dstFolder);
                 }
 
@@ -535,14 +535,14 @@ namespace GameCore
         {
             bool readOneDepFile = false;
 
-            Filename currentDepFile_filename = Filename.Empty;
-            Dirname currentDepFile_folder = Dirname.Empty;
+            string currentDepFile_filename = string.Empty;
+            string currentDepFile_folder = string.Empty;
 
             bool currentDepInfoOpen = false;
             bool currentDepInfoIsIn = false;
-            Filename currentDepInfo_filename = Filename.Empty;
-            Dirname currentDepInfo_folder = Dirname.Empty;
-            DepInfo.EMethod currentDepInfo_method = DepInfo.EMethod.TIMESTAMP;
+            string currentDepInfo_filename = string.Empty;
+            string currentDepInfo_folder = string.Empty;
+            DepInfo.EDepMethod currentDepInfo_method = DepInfo.EDepMethod.TIMESTAMP;
             DepInfo.EDepRule currentDepInfo_rule = DepInfo.EDepRule.ON_CHANGE;
             Hash160 currentDepInfo_hash = Hash160.Empty;
 
@@ -573,11 +573,11 @@ namespace GameCore
                         string name = lineParts[1].TrimStart(' ', '\t');
                         if (currentDepInfoOpen)
                         {
-                            currentDepInfo_filename = new Filename(name);
+                            currentDepInfo_filename = new string(name);
                         }
                         else if (depfile != null)
                         {
-                            currentDepFile_filename = new Filename(name);
+                            currentDepFile_filename = new string(name);
                         }
                     }
                 }
@@ -597,14 +597,14 @@ namespace GameCore
                     if (lineParts.Length == 2)
                     {
                         string modeStr = lineParts[1].TrimStart(' ', '\t');
-                        DepInfo.EMethod method = (DepInfo.EMethod)Enum.Parse(typeof(DepInfo.EMethod), modeStr, true);
+                        DepInfo.EDepMethod method = (DepInfo.EDepMethod)Enum.Parse(typeof(DepInfo.EDepMethod), modeStr, true);
                         if (currentDepInfoOpen)
                         {
                             currentDepInfo_method = method;
                         }
                         else if (depfile != null)
                         {
-                            depfile.main.method = method; 
+                            depfile.main.Method = method; 
                         }
                     }
                 }
@@ -616,11 +616,11 @@ namespace GameCore
                         string name = lineParts[1].TrimStart(' ', '\t');
                         if (currentDepInfoOpen)
                         {
-                            currentDepInfo_folder = new Dirname(name);
+                            currentDepInfo_folder = new string(name);
                         }
                         else if (depfile != null)
                         {
-                            currentDepFile_folder = new Dirname(name);
+                            currentDepFile_folder = new string(name);
                         }
                     }
                 }
@@ -633,7 +633,7 @@ namespace GameCore
                         if (currentDepInfoOpen)
                             currentDepInfo_hash = Hash160.FromString(hashStr);
                         else if (depfile != null)
-                            depfile.main.hash = Hash160.FromString(hashStr);
+                            depfile.main.Hash = Hash160.FromString(hashStr);
                     }
                 }
                 else if (line.StartsWith("RULE="))
@@ -646,7 +646,7 @@ namespace GameCore
                         if (currentDepInfoOpen)
                             currentDepInfo_rule = rule;
                         else if (depfile != null)
-                            depfile.main.deprule = rule;
+                            depfile.main.Rule = rule;
                     }
                 }
                 else if (line == "}")
@@ -654,16 +654,16 @@ namespace GameCore
                     if (currentDepInfoOpen)
                     {
                         currentDepInfoOpen = false;
-                        DepInfo depInfo = new DepInfo(currentDepInfo_filename, currentDepInfo_folder, currentDepInfo_method, currentDepInfo_hash);
-                        depInfo.deprule = currentDepInfo_rule;
+                        DepInfo depInfo = new DepInfo(0, currentDepInfo_filename, currentDepInfo_folder, currentDepInfo_method, currentDepInfo_hash);
+                        depInfo.Rule = currentDepInfo_rule;
                         if (currentDepInfoIsIn)
                             depfile.addIn(depInfo);
                         else
                             depfile.addOut(depInfo);
 
-                        currentDepInfo_filename = Filename.Empty;
-                        currentDepInfo_folder = Dirname.Empty;
-                        currentDepInfo_method = DepInfo.EMethod.TIMESTAMP;
+                        currentDepInfo_filename = string.Empty;
+                        currentDepInfo_folder = string.Empty;
+                        currentDepInfo_method = DepInfo.EDepMethod.TIMESTAMP;
                         currentDepInfo_rule = DepInfo.EDepRule.ON_CHANGE;
                         currentDepInfo_hash = Hash160.Empty;
                     }
@@ -678,7 +678,7 @@ namespace GameCore
             return readOneDepFile;
         }
 
-        internal static bool sReadMulti(string filename, Dirname path, out DepFile[] depFiles)
+        internal static bool sReadMulti(string filename, string path, out DepFile[] depFiles)
         {
             return sReadMulti(filename, string.Empty, path, out depFiles);
         }
@@ -696,7 +696,7 @@ namespace GameCore
             return readDepFiles;
         }
 
-        internal static bool sReadMulti(string filename, string extension, Dirname path, out DepFile[] depFiles)
+        internal static bool sReadMulti(string filename, string extension, string path, out DepFile[] depFiles)
         {
             try
             {

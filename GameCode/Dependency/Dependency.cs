@@ -52,7 +52,7 @@ namespace DataBuildSystem
                 EPath.Dst => BuildSystemCompilerConfig.DstPath,
                 _ => string.Empty
             };
-i        }
+        }
 
         private int Count
         {

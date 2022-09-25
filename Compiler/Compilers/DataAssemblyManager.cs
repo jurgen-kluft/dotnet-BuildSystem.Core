@@ -624,15 +624,11 @@ namespace DataBuildSystem
         #endregion
         #region Save
 
-        public bool save(Dirname path, string fullNameWithoutExtension)
+        public bool save(string path, string fullNameWithoutExtension)
         {
             //generateCppCodeAndData(root, fullNameWithoutExtension + ".rdf", fullNameWithoutExtension + ".rcf", fullNameWithoutExtension + ".rrf");
-            Filename dataFilename = new Filename(
-                fullNameWithoutExtension + BuildSystemCompilerConfig.DataFileExtension
-            );
-            Filename relocFilename = new Filename(
-                fullNameWithoutExtension + BuildSystemCompilerConfig.DataRelocFileExtension
-            );
+            Filename dataFilename = new Filename(fullNameWithoutExtension + BuildSystemCompilerConfig.DataFileExtension);
+            Filename relocFilename = new Filename(fullNameWithoutExtension + BuildSystemCompilerConfig.DataRelocFileExtension);
 
             dataFilename = dataFilename.MakeAbsolute(path);
             relocFilename = relocFilename.MakeAbsolute(path);

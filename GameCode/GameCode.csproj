@@ -14,6 +14,7 @@
   <ItemGroup>
     <Compile Include="Compilers/*.cs" />
     <Compile Include="Config/*.cs" />
+    <Compile Include="Dependency/*.cs" />
     <Compile Include="MetaData/*.cs" />
     <Compile Include="Providers/*.cs" />
     <Compile Include="Types/*.cs" />

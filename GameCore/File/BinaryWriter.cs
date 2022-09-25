@@ -38,7 +38,7 @@ namespace GameCore
     {
         #region Fields
 
-        private static IEndian mEndian = new BigEndian();
+        private readonly static BigEndian mEndian = new();
         private readonly BinaryWriter mWriter;
 
         #endregion
@@ -127,23 +127,10 @@ namespace GameCore
 
         public Int64 Write(string s)
         {
-            byte[] data = System.Text.Encoding.ASCII.GetBytes(s);
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            Write(data.Length);
             Write(data);
-            Write((byte)0);
-            return s.Length + 1;
-        }
-
-        public Int64 Write(string s, bool ascii)
-        {
-            if (ascii)
-            {
-                return Write(s);
-            }
-            else
-            {
-                // Unicode
-                throw new NotImplementedException();
-            }
+            return 4 + data.Length;
         }
 
         public Int64 Position
@@ -271,23 +258,10 @@ namespace GameCore
 
         public Int64 Write(string s)
         {
-            byte[] data = System.Text.Encoding.ASCII.GetBytes(s);
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            Write(data.Length);
             Write(data);
-            Write((byte)0);
-            return s.Length + 1;
-        }
-
-        public Int64 Write(string s, bool ascii)
-        {
-            if (ascii)
-            {
-                return Write(s);
-            }
-            else
-            {
-                // Unicode
-                throw new NotImplementedException();
-            }
+            return 4 + s.Length;
         }
         
         public Int64 Position
@@ -322,15 +296,15 @@ namespace GameCore
 
     public class BinaryFileWriter : IBinaryWriter
     {
-        private IBinaryWriter mBinaryWriter;
+        private BinaryWriterLittleEndian mBinaryWriter;
         private BinaryWriter mBinaryFileWriter;
         private FileStream mFileStream;
 
         public bool Open(string filepath)
         {
-            mFileStream = new FileStream(filepath, FileMode.Truncate);
-            mBinaryFileWriter = new BinaryWriter(mFileStream);
-            mBinaryWriter = new BinaryWriterLittleEndian(mBinaryFileWriter);
+            mFileStream = new (filepath, FileMode.Truncate);
+            mBinaryFileWriter = new (mFileStream);
+            mBinaryWriter = new (mBinaryFileWriter);
             return true;
         }
 
@@ -411,23 +385,10 @@ namespace GameCore
 
         public Int64 Write(string s)
         {
-            byte[] data = System.Text.Encoding.ASCII.GetBytes(s);
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            Write(data.Length);
             Write(data);
-            Write((byte)0);
-            return s.Length + 1;
-        }
-
-        public Int64 Write(string s, bool ascii)
-        {
-            if (ascii)
-            {
-                return Write(s);
-            }
-            else
-            {
-                // Unicode
-                throw new NotImplementedException();
-            }
+            return 4 + data.Length;
         }
         
         public Int64 Position

@@ -109,14 +109,9 @@ namespace GameCore
 
         public string ReadString()
         {
-            string s = string.Empty;
-            while (true)
-            {
-                byte b = mReader.ReadByte();
-                if (b == 0)
-                    break;
-                s = s + (char)b;
-            }
+            Int32 len = ReadInt32();
+            byte[] data = ReadBytes(len);
+            string s = System.Text.Encoding.UTF8.GetString(data);
             return s;
         }
 
@@ -207,14 +202,9 @@ namespace GameCore
 
         public string ReadString()
         {
-            string s = string.Empty;
-            while (true)
-            {
-                byte b = mReader.ReadByte();
-                if (b == 0)
-                    break;
-                s = s + (char)b;
-            }
+            Int32 len = ReadInt32();
+            byte[] data = ReadBytes(len);
+            string s = System.Text.Encoding.UTF8.GetString(data);
             return s;
         }
 

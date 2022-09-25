@@ -99,7 +99,7 @@ namespace DataBuildSystem
             {
                 // Create dependency file
                 depFile = new DepFile(subPath + filenameOfAssembly, dstPath);
-                depFile.main.deprule = DepInfo.EDepRule.MUST_EXIST;             /// The main file must exist, if it doesn't we need to try and build it again!
+                depFile.main.Rule = DepInfo.EDepRule.MUST_EXIST;             /// The main file must exist, if it doesn't we need to try and build it again!
 
                 foreach (Filename f in files)
                     depFile.addIn(f, srcPath);
