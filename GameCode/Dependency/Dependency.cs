@@ -45,7 +45,7 @@ namespace DataBuildSystem
 
         public static string GetPath(EPath p)
         {
-            return p switch 
+            return p switch
             {
                 EPath.Src => BuildSystemCompilerConfig.SrcPath,
                 EPath.Gdd => BuildSystemCompilerConfig.GddPath,
@@ -142,51 +142,52 @@ namespace DataBuildSystem
             string filepath = Path.Join(GetPath(EPath.Dst), SubPaths[0], Filenames[0] + ".dep");
             if (reader.Open(filepath))
             {
-                Int32 count = reader.ReadInt32();
-                Paths = new(count);
-                SubPaths = new List<string>(count);
-                Filenames = new List<string>(count);
-                Ids = new List<int>(count);
-                Rules = new List<ERule>(count);
-                Methods = new List<EMethod>(count);
-                Hashes = new List<Hash160>(count);
+                UInt32 magic = reader.ReadUInt32();
+                if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
+                {
+                    Int32 count = reader.ReadInt32();
+                    Paths = new(count);
+                    SubPaths = new List<string>(count);
+                    Filenames = new List<string>(count);
+                    Ids = new List<int>(count);
+                    Rules = new List<ERule>(count);
+                    Methods = new List<EMethod>(count);
+                    Hashes = new List<Hash160>(count);
 
-                for (int i = 0; i < count; i++)
-                {
-                    Paths.Add(reader.ReadUInt8());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    SubPaths.Add(reader.ReadString());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    Filenames.Add(reader.ReadString());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    Ids.Add(reader.ReadInt32());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    Rules.Add((ERule)reader.ReadUInt8());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    Methods.Add((EMethod)reader.ReadUInt8());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    Hashes.Add(Hash160.ReadFrom(reader));
-                }
+                    for (int i = 0; i < count; i++)
+                    {
+                        Paths.Add(reader.ReadUInt8());
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        SubPaths.Add(reader.ReadString());
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        Filenames.Add(reader.ReadString());
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        Ids.Add(reader.ReadInt32());
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        Rules.Add((ERule)reader.ReadUInt8());
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        Methods.Add((EMethod)reader.ReadUInt8());
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        Hashes.Add(Hash160.ReadFrom(reader));
+                    }
 
-                reader.Close();
-                return true;
+                    reader.Close();
+                    return true;
+                }
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public bool Save()
@@ -195,7 +196,7 @@ namespace DataBuildSystem
             string filepath = Path.Join(GetPath(EPath.Dst), SubPaths[0], Filenames[0] + ".dep");
             if (reader.Open(filepath))
             {
-
+                reader.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
                 reader.Write(Count);
                 foreach (byte b in Paths)
                 {

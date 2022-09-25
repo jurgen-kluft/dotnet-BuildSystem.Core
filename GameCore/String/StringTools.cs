@@ -136,6 +136,35 @@ namespace GameCore
 
     public static class StringTools
     {
+        public static int CharToIndex(char c)
+        {
+            if (c >= '0' && c <= '9') return (c - '0');
+            else if (c >= 'a' && c <= 'z') return 10 + (c - 'a');
+            else if (c >= 'A' && c <= 'Z') return 10 + 26 + (c - 'A');
+            else if (c == '.') return 10 + 26 + 26;
+            return 63;
+        }
+
+        public static int Encode_32_5(params char[] _characters)
+        {
+            int h = 0;
+            foreach (char c in _characters)
+            {
+                int i = CharToIndex(c);
+                h = (h << 6) | (i & 0x3F);
+            }
+            return h;
+        }
+        public static Int64 Encode_64_10(params char[] _characters)
+        {
+            Int64 h = 0;
+            foreach (char c in _characters)
+            {
+                Int64 i = CharToIndex(c);
+                h = (h << 6) | (i & 0x3F);
+            }
+            return h;
+        }
         private static Regex NullStringRegex = new Regex("\0");
 
         public static bool Contains(string text, string fragment)
