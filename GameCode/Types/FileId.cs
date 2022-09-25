@@ -25,13 +25,13 @@ namespace GameData
             mProvider = provider;
         }
 
-        public static FileId NewInstance(Filename filename)
+        public static FileId NewInstance(string filename)
         {
-            FileId fileId = new FileId(Hash160.FromString(filename.ToString().ToLower()));
+            FileId fileId = new (Hash160.FromString(filename.ToLower()));
             return fileId;
         }
 
-        public Hash160 id
+        public Hash160 ID
         {
             get
             {
@@ -44,7 +44,7 @@ namespace GameData
             get 
             {
                 if (mProvider!=null)
-                    return mProvider.fileIds[0].id;
+                    return mProvider.FileIds[0].ID;
                 else
                     return mFileId; 
             }

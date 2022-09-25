@@ -21,7 +21,7 @@ namespace GameData
         private void Collect()
         {
             if (mProvider != null)
-                mFileIds = mProvider.fileIds;
+                mFileIds = mProvider.FileIds;
         }
 
         public Array Values

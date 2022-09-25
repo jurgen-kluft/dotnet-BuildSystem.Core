@@ -1,24 +1,4 @@
-﻿#region Copyright
-/// 
-/// BuildSystem.Data.Linker
-/// Copyright (C) 2009 J.J.Kluft
-/// 
-/// This program is free software: you can redistribute it and/or modify
-/// it under the terms of the GNU General Public License as published by
-/// the Free Software Foundation, either version 3 of the License, or
-/// (at your option) any later version.
-/// 
-/// This program is distributed in the hope that it will be useful,
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-/// GNU General Public License for more details.
-/// 
-/// You should have received a copy of the GNU General Public License
-/// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-///
-#endregion
-
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
@@ -26,11 +6,6 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    // Vocabulary:
-    // '.NET BuildSystem's DataCompiler' or in short 'DataCompiler'
-    // '.NET BuildSystem's DataLinker' or in short 'DataLinker'
-    // '.NET BuildSystem's Localizer' or in short 'Localizer'
-
     class Program
     {
         #region Error & Success
@@ -53,7 +28,7 @@ namespace DataBuildSystem
         /// </summary>
         static int Main(string[] args)
         {
-            CommandLine cmdLine = new CommandLine(args);
+            CommandLine cmdLine = new (args);
 
             // On the command-line we have:
             // - Name         MyGame                                        Name of the project

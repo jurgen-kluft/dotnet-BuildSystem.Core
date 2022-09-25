@@ -143,6 +143,7 @@ namespace DataBuildSystem
             gdu.Hash = Hash160.ReadFrom(reader);
             gdu.Index = reader.ReadInt32();
             gdu.Units = reader.ReadInt32();
+            return gdu;
         }
     }
 

@@ -154,7 +154,7 @@ namespace DataBuildSystem
                     foreach (KeyValuePair<Filename, GameData.FileId> p in mRegistry)
                     {
                         writer.WriteLine(p.Key);
-                        writer.WriteLine(p.Value.id.ToString());
+                        writer.WriteLine(p.Value.ID.ToString());
                     }
                 }
                 catch (Exception)
@@ -324,10 +324,6 @@ namespace DataBuildSystem
                 }
             );
 
-            // Register and generate FileIds
-            mFilenameRegistry.Clear();
-            foreach (GameData.IFileIdsProvider c in mFileIdsProviders)
-                c.registerAt(mFilenameRegistry);
 
             return true;
         }

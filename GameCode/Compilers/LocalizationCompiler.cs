@@ -8,18 +8,16 @@ namespace GameData
 {
     public class LocalizationCompiler : IDataCompiler, IDataCompilerClient, IFileIdsProvider
     {
-        private readonly Filename mSrcFilename;
-        private List<Filename> mDstFilenames;
-        private FileId[] mFileIds = null;
+        private readonly string mSrcFilename;
+        private readonly List<string> mDstFilenames = new ();
+        private readonly List<FileId> mFileIds = new ();
         private EDataCompilerStatus mStatus = EDataCompilerStatus.NONE;
 
         public LocalizationCompiler(string localizationFile)
         {
-            mSrcFilename = new Filename(localizationFile).ChangedExtension(".loc").PushedExtension(".ids").PushedExtension(".lst");
-            mDstFilenames = new List<Filename>();
+            mSrcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
         }
 
-        public string group { get { return "LocalizationCompiler"; } }
         public EDataCompilerStatus CompilerStatus { get { return mStatus; } }
 
         public void CompilerSetup()
@@ -34,10 +32,6 @@ namespace GameData
         {
         }
 
-        public void cteardown()
-        {
-        }
-
         public void CompilerExecute()
         {
             //if (mDependencySystem.isModified(mSrcFilename))
@@ -45,13 +39,16 @@ namespace GameData
                 // Load 'languages list' file
                 try
                 {
-                    xTextStream ts = new xTextStream(mSrcFilename);
+                    xTextStream ts = new (mSrcFilename);
                     ts.Open(xTextStream.EMode.READ);
                     while (!ts.read.EndOfStream)
                     {
                         string filename = ts.read.ReadLine();
                         if (String.IsNullOrEmpty(filename))
-                            mDstFilenames.Add(new Filename(filename));
+                        {
+                            mDstFilenames.Add(filename);
+                            mFileIds.Add(FileId.NewInstance(filename.ToLower()));
+                        }
                     }
                     ts.Close();
                 }
@@ -72,20 +69,9 @@ namespace GameData
 
         public void CompilerFinished()
         {
-            //mDependencySystem = null;
+            
         }
 
-        public void registerAt(IFileRegistrar registrar)
-        {
-            int i = 0;
-            mFileIds = new FileId[mDstFilenames.Count];
-            foreach(Filename f in mDstFilenames)
-            {
-                mFileIds[i] = registrar.Add(f);
-                ++i;
-            }
-        }
-
-        public FileId[] fileIds { get { return mFileIds; } }
+        public FileId[] FileIds { get { return mFileIds.ToArray(); } }
     }
 }

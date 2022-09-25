@@ -86,34 +86,11 @@ namespace DataBuildSystem
             byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
             Assembly gameDataRootAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
             
-            // Referenced assemblies, we always include ourselves
-            // Inject ourselves with the referenced assemblies
-            {
-                List<Filename> referencedAssemblies = new List<Filename>();
-                cmdLine.CollectIndexedParams(0, true, "asm", delegate (string param) { referencedAssemblies.Add(new Filename(param)); });
-                BuildSystemCompilerConfig.AddReferencedAssemblies(referencedAssemblies);
-                foreach (Filename assemblyFilename in referencedAssemblies)
-                {
-                    AssemblyName assemblyName = new AssemblyName();
-                    assemblyName.CodeBase = assemblyFilename;
-                    Assembly asm = Assembly.Load(assemblyName);
-                }
-            }
-
-            // Manually supplied source files and folders
-            DataAssemblyManager dataAssemblyManager = new DataAssemblyManager();
-            List<Filename> sourceFiles = new List<Filename>();
-            List<Filename> csIncludes = new List<Filename>();
-            cmdLine.CollectIndexedParams(0, true, "file", delegate (string param) { if (param.EndsWith(".csi")) csIncludes.Add(new Filename(param)); else sourceFiles.Add(new Filename(param)); });
-
-            // Get the GameData.Root assembly, in there we should have all the configurations
-            Assembly configDataAssembly = gameDataRootAssembly;
-
             // The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
             GameData.Instanciate.assembly = gameDataRootAssembly;
 
             // BuildSystem.DataCompiler configuration
-            IBuildSystemCompilerConfig[] configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(configDataAssembly);
+            IBuildSystemCompilerConfig[] configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gameDataRootAssembly);
             if (configsForCompiler.Length > 0)
             {
                 foreach (var config in configsForCompiler)
@@ -124,7 +101,7 @@ namespace DataBuildSystem
             }
 
             // Bigfile configuration
-            IBigfileConfig[] configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(configDataAssembly);
+            IBigfileConfig[] configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(gameDataRootAssembly);
             if (configsForBigfileBuilder.Length > 0)
             {
                 foreach (var config in configsForBigfileBuilder)
@@ -134,6 +111,19 @@ namespace DataBuildSystem
                 }
             }
 
+            // Load DataUnits database
+
+            // Verify DataUnits
+
+            // Foreach DataUnit that is out-of-date or missing
+            // - cook
+            // - save all output (compiler log, gamedata, bigfile)
+            
+            // Save DataUnits database
+            // Done
+
+            DataAssemblyManager dataAssemblyManager = new();
+            
             DateTime start = DateTime.Now;
             DateTime end = DateTime.Now;
             {
