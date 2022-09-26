@@ -8,35 +8,30 @@ namespace GameData
     /// <summary>
     /// Localization String
     /// 
-    /// The string will be converted to a UInt64 value that is the 64bit hash of the textual ID.
-    /// 
-    /// On the user side we do have to use BinarySearch to obtain the value, for less than 2048 items
-    /// that would translate into a maximum of 9 iterations (9 uint64 compares) to obtain the string.
-    /// 
-    /// Consequences:
-    /// Any hash collision will result in a wrong localization string being obtained by the user.
+    /// The string will be converted to an Int64 with looking up the textual string in the Location DB.
     /// 
     /// </summary>
     public struct LString : IAtom
     {
         #region Fields
 
-        private readonly string mString;
-        private readonly UInt64 mStringHash64;
+        private readonly Int64 mStringID;
 
         #endregion
         #region Constructor
 
         public LString(string s)
         {
-            mString = s;
-            mStringHash64 = Hashing64.ComputeMurmur64(s);
+            Text = s;
+            mStringID = -1;
         }
+
+        public string Text { get; private set; }
 
         #endregion
         #region Properties
 
-        public object Value { get { return mStringHash64; } }
+        public object Value { get { return mStringID; } }
 
         #endregion
         #region Methods
