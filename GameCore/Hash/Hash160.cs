@@ -7,12 +7,65 @@ namespace GameCore
 {
     public class Hash160
     {
-        public static readonly byte[] hash_null_ = new byte[20] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-        public static readonly byte[] hash_error_ = new byte[20] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+        public static readonly byte[] hash_null_ = new byte[20]
+        {
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00
+        };
+        public static readonly byte[] hash_error_ = new byte[20]
+        {
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF
+        };
 
-        public static Hash160 Null { get { return new Hash160(hash_null_, 0); } }
-        public static Hash160 Empty { get { return new Hash160(hash_null_, 0); } }
-        public static Hash160 Error { get { return new Hash160(hash_error_, 0); } }
+        public static Hash160 Null
+        {
+            get { return new Hash160(hash_null_, 0); }
+        }
+        public static Hash160 Empty
+        {
+            get { return new Hash160(hash_null_, 0); }
+        }
+        public static Hash160 Error
+        {
+            get { return new Hash160(hash_error_, 0); }
+        }
 
         public bool IsErrorHash()
         {
@@ -31,6 +84,7 @@ namespace GameCore
         }
 
         private byte[] hash_;
+
         private Hash160(byte[] _hash)
         {
             hash_ = _hash;
@@ -60,16 +114,21 @@ namespace GameCore
         {
             return new Hash160(_hash);
         }
+
         public static Hash160 ConstructCopy(byte[] _hash)
         {
             return new Hash160(_hash, 0);
         }
+
         public static Hash160 ConstructCopy(byte[] _hash, int start)
         {
             return new Hash160(_hash, start);
         }
 
-        public byte[] Data { get { return hash_; } }
+        public byte[] Data
+        {
+            get { return hash_; }
+        }
 
         public byte[] Release()
         {
@@ -78,6 +137,7 @@ namespace GameCore
             CopyFrom(hash_null_, 0);
             return h;
         }
+
         public override int GetHashCode()
         {
             Int32 hashcode = BitConverter.ToInt32(hash_, Size - 4);
@@ -187,6 +247,7 @@ namespace GameCore
             bool equal = sEquals(b1.hash_, 0, b2.hash_, 0);
             return equal;
         }
+
         public static bool operator !=(Hash160 b1, Hash160 b2)
         {
             bool equal = sEquals(b1.hash_, 0, b2.hash_, 0);
@@ -203,6 +264,7 @@ namespace GameCore
         {
             return sCompare(this.hash_, 0, _other.hash_, 0);
         }
+
         public static int Compare(Hash160 a, Hash160 b)
         {
             return sCompare(a.hash_, 0, b.hash_, 0);
@@ -290,6 +352,24 @@ namespace GameCore
     static public class HashUtility
     {
         #region Methods
+
+        public static Hash160 Compute(byte[] data)
+        {
+            return SHA1.Compute(data);
+        }
+
+        public static Hash160 Compute_ASCII(string str)
+        {
+            byte[] data = System.Text.ASCIIEncoding.Default.GetBytes(str);
+            return Compute(data);
+        }
+
+        public static Hash160 Compute_UTF8(string str)
+        {
+            byte[] data = System.Text.UTF8Encoding.Default.GetBytes(str);
+            return Compute(data);
+        }
+
         public static Hash160 compute(FileInfo s)
         {
             if (!s.Exists)
@@ -301,7 +381,9 @@ namespace GameCore
                 Sha1Hasher.Init();
                 byte[] block = new byte[256 * 1024];
 
-                using (FileStream fs = new (s.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (
+                    FileStream fs = new(s.FullName, FileMode.Open, FileAccess.Read, FileShare.Read)
+                )
                 {
                     Int64 total = fs.Length;
                     Int64 offset = 0;
@@ -314,7 +396,7 @@ namespace GameCore
                         }
                         fs.Read(block, 0, stride);
                         offset += stride;
-                        Sha1Hasher.Update(block, stride);
+                        Sha1Hasher.Update(block, 0, stride);
                     }
                     return Sha1Hasher.Finalize();
                 }
@@ -325,11 +407,13 @@ namespace GameCore
                 return Hash160.Null;
             }
         }
+
         public static Hash160 compute(MemoryStream ms)
         {
             byte[] data = ms.GetBuffer();
             return SHA1.Compute(data);
         }
+
         public static Hash160 compute(bool[] values)
         {
             MemoryStream ms = new MemoryStream();
@@ -339,129 +423,146 @@ namespace GameCore
             }
             return compute(ms);
         }
+
         public static Hash160 compute(byte[] v)
         {
-            return compute(v, 0, v.Length);
+            return SHA1.Compute(v, 0, v.Length);
         }
+
         public static Hash160 compute(byte[] v1, int v1Length, byte[] v2, int v2Length)
         {
-            MemoryStream ms = new MemoryStream();
-            ms.Write(v1, 0, v1Length);
-            ms.Write(v2, 0, v2Length);
-            return compute(ms);
+            SHA1.SHA1Hash Sha1Hasher = new();
+            Sha1Hasher.Init();
+            Sha1Hasher.Compute(v1, 0, v1Length);
+            Sha1Hasher.Compute(v2, 0, v2Length);
+            return Sha1Hasher.Finalize();
         }
+
         public static Hash160 compute(byte[] v, int index, int count)
         {
-            MemoryStream ms = new MemoryStream();
-            ms.Write(v, index, count);
-            return compute(ms);
+            return SHA1.Compute(v, index, count);
         }
+
         public static Hash160 compute(sbyte[] v)
         {
-            return compute(v, 0, v.Length);
+            return SHA1.Compute((byte[])(Array)v, 0, v.Length);
         }
+
         public static Hash160 compute(sbyte[] v, int index, int count)
         {
-            MemoryStream ms = new MemoryStream();
-            for (int i = index; i < count; ++i)
-            {
-                ms.WriteByte((byte)v[i]);
-            }
-            return compute(ms);
+            return SHA1.Compute((byte[])(Array)v, index, count);
         }
+
         public static Hash160 compute(short[] values)
         {
-            MemoryStream ms = new MemoryStream();
-            byte[] bytes = new byte[2];
-            foreach (var v in values)
+            byte[] bytes = new byte[2*values.Length];
+            int count = 0;
+            for (int j=0; j<values.Length; j++)
             {
+                short v = values[j];
                 for (int i = 0; i < 2; ++i)
                 {
-                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                    bytes[count++] = (byte)(v);
+                    v = (short)(v >> 8);
                 }
-                ms.Write(bytes, 0, bytes.Length);
             }
-            return compute(ms);
+            return compute(bytes);
         }
+
         public static Hash160 compute(ushort[] values)
         {
-            MemoryStream ms = new MemoryStream();
-            byte[] bytes = new byte[2];
-            foreach (var v in values)
+            byte[] bytes = new byte[2*values.Length];
+            int count = 0;
+            for (int j=0; j<values.Length; j++)
             {
+                ushort v = values[j];
                 for (int i = 0; i < 2; ++i)
                 {
-                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                    bytes[count++] = (byte)(v);
+                    v = (ushort)(v >> 8);
                 }
-                ms.Write(bytes, 0, bytes.Length);
             }
-            return compute(ms);
+            return compute(bytes);
         }
+
         public static Hash160 compute(int[] values)
         {
-            MemoryStream ms = new MemoryStream();
-            byte[] bytes = new byte[8];
-            foreach (var v in values)
+            byte[] bytes = new byte[4*values.Length];
+            int count = 0;
+            for (int j=0; j<values.Length; j++)
             {
+                int v = values[j];
                 for (int i = 0; i < 4; ++i)
                 {
-                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                    bytes[count++] = (byte)(v);
+                    v = (int)(v >> 8);
                 }
-                ms.Write(bytes, 0, bytes.Length);
             }
-            return compute(ms);
+            return compute(bytes);
         }
+
         public static Hash160 compute(uint[] values)
         {
-            MemoryStream ms = new MemoryStream();
-            byte[] bytes = new byte[8];
-            foreach (var v in values)
+            byte[] bytes = new byte[4*values.Length];
+            int count = 0;
+            for (int j=0; j<values.Length; j++)
             {
+                uint v = values[j];
                 for (int i = 0; i < 4; ++i)
                 {
-                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                    bytes[count++] = (byte)(v);
+                    v = (uint)(v >> 8);
                 }
-                ms.Write(bytes, 0, bytes.Length);
             }
-            return compute(ms);
+            return compute(bytes);
         }
+
         public static Hash160 compute(Int64[] values)
         {
-            MemoryStream ms = new MemoryStream();
-            byte[] bytes = new byte[8];
-            foreach (var v in values)
+            byte[] bytes = new byte[8*values.Length];
+            int count = 0;
+            for (int j=0; j<values.Length; j++)
             {
+                Int64 v = values[j];
                 for (int i = 0; i < 8; ++i)
                 {
-                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                    bytes[count++] = (byte)(v);
+                    v = (Int64)(v >> 8);
                 }
-                ms.Write(bytes, 0, bytes.Length);
             }
-            return compute(ms);
+            return compute(bytes);
         }
+
         public static Hash160 compute(UInt64[] values)
         {
-            MemoryStream ms = new MemoryStream();
-            byte[] bytes = new byte[8];
-            foreach (var v in values)
+            byte[] bytes = new byte[8*values.Length];
+            int count = 0;
+            for (int j=0; j<values.Length; j++)
             {
+                UInt64 v = values[j];
                 for (int i = 0; i < 8; ++i)
                 {
-                    bytes[i] = (byte)(v >> ((7 - i) * 8));
+                    bytes[count++] = (byte)(v);
+                    v = (UInt64)(v >> 8);
                 }
-                ms.Write(bytes, 0, bytes.Length);
             }
-            return compute(ms);
+            return compute(bytes);
         }
+
         public static Hash160 compute(float[] values)
         {
-            MemoryStream ms = new MemoryStream();
-            foreach (var v in values)
+            byte[] bytes = new byte[4*values.Length];
+            int count = 0;
+            for (int j=0; j<values.Length; j++)
             {
-                byte[] bytes = BitConverter.GetBytes(v);
-                ms.Write(bytes, 0, bytes.Length);
+                float v = values[j];
+                byte[] vb = BitConverter.GetBytes(v);
+                for (int i = 0; i < 4; ++i)
+                {
+                    bytes[count++] = vb[i];
+                }
             }
-            return compute(ms);
+            return compute(bytes);
         }
 
         #endregion

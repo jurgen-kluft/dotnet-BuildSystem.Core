@@ -59,32 +59,28 @@ namespace DataBuildSystem
             get { return Ids.Count; }
         }
         private List<byte> Paths { get; set; } = new List<byte>();
-        private List<string> SubPaths { get; set; } = new List<string>();
-        private List<string> Filenames { get; set; } = new List<string>();
+        private List<string> SubFilePaths { get; set; } = new List<string>();
         private List<int> Ids { get; set; } = new List<int>();
         private List<ERule> Rules { get; set; } = new List<ERule>();
         private List<EMethod> Methods { get; set; } = new List<EMethod>();
         private List<Hash160> Hashes { get; set; } = new List<Hash160>();
 
-        public Dependency(EPath path, string subpath, string filename)
+        public Dependency(EPath path, string subfilepath)
         {
-            Add(0, path, subpath, filename);
+            Add(0, path, subfilepath);
         }
 
         public void Add(
             int id,
             EPath p,
-            string subpath,
-            string filename
-        )
+            string subfilepath        )
         {
             Paths.Add((byte)p);
-            SubPaths.Add(subpath);
-            Filenames.Add(filename);
+            SubFilePaths.Add(subfilepath);
             Ids.Add(id);
             Methods.Add(EMethod.TIMESTAMP_HASH);
             Rules.Add(ERule.ON_CHANGE);
-            Hashes.Add(Hash160.Empty);
+            Hashes.Add(new Hash160());
         }
 
         public int Update(List<int> out_ids)
@@ -94,31 +90,31 @@ namespace DataBuildSystem
                 EMethod method = Methods[i];
 
                 // Return ids of dependencies that have changed
-                Hash160 newHash;
-                string filepath = Path.Join(GetPath((EPath)Paths[i]), SubPaths[i], Filenames[i]);
+                Hash160 newHash = null;
+                string filepath = Path.Join(GetPath((EPath)Paths[i]), SubFilePaths[i]);
                 switch (method)
                 {
                     case EMethod.CONTENT_HASH:
                         {
                             FileInfo fileInfo = new(filepath);
-                            newHash = fileInfo.Exists ? HashUtility.compute(fileInfo) : Hash160.Empty;
+                            if (fileInfo.Exists)
+                                newHash=HashUtility.compute(fileInfo);
                         }
                         break;
                     case EMethod.TIMESTAMP_HASH:
                         {
-                            newHash = Hash160.Empty;
-                            if (File.Exists(filepath))
-                                newHash = Hash160.FromDateTime(File.GetLastWriteTime(filepath));
+                            FileInfo fileInfo = new(filepath);
+                            if (fileInfo.Exists)
+                                newHash=Hash160.FromDateTime(File.GetLastWriteTime(filepath));
                         }
                         break;
                     default:
-                        newHash = Hash160.Empty;
                         break;
                 }
                 ERule rule = Rules[i];
                 if (rule == ERule.MUST_EXIST)
                 {
-                    if (newHash == Hash160.Empty || newHash != Hashes[i])
+                    if (newHash == null || newHash != Hashes[i])
                     {
                         out_ids.Add(Ids[i]);
                         Hashes[i] = newHash;
@@ -139,7 +135,7 @@ namespace DataBuildSystem
         public bool Load()
         {
             BinaryFileReader reader = new();
-            string filepath = Path.Join(GetPath(EPath.Dst), SubPaths[0], Filenames[0] + ".dep");
+            string filepath = Path.Join(GetPath(EPath.Dst), SubFilePaths[0] + ".dep");
             if (reader.Open(filepath))
             {
                 UInt32 magic = reader.ReadUInt32();
@@ -147,8 +143,7 @@ namespace DataBuildSystem
                 {
                     Int32 count = reader.ReadInt32();
                     Paths = new(count);
-                    SubPaths = new List<string>(count);
-                    Filenames = new List<string>(count);
+                    SubFilePaths = new List<string>(count);
                     Ids = new List<int>(count);
                     Rules = new List<ERule>(count);
                     Methods = new List<EMethod>(count);
@@ -160,11 +155,7 @@ namespace DataBuildSystem
                     }
                     for (int i = 0; i < count; i++)
                     {
-                        SubPaths.Add(reader.ReadString());
-                    }
-                    for (int i = 0; i < count; i++)
-                    {
-                        Filenames.Add(reader.ReadString());
+                        SubFilePaths.Add(reader.ReadString());
                     }
                     for (int i = 0; i < count; i++)
                     {
@@ -192,42 +183,38 @@ namespace DataBuildSystem
 
         public bool Save()
         {
-            BinaryFileWriter reader = new();
-            string filepath = Path.Join(GetPath(EPath.Dst), SubPaths[0], Filenames[0] + ".dep");
-            if (reader.Open(filepath))
+            BinaryFileWriter writer = new();
+            string filepath = Path.Join(GetPath(EPath.Dst), SubFilePaths[0] + ".dep");
+            if (writer.Open(filepath))
             {
-                reader.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
-                reader.Write(Count);
+                writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
+                writer.Write(Count);
                 foreach (byte b in Paths)
                 {
-                    reader.Write(b);
+                    writer.Write(b);
                 }
-                foreach (string subpath in SubPaths)
+                foreach (string subpath in SubFilePaths)
                 {
-                    reader.Write(subpath);
-                }
-                foreach (string subpath in Filenames)
-                {
-                    reader.Write(subpath);
+                    writer.Write(subpath);
                 }
                 foreach (int id in Ids)
                 {
-                    reader.Write(id);
+                    writer.Write(id);
                 }
                 foreach (ERule b in Rules)
                 {
-                    reader.Write((byte)b);
+                    writer.Write((byte)b);
                 }
                 foreach (EMethod b in Methods)
                 {
-                    reader.Write((byte)b);
+                    writer.Write((byte)b);
                 }
                 foreach (Hash160 h in Hashes)
                 {
-                    h.WriteTo(reader);
+                    h.WriteTo(writer);
                 }
 
-                reader.Close();
+                writer.Close();
                 return true;
             }
             else

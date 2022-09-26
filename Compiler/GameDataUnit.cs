@@ -11,46 +11,154 @@ namespace DataBuildSystem
 
     public class GameDataUnits
     {
-        private Dictionary<Hash160, Int32> HashToIndex = new Dictionary<Hash160, Int32>();
+        private List<GameDataUnit> DataUnits = new List<GameDataUnit>();
 
         public GameDataUnits() { }
 
         public void Save(string dstpath)
         {
-            Hash160[] hashes = new Hash160[HashToIndex.Count];
-            foreach (KeyValuePair<Hash160, Int32> item in HashToIndex)
-            {
-                hashes[item.Value] = item.Key;
-            }
             BinaryFileWriter binaryfile = new BinaryFileWriter();
-            binaryfile.Open(Path.Join(dstpath, "GameDataUnitsHash.db"));
+            binaryfile.Open(Path.Join(dstpath, "GameDataUnits.log"));
 
-            binaryfile.Write((Int32)hashes.Length);
-            foreach (Hash160 hash in hashes)
+            binaryfile.Write((Int32)DataUnits.Count);
+            foreach (GameDataUnit gdu in DataUnits)
             {
-                hash.WriteTo(binaryfile);
+                gdu.Save(binaryfile);
             }
 
             binaryfile.Close();
         }
 
-        public void Load(string dstpath)
+        public void Update(string srcpath, string dstpath)
         {
-            BinaryFileReader binaryfile = new BinaryFileReader();
-            binaryfile.Open(Path.Join(dstpath, "GameDataUnitsHash.db"));
-
-            Int32 numHashes = binaryfile.ReadInt32();
-            Hash160[] hashes = new Hash160[numHashes];
-            for (int i = 0; i < numHashes; i++)
+            // Foreach DataUnit that is out-of-date or missing
+            foreach (GameDataUnit gdu in DataUnits)
             {
-                hashes[i] = Hash160.ReadFrom(binaryfile);
+                bool gduGameDataDll = gdu.IsUpToDate(EGameDataUnit.GameDataDll);
+                bool gduCompilerLog = gdu.IsUpToDate(EGameDataUnit.GameDataCompilerLog);
+                bool gduGameDataData = gdu.IsUpToDate(EGameDataUnit.GameDataData, EGameDataUnit.GameDataRelocation);
+                bool gduBigfile = gdu.IsUpToDate(EGameDataUnit.BigFileData, EGameDataUnit.BigFileToc, EGameDataUnit.BigFileFilenames, EGameDataUnit.BigFileHashes);
+
+                //       Case A:
+                //           - 'Game Data DLL' is out-of-date
+                //              - Load the 'Game Data DLL'
+                //              - Find IDataRoot object
+                //              - Instanciate the root object
+                //              - Collect all IDataCompiler objects
+                //              - Load 'Game Data Compiler Log'
+                //                - See if there are any missing/added/changed IDataCompiler objects
+                //                - So a IDataCompiler needs to build a unique Hash of itself!
+                //                - Save 'Game Data Compiler Log'
+                //              - If 'Game Data Compiler Log' was identical -> Case B or Case D
+                //              - Else -> Case C
+                if (!gduGameDataDll)
+                {
+
+
+                }
+
+                //       Case B:
+                //           - 'BigFile Toc/Filename/Hash Files' is out-of-date/missing
+                //           - Load 'Game Data Compiler Log'
+                //           - Using 'Game Data Compiler Log' check if all 'source' and 'destination' files are up-to-date
+                //             - If not up-to-date execute 'Game Data Compiler Log'
+                //           - Build a database of Hash-FileId, sort Hashes and assign FileId
+                //           - Load the 'Game Data DLL'
+                //              - Find IDataRoot object
+                //              - Instanciate the root object
+                //              - Hand-out all the FileId's
+                //              - Save 'Game Data File' and 'Game Data Relocation File'
+                //              - Save 'BigFile Toc/Filename/Hash Files'
+                if (!gduBigfile)
+                {
+
+
+                }
+
+                //       Case C:
+                //           - 'Game Data Compiler Log' is out-of-date or missing
+                //           - This is bad, we have lost our source to target dependency information
+                //           - So we have to rebuild this Compiler Log and Cook all the data
+                //           - Build a database of Hash-FileId, sort Hashes and assign FileId
+                //           - Load the 'Game Data DLL'
+                //              - Find IDataRoot object
+                //              - Instanciate the root object
+                //              - Hand-out all the FileId's
+                //              - Save 'Game Data File' and 'Game Data Relocation File'
+                //              - Save 'BigFile Toc/Filename/Hash Files'
+                if (!gduCompilerLog)
+                {
+
+
+                }
+
+                //       Case D:
+                //           - 'Game Data File' and 'Game Data Relocation File' are out-of-date or missing
+                //           - Using 'Game Data Compiler Log' check if all 'source' files are up-to-date
+                //           - If any source file is out-of-date
+                //             - Execute 'Game Data Compiler Log'
+                //           - Build a database of Hash-FileId, sort Hashes and assign FileId
+                //           - Load the 'Game Data DLL',
+                //              - Find IDataRoot object
+                //              - Instanciate the root object
+                //              - Hand-out all the FileId's
+                //              - Save 'Game Data File' and 'Game Data Relocation File'
+                //              - Save 'BigFile Toc/Filename/Hash Files'
+                if (!gduGameDataData)
+                {
+
+
+                }
+
+
+                // - cook
+                // - save all output (compiler log, gamedata, bigfile)
             }
-            binaryfile.Close();
+        }
 
-            HashToIndex = new Dictionary<Hash160, int>(numHashes);
-            for (int i = 0; i < numHashes; i++)
+        public void Load(string dstpath, string gddpath)
+        {
+            // Scan the gddpath folder for all game data .dll's
+            Dictionary<Hash160, string> hashToPath = new();
+            foreach (var path in GameCore.DirUtils.EnumerateFiles(gddpath, "*.dll", SearchOption.TopDirectoryOnly))
             {
-                HashToIndex.Add(hashes[i], i);
+                string filepath = path.RelativePath(gddpath.Length).Span.ToString();
+                Hash160 hash = HashUtility.Compute_UTF8(filepath);
+                hashToPath.Add(hash, filepath);
+            }
+
+            List<int> indices = new List<int>();
+            for (int i = 0; i < (2 * hashToPath.Count); i++)
+                indices.Add(0);
+
+            BinaryFileReader binaryfile = new BinaryFileReader();
+            if (binaryfile.Open(Path.Join(dstpath, "GameDataUnits.log")))
+            {
+                Int32 numUnits = binaryfile.ReadInt32();
+                DataUnits = new List<GameDataUnit>(numUnits);
+
+                for (int i = 0; i < numUnits; i++)
+                {
+                    GameDataUnit gdu = GameDataUnit.Load(binaryfile);
+
+                    // Is this one still in the list of .dll's?
+                    if (hashToPath.ContainsKey(gdu.Hash))
+                    {
+                        indices.Remove(gdu.Index);
+                        hashToPath.Remove(gdu.Hash);
+                        DataUnits.Add(gdu);
+                    }
+                }
+                binaryfile.Close();
+            }
+
+            // Any new DataUnit's -> create them!
+            foreach (var item in hashToPath)
+            {
+                GameDataUnit gdu = new(item.Value, indices[0]);
+                indices.RemoveAt(0);
+
+                DataUnits.Add(gdu);
             }
         }
     }
@@ -58,88 +166,140 @@ namespace DataBuildSystem
     [Flags]
     public enum EGameDataUnit : Int32
     {
-        GameDataDll = 0x0,
-        GameDataCompilerLog = 0x1,
-        GameDataData = 0x2,
-        GameDataRelocation = 0x4,
-        BigFileData = 0x8,
-        BigFileToc = 0x10,
-        BigFileFilenames = 0x20,
-        BigFileHashes = 0x40,
+        GameDataDll = 0,
+        GameDataCompilerLog = 1,
+        GameDataData = 2,
+        GameDataRelocation = 3,
+        BigFileData = 4,
+        BigFileToc = 5,
+        BigFileFilenames = 6,
+        BigFileHashes = 7,
+        SourceFiles = 8,
+        All = 0x1FF,
     }
+
+    /// e.g.
+    /// FilePath: GameData.Fonts.dll
+    /// Index: 1
+    /// Units: 0
 
     public class GameDataUnit
     {
-        public string Name { get; private set; }
-        public string SubPath { get; private set; }
-        public Hash160 Hash { get; private set; }
-        public Int32 Index { get; private set; }
+        public string FilePath { get; private set; }
+        public Hash160 Hash { get; set; }
+        public Int32 Index { get; set; }
         private Int32 Units { get; set; }
 
         public bool IsUpToDate(EGameDataUnit u)
         {
-            return (Units & (1 << (int)u)) != 0;
+            return (Units & (1 << (int)u)) == 0;
+        }
+        public bool IsUpToDate(params EGameDataUnit[] pu)
+        {
+            Int32 u = 0;
+            foreach (var item in pu)
+            {
+                u |= 1 << (Int32)item;
+            }
+
+            return (Units & (1 << (int)u)) == 0;
         }
 
-        private GameDataUnit()
-        {
+        private GameDataUnit() { }
 
-        }
-
-        public GameDataUnit(string name, Hash160 hash, Int32 index)
+        public GameDataUnit(string filepath, Int32 index)
         {
-            Name = name;
-            Hash = hash;
+            FilePath = filepath;
+            Hash = HashUtility.Compute_UTF8(FilePath);
             Index = index;
-            Units = 0;
+            Units = (int)EGameDataUnit.All;
         }
 
         public void Verify(string gddpath, string dstpath)
         {
-            Dependency dep = new Dependency(Dependency.EPath.Gdd, SubPath, Name + ".dll");
-            if (!dep.Load())
+            Dependency dep = new Dependency(Dependency.EPath.Gdd, FilePath);
+            if (dep.Load())
             {
-                Units = 0; // Nothing is up-to-date
+                Int32 outofdate = 0;
 
-                dep.Add((int)EGameDataUnit.GameDataCompilerLog, Dependency.EPath.Dst, SubPath, Name + ".gdcl");
-                dep.Add((int)EGameDataUnit.GameDataData, Dependency.EPath.Dst, SubPath, Name + ".gdf");
-                dep.Add((int)EGameDataUnit.GameDataRelocation, Dependency.EPath.Dst, SubPath, Name + ".gdr");
-                dep.Add((int)EGameDataUnit.BigFileData, Dependency.EPath.Dst, SubPath, Name + ".bfd");
-                dep.Add((int)EGameDataUnit.BigFileToc, Dependency.EPath.Dst, SubPath, Name + ".bft");
-                dep.Add((int)EGameDataUnit.BigFileFilenames, Dependency.EPath.Dst, SubPath, Name + ".bff");
-                dep.Add((int)EGameDataUnit.BigFileHashes, Dependency.EPath.Dst, SubPath, Name + ".bfh");
-                dep.Save();
+                List<int> outofdate_ids = new(8);
+                if (!IsUpToDate(EGameDataUnit.SourceFiles))
+                    outofdate_ids.Add((int)EGameDataUnit.SourceFiles);
+
+                if (dep.Update(outofdate_ids) > 0)
+                {
+                    foreach (int id in outofdate_ids)
+                    {
+                        outofdate |= (1 << id);
+                    }
+                }
+                Units = (Units & outofdate) | outofdate;
             }
             else
             {
-                List<int> ids = new(8);
-                if (dep.Update(ids) > 0)
-                {
-                    Units = 0;
-                    foreach (int id in ids)
-                    {
-                        Units |= (1 << id);
-                    }
-                }
-            }
+                Units = (int)EGameDataUnit.All; // Nothing is up-to-date
 
-            //       - Check if source files have changed
+                dep.Add(
+                    (int)EGameDataUnit.GameDataCompilerLog,
+                    Dependency.EPath.Dst,
+                    Path.ChangeExtension(FilePath, ".gdcl")
+                );
+                dep.Add(
+                    (int)EGameDataUnit.GameDataData,
+                    Dependency.EPath.Dst,
+                    Path.ChangeExtension(FilePath, ".gdf")
+                );
+                dep.Add(
+                    (int)EGameDataUnit.GameDataRelocation,
+                    Dependency.EPath.Dst,
+                    Path.ChangeExtension(FilePath, ".gdr")
+                );
+                dep.Add(
+                    (int)EGameDataUnit.BigFileData,
+                    Dependency.EPath.Dst,
+                    Path.ChangeExtension(FilePath, ".bfd")
+                );
+                dep.Add(
+                    (int)EGameDataUnit.BigFileToc,
+                    Dependency.EPath.Dst,
+                    Path.ChangeExtension(FilePath, ".bft")
+                );
+                dep.Add(
+                    (int)EGameDataUnit.BigFileFilenames,
+                    Dependency.EPath.Dst,
+                    Path.ChangeExtension(FilePath, ".bff")
+                );
+                dep.Add(
+                    (int)EGameDataUnit.BigFileHashes,
+                    Dependency.EPath.Dst,
+                    Path.ChangeExtension(FilePath, ".bfh")
+                );
+                dep.Save();
+            }
+        }
+
+        public void VerifySource()
+        {
+            // Check if source files have changed, a change in any source file will have to be handled
+            // by executing the DataCompiler to build up-to-date destination files.
+
+            // So we need to use ActorFlow to stream the CompilerLog and each DataCompiler needs to check if
+            // its source file(s) are up-to-date.
+            Units = Units | (int)EGameDataUnit.SourceFiles;
         }
 
         public void Save(IBinaryWriter writer)
         {
-            writer.Write(Name);
-            writer.Write(SubPath);
+            writer.Write(FilePath);
             Hash.WriteTo(writer);
             writer.Write(Index);
             writer.Write(Units);
         }
-        
+
         public static GameDataUnit Load(IBinaryReader reader)
         {
             GameDataUnit gdu = new();
-            gdu.Name = reader.ReadString();
-            gdu.SubPath = reader.ReadString();
+            gdu.FilePath = reader.ReadString();
             gdu.Hash = Hash160.ReadFrom(reader);
             gdu.Index = reader.ReadInt32();
             gdu.Units = reader.ReadInt32();
@@ -152,7 +312,7 @@ namespace DataBuildSystem
     // A DataCompiler:
     //
     //     - Reads one or more source (input) files from srcpath
-    //     - Processes those (can use external processes)
+    //     - Processes those (can use external processes, e.g. 'dxc.exe')
     //     - Writes resulting (output) files to destination (dstpath)
     //
     // Q: How to name and where to place the destination files?
@@ -191,48 +351,6 @@ namespace DataBuildSystem
     // It mainly results in empty bigfile sections, each of them being an offset of 4 bytes.
 
 
-    //    If all up-to-date then done
-    //    Else
-    //       Case A:
-    //           - 'BigFile Toc/Filename/Hash Files' is out-of-date/missing
-    //           - Load 'Game Data Compiler Log'
-    //           - Using 'Game Data Compiler Log' check if all 'source' files are up-to-date
-    //             - If not up-to-date execute 'Game Data Compiler Log'
-    //           - Build a database of Hash-FileId, sort Hashes and assign FileId
-    //           - Load the 'Game Data DLL', inject with GameCore and GameCode
-    //              - Find IDataRoot object
-    //              - Instanciate the root object
-    //              - Hand-out all the FileId's
-
-    //       Case B:
-    //           - 'Game Data DLL' is out-of-date
-    //              - Load the 'Game Data DLL', inject with GameCore and GameCode
-    //              - Find IDataRoot object
-    //              - Instanciate the root object
-    //              - Collect all IDataCompiler objects
-    //              - Load 'Game Data Compiler Log'
-    //                - See if there are any missing/added/changed IDataCompiler objects
-    //                - So a IDataCompiler needs to build a unique Hash of itself!
-    //                - Save 'Game Data Compiler Log'
-
-    //       Case C:
-    //           - 'Game Data Compiler Log' is out-of-date or missing
-    //           - This is bad, we have lost our source to target dependency information
-    //           - So we have to rebuild the log and all the data
-    //           - And after that the 'Game Data File' and 'Game Data Relocation File' and
-    //             'Game Data File' and 'Game Data Relocation File'.
-
-    //       Case D:
-    //           - 'Game Data File' and 'Game Data Relocation File' are out-of-date or missing
-    //           - Using 'Game Data Compiler Log' check if all 'source' files are up-to-date
-    //           - If any source file is out-of-date
-    //             - Execute 'Game Data Compiler Log'
-    //           - Build a database of Hash-FileId, sort Hashes and assign FileId
-    //           - Load the 'Game Data DLL', inject with GameCore and GameCode
-    //              - Find IDataRoot object
-    //              - Instanciate the root object
-    //              - Hand-out all the FileId's
-    //              - Save 'Game Data File' and 'Game Data Relocation File'
-
-    // Note: We could mitigate this by adding full dependency information as a file header of each target file.
+    // Note: We could mitigate risks by adding full dependency information as a file header of each target file, or still
+    //       have each DataCompiler write a .dep file to the destination.
 }

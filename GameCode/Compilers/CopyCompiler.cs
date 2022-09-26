@@ -47,6 +47,8 @@ namespace GameData
 			stream.Write(mSrcFilename);
 			stream.Write(mDstFilename);
 			stream.Write((byte)mStatus);
+            
+            // Save dependency information
         }
 
         public void CompilerRead(IBinaryReader stream)
@@ -54,14 +56,20 @@ namespace GameData
 			mSrcFilename = stream.ReadString();
 			mDstFilename = stream.ReadString();
 			mStatus = (EDataCompilerStatus)stream.ReadUInt8();
+            mFileId = FileId.NewInstance(mDstFilename);
+
+            // Load dependency information
         }
 
         public void CompilerExecute()
         {
+            // Execute the actual purpose of this compiler
+            File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true );
         }
 
         public void CompilerFinished()
         {
+            // Update dependency information of src and dst file
 
         }
 

@@ -332,15 +332,15 @@ namespace GameCore
                 ctx.Init();
             }
 
-            public Hash160 Compute(byte[] buf, int len)
+            public Hash160 Compute(byte[] buf, int index, int len)
             {
                 ctx.Init();
-                SHA1Imp.Update(ctx, buf, len);
+                SHA1Imp.Update(ctx, buf, index, len);
                 return SHA1Imp.Finalize(ctx);
             }
 
-            public void Update(byte[] buf, int len) =>
-                SHA1Imp.Update(ctx, buf, len);
+            public void Update(byte[] buf, int index, int len) =>
+                SHA1Imp.Update(ctx, buf, index, len);
 
             public Hash160 Finalize() => SHA1Imp.Finalize(ctx);
         }
@@ -448,7 +448,7 @@ namespace GameCore
                     dest[destOfs++] = src[srcOfs++];
             }
 
-            public static void Update(SHA1Context context, byte[] data, int len)
+            public static void Update(SHA1Context context, byte[] data, int index, int len)
             {
                 uint i;
 
@@ -463,17 +463,19 @@ namespace GameCore
                 {
                     i = 64 - j;
 
-                    Copy(context.Buffer, (int)j, data, 0, (int)i);
+                    Copy(context.Buffer, (int)j, data, index, (int)i);
                     Transform(context.State, context.Buffer, 0);
                     for (; i + 63 < len; i += 64)
                     {
-                        Transform(context.State, data, (int)i);
+                        Transform(context.State, data, index + (int)i);
                     }
                     j = 0;
                 }
                 else
+                {
                     i = 0;
-                Copy(context.Buffer, (int)j, data, (int)i, (int)(len - i));
+                }
+                Copy(context.Buffer, (int)j, data, index + (int)i, (int)(len - i));
             }
 
             private static void Transform(uint[] state, byte[] buffer, int ofs)
@@ -590,13 +592,13 @@ namespace GameCore
                     finalcount[i] = (byte)((context.Count[(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) & 255);      /* Endian independent */
                 }
                 c[0] = 0x80;
-                Update(context, c, 1);
+                Update(context, c, 0, 1);
                 while ((context.Count[0] & 504) != 448)
                 {
                     c[0] = 0x00;
-                    Update(context, c, 1);
+                    Update(context, c, 0, 1);
                 }
-                Update(context, finalcount, 8); /* Should cause a SHA1Transform() */
+                Update(context, finalcount, 0, 8); /* Should cause a SHA1Transform() */
                 var hash = new byte[20];
                 for (i = 0; i < 20; i++)
                 {
@@ -608,9 +610,13 @@ namespace GameCore
 
         public static Hash160 Compute(byte[] data)
         {
+            return Compute(data, 0, data.Length);
+        }
+        public static Hash160 Compute(byte[] data, int index, int length)
+        {
             SHA1Context ctx = new();
             ctx.Init();
-            SHA1Imp.Update(ctx, data, data.Length);
+            SHA1Imp.Update(ctx, data, index, length);
             return SHA1Imp.Finalize(ctx);
         }
 
@@ -618,6 +624,12 @@ namespace GameCore
         public static Hash160 Compute_ASCII(string str)
         {
             byte[] data = System.Text.ASCIIEncoding.Default.GetBytes(str);
+            return Compute(data);
+        }
+
+        public static Hash160 Compute_UTF8(string str)
+        {
+            byte[] data = System.Text.UTF8Encoding.Default.GetBytes(str);
             return Compute(data);
         }
 
