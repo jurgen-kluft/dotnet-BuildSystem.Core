@@ -5,7 +5,7 @@ You can use most of C# to initialize/construct data etc.. However once
 the C# files that define the game-data are compiled and instanciated the
 following things will be done by the BuildSystem:
 
-- It will search for ``IDataRoot`` and will treat it as the root of the DataUnit
+- It will search for ``IDataRoot`` and will treat it as the root of a DataUnit
 - It recognizes the following types:
   - ``DataUnit``; A reference to a ``IDataRoot`` that exists in another ``GameData...DLL``
   - ``FileId``; An Id that can be retrieved interacting with BigfileManager
@@ -22,11 +22,11 @@ following things will be done by the BuildSystem:
   - ``LString``; Localized string
  - Anything derived from ``IAtom`` (system types s8/s16/..., see above)
  - Anything derived from ``ICompound`` (mapped to a struct or class in C++)
- - Anything derived from ``IDataCompiler``
-  - ```MeshCompiler("objects/rock.ply")```
-  - ```TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)```
-  - ```MaterialCompiler("materials/stone.mat")```
-  - ```ShaderCompiler("shaders/shadow.vs", EShaderFormat.VS_SPIRV)```
-  - ```ShaderCompiler("shaders/shadow.ps", EShaderFormat.PS_SPIRV)```
+ - Anything derived from ``IDataCompiler``:
+   - ```MeshCompiler("objects/rock.ply")```
+   - ```TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)```
+   - ```MaterialCompiler("materials/stone.mat")```
+   - ```ShaderCompiler("shaders/shadow.vs", EShaderFormat.VS_SPIRV)```
+   - ```ShaderCompiler("shaders/shadow.ps", EShaderFormat.PS_SPIRV)```
 
 In your game runtime you can use the `C++` library `cgamedata` to use it.
