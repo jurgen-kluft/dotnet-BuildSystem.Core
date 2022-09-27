@@ -6,6 +6,25 @@ using GameCore;
 
 namespace DataBuildSystem
 {
+    public struct State
+    {
+        private enum StateEnum : sbyte
+        {
+            Ok = 0,
+            Modified = 1,
+            Missing = 2,
+        }
+        private sbyte Value { get; set; }
+
+        public static readonly State Ok = new() { Value = (sbyte)StateEnum.Ok };
+        public static readonly State Missing = new() { Value = (sbyte)StateEnum.Missing };
+        public static readonly State Modified = new() { Value = (sbyte)StateEnum.Modified };
+
+        public bool IsOk { get { return Value == 0; } }
+        public bool IsModified { get { return ((sbyte)Value & (sbyte)(StateEnum.Modified)) == (sbyte)StateEnum.Modified; } }
+        public bool IsMissing { get { return ((sbyte)Value & (sbyte)(StateEnum.Missing)) == (sbyte)StateEnum.Missing; } }
+    }
+
     public class Dependency
     {
         public enum EPath : byte
@@ -28,12 +47,6 @@ namespace DataBuildSystem
             /// File state has changed since previous check
             UNCHANGED,
             /// File state is identical to previous check
-        }
-
-        public enum ERule : byte
-        {
-            ON_CHANGE,
-            MUST_EXIST,
         }
 
         public enum EMethod : byte
@@ -61,7 +74,6 @@ namespace DataBuildSystem
         private List<byte> Paths { get; set; } = new List<byte>();
         private List<string> SubFilePaths { get; set; } = new List<string>();
         private List<int> Ids { get; set; } = new List<int>();
-        private List<ERule> Rules { get; set; } = new List<ERule>();
         private List<EMethod> Methods { get; set; } = new List<EMethod>();
         private List<Hash160> Hashes { get; set; } = new List<Hash160>();
 
@@ -83,11 +95,12 @@ namespace DataBuildSystem
             SubFilePaths.Add(subfilepath);
             Ids.Add(id);
             Methods.Add(EMethod.TIMESTAMP_HASH);
-            Rules.Add(ERule.ON_CHANGE);
             Hashes.Add(new Hash160());
         }
 
-        public int Update(List<int> out_ids)
+        public delegate void OnUpdateDelegate(int id, State state);
+
+        public void Update(OnUpdateDelegate ood)
         {
             for (int i = 0; i < Count; ++i)
             {
@@ -109,31 +122,30 @@ namespace DataBuildSystem
                         {
                             FileInfo fileInfo = new(filepath);
                             if (fileInfo.Exists)
-                                newHash=Hash160.FromDateTime(File.GetLastWriteTime(filepath));
+                            {
+                                newHash = Hash160.FromDateTime(File.GetLastWriteTime(filepath));
+                            }
                         }
                         break;
                     default:
                         break;
                 }
-                ERule rule = Rules[i];
-                if (rule == ERule.MUST_EXIST)
+
+                if (newHash == null)
                 {
-                    if (newHash == null || newHash != Hashes[i])
-                    {
-                        out_ids.Add(Ids[i]);
-                        Hashes[i] = newHash;
-                    }
+                    Hashes[i] = newHash;
+                    ood(Ids[i], State.Missing);
+                }
+                else if (newHash != Hashes[i])
+                {
+                    Hashes[i] = newHash;
+                    ood(Ids[i], State.Modified);
                 }
                 else
                 {
-                    if (Hashes[i] != newHash)
-                    {
-                        out_ids.Add(Ids[i]);
-                        Hashes[i] = newHash;
-                    }
+                    ood(Ids[i], State.Ok);
                 }
             }
-            return out_ids.Count;
         }
 
         public static Dependency Load(EPath path, string subfilepath)
@@ -177,7 +189,6 @@ namespace DataBuildSystem
                 dep.Paths = new(count);
                 dep.SubFilePaths = new List<string>(count);
                 dep.Ids = new List<int>(count);
-                dep.Rules = new List<ERule>(count);
                 dep.Methods = new List<EMethod>(count);
                 dep.Hashes = new List<Hash160>(count);
 
@@ -192,10 +203,6 @@ namespace DataBuildSystem
                 for (int i = 0; i < count; i++)
                 {
                     dep.Ids.Add(reader.ReadInt32());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    dep.Rules.Add((ERule)reader.ReadUInt8());
                 }
                 for (int i = 0; i < count; i++)
                 {
@@ -224,10 +231,6 @@ namespace DataBuildSystem
             foreach (int id in Ids)
             {
                 writer.Write(id);
-            }
-            foreach (ERule b in Rules)
-            {
-                writer.Write((byte)b);
             }
             foreach (EMethod b in Methods)
             {
