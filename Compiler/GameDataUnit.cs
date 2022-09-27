@@ -40,10 +40,10 @@ namespace DataBuildSystem
 			{
 				gdu.Verify();
 
-				bool gduGameDataDll = gdu.IsUpToDate(EGameDataUnit.GameDataDll);
-				bool gduCompilerLog = gdu.IsUpToDate(EGameDataUnit.GameDataCompilerLog);
-				bool gduGameDataData = gdu.IsUpToDate(EGameDataUnit.GameDataData, EGameDataUnit.GameDataRelocation);
-				bool gduBigfile = gdu.IsUpToDate(EGameDataUnit.BigFileData, EGameDataUnit.BigFileToc, EGameDataUnit.BigFileFilenames, EGameDataUnit.BigFileHashes);
+				bool gduGameDataDll = gdu.StateOf(EGameDataUnit.GameDataDll);
+				bool gduCompilerLog = gdu.StateOf(EGameDataUnit.GameDataCompilerLog);
+				bool gduGameDataData = gdu.StateOf(EGameDataUnit.GameDataData, EGameDataUnit.GameDataRelocation);
+				bool gduBigfile = gdu.StateOf(EGameDataUnit.BigFileData, EGameDataUnit.BigFileToc, EGameDataUnit.BigFileFilenames, EGameDataUnit.BigFileHashes);
 
 				//       Case A:
 				//           - 'Game Data DLL' is out-of-date
@@ -207,15 +207,13 @@ namespace DataBuildSystem
 	public enum EGameDataUnit : Int32
 	{
 		GameDataDll = 0,
-		GameDataCompilerLog = 1,
-		GameDataData = 2,
-		GameDataRelocation = 3,
-		BigFileData = 4,
-		BigFileToc = 5,
-		BigFileFilenames = 6,
-		BigFileHashes = 7,
-		SourceFiles = 8,
-		All = 0x1FF,
+		GameDataCompilerLog = 2,
+		GameDataData = 4,
+		GameDataRelocation = 6,
+		BigFileData = 8,
+		BigFileToc = 10,
+		BigFileFilenames = 12,
+		BigFileHashes = 14,
 	}
 
 	/// e.g.
@@ -225,25 +223,57 @@ namespace DataBuildSystem
 
 	public class GameDataUnit
 	{
+		public static EPath GetPathFor(EGameDataUnit unit) 
+		{
+			switch (unit) 
+			{
+				case GameDataDll: return Dependency.EPath.Gdd;
+				case GameDataCompilerLog: 
+				case GameDataData: 
+				case GameDataRelocation:
+				case BigFileData:
+				case BigFileToc:
+				case BigFileFilenames: 
+				case BigFileHashes: 
+				default: return return Dependency.EPath.Dst;
+			}
+		}
+
+		public static string GetExtFor(EGameDataUnit unit)
+		{
+			switch (unit) 
+			{
+				case GameDataDll: return ".dll";
+				case GameDataCompilerLog: return ".gdcl";
+				case GameDataData: return ".gdd";
+				case GameDataRelocation:return ".gdr";
+				case BigFileData:return ".bfd";
+				case BigFileToc:return ".bft";
+				case BigFileFilenames: return ".bff";
+				case BigFileHashes: return ".bfh";
+				default: return ".???";
+			}
+		}
+
 		public string FilePath { get; private set; }
 		public Hash160 Hash { get; set; }
 		public Int32 Index { get; set; }
 		private Int32 Units { get; set; }
 		private Dependency Dep { get; set; }
 
-		public bool IsUpToDate(EGameDataUnit pu)
+		public State StateOf(EGameDataUnit pu)
 		{
-			Int32 u = 1 << (Int32)pu;
-			return (Units & u) == 0;
+			return State.FromRaw((SByte)(units >> (int)pu));
 		}
-		public bool IsUpToDate(params EGameDataUnit[] pu)
+
+		public State StateOf(params EGameDataUnit[] pu)
 		{
 			Int32 u = 0;
 			foreach (var item in pu)
 			{
-				u |= 1 << (Int32)item;
+				u |= ((Units >> item) & 0x3);
 			}
-			return (Units & u) == 0;
+			return State.FromRaw((SByte)(u);
 		}
 
 		private GameDataUnit() { }
@@ -261,71 +291,40 @@ namespace DataBuildSystem
 			Dep = Dependency.Load(Dependency.EPath.Gdd, FilePath);
 			if (Dep != null)
 			{
-				Int32 outofdate = 0;
-				if (!IsUpToDate(EGameDataUnit.SourceFiles))
-					outofdate = 1 << ((int)EGameDataUnit.SourceFiles);
-
-				List<int> outofdate_ids = new(8);
-				if (Dep.Update(outofdate_ids) > 0)
-				{
-					foreach (int id in outofdate_ids)
-					{
-						outofdate |= (1 << id);
-					}
-				}
-				Units = (Units & outofdate) | outofdate;
+				Int32 outofdate = StateOf(EGameDataUnit.SourceFiles) << (int)EGameDataUnit.SourceFiles;
+				Dep.Update(delegate(int id, State state){
+					outofdate |= ((state.AsInt << id) & 0x3);
+				})
+				Units = outofdate;
 			}
 			else
-			{
-				Units = (int)EGameDataUnit.All; // Nothing is up-to-date
+			{	
+				State missing = State.Missing;
+
+				Int32 outofdate;
+				foreach (var e in (EGameDataUnit[]) Enum.GetValues(typeof(EGameDataUnit)))
+				{
+					outofdate = ((missing.AsInt << e) & 0x3);
+				}
+				Units = outofdate;
 				
-				Dep = new(Dependency.EPath.Gdd, FilePath);
-				Dep.Add(
-					(int)EGameDataUnit.GameDataCompilerLog,
-					Dependency.EPath.Dst,
-					Path.ChangeExtension(FilePath, ".gdcl")
-				);
-				Dep.Add(
-					(int)EGameDataUnit.GameDataData,
-					Dependency.EPath.Dst,
-					Path.ChangeExtension(FilePath, ".gdf")
-				);
-				Dep.Add(
-					(int)EGameDataUnit.GameDataRelocation,
-					Dependency.EPath.Dst,
-					Path.ChangeExtension(FilePath, ".gdr")
-				);
-				Dep.Add(
-					(int)EGameDataUnit.BigFileData,
-					Dependency.EPath.Dst,
-					Path.ChangeExtension(FilePath, ".bfd")
-				);
-				Dep.Add(
-					(int)EGameDataUnit.BigFileToc,
-					Dependency.EPath.Dst,
-					Path.ChangeExtension(FilePath, ".bft")
-				);
-				Dep.Add(
-					(int)EGameDataUnit.BigFileFilenames,
-					Dependency.EPath.Dst,
-					Path.ChangeExtension(FilePath, ".bff")
-				);
-				Dep.Add(
-					(int)EGameDataUnit.BigFileHashes,
-					Dependency.EPath.Dst,
-					Path.ChangeExtension(FilePath, ".bfh")
-				);
+				Dep = new();
+				foreach (var e in (EGameDataUnit[]) Enum.GetValues(typeof(EGameDataUnit)))
+				{
+					Dep.Add((int)e,	GetPathFor(e), Path.ChangeExtension(FilePath, GetExtFor(e)));
+				}
 			}
 		}
 
-		public void VerifySource()
+		public State VerifySource()
 		{
 			// Check if source files have changed, a change in any source file will have to be handled
 			// by executing the DataCompiler to build up-to-date destination files.
 
 			// So we need to use ActorFlow to stream the CompilerLog and each DataCompiler needs to check if
 			// its source file(s) are up-to-date.
-			Units |= (int)EGameDataUnit.SourceFiles;
+
+			return State.Ok;
 		}
 
 		public void Save(IBinaryWriter writer)

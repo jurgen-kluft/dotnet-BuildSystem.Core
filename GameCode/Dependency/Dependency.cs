@@ -6,24 +6,27 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    public struct State
-    {
-        private enum StateEnum : sbyte
-        {
-            Ok = 0,
-            Modified = 1,
-            Missing = 2,
-        }
-        private sbyte Value { get; set; }
+	public struct State
+	{
+		private enum StateEnum : sbyte
+		{
+			Ok = 0,
+			Modified = 1,
+			Missing = 2,
+		}
+		private sbyte StateValue { get; set; }
+        public int AsInt { get { return (int)StateValue; } }
 
-        public static readonly State Ok = new() { Value = (sbyte)StateEnum.Ok };
-        public static readonly State Missing = new() { Value = (sbyte)StateEnum.Missing };
-        public static readonly State Modified = new() { Value = (sbyte)StateEnum.Modified };
+		public static readonly State Ok = new() { StateValue = (sbyte)StateEnum.Ok };
+		public static readonly State Missing = new() { StateValue = (sbyte)StateEnum.Missing };
+		public static readonly State Modified = new() { StateValue = (sbyte)StateEnum.Modified };
 
-        public bool IsOk { get { return Value == 0; } }
-        public bool IsModified { get { return ((sbyte)Value & (sbyte)(StateEnum.Modified)) == (sbyte)StateEnum.Modified; } }
-        public bool IsMissing { get { return ((sbyte)Value & (sbyte)(StateEnum.Missing)) == (sbyte)StateEnum.Missing; } }
-    }
+		public static State FromRaw(sbyte b) { return new () { StateValue = b & 0x3; } }
+
+		public bool IsOk { get { return StateValue == 0; } }
+		public bool IsModified { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Modified)) != 0; } }
+		public bool IsMissing { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Missing)) != 0; } }
+	}
 
     public class Dependency
     {
