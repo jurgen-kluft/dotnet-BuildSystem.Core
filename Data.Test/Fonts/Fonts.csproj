@@ -8,12 +8,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GameCode\GameCode.csproj" />
-    <ProjectReference Include="..\..\GameCore\GameCore.csproj" />
+    <Reference Include="GameCode">
+      <HintPath>..\GameCode.dll</HintPath>
+    </Reference>
+    <Reference Include="GameCore">
+      <HintPath>..\GameCore.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="*.cs" />
   </ItemGroup>
+
+  <Target Name="CopyGameDataDLL" AfterTargets="Build">
+    <ItemGroup>
+      <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\GameData.Compiled" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

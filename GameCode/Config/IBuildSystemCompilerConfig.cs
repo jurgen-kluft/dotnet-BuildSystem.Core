@@ -155,10 +155,11 @@ namespace DataBuildSystem
             Console.WriteLine("gdd path: " + gddPath);
             Console.WriteLine("sub path: " + subPath);
             Console.WriteLine("dst path: " + dstPath);
+            Console.WriteLine("tool path: " + toolPath);
 
             if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory))
                 return false;
-            if (String.IsNullOrEmpty(basePath) || String.IsNullOrEmpty(srcPath))
+            if (String.IsNullOrEmpty(srcPath))
                 return false;
             if (String.IsNullOrEmpty(gddPath))
                 return false;

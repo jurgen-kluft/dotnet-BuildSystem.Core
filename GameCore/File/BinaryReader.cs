@@ -224,16 +224,23 @@ namespace GameCore
 
         public bool Open(string filepath)
         {
-            mFileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
-            mBinaryFileReader = new BinaryReader(mFileStream);
-            mBinaryReader = new BinaryReaderLittleEndian(mBinaryFileReader);
-            return true;
+            if (File.Exists(filepath))
+            {
+                mFileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
+                mBinaryFileReader = new BinaryReader(mFileStream);
+                mBinaryReader = new BinaryReaderLittleEndian(mBinaryFileReader);
+                return true;
+            }
+            return false;
         }
 
         public void Close()
         {
-            mBinaryReader.Close();
-            mFileStream.Close();
+            if (mFileStream != null)
+            {
+                mBinaryReader.Close();
+                mFileStream.Close();
+            }
         }
 
         public byte[] ReadBytes(int size)

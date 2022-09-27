@@ -302,7 +302,7 @@ namespace GameCore
 
         public bool Open(string filepath)
         {
-            mFileStream = new (filepath, FileMode.Truncate);
+            mFileStream = new (filepath, FileMode.Create);
             mBinaryFileWriter = new (mFileStream);
             mBinaryWriter = new (mBinaryFileWriter);
             return true;
