@@ -86,9 +86,6 @@ namespace DataBuildSystem
 			byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
 			Assembly gameDataRootAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
 
-			// The dynamic instantiation helper class needs the data assembly to find classes by name and construct them.
-			GameData.Instanciate.assembly = gameDataRootAssembly;
-
 			// BuildSystem.DataCompiler configuration
 			IBuildSystemCompilerConfig[] configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gameDataRootAssembly);
 			if (configsForCompiler.Length > 0)
@@ -121,6 +118,8 @@ namespace DataBuildSystem
 				return Error();
 			}
 
+			gameDataAssemblyContext.Unload();
+
 			// NOTE: We should be able to generate the .sln and .csproj/Directory.Build.props files, so that we do not have to manage them
 			//       and track them in source control.
 			//       This does mean that each 'folder' in the Data folder is going to be a project?
@@ -131,7 +130,7 @@ namespace DataBuildSystem
 			gdus.Save(BuildSystemCompilerConfig.DstPath);
 			// Done
 
-			DataAssemblyManager dataAssemblyManager = new();
+			DataAssemblyManager dataAssemblyManager = new(gameDataRootAssembly);
 
 			DateTime start = DateTime.Now;
 			DateTime end = DateTime.Now;

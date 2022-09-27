@@ -28,8 +28,9 @@ namespace GameData
         {
         }
 
-        public void CompilerRead(IBinaryReader stream)
+        public Hash160 CompilerRead(IBinaryReader stream)
         {
+            return Hash160.Empty;
         }
 
         public void CompilerExecute()

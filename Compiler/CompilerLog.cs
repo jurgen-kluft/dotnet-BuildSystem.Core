@@ -6,46 +6,108 @@ namespace DataBuildSystem
 {
     public class GameDataCompilerLog
     {
-        private BinaryFileWriter mWriter;
         private BinaryFileReader mReader;
 
-        private Dictionary<UInt32, Type> mCompilers = new Dictionary<uint, Type>();
+        private Dictionary<Hash160, Type> mCompilerTypeSet = new Dictionary<Hash160, Type>();
+        
+        // When 
+        private HashSet<Hash160> mCompilerSignatureSet = new HashSet<Hash160>();
 
-        public bool Open()
-        {
-            return false;
-        }
-        public bool Create()
-        {
-            return false;
+        public enum EState
+		{
+            UPTODATE,
+		}
+        
+        public EState Verify(List<GameData.IDataCompiler> compilers)
+		{
+            // Cross reference all compilers and the log on disk
+            // Check if all source files are up to date
+            // Return true when both are fine
+            return EState.UPTODATE;
         }
 
         public void RegisterCompiler(Type type)
         {
-            // 32-bit hash of type.Name
+            Hash160 typeSignature = HashUtility.Compute_ASCII(type.FullName);
+            if (!mCompilerTypeSet.ContainsKey(typeSignature))
+			{
+                mCompilerTypeSet.Add(typeSignature, type);
+			}
         }
 
-        public void Save(IDataCompiler dc)
+        public bool Create(string dstpath, string filename, List<IDataCompiler> cl)
         {
-
-        }
-
-        private IDataCompiler Load()
-        {
-            UInt32 compilerID = mReader.ReadUInt32();
-
-            Type type;
-            if (mCompilers.TryGetValue(compilerID, out type))
+            MemoryStream memoryStream = new ();
+            BinaryMemoryWriter memoryWriter = new();
+            if (memoryWriter.Open(memoryStream))
             {
-                IDataCompiler compiler = Activator.CreateInstance(type) as IDataCompiler;
-                return compiler;
+                BinaryFileWriter fileWriter = new();
+                if (fileWriter.Open(Path.Join(dstpath, filename)))
+                {
+                    foreach (IDataCompiler compiler in cl)
+                    {
+                        Type type = compiler.GetType();
+                        Hash160 typeSignature = HashUtility.Compute_ASCII(type.FullName);
+                        memoryWriter.Reset();
+                        typeSignature.WriteTo(memoryWriter);
+                        fileWriter.Write(memoryStream.Length);
+                        fileWriter.Write(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                    }
+                    return true;
+                }
             }
-            return null;
+            return false;
+        }
+
+        public bool OpenStreamIn(string path, string filename)
+        {
+            mReader = new BinaryFileReader();
+            if (mReader.Open(Path.Join(path, filename)))
+			{
+                return true;
+			}
+            return false;
         }
 
         public bool StreamIn(List<IDataCompiler> compilers, int count)
         {
-            return false;
+            for (int i = 0; i < count; i++)
+            {
+                Hash160 typeSignature = Hash160.ReadFrom(mReader);
+                UInt32 blockSize = mReader.ReadUInt32();
+
+                // We could have a type signature in the log that doesn't exists anymore because
+                // the name of the compiler has been changed. When this is the case we need to
+                // inform the user of this class that the log is out-of-date!
+
+                Type type;
+                if (mCompilerTypeSet.TryGetValue(typeSignature, out type))
+                {
+                    IDataCompiler compiler = Activator.CreateInstance(type) as IDataCompiler;
+                    Hash160 compilerSignature = compiler.CompilerRead(mReader);
+                    if (!mCompilerSignatureSet.Contains(compilerSignature))
+                    {
+                        mCompilerSignatureSet.Add(compilerSignature);
+                        compilers.Add(compiler);
+                    }
+                }
+                else
+                {
+                    if (!mReader.SkipBytes((Int64)blockSize))
+                        return false;
+                }
+            }
+
+            return true;
         }
+
+        public void CloseStreamIn()
+		{
+            if (mReader != null)
+			{
+                mReader.Close();
+                mReader = null;
+            }
+		}
     }
 }

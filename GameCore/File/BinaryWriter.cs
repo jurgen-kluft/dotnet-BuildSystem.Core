@@ -297,14 +297,14 @@ namespace GameCore
     public class BinaryFileWriter : IBinaryWriter
     {
         private BinaryWriterLittleEndian mBinaryWriter;
-        private BinaryWriter mBinaryFileWriter;
-        private FileStream mFileStream;
+        private BinaryWriter mBinaryStreamWriter;
+        private FileStream mStream;
 
         public bool Open(string filepath)
         {
-            mFileStream = new (filepath, FileMode.Create);
-            mBinaryFileWriter = new (mFileStream);
-            mBinaryWriter = new (mBinaryFileWriter);
+            mStream = new (filepath, FileMode.Create);
+            mBinaryStreamWriter = new (mStream);
+            mBinaryWriter = new (mBinaryStreamWriter);
             return true;
         }
 
@@ -395,7 +395,7 @@ namespace GameCore
         {
             get
             {
-                return mBinaryFileWriter.BaseStream.Position;
+                return mBinaryStreamWriter.BaseStream.Position;
             }
         }
 
@@ -403,7 +403,7 @@ namespace GameCore
         {
             get
             {
-                return mBinaryFileWriter.BaseStream.Length;
+                return mBinaryStreamWriter.BaseStream.Length;
             }
         }
 
@@ -415,11 +415,142 @@ namespace GameCore
         public void Close()
         {
             mBinaryWriter.Close();
-            mFileStream.Close();
+            mStream.Close();
         }
 
         #endregion        
+    }
 
+    public class BinaryMemoryWriter : IBinaryWriter
+    {
+        private BinaryWriterLittleEndian mBinaryWriter;
+        private BinaryWriter mBinaryStreamWriter;
+        private MemoryStream mStream;
+
+        public bool Open(MemoryStream ms)
+        {
+            mStream = ms;
+            mBinaryStreamWriter = new(ms);
+            mBinaryWriter = new(mBinaryStreamWriter);
+            return true;
+        }
+
+        public void Reset()
+		{
+            mStream.Position = 0;
+		}
+
+        #region IBinaryWriter Members
+
+        public Int64 Write(byte[] data)
+        {
+            mBinaryWriter.Write(data, 0, data.Length);
+            return data.Length;
+        }
+
+        public Int64 Write(byte[] data, int index, int count)
+        {
+            Debug.Assert((index + count) <= data.Length);
+            mBinaryWriter.Write(data, index, count);
+            return count;
+        }
+
+        public Int64 Write(sbyte v)
+        {
+            mBinaryWriter.Write(v);
+            return 1;
+        }
+
+        public Int64 Write(byte v)
+        {
+            mBinaryWriter.Write(v);
+            return 1;
+        }
+
+        public Int64 Write(short v)
+        {
+            mBinaryWriter.Write(v);
+            return 2;
+        }
+
+        public Int64 Write(ushort v)
+        {
+            mBinaryWriter.Write(v);
+            return 2;
+        }
+
+        public Int64 Write(int v)
+        {
+            mBinaryWriter.Write(v);
+            return 4;
+        }
+
+        public Int64 Write(uint v)
+        {
+            mBinaryWriter.Write(v);
+            return 4;
+        }
+
+        public Int64 Write(long v)
+        {
+            mBinaryWriter.Write(v);
+            return 8;
+        }
+
+        public Int64 Write(ulong v)
+        {
+            mBinaryWriter.Write(v);
+            return 8;
+        }
+
+        public Int64 Write(float v)
+        {
+            mBinaryWriter.Write(v);
+            return 4;
+        }
+
+        public Int64 Write(double v)
+        {
+            mBinaryWriter.Write(v);
+            return 8;
+        }
+
+        public Int64 Write(string s)
+        {
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            Write(data.Length);
+            Write(data);
+            return 4 + data.Length;
+        }
+
+        public Int64 Position
+        {
+            get
+            {
+                return mBinaryStreamWriter.BaseStream.Position;
+            }
+        }
+
+        public Int64 Length
+        {
+            get
+            {
+                return mBinaryStreamWriter.BaseStream.Length;
+            }
+        }
+
+        public bool Seek(StreamOffset offset)
+        {
+            return mBinaryWriter.Seek(offset);
+        }
+
+        public void Close()
+        {
+            mBinaryWriter.Close();
+            mStream.Close();
+        }
+
+        #endregion        
     }
 
     #endregion

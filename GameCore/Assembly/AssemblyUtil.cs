@@ -194,6 +194,8 @@ namespace GameCore
         /// <returns></returns>
         public static T[] CreateN<T>(Assembly assembly) where T : class
         {
+            if (assembly == null)
+                return null;
             try
             {
                 List<T> objects = new List<T>();
@@ -225,9 +227,31 @@ namespace GameCore
         {
             if (assembly == null)
                 return null;
+            try
+            {
+                List<T> objects = new List<T>();
 
-            T[] objects = CreateN<T>(assembly);
-            return (objects==null || objects.Length == 0) ? null : objects[0];
+                Type[] types = assembly.GetTypes();
+                foreach (Type t in types)
+                {
+                    if (HasGenericInterface(t, typeof(T)))
+                    {
+                        T o = assembly.CreateInstance(t.FullName) as T;
+                        return o;
+                    }
+                }
+                return null;
+            }
+            catch (ReflectionTypeLoadException e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
         }
 
         #endregion

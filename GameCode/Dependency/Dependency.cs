@@ -65,6 +65,10 @@ namespace DataBuildSystem
         private List<EMethod> Methods { get; set; } = new List<EMethod>();
         private List<Hash160> Hashes { get; set; } = new List<Hash160>();
 
+        public Dependency()
+		{
+
+		}
         public Dependency(EPath path, string subfilepath)
         {
             Add(0, path, subfilepath);
@@ -132,53 +136,17 @@ namespace DataBuildSystem
             return out_ids.Count;
         }
 
-        public bool Load()
+        public static Dependency Load(EPath path, string subfilepath)
         {
             BinaryFileReader reader = new();
-            string filepath = Path.Join(GetPath(EPath.Dst), SubFilePaths[0] + ".dep");
+            string filepath = Path.Join(GetPath(EPath.Dst), Path.Join(GetPath(path), subfilepath, ".dep"));
             if (reader.Open(filepath))
             {
-                UInt32 magic = reader.ReadUInt32();
-                if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
-                {
-                    Int32 count = reader.ReadInt32();
-                    Paths = new(count);
-                    SubFilePaths = new List<string>(count);
-                    Ids = new List<int>(count);
-                    Rules = new List<ERule>(count);
-                    Methods = new List<EMethod>(count);
-                    Hashes = new List<Hash160>(count);
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        Paths.Add(reader.ReadUInt8());
-                    }
-                    for (int i = 0; i < count; i++)
-                    {
-                        SubFilePaths.Add(reader.ReadString());
-                    }
-                    for (int i = 0; i < count; i++)
-                    {
-                        Ids.Add(reader.ReadInt32());
-                    }
-                    for (int i = 0; i < count; i++)
-                    {
-                        Rules.Add((ERule)reader.ReadUInt8());
-                    }
-                    for (int i = 0; i < count; i++)
-                    {
-                        Methods.Add((EMethod)reader.ReadUInt8());
-                    }
-                    for (int i = 0; i < count; i++)
-                    {
-                        Hashes.Add(Hash160.ReadFrom(reader));
-                    }
-
-                    reader.Close();
-                    return true;
-                }
+                Dependency dep = ReadFrom(reader);
+                reader.Close();
+                return dep;
             }
-            return false;
+            return null;
         }
 
         public bool Save()
@@ -187,39 +155,87 @@ namespace DataBuildSystem
             string filepath = Path.Join(GetPath(EPath.Dst), SubFilePaths[0] + ".dep");
             if (writer.Open(filepath))
             {
-                writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
-                writer.Write(Count);
-                foreach (byte b in Paths)
-                {
-                    writer.Write(b);
-                }
-                foreach (string subpath in SubFilePaths)
-                {
-                    writer.Write(subpath);
-                }
-                foreach (int id in Ids)
-                {
-                    writer.Write(id);
-                }
-                foreach (ERule b in Rules)
-                {
-                    writer.Write((byte)b);
-                }
-                foreach (EMethod b in Methods)
-                {
-                    writer.Write((byte)b);
-                }
-                foreach (Hash160 h in Hashes)
-                {
-                    h.WriteTo(writer);
-                }
-
+                WriteTo(writer);
                 writer.Close();
                 return true;
             }
             else
             {
                 return false;
+            }
+        }
+
+        public static Dependency ReadFrom(IBinaryReader reader)
+        {
+            Dependency dep = null;
+            UInt32 magic = reader.ReadUInt32();
+            if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
+            {
+                Int32 count = reader.ReadInt32();
+
+                dep = new ();
+                dep.Paths = new(count);
+                dep.SubFilePaths = new List<string>(count);
+                dep.Ids = new List<int>(count);
+                dep.Rules = new List<ERule>(count);
+                dep.Methods = new List<EMethod>(count);
+                dep.Hashes = new List<Hash160>(count);
+
+                for (int i = 0; i < count; i++)
+                {
+                    dep.Paths.Add(reader.ReadUInt8());
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    dep.SubFilePaths.Add(reader.ReadString());
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    dep.Ids.Add(reader.ReadInt32());
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    dep.Rules.Add((ERule)reader.ReadUInt8());
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    dep.Methods.Add((EMethod)reader.ReadUInt8());
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    dep.Hashes.Add(Hash160.ReadFrom(reader));
+                }
+            }
+            return dep;
+        }
+
+        public void WriteTo(IBinaryWriter writer)
+        { 
+            writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
+            writer.Write(Count);
+            foreach (byte b in Paths)
+            {
+                writer.Write(b);
+            }
+            foreach (string subpath in SubFilePaths)
+            {
+                writer.Write(subpath);
+            }
+            foreach (int id in Ids)
+            {
+                writer.Write(id);
+            }
+            foreach (ERule b in Rules)
+            {
+                writer.Write((byte)b);
+            }
+            foreach (EMethod b in Methods)
+            {
+                writer.Write((byte)b);
+            }
+            foreach (Hash160 h in Hashes)
+            {
+                h.WriteTo(writer);
             }
         }
     }

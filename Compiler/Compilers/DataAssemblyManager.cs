@@ -169,7 +169,7 @@ namespace DataBuildSystem
         #region Fields
 
         private Assembly mDataAssembly;
-        private GameData.IDataUnit mRoot;
+        private GameData.IDataRoot mRoot;
 
         private List<GameData.IDataCompiler> mCompilers;
         private List<GameData.IFileIdsProvider> mFileIdsProviders;
@@ -179,8 +179,9 @@ namespace DataBuildSystem
         #endregion
         #region Constructor
 
-        public DataAssemblyManager()
+        public DataAssemblyManager(Assembly dataAssembly)
         {
+            mDataAssembly = dataAssembly;
             mCompilers = new List<GameData.IDataCompiler>();
             mFileIdsProviders = new List<GameData.IFileIdsProvider>();
             mFilenameRegistry = new FileRegistrar();
@@ -193,36 +194,9 @@ namespace DataBuildSystem
         {
             get { return mDataAssembly; }
         }
-        public GameData.IDataUnit root
+        public GameData.IDataRoot root
         {
             get { return mRoot; }
-        }
-
-        #endregion
-        #region Build
-
-        public bool compileAsm(
-            Filename filenameOfAssembly,
-            Filename[] files,
-            Filename[] csincludes,
-            Dirname srcPath,
-            Dirname subPath,
-            Dirname dstPath,
-            Dirname depPath,
-            Filename[] referencedAssemblies
-        )
-        {
-            mDataAssembly = AssemblyCompiler.Compile(
-                filenameOfAssembly,
-                files,
-                csincludes,
-                srcPath,
-                subPath,
-                dstPath,
-                depPath,
-                referencedAssemblies
-            );
-            return mDataAssembly != null;
         }
 
         #endregion
@@ -235,7 +209,7 @@ namespace DataBuildSystem
 
             try
             {
-                mRoot = AssemblyUtil.Create1<GameData.IDataUnit>(mDataAssembly);
+                mRoot = AssemblyUtil.Create1<GameData.IDataRoot>(mDataAssembly);
                 return mRoot != null;
             }
             catch (System.Exception)
@@ -249,18 +223,16 @@ namespace DataBuildSystem
 
         #region Data Compilation steps
 
-        public bool initializeDataCompilation()
+        public List<GameData.IDataCompiler> InitializeDataCompilation()
         {
-            bool ok = false;
+            List<GameData.IDataCompiler> compilers = new();
             if (instanciate())
             {
-                mCompilers.Clear();
-
                 // Collect:
                 // - Compilers
                 // - FileId providers
                 // - Bigfile providers
-                ok = ObjectTreeWalker.Walk(
+                ObjectTreeWalker.Walk(
                     mRoot,
                     delegate(object compound)
                     {
@@ -279,23 +251,23 @@ namespace DataBuildSystem
                         if (compound is GameData.IDataCompiler)
                         {
                             GameData.IDataCompiler c = compound as GameData.IDataCompiler;
-                            mCompilers.Add(c);
+                            compilers.Add(c);
                             handled = true;
                         }
                         return handled;
                     }
                 );
             }
-            return ok;
+            return compilers;
         }
 
-        public void setupDataCompilers()
+        public void SetupDataCompilers()
         {
             foreach (GameData.IDataCompiler c in mCompilers)
                 c.CompilerSetup();
         }
 
-        public bool finalizeDataCompilation()
+        public bool FinalizeDataCompilation()
         {
             mFileIdsProviders.Clear();
 

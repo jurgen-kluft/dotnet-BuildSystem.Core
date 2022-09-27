@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>GameData.Code</AssemblyName>
+    <OutputType>library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="GameCode">
+      <HintPath>..\GameCode.dll</HintPath>
+    </Reference>
+    <Reference Include="GameCore">
+      <HintPath>..\GameCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+
+  <Target Name="CopyGameDataDLL" AfterTargets="Build">
+    <ItemGroup>
+      <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\GameData.Compiled" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

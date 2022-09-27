@@ -33,6 +33,6 @@ namespace GameData
 
         void CompilerSetup();
         void CompilerWrite(IBinaryWriter stream);
-        void CompilerRead(IBinaryReader stream);
+        Hash160 CompilerRead(IBinaryReader stream);
     }
 }
