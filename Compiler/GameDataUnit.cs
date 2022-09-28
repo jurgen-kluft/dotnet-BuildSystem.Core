@@ -50,7 +50,7 @@ namespace DataBuildSystem
 					Assembly gdasm = LoadAssembly(gdu.FilePath);
 					DataAssemblyManager dam = new(gdasm);
 
-					List<GameData.IDataCompiler> compilers = dam.InitializeDataCompilation();
+					List<GameData.IDataCompiler> compilers = dam.CollectDataCompilers();
 
 					GameDataCompilerLog compilerLog = new(gdu.GetFilePathFor(EGameDataUnit.GameDataCompilerLog));
 					if (gduGameDataData.IsOk && gduBigfile.IsOk)
@@ -82,7 +82,7 @@ namespace DataBuildSystem
 					Assembly gdasm = LoadAssembly(gdu.FilePath);
 					DataAssemblyManager dam = new(gdasm);
 
-					List<GameData.IDataCompiler> compilers = dam.InitializeDataCompilation();
+					List<GameData.IDataCompiler> compilers = dam.CollectDataCompilers();
 
 					GameDataCompilerLog compilerLog = new(gdu.GetFilePathFor(EGameDataUnit.GameDataCompilerLog));
 

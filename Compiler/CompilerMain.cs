@@ -139,7 +139,7 @@ namespace DataBuildSystem
 				{
 					Console.WriteLine("------ Initializing data compilation");
 					start = DateTime.Now;
-					List<IDataCompiler> compilers = dataAssemblyManager.InitializeDataCompilation();
+					List<IDataCompiler> compilers = dataAssemblyManager.CollectDataCompilers();
 					end = DateTime.Now;
 					if (compilers.Count>0)
 					{
