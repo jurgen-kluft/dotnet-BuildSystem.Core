@@ -5,34 +5,17 @@ using GameCore;
 
 namespace GameData
 {
-    public enum EDataCompilerStatus
-    {
-        NONE,
-        UPTODATE,
-        SUCCESS,
-        ERROR,
-    }
-
-    /*
-    Compiler
-    {
-        ID
-        {
-            Length
-            Array(Byte)
-        }
-    }
-    */
-
     /// <summary>
-    /// The compiler interface
+    /// The data compiler interface
     /// </summary>
     public interface IDataCompiler
     {
-        EDataCompilerStatus CompilerStatus { get; }
+        /// A signature is generated from the 'stable' properties of a DataCompiler.
+        /// For example: for the CopyCompiler should write SrcFilename and DstFilename into the stream.
+		void CompilerSignature(IBinaryWriter stream);
 
         void CompilerSetup();
         void CompilerWrite(IBinaryWriter stream);
-        Hash160 CompilerRead(IBinaryReader stream);
+        void CompilerRead(IBinaryReader stream);
     }
 }

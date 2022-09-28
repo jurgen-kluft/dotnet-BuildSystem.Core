@@ -23,6 +23,11 @@ namespace DataBuildSystem
 
         public static State FromRaw(sbyte b) { return new() { StateValue = (sbyte)(b & 0x3) }; }
 
+        public State(int state)
+        {
+            StateValue = state;
+        }
+
         public bool IsOk { get { return StateValue == 0; } }
         public bool IsNotOk { get { return StateValue != 0; } }
         public bool IsModified { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Modified)) != 0; } }

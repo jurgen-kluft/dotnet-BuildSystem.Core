@@ -11,14 +11,11 @@ namespace GameData
         private readonly string mSrcFilename;
         private readonly List<string> mDstFilenames = new ();
         private readonly List<FileId> mFileIds = new ();
-        private EDataCompilerStatus mStatus = EDataCompilerStatus.NONE;
 
         public LocalizationCompiler(string localizationFile)
         {
             mSrcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
         }
-
-        public EDataCompilerStatus CompilerStatus { get { return mStatus; } }
 
         public void CompilerSetup()
         {
@@ -35,37 +32,30 @@ namespace GameData
 
         public void CompilerExecute()
         {
-            //if (mDependencySystem.isModified(mSrcFilename))
+            // Load 'languages list' file
+            try
             {
-                // Load 'languages list' file
-                try
+                xTextStream ts = new (mSrcFilename);
+                ts.Open(xTextStream.EMode.READ);
+                while (!ts.read.EndOfStream)
                 {
-                    xTextStream ts = new (mSrcFilename);
-                    ts.Open(xTextStream.EMode.READ);
-                    while (!ts.read.EndOfStream)
+                    string filename = ts.read.ReadLine();
+                    if (String.IsNullOrEmpty(filename))
                     {
-                        string filename = ts.read.ReadLine();
-                        if (String.IsNullOrEmpty(filename))
-                        {
-                            mDstFilenames.Add(filename);
-                            mFileIds.Add(FileId.NewInstance(filename.ToLower()));
-                        }
+                        mDstFilenames.Add(filename);
+                        mFileIds.Add(FileId.NewInstance(filename.ToLower()));
                     }
-                    ts.Close();
                 }
-                catch (Exception)
-                {
-                    mStatus = EDataCompilerStatus.ERROR;
-                }
-                finally
-                {
-                    mStatus = EDataCompilerStatus.SUCCESS;
-                }
+                ts.Close();
             }
-            //else
-            //{
-            //    mStatus = EDataCompilerStatus.UPTODATE;
-            //}
+            catch (Exception)
+            {
+                //mStatus = ERROR;
+            }
+            finally
+            {
+                //mStatus = SUCCESS;
+            }
         }
 
         public void CompilerFinished()

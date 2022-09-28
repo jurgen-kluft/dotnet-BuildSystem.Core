@@ -5,12 +5,8 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    /*
-	A Compiler will be executed when the Compiler is streaming-in the CompilersLog.BinaryStream.
-	
-	Binary data is loaded in block for block and compilers are constructed and executed, once
-	executed they are called to save themselves to a streaming-out object.
-	
+    /*	
+
 	TODO
 	- MeshCompiler
 	- MaterialCompiler
@@ -23,8 +19,6 @@ namespace GameData
     {
         private  string mSrcFilename;
         private  string mDstFilename;
-        private FileId mFileId = new();
-        private EDataCompilerStatus mStatus = EDataCompilerStatus.NONE;
 
         public CopyCompiler(string filename) : this(filename, filename)
         {
@@ -33,10 +27,13 @@ namespace GameData
         {
             mSrcFilename = srcfilename;
             mDstFilename = dstfilename;
-            mFileId = FileId.NewInstance(mDstFilename);
         }
 
-        public EDataCompilerStatus CompilerStatus { get { return mStatus; } }
+        public void CompilerSignature(IBinaryWriter stream)
+        {
+			stream.Write(mSrcFilename);
+			stream.Write(mDstFilename);
+        }
 
         public void CompilerSetup()
         {
@@ -46,22 +43,16 @@ namespace GameData
         {
 			stream.Write(mSrcFilename);
 			stream.Write(mDstFilename);
-			stream.Write((byte)mStatus);
             
             // Save dependency information
         }
 
-        public Hash160 CompilerRead(IBinaryReader stream)
+        public void CompilerRead(IBinaryReader stream)
         {
 			mSrcFilename = stream.ReadString();
 			mDstFilename = stream.ReadString();
-			mStatus = (EDataCompilerStatus)stream.ReadUInt8();
-            mFileId = FileId.NewInstance(mDstFilename);
 
             // Load dependency information
-
-            // Return hash signature of this compiler
-            return Hash160.Empty;
         }
 
         public void CompilerExecute()
@@ -76,6 +67,6 @@ namespace GameData
 
         }
 
-        public FileId[] FileIds { get { return new FileId[] { mFileId }; } }
+        public FileId[] FileIds { get { return new FileId[] { FileId.NewInstance(mDstFilename) }; } }
     }
 }

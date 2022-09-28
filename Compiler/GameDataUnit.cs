@@ -224,81 +224,58 @@ namespace DataBuildSystem
 	public enum EGameDataUnit : Int32
 	{
 		GameDataDll = 0,
-		GameDataCompilerLog = 2,
-		GameDataData = 4,
-		GameDataRelocation = 6,
-		BigFileData = 8,
-		BigFileToc = 10,
-		BigFileFilenames = 12,
-		BigFileHashes = 14,
+		GameDataCompilerLog = 1,
+		GameDataData = 2,
+		GameDataRelocation = 3,
+		BigFileData = 4,
+		BigFileToc = 5,
+		BigFileFilenames = 6,
+		BigFileHashes = 7,
+		Count = 8,
 	}
 
 	/// e.g.
 	/// FilePath: GameData.Fonts.dll
 	/// Index: 1
-	/// Units: 0
+	/// Units: [Modified,Ok,Ok,Ok,Ok,Ok,Ok,Ok]
 
 	public class GameDataUnit
 	{
-		public static Dependency.EPath GetPathFor(EGameDataUnit unit)
+		private static EPath[] sGameDataUnitToEPath = {Dependency.EPath.Gdd, Dependency.EPath.DstDependency.EPath.DstDependency.EPath.DstDependency.EPath.DstDependency.EPath.DstDependency.EPath.DstDependency.EPath.Dst};
+		private static Dependency.EPath GetEPathFor(EGameDataUnit unit)
 		{
-			switch (unit)
-			{
-				case EGameDataUnit.GameDataDll: return Dependency.EPath.Gdd;
-				case EGameDataUnit.GameDataCompilerLog:
-				case EGameDataUnit.GameDataData:
-				case EGameDataUnit.GameDataRelocation:
-				case EGameDataUnit.BigFileData:
-				case EGameDataUnit.BigFileToc:
-				case EGameDataUnit.BigFileFilenames:
-				case EGameDataUnit.BigFileHashes:
-				default: return Dependency.EPath.Dst;
-			}
+			return sGameDataUnitToEPath[(int)unit];
 		}
-
-		public string GetFilePathFor(EGameDataUnit unit)
+		private static string sGameDataUnitToExtension = {".dll",".gdcl",".gdd",".gdr",".bfd",".bft",".bff",".bfh"};
+		private static string GetExtFor(EGameDataUnit unit)
+		{
+			return sGameDataUnitToExtension[(int)unit];
+		}
+		private string GetFilePathFor(EGameDataUnit unit)
 		{
 			return Path.Join(BuildSystemCompilerConfig.DstPath, Path.ChangeExtension(FilePath, GetExtFor(unit)));
-		}
-
-		public static string GetExtFor(EGameDataUnit unit)
-		{
-			switch (unit)
-			{
-				case EGameDataUnit.GameDataDll: return ".dll";
-				case EGameDataUnit.GameDataCompilerLog: return ".gdcl";
-				case EGameDataUnit.GameDataData: return ".gdd";
-				case EGameDataUnit.GameDataRelocation: return ".gdr";
-				case EGameDataUnit.BigFileData: return ".bfd";
-				case EGameDataUnit.BigFileToc: return ".bft";
-				case EGameDataUnit.BigFileFilenames: return ".bff";
-				case EGameDataUnit.BigFileHashes: return ".bfh";
-				default: return ".???";
-			}
 		}
 
 		public string FilePath { get; private set; }
 		public Hash160 Hash { get; set; }
 		public Int32 Index { get; set; }
-		private Int32 Units { get; set; }
+		private State[] States { get; set; } = new State[EGameDataUnit.Count];
 		private Dependency Dep { get; set; }
 
-		public State StateOf(EGameDataUnit pu)
+		public State StateOf(EGameDataUnit u)
 		{
-			return State.FromRaw((SByte)(Units >> (int)pu));
+			return States[(int)u];
 		}
 
 		public State StateOf(params EGameDataUnit[] pu)
 		{
-			Int32 u = 0;
+			State s = new State();
 			foreach (var item in pu)
-			{
-				u |= ((Units >> (int)item) & 0x3);
-			}
-			return State.FromRaw((SByte)(u));
+				s.Merge(States[(int)u]);
+			return s;
 		}
 
-		private GameDataUnit() { }
+		private GameDataUnit() : this(string.Empty, -1)	{}
 
 		public GameDataUnit(string filepath, Int32 index)
 		{
@@ -306,13 +283,10 @@ namespace DataBuildSystem
 			Hash = HashUtility.Compute_UTF8(FilePath);
 			Index = index;
 
-			Int32 outofdate = 0;
-			State missing = State.Missing;
-			foreach (var e in (EGameDataUnit[])Enum.GetValues(typeof(EGameDataUnit)))
+			for (int i=0; i<States.Length; ++i)
 			{
-				outofdate = ((missing.AsInt << (int)e) & 0x3);
+				States[i] = State.Missing;
 			}
-			Units = outofdate;
 		}
 
 		public void Verify()
@@ -320,23 +294,17 @@ namespace DataBuildSystem
 			Dep = Dependency.Load(Dependency.EPath.Gdd, FilePath);
 			if (Dep != null)
 			{
-				Int32 outofdate = 0;
-				Dep.Update(delegate (int id, State state)
+				Dep.Update(delegate (int idx, State state)
 				{
-					outofdate |= ((state.AsInt << id) & 0x3);
+					States[idx] = state;
 				});
-				Units = outofdate;
 			}
 			else
 			{
-				State missing = State.Missing;
-
-				Int32 outofdate = 0;
-				foreach (var e in (EGameDataUnit[])Enum.GetValues(typeof(EGameDataUnit)))
+				for (int i=0; i<States.Length; ++i)
 				{
-					outofdate = ((missing.AsInt << (int)e) & 0x3);
+					States[i] = State.Missing;
 				}
-				Units = outofdate;
 
 				Dep = new();
 				foreach (var e in (EGameDataUnit[])Enum.GetValues(typeof(EGameDataUnit)))
@@ -362,7 +330,8 @@ namespace DataBuildSystem
 			writer.Write(FilePath);
 			Hash.WriteTo(writer);
 			writer.Write(Index);
-			writer.Write(Units);
+			for (int i=0; i<States.Length; ++i)
+				writer.Write(States[i].AsInt);
 			Dep.WriteTo(writer);
 		}
 
@@ -372,7 +341,8 @@ namespace DataBuildSystem
 			gdu.FilePath = reader.ReadString();
 			gdu.Hash = Hash160.ReadFrom(reader);
 			gdu.Index = reader.ReadInt32();
-			gdu.Units = reader.ReadInt32();
+			for (int i=0; i<States.Length; ++i)
+				gdu.Units[i] = new State(reader.ReadInt32());
 			gdu.Dep = Dependency.ReadFrom(reader);
 			return gdu;
 		}

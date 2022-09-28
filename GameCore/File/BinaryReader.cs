@@ -7,6 +7,9 @@ namespace GameCore
 
     public interface IBinaryReader
     {
+        Int64 Position { get; }
+        Int64 Length { get; }
+
         bool SkipBytes(Int64 size);
         byte[] ReadBytes(int size);
         sbyte ReadInt8();
@@ -45,6 +48,9 @@ namespace GameCore
 
         #endregion
         #region IBinaryReader Members
+
+        public Int64 Position { get { return mReader.Position; } }
+        public Int64 Length { get { return mReader.Length; } }
 
         public bool SkipBytes(Int64 numbytes)
         {
@@ -149,6 +155,9 @@ namespace GameCore
 
         #endregion
         #region IBinaryReader Members
+
+        public Int64 Position { get { return mReader.Position; } }
+        public Int64 Length { get { return mReader.Length; } }
 
         public bool SkipBytes(Int64 numbytes)
 		{
@@ -256,6 +265,9 @@ namespace GameCore
                 mFileStream.Close();
             }
         }
+
+        public Int64 Position { get { return mBinaryReader.Position; } }
+        public Int64 Length { get { return mBinaryReader.Length; } }
 
         public bool SkipBytes(Int64 numbytes)
         {

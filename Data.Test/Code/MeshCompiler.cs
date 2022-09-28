@@ -8,22 +8,24 @@ namespace GameData
     // e.g. new MeshCompiler("Models/Car.tri");
     public class MeshCompiler : IDataCompiler, IDataCompilerClient, IFileIdsProvider
     {
-        private  string mSrcFilename;
-        private  string mDstFilename;
-        private FileId mFileId = new();
-        private EDataCompilerStatus mStatus = EDataCompilerStatus.NONE;
+        private string mSrcFilename;
+        private string mDstFilename;
 
         public MeshCompiler(string filename) : this(filename, filename)
         {
         }
+
         public MeshCompiler(string srcfilename, string dstfilename)
         {
             mSrcFilename = srcfilename;
             mDstFilename = dstfilename;
-            mFileId = FileId.NewInstance(mDstFilename);
         }
 
-        public EDataCompilerStatus CompilerStatus { get { return mStatus; } }
+        public void CompilerSignature(IBinaryWriter stream)
+        {
+			stream.Write(mSrcFilename);
+			stream.Write(mDstFilename);
+        }
 
         public void CompilerSetup()
         {
@@ -33,22 +35,18 @@ namespace GameData
         {
 			stream.Write(mSrcFilename);
 			stream.Write(mDstFilename);
-			stream.Write((byte)mStatus);
             
             // Save dependency information
+
         }
 
-        public Hash160 CompilerRead(IBinaryReader stream)
+        public void CompilerRead(IBinaryReader stream)
         {
 			mSrcFilename = stream.ReadString();
 			mDstFilename = stream.ReadString();
-			mStatus = (EDataCompilerStatus)stream.ReadUInt8();
-            mFileId = FileId.NewInstance(mDstFilename);
 
             // Load dependency information
 
-            // Return hash signature of this compiler
-            return Hash160.Empty;
         }
 
         public void CompilerExecute()
@@ -64,6 +62,6 @@ namespace GameData
 
         }
 
-        public FileId[] FileIds { get { return new FileId[] { mFileId }; } }
+        public FileId[] FileIds { get { return new FileId[] { FileId.NewInstance(mDstFilename) }; } }
     }
 }
