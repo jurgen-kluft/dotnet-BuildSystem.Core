@@ -3,24 +3,11 @@
 - glTF to C# convertor
 - Texture Converter
 - Need to be able to embed an external file in game data (might come from a DataCompiler(texture / audio ?))
-- A compiler that can generate a pak-file (e.g. bigfile)
+- A compiler that can generate a bigfile (e.g. bigfile)
   - Option; Reference/Embed
   - Can have external File-Id's ? (shared textures / music / skybox / characters)
 
-## TODO
-
-Need to setup some examples in C# to get a good idea of how this is going to look like.
-
-Should we break-up the C# compilation into modules, or should we alway compile all of the modules:
-
-- Objects
-- Characters
-- Materials
-- Textures
-- Sound
-- World
-
-## Object
+## Objects (C# to C++/C)
 
 - Components
   - CompRender

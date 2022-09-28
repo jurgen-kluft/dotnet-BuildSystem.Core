@@ -91,6 +91,10 @@ namespace DataBuildSystem
         {
             get { return Ids.Count; }
         }
+
+        /// Note: We could make each entry just a byte Array, this would be
+        /// a very specific optimizations which will speed up the loading.
+
         private List<byte> Paths { get; set; } = new List<byte>();
         private List<string> SubFilePaths { get; set; } = new List<string>();
         private List<int> Ids { get; set; } = new List<int>();
