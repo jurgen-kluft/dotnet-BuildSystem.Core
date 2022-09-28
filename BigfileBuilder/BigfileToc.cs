@@ -53,7 +53,7 @@ namespace DataBuildSystem
             StreamOffset[] offsets { get; set; }
             UInt32 size { get; set; }
             bool compressed { get; set; }
-            Filename filename { get; set; }
+            string filename { get; set; }
             Hash160 hash { get; set; }
             Hash160 contenthash { get; set; }
 
@@ -82,11 +82,11 @@ namespace DataBuildSystem
             {
                 return new TocEntry();
             }
-            public static ITocEntry Create(StreamOffset fileOffset, UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
+            public static ITocEntry Create(StreamOffset fileOffset, UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileOffset, fileSize, filename, type, contentHash);
             }
-            public static ITocEntry Create(UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
+            public static ITocEntry Create(UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileSize, filename, type, contentHash);
             }
@@ -138,7 +138,7 @@ namespace DataBuildSystem
 
             private StreamOffset[] mFileOffsets;
             private UInt32 mFileSize;
-            private Filename mFilename;
+            private string mFilename;
             private Hash160 mHash;
             private Hash160 mContentHash;
             private StreamOffset[] mEmptyOffset = new StreamOffset[] { StreamOffset.Empty };
@@ -149,29 +149,29 @@ namespace DataBuildSystem
             public TocEntry()
             {
                 mFileOffsets = null;
-                mFilename = Filename.Empty;
+                mFilename = string.Empty;
                 mHash = Hash160.Empty;
                 mContentHash = Hash160.Empty;
                 size = 0;
                 compressed = false;
             }
-            public TocEntry(Filename filename, ECompressed type, Hash160 contentHash)
+            public TocEntry(string filename, ECompressed type, Hash160 contentHash)
             {
                 mFileOffsets = null;
                 mFilename = filename;
-                mHash = Hash160.FromString(mFilename.ToString().ToLower());
+                mHash = Hash160.FromString(mFilename.ToLower());
                 mContentHash = contentHash;
 
                 size = 0;
                 compressed = (type == ECompressed.YES);
             }
-            public TocEntry(StreamOffset fileOffset, UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
+            public TocEntry(StreamOffset fileOffset, UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
                 : this(filename, type, contentHash)
             {
                 mFileOffsets = new StreamOffset[] { fileOffset };
                 size = fileSize;
             }
-            public TocEntry(UInt32 fileSize, Filename filename, ECompressed type, Hash160 contentHash)
+            public TocEntry(UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
                 : this(filename, type, contentHash)
             {
                 mFileOffsets = null;
@@ -221,7 +221,7 @@ namespace DataBuildSystem
                 }
             }
 
-            public Filename filename
+            public string filename
             {
                 get
                 {
@@ -484,7 +484,7 @@ namespace DataBuildSystem
                         break;
                     case 1: // Read the Filename(string)[]
                         {
-                            Filename filename = new Filename(reader.ReadString());
+                            string filename = reader.ReadString();
                             e.filename = filename;
                         }
                         break;
@@ -772,7 +772,7 @@ namespace DataBuildSystem
         }
 
         /// <summary>
-        /// The Hdb (holding Hash128[]) consists of 1 iteration
+        /// The Hdb (holding Hash160[]) consists of 1 iteration
         /// 
         ///     Iteration 1:
         ///         Write every hash of every TocEntry
@@ -836,7 +836,7 @@ namespace DataBuildSystem
 
         private static IBigfileConfig sConfig = new BigfileDefaultConfig();
         private readonly List<ITocEntry> mTable = new List<ITocEntry>();
-        private readonly Dictionary<Filename, UInt32> mFilenameToFileEntryIndexDictionary = new Dictionary<Filename, UInt32>(new FilenameInsensitiveComparer());
+        private readonly Dictionary<string, UInt32> mFilenameToFileEntryIndexDictionary = new Dictionary<string, UInt32>(StringComparer.CurrentCultureIgnoreCase);
 
         #endregion
         #region Properties
@@ -875,10 +875,10 @@ namespace DataBuildSystem
             sConfig = config;
         }
 
-        public static bool exists(Filename filename)
+        public static bool exists(string filename)
         {
-            Filename bigFileTocFilename = filename;
-            bigFileTocFilename.Extension = sConfig.BigFileTocExtension;
+            string bigFileTocFilename = filename;
+            bigFileTocFilename = Path.ChangeExtension(bigFileTocFilename , sConfig.BigFileTocExtension);
             FileInfo fileInfo = new FileInfo(bigFileTocFilename);
             return fileInfo.Exists;
         }
@@ -952,7 +952,7 @@ namespace DataBuildSystem
             binaryReader.Close();
         }
 
-        private static FileStream sOpenFileStreamForReading(Filename filename)
+        private static FileStream sOpenFileStreamForReading(string filename)
         {
             FileInfo fileInfo = new FileInfo(filename);
             if (!fileInfo.Exists)
@@ -964,13 +964,13 @@ namespace DataBuildSystem
             return fileStream;
         }
 
-        public bool load(Filename filename, EEndian endian)
+        public bool load(string filename, EEndian endian)
         {
             try
             {
-                FileStream bigFileTocFileStream = sOpenFileStreamForReading(filename.ChangedExtension(BigfileConfig.BigFileTocExtension));
-                FileStream bigFileFdbFileStream = sOpenFileStreamForReading(filename.ChangedExtension(BigfileConfig.BigFileFdbExtension));
-                FileStream bigFileHdbFileStream = sOpenFileStreamForReading(filename.ChangedExtension(BigfileConfig.BigFileHdbExtension));
+                FileStream bigFileTocFileStream = sOpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileTocExtension));
+                FileStream bigFileFdbFileStream = sOpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileFdbExtension));
+                FileStream bigFileHdbFileStream = sOpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileHdbExtension));
                 {
                     try
                     {
@@ -1016,7 +1016,7 @@ namespace DataBuildSystem
             }
         }
 
-        private static FileStream sOpenFileStreamForWriting(Filename filename)
+        private static FileStream sOpenFileStreamForWriting(string filename)
         {
             FileInfo fileInfo = new FileInfo(filename);
             if (!fileInfo.Exists)
@@ -1028,15 +1028,15 @@ namespace DataBuildSystem
             return fileStream;
         }
 
-        public bool save(Filename bigfileFilename, EEndian endian)
+        public bool save(string bigfileFilename, EEndian endian)
         {
             sort();
 
             try
             {
-                FileStream bigFileTocFileStream = sOpenFileStreamForWriting(bigfileFilename.ChangedExtension(BigfileConfig.BigFileTocExtension));
-                FileStream bigFileFdbFileStream = sOpenFileStreamForWriting(bigfileFilename.ChangedExtension(BigfileConfig.BigFileFdbExtension));
-                FileStream bigFileHdbFileStream = sOpenFileStreamForWriting(bigfileFilename.ChangedExtension(BigfileConfig.BigFileHdbExtension));
+                FileStream bigFileTocFileStream = sOpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
+                FileStream bigFileFdbFileStream = sOpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileFdbExtension));
+                FileStream bigFileHdbFileStream = sOpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileHdbExtension));
 
                 {
                     try

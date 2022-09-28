@@ -9,9 +9,9 @@ namespace GameCore
     {
         #region Fields
 
-        public readonly static StreamFile Empty = new StreamFile(Filename.Empty, 0, StreamOffset.Empty);
+        public readonly static StreamFile Empty = new StreamFile(string.Empty, 0, StreamOffset.Empty);
 
-        private Filename mFilename;
+        private string mFilename;
         private readonly Int64 mFileSize;
         private StreamOffset[] mFileOffsets;
 
@@ -25,14 +25,14 @@ namespace GameCore
             mFileOffsets = file.offsets;
         }
 
-        public StreamFile(Filename filename, Int64 size, StreamOffset offset)
+        public StreamFile(string filename, Int64 size, StreamOffset offset)
         {
             mFilename = filename;
             mFileSize = size;
             mFileOffsets = new StreamOffset[] { offset };
         }
 
-        public StreamFile(Filename filename, Int64 size, StreamOffset[] offsets)
+        public StreamFile(string filename, Int64 size, StreamOffset[] offsets)
         {
             mFilename = filename;
             mFileSize = size;
@@ -47,11 +47,11 @@ namespace GameCore
         {
             get
             {
-                return mFileSize == 0 && mFileOffsets[0].isEmpty && mFilename.IsEmpty;
+                return mFileSize == 0 && mFileOffsets[0].isEmpty && mFilename  == string.Empty;
             }
         }
 
-        public Filename filename
+        public string filename
         {
             set
             {
@@ -602,7 +602,7 @@ namespace GameCore
         #endregion
         #region Build
 
-        public void Build(List<StreamFile> srcFiles, Filename dstFile)
+        public void Build(List<StreamFile> srcFiles, string dstFile)
         {
             mCache = new StreamCache[2];
 
@@ -614,7 +614,7 @@ namespace GameCore
             }
             Int64 fileSize = offset;
 
-            mDstFilestream = new FileStream(dstFile.ToString(), FileMode.Create, FileAccess.Write, FileShare.Write, 8, FileOptions.WriteThrough | FileOptions.Asynchronous);
+            mDstFilestream = new FileStream(dstFile, FileMode.Create, FileAccess.Write, FileShare.Write, 8, FileOptions.WriteThrough | FileOptions.Asynchronous);
             mDstFilestream.SetLength(fileSize);
             mDstFilestream.Position = 0;
 

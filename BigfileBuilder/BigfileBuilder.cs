@@ -13,16 +13,16 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private readonly Dirname mBigfileFolder;
-        private readonly Filename mBigfileFilename;
+        private readonly string mBigfileFolder;
+        private readonly string mBigfileFilename;
 
         private List<Hash160> mFileHash = new List<Hash160>();
         private List<BigfileFile> mBigfileFiles = new List<BigfileFile>();
-        private Dictionary<Filename, int> mFile = new Dictionary<Filename, int>(new FilenameInsensitiveComparer());
+        private Dictionary<string, int> mFile = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
 
-        private Dirname mDstPath;
-        private Dirname mSubPath;
-        private Dirname mDepPath;
+        private string mDstPath;
+        private string mSubPath;
+        private string mDepPath;
 
         private Bigfile mBigFile;
         private BigfileToc mBigFileToc;
@@ -49,7 +49,7 @@ namespace DataBuildSystem
         /// <summary>
         /// A file to add to the data archive, return the fileId
         /// </summary>
-        public Int32 add(Filename filename)
+        public Int32 add(string filename)
         {
             int i;
             if (!mFile.TryGetValue(filename, out i))
@@ -60,7 +60,7 @@ namespace DataBuildSystem
             }
             return i;
         }
-        public Int32 add(Filename filename, Hash160 md5)
+        public Int32 add(string filename, Hash160 md5)
         {
             int i;
             if (!mFile.TryGetValue(filename, out i))
@@ -80,9 +80,9 @@ namespace DataBuildSystem
             // MD5 -> <Offset, Size> dictionary
             mBigfileFiles.Clear();
             Dictionary<Hash160, BigfileFile> md5Dictionary = new Dictionary<Hash160, BigfileFile>();
-            foreach (KeyValuePair<Filename, int> p in mFile)
+            foreach (KeyValuePair<string, int> p in mFile)
             {
-                Filename f = p.Key;
+                string f = p.Key;
                 Hash160 fileHash = mFileHash[p.Value];
 
                 BigfileFile existingBigfileFile;
@@ -168,21 +168,21 @@ namespace DataBuildSystem
         /// Build the big file and TOC
         /// </summary>
         /// <returns>True if build was successful</returns>
-        public bool build2(Dirname dataPath, EEndian endian)
+        public bool build2(string dataPath, EEndian endian)
         {
             List<BigfileFile> bigfileFiles = new List<BigfileFile>();
 
             // MD5 -> <Offset, Size> dictionary
             Dictionary<Hash160, BigfileFile> md5Dictionary = new Dictionary<Hash160, BigfileFile>();
-            foreach (KeyValuePair<Filename, int> p in mFile)
+            foreach (KeyValuePair<string, int> p in mFile)
             {
-                Filename f = p.Key;
+                string f = p.Key;
                 Hash160 fileHash = mFileHash[p.Value];
 
                 BigfileFile existingBigfileFile;
                 if (!md5Dictionary.TryGetValue(fileHash, out existingBigfileFile))
                 {
-                    FileInfo fileInfo = new FileInfo(dataPath + f);
+                    FileInfo fileInfo = new FileInfo(Path.Join(dataPath , f));
                     if (fileInfo.Exists)
                     {
                         UInt32 sizeOfFile = (UInt32)fileInfo.Length;
@@ -202,11 +202,11 @@ namespace DataBuildSystem
             // Build list of stream files that should go into the Bigfile
             List<StreamFile> srcFiles = new List<StreamFile>();
             foreach(BigfileFile bff in bigfileFiles)
-                srcFiles.Add(new StreamFile(dataPath + bff.filename, bff.size, bff.offsets));
+                srcFiles.Add(new StreamFile(Path.Join(dataPath, bff.filename), bff.size, bff.offsets));
 
             // Write all files to the Bigfile
             StreamBuilder streamBuilder = new StreamBuilder();
-            streamBuilder.Build(srcFiles, mDstPath + mSubPath + mBigfileFilename.ChangedExtension(BigfileConfig.BigFileExtension));
+            streamBuilder.Build(srcFiles, Path.Join(mDstPath , mSubPath, Path.ChangeExtension(mBigfileFilename, BigfileConfig.BigFileExtension)));
 
             // Create the BigfileToc and add BigfileFiles to it with information from
             // the StreamBuilder.
@@ -227,7 +227,7 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool load(Dirname dstPath, EEndian endian, Dictionary<Filename, Hash160> filenameToHashDictionary)
+        public bool load(Dirname dstPath, EEndian endian, Dictionary<string, Hash160> filenameToHashDictionary)
         {
             mFile.Clear();
             mFileHash.Clear();
@@ -236,7 +236,7 @@ namespace DataBuildSystem
             bigFile.open(mDstPath + mSubPath + mBigfileFilename, Bigfile.EMode.READ);
 
             BigfileToc bigFileToc = new BigfileToc();
-            if (bigFileToc.load(mDstPath + mSubPath + mBigfileFilename, endian))
+            if (bigFileToc.load(Path.Join(mDstPath , mSubPath , mBigfileFilename), endian))
             {
                 for (int i = 0; i < bigFileToc.Count; i++)
                 {
@@ -279,9 +279,9 @@ namespace DataBuildSystem
 
             bigfileFiles.ForEach(mBigFileToc.add);
 
-            if (!mBigFileToc.save(mDstPath + mSubPath + mBigfileFilename.ChangedExtension(BigfileConfig.BigFileTocExtension), endian))
+            if (!mBigFileToc.save(mDstPath + mSubPath + Path.ChangeExtension(mBigfileFilename, BigfileConfig.BigFileTocExtension), endian))
             {
-                Console.WriteLine("Error saving {0}", mBigfileFilename.ChangedExtension(BigfileConfig.BigFileTocExtension));
+                Console.WriteLine("Error saving {0}", Path.ChangeExtension(mBigfileFilename, BigfileConfig.BigFileTocExtension));
                 return false;
             }
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.Loader;
 
 using GameCore;
+using GameData;
 
 namespace DataBuildSystem
 {
@@ -138,9 +139,9 @@ namespace DataBuildSystem
 				{
 					Console.WriteLine("------ Initializing data compilation");
 					start = DateTime.Now;
-					bool dataCompilationInitializationResult = dataAssemblyManager.initializeDataCompilation();
+					List<IDataCompiler> compilers = dataAssemblyManager.InitializeDataCompilation();
 					end = DateTime.Now;
-					if (dataCompilationInitializationResult)
+					if (compilers.Count>0)
 					{
 						Console.WriteLine("Finished initialization -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 

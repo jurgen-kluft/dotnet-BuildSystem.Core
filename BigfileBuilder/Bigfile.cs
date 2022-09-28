@@ -23,28 +23,28 @@ namespace DataBuildSystem
         #endregion
         #region Methods
 
-		public static bool exists(Filename filename)
+		public static bool exists(string filename)
 		{
-			Filename bigFileFilename = new Filename(filename + BigfileConfig.BigFileExtension);
+			string bigFileFilename = Path.ChangeExtension(filename, BigfileConfig.BigFileExtension);
 			FileInfo fileInfo = new FileInfo(bigFileFilename);
 			return fileInfo.Exists;
 		}
 
-        public bool open(Filename filename, EMode mode)
+        public bool open(string filename, EMode mode)
         {
 			try
 			{
 				close();
 
-                Filename bigFilename = new Filename(filename);
-                bigFilename.Extension = BigfileConfig.BigFileExtension;
+                string bigFilename = filename;
+                bigFilename = Path.ChangeExtension(bigFilename, BigfileConfig.BigFileExtension);
 				FileInfo bigfileInfo = new FileInfo(bigFilename);
 
                 mReadCache = new byte[BigfileConfig.ReadBufferSize];
 
                 if (mode == EMode.WRITE)
                 {
-                    DirUtils.Create(bigFilename.AbsolutePath);
+                    DirUtils.Create(bigFilename);
 
                     if (!bigfileInfo.Exists)
                     {
@@ -150,7 +150,7 @@ namespace DataBuildSystem
         /// <param name="path">The absolute path of where 'files' can be found</param>
         /// <param name="files">All the files to include in the Bigfile</param>
         /// <returns>True if successful</returns>
-        public bool save(Dirname path, List<BigfileFile> files)
+        public bool save(string path, List<BigfileFile> files)
         {
             try
             {
@@ -163,7 +163,7 @@ namespace DataBuildSystem
                 {
                     BigfileFile e = files[i];
 
-                    FileInfo fileInfo = new FileInfo(path + e.filename);
+                    FileInfo fileInfo = new FileInfo(Path.Join(path, e.filename));
                     if (!fileInfo.Exists)
                     {
                         e.offsets = new StreamOffset[] { StreamOffset.Empty };

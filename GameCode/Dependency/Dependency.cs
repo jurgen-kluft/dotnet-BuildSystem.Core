@@ -21,12 +21,29 @@ namespace DataBuildSystem
 		public static readonly State Missing = new() { StateValue = (sbyte)StateEnum.Missing };
 		public static readonly State Modified = new() { StateValue = (sbyte)StateEnum.Modified };
 
-		public static State FromRaw(sbyte b) { return new () { StateValue = b & 0x3; } }
+        public static State FromRaw(sbyte b) { return new() { StateValue = (sbyte)(b & 0x3) }; }
 
-		public bool IsOk { get { return StateValue == 0; } }
-		public bool IsModified { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Modified)) != 0; } }
+        public bool IsOk { get { return StateValue == 0; } }
+        public bool IsNotOk { get { return StateValue != 0; } }
+        public bool IsModified { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Modified)) != 0; } }
 		public bool IsMissing { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Missing)) != 0; } }
-	}
+
+        public static bool operator ==(State b1, State b2)
+        {
+            return b1.AsInt == b2.AsInt;
+        }
+
+        public static bool operator !=(State b1, State b2)
+        {
+            return b1.AsInt != b2.AsInt;
+        }
+
+        public override bool Equals(object obj)
+        {
+            State other = (State)obj;
+            return this.AsInt == other.AsInt;
+        }
+    }
 
     public class Dependency
     {

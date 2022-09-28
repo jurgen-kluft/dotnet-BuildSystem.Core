@@ -33,65 +33,80 @@ namespace DataBuildSystem
 			mGameDataAssembly = null;
 		}
 
-		public void Update(string srcpath, string dstpath)
+		public State Update(string srcpath, string dstpath)
 		{
 			// Foreach DataUnit that is out-of-date or missing
 			foreach (GameDataUnit gdu in DataUnits)
 			{
 				gdu.Verify();
+				State gduGameDataDll = gdu.StateOf(EGameDataUnit.GameDataDll);
+				State gduCompilerLog = gdu.StateOf(EGameDataUnit.GameDataCompilerLog);
+				State gduGameDataData = gdu.StateOf(EGameDataUnit.GameDataData, EGameDataUnit.GameDataRelocation);
+				State gduBigfile = gdu.StateOf(EGameDataUnit.BigFileData, EGameDataUnit.BigFileToc, EGameDataUnit.BigFileFilenames, EGameDataUnit.BigFileHashes);
 
-				bool gduGameDataDll = gdu.StateOf(EGameDataUnit.GameDataDll);
-				bool gduCompilerLog = gdu.StateOf(EGameDataUnit.GameDataCompilerLog);
-				bool gduGameDataData = gdu.StateOf(EGameDataUnit.GameDataData, EGameDataUnit.GameDataRelocation);
-				bool gduBigfile = gdu.StateOf(EGameDataUnit.BigFileData, EGameDataUnit.BigFileToc, EGameDataUnit.BigFileFilenames, EGameDataUnit.BigFileHashes);
-
-				//       Case A:
-				//           - 'Game Data DLL' is out-of-date
-				//              - Load the 'Game Data DLL'
-				//              - DataAssemblyManager:
-				//                 - Find IDataRoot object
-				//                 - Instanciate the root object
-				//                 - Collect all IDataCompiler objects
-				//              - Load 'Game Data Compiler Log'
-				//                - See if there are any missing/added/changed IDataCompiler objects
-				//                - So a IDataCompiler needs to build a unique Hash of itself!
-				//                - Save 'Game Data Compiler Log'
-				//              - If 'Game Data Compiler Log' was identical -> Case B or Case D
-				//              - Else -> Case C
-				if (!gduGameDataDll)
+				// Case A
+				if (gduGameDataDll.IsNotOk)
 				{
 					Assembly gdasm = LoadAssembly(gdu.FilePath);
 					DataAssemblyManager dam = new(gdasm);
 
 					List<GameData.IDataCompiler> compilers = dam.InitializeDataCompilation();
-					GameDataCompilerLog compilerLog = new();
-					if (gduGameDataData && gduBigfile)
-					{
-						// Game Data and Bigfile are untouched, if the 'Game Data Compiler Log' is up-to-date then we do not
-						// need to do anything
-						if (compilerLog.Verify(compilers) == GameDataCompilerLog.UpToDate) // See if compiler log is up-to-date, including the source files
-						{
 
+					GameDataCompilerLog compilerLog = new(gdu.GetFilePathFor(EGameDataUnit.GameDataCompilerLog));
+					if (gduGameDataData.IsOk && gduBigfile.IsOk)
+					{
+						// See if compiler log is up-to-date, including the source files
+						Result result = compilerLog.Verify(compilers);
+						if (result == Result.Ok) 
+						{
+							UnloadAssembly();
+							continue;
+						}
+						else if (result == Result.OutOfData)
+						{
+							compilerLog.Merge(compilers);
+							compilerLog.Execute();
+
+							// Compiler log is updated -> rebuild the Bigfiles
+							GameDataBigfile bigfile = new(gdu.GetFilePathFor(EGameDataUnit.BigFileData));
+							bigfile.BuildAndSave();
 						}
 					}
+					UnloadAssembly();
+					continue;
 				}
 
-				//       Case B:
-				//           - 'BigFile Toc/Filename/Hash Files' is out-of-date/missing
-				//           - Load 'Game Data Compiler Log'
-				//           - Using 'Game Data Compiler Log' check if all 'source' and 'destination' files are up-to-date
-				//             - If not up-to-date execute 'Game Data Compiler Log'
-				//           - Build a database of Hash-FileId, sort Hashes and assign FileId
-				//           - Load the 'Game Data DLL'
-				//              - Find IDataRoot object
-				//              - Instanciate the root object
-				//              - Hand-out all the FileId's
-				//              - Save 'Game Data File' and 'Game Data Relocation File'
-				//              - Save 'BigFile Toc/Filename/Hash Files'
-				if (!gduBigfile)
+				// Case B
+				if (gduBigfile.IsNotOk)
 				{
+					Assembly gdasm = LoadAssembly(gdu.FilePath);
+					DataAssemblyManager dam = new(gdasm);
 
+					List<GameData.IDataCompiler> compilers = dam.InitializeDataCompilation();
 
+					GameDataCompilerLog compilerLog = new(gdu.GetFilePathFor(EGameDataUnit.GameDataCompilerLog));
+
+					Result result = Result.Ok;
+					if (gduCompilerLog.IsMissing)
+					{
+						result = compilerLog.Create(compilers);
+					}
+					else if (gduCompilerLog.IsModified)
+					{
+						result = compilerLog.Verify(compilers);
+					}
+
+					if (result == Result.OutOfData)
+					{
+						compilerLog.Merge(compilers);
+						compilerLog.Execute();
+					}
+
+					GameDataBigfile bigfile = new(gdu.GetFilePathFor(EGameDataUnit.BigFileData));
+					bigfile.BuildAndSave();
+
+					UnloadAssembly();
+					continue;
 				}
 
 				//       Case C:
@@ -105,7 +120,7 @@ namespace DataBuildSystem
 				//              - Hand-out all the FileId's
 				//              - Save 'Game Data File' and 'Game Data Relocation File'
 				//              - Save 'BigFile Toc/Filename/Hash Files'
-				if (!gduCompilerLog)
+				if (!gduCompilerLog.IsOk)
 				{
 
 
@@ -123,7 +138,7 @@ namespace DataBuildSystem
 				//              - Hand-out all the FileId's
 				//              - Save 'Game Data File' and 'Game Data Relocation File'
 				//              - Save 'BigFile Toc/Filename/Hash Files'
-				if (!gduGameDataData)
+				if (!gduGameDataData.IsOk)
 				{
 
 
@@ -133,6 +148,8 @@ namespace DataBuildSystem
 				// - cook
 				// - save all output (compiler log, gamedata, bigfile)
 			}
+
+			return State.Ok;
 		}
 
 		public void Load(string dstpath, string gddpath)
@@ -223,34 +240,39 @@ namespace DataBuildSystem
 
 	public class GameDataUnit
 	{
-		public static EPath GetPathFor(EGameDataUnit unit) 
+		public static Dependency.EPath GetPathFor(EGameDataUnit unit)
 		{
-			switch (unit) 
+			switch (unit)
 			{
-				case GameDataDll: return Dependency.EPath.Gdd;
-				case GameDataCompilerLog: 
-				case GameDataData: 
-				case GameDataRelocation:
-				case BigFileData:
-				case BigFileToc:
-				case BigFileFilenames: 
-				case BigFileHashes: 
-				default: return return Dependency.EPath.Dst;
+				case EGameDataUnit.GameDataDll: return Dependency.EPath.Gdd;
+				case EGameDataUnit.GameDataCompilerLog:
+				case EGameDataUnit.GameDataData:
+				case EGameDataUnit.GameDataRelocation:
+				case EGameDataUnit.BigFileData:
+				case EGameDataUnit.BigFileToc:
+				case EGameDataUnit.BigFileFilenames:
+				case EGameDataUnit.BigFileHashes:
+				default: return Dependency.EPath.Dst;
 			}
+		}
+
+		public string GetFilePathFor(EGameDataUnit unit)
+		{
+			return Path.Join(BuildSystemCompilerConfig.DstPath, Path.ChangeExtension(FilePath, GetExtFor(unit)));
 		}
 
 		public static string GetExtFor(EGameDataUnit unit)
 		{
-			switch (unit) 
+			switch (unit)
 			{
-				case GameDataDll: return ".dll";
-				case GameDataCompilerLog: return ".gdcl";
-				case GameDataData: return ".gdd";
-				case GameDataRelocation:return ".gdr";
-				case BigFileData:return ".bfd";
-				case BigFileToc:return ".bft";
-				case BigFileFilenames: return ".bff";
-				case BigFileHashes: return ".bfh";
+				case EGameDataUnit.GameDataDll: return ".dll";
+				case EGameDataUnit.GameDataCompilerLog: return ".gdcl";
+				case EGameDataUnit.GameDataData: return ".gdd";
+				case EGameDataUnit.GameDataRelocation: return ".gdr";
+				case EGameDataUnit.BigFileData: return ".bfd";
+				case EGameDataUnit.BigFileToc: return ".bft";
+				case EGameDataUnit.BigFileFilenames: return ".bff";
+				case EGameDataUnit.BigFileHashes: return ".bfh";
 				default: return ".???";
 			}
 		}
@@ -263,7 +285,7 @@ namespace DataBuildSystem
 
 		public State StateOf(EGameDataUnit pu)
 		{
-			return State.FromRaw((SByte)(units >> (int)pu));
+			return State.FromRaw((SByte)(Units >> (int)pu));
 		}
 
 		public State StateOf(params EGameDataUnit[] pu)
@@ -271,9 +293,9 @@ namespace DataBuildSystem
 			Int32 u = 0;
 			foreach (var item in pu)
 			{
-				u |= ((Units >> item) & 0x3);
+				u |= ((Units >> (int)item) & 0x3);
 			}
-			return State.FromRaw((SByte)(u);
+			return State.FromRaw((SByte)(u));
 		}
 
 		private GameDataUnit() { }
@@ -283,7 +305,14 @@ namespace DataBuildSystem
 			FilePath = filepath;
 			Hash = HashUtility.Compute_UTF8(FilePath);
 			Index = index;
-			Units = (int)EGameDataUnit.All;
+
+			Int32 outofdate = 0;
+			State missing = State.Missing;
+			foreach (var e in (EGameDataUnit[])Enum.GetValues(typeof(EGameDataUnit)))
+			{
+				outofdate = ((missing.AsInt << (int)e) & 0x3);
+			}
+			Units = outofdate;
 		}
 
 		public void Verify()
@@ -291,27 +320,28 @@ namespace DataBuildSystem
 			Dep = Dependency.Load(Dependency.EPath.Gdd, FilePath);
 			if (Dep != null)
 			{
-				Int32 outofdate = StateOf(EGameDataUnit.SourceFiles) << (int)EGameDataUnit.SourceFiles;
-				Dep.Update(delegate(int id, State state){
+				Int32 outofdate = 0;
+				Dep.Update(delegate (int id, State state)
+				{
 					outofdate |= ((state.AsInt << id) & 0x3);
-				})
+				});
 				Units = outofdate;
 			}
 			else
-			{	
+			{
 				State missing = State.Missing;
 
-				Int32 outofdate;
-				foreach (var e in (EGameDataUnit[]) Enum.GetValues(typeof(EGameDataUnit)))
+				Int32 outofdate = 0;
+				foreach (var e in (EGameDataUnit[])Enum.GetValues(typeof(EGameDataUnit)))
 				{
-					outofdate = ((missing.AsInt << e) & 0x3);
+					outofdate = ((missing.AsInt << (int)e) & 0x3);
 				}
 				Units = outofdate;
-				
+
 				Dep = new();
-				foreach (var e in (EGameDataUnit[]) Enum.GetValues(typeof(EGameDataUnit)))
+				foreach (var e in (EGameDataUnit[])Enum.GetValues(typeof(EGameDataUnit)))
 				{
-					Dep.Add((int)e,	GetPathFor(e), Path.ChangeExtension(FilePath, GetExtFor(e)));
+					Dep.Add((int)e, GetPathFor(e), Path.ChangeExtension(FilePath, GetExtFor(e)));
 				}
 			}
 		}

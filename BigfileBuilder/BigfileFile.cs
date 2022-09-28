@@ -7,9 +7,9 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        public readonly static BigfileFile Empty = new BigfileFile(Filename.Empty, 0, StreamOffset.Empty);
+        public readonly static BigfileFile Empty = new BigfileFile(string.Empty, 0, StreamOffset.Empty);
 
-        private Filename mFilename;
+        private string mFilename;
         private Int64 mFileSize;
         private StreamOffset[] mFileOffsets;
         private Hash160 mContentHash;                                                  // Content hash
@@ -25,7 +25,7 @@ namespace DataBuildSystem
             mContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(Filename filename, Int64 size)
+        public BigfileFile(string filename, Int64 size)
         {
             mFilename = filename;
             mFileSize = size;
@@ -33,7 +33,7 @@ namespace DataBuildSystem
             mContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(Filename filename, Int64 size, StreamOffset offset)
+        public BigfileFile(string filename, Int64 size, StreamOffset offset)
         {
             mFilename = filename;
             mFileSize = size;
@@ -41,7 +41,7 @@ namespace DataBuildSystem
             mContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(Filename filename, Int64 size, Hash160 contentHash)
+        public BigfileFile(string filename, Int64 size, Hash160 contentHash)
         {
             mFilename = filename;
             mFileSize = size;
@@ -49,7 +49,7 @@ namespace DataBuildSystem
             mContentHash = contentHash;
         }
 
-        public BigfileFile(Filename filename, Int64 size, StreamOffset offset, Hash160 contentHash)
+        public BigfileFile(string filename, Int64 size, StreamOffset offset, Hash160 contentHash)
         {
             mFilename = filename;
             mFileSize = size;
@@ -57,7 +57,7 @@ namespace DataBuildSystem
             mContentHash = contentHash;
         }
         
-        public BigfileFile(Filename filename, Int64 size, StreamOffset[] offsets)
+        public BigfileFile(string filename, Int64 size, StreamOffset[] offsets)
         {
             mFilename = filename;
             mFileSize = size;
@@ -66,7 +66,7 @@ namespace DataBuildSystem
             mContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(Filename filename, Int64 size, StreamOffset[] offsets, Hash160 contentHash)
+        public BigfileFile(string filename, Int64 size, StreamOffset[] offsets, Hash160 contentHash)
         {
             mFilename = filename;
             mFileSize = size;
@@ -82,11 +82,11 @@ namespace DataBuildSystem
         {
             get
             {
-                return mFileSize == 0 && mFileOffsets[0].isEmpty && mFilename.IsEmpty;
+                return mFileSize == 0 && mFileOffsets[0].isEmpty && mFilename == string.Empty;
             }
         }
 
-        public Filename filename
+        public string filename
         {
             set
             {
