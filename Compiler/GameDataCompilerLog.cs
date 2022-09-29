@@ -15,42 +15,15 @@ namespace DataBuildSystem
 			FilePath = filepath;
 		}
 
-		public Result Verify(List<GameData.IDataCompiler> compilers)
+		public Result Merge(List<GameData.IDataCompiler> previous_compilers, List<GameData.IDataCompiler> current_compilers, out List<GameData.IDataCompiler> merged_compilers)
 		{
-			//              - Load 'Game Data Compiler Log'
-			//                - See if there are any missing/added/changed IDataCompiler objects
-			//                - Check if all source files are up to date
-			//                - So a IDataCompiler needs to build a unique Hash of itself!
-			//                - Save 'Game Data Compiler Log'
-
-			// Return Ok when both are fine, returns OutOfData when the compiler log is out-of-date
+			merged_compilers = new List<IDataCompiler>(current_compilers.Count);
 			return Result.Ok;
 		}
 
-		public Result Verify()
+		public Result Execute(List<GameData.IDataCompiler> compilers, out List<string> dst_relative_filepaths)
 		{
-			//              - Load 'Game Data Compiler Log'
-			//                - Check if all source files are up to date
-			//                - Check if compiler versions are fine
-			//                - Check if compiler bundle has changed
-			//                - Save 'Game Data Compiler Log'
-
-			// Return Ok when both are fine, returns OutOfData when the compiler log is out-of-date
-			return Result.Ok;
-		}
-
-		public Result Merge(List<GameData.IDataCompiler> previous_compilers, List<GameData.IDataCompiler> current_compilers)
-		{
-			return Result.Ok;
-		}
-
-		public Result Build(List<GameData.IDataCompiler> compilers)
-		{
-			return Result.Ok;
-		}
-
-		public Result Execute()
-		{
+			dst_relative_filepaths = new();
 			return Result.Ok;
 		}
 
@@ -138,6 +111,7 @@ namespace DataBuildSystem
 				reader.Close();
 				return true;
 			}
+			return false;
 		}
 	}
 

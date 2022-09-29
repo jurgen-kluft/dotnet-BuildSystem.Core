@@ -13,7 +13,6 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private readonly string mBigfileFolder;
         private readonly string mBigfileFilename;
 
         private List<Hash160> mFileHash = new List<Hash160>();
@@ -22,7 +21,7 @@ namespace DataBuildSystem
 
         private string mDstPath;
         private string mSubPath;
-        private string mDepPath;
+        private string mPubPath;
 
         private Bigfile mBigFile;
         private BigfileToc mBigFileToc;
@@ -30,14 +29,13 @@ namespace DataBuildSystem
         #endregion
         #region Constructor
 
-        public BigfileBuilder(Dirname dstPath, Dirname subPath, Dirname depPath, Dirname bigfileDstPath, Filename bigfileFilename)
+        public BigfileBuilder(string dstPath, string subPath, string pubPath, string bigfileFilename)
         {
             mDstPath = dstPath;
             mSubPath = subPath;
-            mDepPath = depPath;
+            mPubPath = pubPath;
 
-            mBigfileFolder = bigfileDstPath;
-            mBigfileFilename = bigfileFilename.ChangedExtension(BigfileConfig.BigFileExtension);
+            mBigfileFilename = bigfileFilename;
 
             mBigFile = new Bigfile();
             mBigFileToc = new BigfileToc();
@@ -136,7 +134,7 @@ namespace DataBuildSystem
             simulate();
             {
                 // Opening the Bigfile
-                if (!mBigFile.open(mBigfileFolder + mBigfileFilename, Bigfile.EMode.WRITE))
+                if (!mBigFile.open(Path.Join(mPubPath, mBigfileFilename), Bigfile.EMode.WRITE))
                 {
                     Console.WriteLine("Error opening Bigfile: {0}", mBigfileFilename);
                     return false;
@@ -155,7 +153,7 @@ namespace DataBuildSystem
                 mBigFile.close();
             }
 
-            if (!mBigFileToc.save(mBigfileFolder + mBigfileFilename, endian))
+            if (!mBigFileToc.save(Path.Join(mPubPath, Path.ChangeExtension(mBigfileFilename, BigfileConfig.BigFileTocExtension)), endian))
             {
                 Console.WriteLine("Error saving BigFileToc: {0}", mBigfileFilename);
                 return false;
@@ -227,7 +225,7 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool load(Dirname dstPath, EEndian endian, Dictionary<string, Hash160> filenameToHashDictionary)
+        public bool load(string dstPath, EEndian endian, Dictionary<string, Hash160> filenameToHashDictionary)
         {
             mFile.Clear();
             mFileHash.Clear();
@@ -261,7 +259,7 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool save(Dirname dataPath, List<BigfileFile> bigfileFiles, EEndian endian)
+        public bool save(string dataPath, List<BigfileFile> bigfileFiles, EEndian endian)
         {
             // Opening the Bigfile
             if (!mBigFile.open(mDstPath + mSubPath + mBigfileFilename, Bigfile.EMode.WRITE))
@@ -298,7 +296,7 @@ namespace DataBuildSystem
         /// <param name="remap">The order in which to write the source BigfileFiles (may contain duplicates)</param>
         /// <param name="endian">The BigfileToc needs to know the endian</param>
         /// <returns>True if all went ok</returns>
-        public static bool sReorder(Filename srcFilename, Dirname dataPath, List<BigfileFile> srcBigfileFiles, Filename dstFilename, List<int> remap, EEndian endian)
+        public static bool sReorder(Filename srcFilename, string dataPath, List<BigfileFile> srcBigfileFiles, Filename dstFilename, List<int> remap, EEndian endian)
         {
             BigfileToc bigfileToc = new BigfileToc();
             List<BigfileFile> dstBigfileFiles = new List<BigfileFile>();
@@ -367,7 +365,7 @@ namespace DataBuildSystem
             return false;
         }
 
-		public static bool exists(Dirname PublishPath, Filename bigFileName)
+		public static bool exists(string PublishPath, Filename bigFileName)
 		{
 			return BigfileToc.exists(PublishPath + bigFileName) && Bigfile.exists(PublishPath + bigFileName);
 		}

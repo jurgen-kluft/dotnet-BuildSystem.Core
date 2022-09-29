@@ -357,6 +357,10 @@ namespace GameCore
         {
             return SHA1.Compute(data);
         }
+        public static Hash160 Compute(byte[] data, int start, int length)
+        {
+            return SHA1.Compute(data, start, length);
+        }
 
         public static Hash160 Compute_ASCII(string str)
         {

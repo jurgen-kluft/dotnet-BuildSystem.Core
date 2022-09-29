@@ -111,20 +111,20 @@ namespace DataBuildSystem
 		#endregion
 	}
 
-	public class DataAssemblyManager
+	public class GameDataData
 	{
 		#region FileRegistrar
 
 		private class FileRegistrar : GameData.IFileRegistrar
 		{
-			private Dictionary<Filename, GameData.FileId> mRegistry;
+			private Dictionary<string, GameData.FileId> mRegistry;
 
 			public FileRegistrar()
 			{
-				mRegistry = new Dictionary<Filename, GameData.FileId>();
+				mRegistry = new ();
 			}
 
-			public Dictionary<Filename, GameData.FileId> items
+			public Dictionary<string, GameData.FileId> items
 			{
 				get { return mRegistry; }
 			}
@@ -134,7 +134,7 @@ namespace DataBuildSystem
 				mRegistry.Clear();
 			}
 
-			public GameData.FileId Add(Filename filename)
+			public GameData.FileId Add(string filename)
 			{
 				GameData.FileId fileId;
 				if (!mRegistry.TryGetValue(filename, out fileId))
@@ -151,7 +151,7 @@ namespace DataBuildSystem
 				{
 					// Length
 					writer.WriteLine(mRegistry.Count);
-					foreach (KeyValuePair<Filename, GameData.FileId> p in mRegistry)
+					foreach (KeyValuePair<string, GameData.FileId> p in mRegistry)
 					{
 						writer.WriteLine(p.Key);
 						writer.WriteLine(p.Value.ID.ToString());
@@ -179,7 +179,7 @@ namespace DataBuildSystem
 		#endregion
 		#region Constructor
 
-		public DataAssemblyManager(Assembly dataAssembly)
+		public GameDataData(Assembly dataAssembly)
 		{
 			mDataAssembly = dataAssembly;
 			mCompilers = new List<GameData.IDataCompiler>();
@@ -544,16 +544,13 @@ namespace DataBuildSystem
 		#endregion
 		#region Save
 
-		public bool save(string path, string fullNameWithoutExtension)
+		public bool Save(string filepath)
 		{
 			//generateCppCodeAndData(root, fullNameWithoutExtension + ".rdf", fullNameWithoutExtension + ".rcf", fullNameWithoutExtension + ".rrf");
-			string dataFilename = fullNameWithoutExtension + BuildSystemCompilerConfig.DataFileExtension;
-			string relocFilename = fullNameWithoutExtension + BuildSystemCompilerConfig.DataRelocFileExtension;
+			string dataFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataFileExtension);
+			string relocFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataRelocFileExtension);
 
-			dataFilename = Path.Join(path, dataFilename);
-			relocFilename = Path.Join(path, relocFilename);
-
-			GameData.FileCommander.createDirectoryOnDisk(path);
+			GameData.FileCommander.createDirectoryOnDisk(Path.GetDirectoryName(dataFilename));
 
 			generateStdData(mRoot, dataFilename, relocFilename);
 			return true;

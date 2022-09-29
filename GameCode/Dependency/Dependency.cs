@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using GameCore;
+using GameData;
 
 namespace DataBuildSystem
 {
@@ -25,13 +26,26 @@ namespace DataBuildSystem
 
         public State(int state)
         {
-            StateValue = state;
+            StateValue = (sbyte)state;
         }
 
         public bool IsOk { get { return StateValue == 0; } }
         public bool IsNotOk { get { return StateValue != 0; } }
         public bool IsModified { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Modified)) != 0; } }
 		public bool IsMissing { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Missing)) != 0; } }
+
+        public void Merge(State s)
+		{
+            if (IsModified)
+            {
+                if (s.IsMissing)
+                    StateValue = s.StateValue;
+            }
+            else if (IsOk)
+			{
+                StateValue = s.StateValue;
+            }
+        }
 
         public static bool operator ==(State b1, State b2)
         {
@@ -52,13 +66,6 @@ namespace DataBuildSystem
 
     public class Dependency
     {
-        public enum EPath : byte
-        {
-            Src,
-            Gdd,
-            Dst
-        }
-
         public enum EState : byte
         {
             UNINITIALIZED,
@@ -81,17 +88,6 @@ namespace DataBuildSystem
             TIMESTAMP_AND_CONTENT_HASH,
         }
 
-        public static string GetPath(EPath p)
-        {
-            return p switch
-            {
-                EPath.Src => BuildSystemCompilerConfig.SrcPath,
-                EPath.Gdd => BuildSystemCompilerConfig.GddPath,
-                EPath.Dst => BuildSystemCompilerConfig.DstPath,
-                _ => string.Empty
-            };
-        }
-
         private int Count
         {
             get { return Ids.Count; }
@@ -110,14 +106,14 @@ namespace DataBuildSystem
 		{
 
 		}
-        public Dependency(EPath path, string subfilepath)
+        public Dependency(EGameDataPath path, string subfilepath)
         {
             Add(0, path, subfilepath);
         }
 
         public void Add(
             int id,
-            EPath p,
+            EGameDataPath p,
             string subfilepath        )
         {
             Paths.Add((byte)p);
@@ -137,7 +133,7 @@ namespace DataBuildSystem
 
                 // Return ids of dependencies that have changed
                 Hash160 newHash = null;
-                string filepath = Path.Join(GetPath((EPath)Paths[i]), SubFilePaths[i]);
+                string filepath = Path.Join(GameDataPath.GetPath((EGameDataPath)Paths[i]), SubFilePaths[i]);
                 switch (method)
                 {
                     case EMethod.CONTENT_HASH:
@@ -177,10 +173,10 @@ namespace DataBuildSystem
             }
         }
 
-        public static Dependency Load(EPath path, string subfilepath)
+        public static Dependency Load(EGameDataPath path, string subfilepath)
         {
             BinaryFileReader reader = new();
-            string filepath = Path.Join(GetPath(EPath.Dst), Path.Join(GetPath(path), subfilepath, ".dep"));
+            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), subfilepath, ".dep"));
             if (reader.Open(filepath))
             {
                 Dependency dep = ReadFrom(reader);
@@ -193,7 +189,7 @@ namespace DataBuildSystem
         public bool Save()
         {
             BinaryFileWriter writer = new();
-            string filepath = Path.Join(GetPath(EPath.Dst), SubFilePaths[0] + ".dep");
+            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), SubFilePaths[0] + ".dep");
             if (writer.Open(filepath))
             {
                 WriteTo(writer);

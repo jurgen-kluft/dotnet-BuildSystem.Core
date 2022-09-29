@@ -5,6 +5,6 @@ namespace GameData
 {
     public interface IFileRegistrar
     {
-        FileId Add(Filename filename);
+        FileId Add(string filename);
     }
 }

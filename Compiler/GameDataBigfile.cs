@@ -8,16 +8,10 @@ namespace DataBuildSystem
 {
 	internal class GameDataBigfile
 	{
-		public GameDataBigfile(string filepath)
+		public void Save(string filename, List<string> dst_relative_filepaths)
 		{
-			FilePath = filepath;
-		}
-
-		private string FilePath { get; set; }
-
-		public void BuildAndSave()
-		{
-
+			BigfileBuilder bfb = new BigfileBuilder(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.PubPath, filename);
+			bfb.save(BuildSystemCompilerConfig.Endian, true);
 		}
 	}
 }

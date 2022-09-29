@@ -131,7 +131,7 @@ namespace DataBuildSystem
 			gdus.Save(BuildSystemCompilerConfig.DstPath);
 			// Done
 
-			DataAssemblyManager dataAssemblyManager = new(gameDataRootAssembly);
+			GameDataData dataAssemblyManager = new(gameDataRootAssembly);
 
 			DateTime start = DateTime.Now;
 			DateTime end = DateTime.Now;
