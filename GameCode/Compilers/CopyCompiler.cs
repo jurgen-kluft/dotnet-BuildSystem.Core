@@ -15,10 +15,11 @@ namespace GameData
 	 */
 
     // e.g. new CopyCompiler("Textures/Background.PNG");
-    public class CopyCompiler : IDataCompiler, IDataCompilerClient, IFileIdsProvider
+    public class CopyCompiler : IDataCompiler, IFileIdsProvider
     {
         private  string mSrcFilename;
         private  string mDstFilename;
+        private Dependency mDependency;
 
         public CopyCompiler(string filename) : this(filename, filename)
         {
@@ -35,36 +36,38 @@ namespace GameData
 			stream.Write(mDstFilename);
         }
 
-        public void CompilerSetup()
-        {
-        }
-
         public void CompilerWrite(IBinaryWriter stream)
         {
 			stream.Write(mSrcFilename);
 			stream.Write(mDstFilename);
-            
-            // Save dependency information
+            mDependency.WriteTo(stream);
         }
 
         public void CompilerRead(IBinaryReader stream)
         {
 			mSrcFilename = stream.ReadString();
 			mDstFilename = stream.ReadString();
-
-            // Load dependency information
+            mDependency = Dependency.ReadFrom(stream);
         }
 
-        public void CompilerExecute()
+        public int CompilerExecute(List<string> dst_relative_filepaths)
         {
             // Execute the actual purpose of this compiler
-            File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true );
-        }
+            try
+            {
+                File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
+            }
+            catch (Exception)
+			{
+                return -1;
+			}
 
-        public void CompilerFinished()
-        {
-            // Update dependency information of src and dst file
+            mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
+            mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
+            mDependency.Update(Dependency.OnUpdateNop);
 
+            dst_relative_filepaths.Add(mDstFilename);
+            return 0;
         }
 
         public FileId[] FileIds { get { return new FileId[] { FileId.NewInstance(mDstFilename) }; } }

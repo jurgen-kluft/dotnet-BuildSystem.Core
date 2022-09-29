@@ -24,7 +24,18 @@ namespace DataBuildSystem
 		public Result Execute(List<GameData.IDataCompiler> compilers, out List<string> dst_relative_filepaths)
 		{
 			dst_relative_filepaths = new();
-			return Result.Ok;
+			int result = 0;
+			foreach (GameData.IDataCompiler c in compilers)
+			{
+				int r = c.CompilerExecute(dst_relative_filepaths);
+				if (r < 0) return Result.Error;
+				else result = r;
+			}
+			if (result == 0)
+			{
+				return Result.Ok;
+			}
+			return Result.OutOfData;
 		}
 
 		public void RegisterCompiler(Type type)

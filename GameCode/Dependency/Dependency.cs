@@ -125,6 +125,11 @@ namespace DataBuildSystem
 
         public delegate void OnUpdateDelegate(int id, State state);
 
+        public static void OnUpdateNop(int id, State state)
+		{
+
+		}
+
         public void Update(OnUpdateDelegate ood)
         {
             for (int i = 0; i < Count; ++i)
