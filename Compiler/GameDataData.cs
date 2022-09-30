@@ -19,7 +19,7 @@ namespace DataBuildSystem
 		{
 			try
 			{
-				Stack<object> compounds = new Stack<object>();
+				Stack<object> compounds = new ();
 				compounds.Push(compound);
 
 				while (compounds.Count > 0)
@@ -32,8 +32,7 @@ namespace DataBuildSystem
 
 					if (compound is GameData.IExternalObjectProvider)
 					{
-						GameData.IExternalObjectProvider externalObjectProvider =
-							compound as GameData.IExternalObjectProvider;
+						GameData.IExternalObjectProvider externalObjectProvider = compound as GameData.IExternalObjectProvider;
 						compounds.Push(externalObjectProvider.extobject);
 						continue;
 					}
@@ -171,8 +170,8 @@ namespace DataBuildSystem
 		private Assembly mDataAssembly;
 		private GameData.IDataRoot mRoot;
 
-		private List<GameData.IDataCompiler> mCompilers;
-		private List<GameData.IFileIdsProvider> mFileIdsProviders;
+		private List<IDataCompiler> mCompilers;
+		private List<IFilesProvider> mFilesProviders;
 
 		private FileRegistrar mFilenameRegistry;
 
@@ -182,9 +181,9 @@ namespace DataBuildSystem
 		public GameDataData(Assembly dataAssembly)
 		{
 			mDataAssembly = dataAssembly;
-			mCompilers = new List<GameData.IDataCompiler>();
-			mFileIdsProviders = new List<GameData.IFileIdsProvider>();
-			mFilenameRegistry = new FileRegistrar();
+			mCompilers = new ();
+			mFilesProviders = new ();
+			mFilenameRegistry = new ();
 		}
 
 		#endregion
@@ -223,72 +222,64 @@ namespace DataBuildSystem
 
 		#region Data Compilation steps
 
-		public List<GameData.IDataCompiler> CollectDataCompilers()
+		public List<IDataCompiler> CollectDataCompilers()
 		{
-			List<GameData.IDataCompiler> compilers = new();
+			List<IDataCompiler> compilers = new();
 			if (instanciate())
 			{
 				// Collect:
 				// - Compilers
 				// - FileId providers
 				// - Bigfile providers
-				ObjectTreeWalker.Walk(
-					mRoot,
-					delegate (object compound)
+				ObjectTreeWalker.Walk(mRoot, delegate (object compound)
 					{
 						Type compoundType = compound.GetType();
-
-						if (
-							compoundType.IsPrimitive
-							|| compoundType.IsEnum
-							|| compoundType == typeof(string)
-						)
+						if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
 							return true;
 
 						// TODO what about Array's or List<>'s of DataCompilers?
 
-						bool handled = false;
-						if (compound is GameData.IDataCompiler)
+						if (compound is IDataCompiler)
 						{
-							GameData.IDataCompiler c = compound as GameData.IDataCompiler;
+							IDataCompiler c = compound as IDataCompiler;
 							compilers.Add(c);
-							handled = true;
+							return true;
 						}
-						return handled;
+						return false;
 					}
 				);
 			}
 			return compilers;
 		}
 
-		public void SetupDataCompilers()
+		public void PrepareFilesProviders(List<IDataCompiler> compilers)
 		{
-			foreach (GameData.IDataCompiler c in mCompilers)
-				c.CompilerSetup();
+			// TODO
+			// Build SignatureList List<KeyValuePair<Signature, IDataCompiler>>
+			// Sort the SignatureList by Signature (there can be duplicates)
+			// PrevSignature = SignatureList[0].Key
+			// Foreach KeyValuePair<Signature, IDataCompiler> in SignatureList
+			//    Assign 'Index' to the IDataCompiler.FilesProviderId
+			//    When Signature != PrevSignature -> increment 'Index'
+			//    PrevSignature = Signature
 		}
 
 		public bool FinalizeDataCompilation()
 		{
-			mFileIdsProviders.Clear();
+			mFilesProviders.Clear();
 
-			bool ok = ObjectTreeWalker.Walk(
-				mRoot,
-				delegate (object compound)
+			bool ok = ObjectTreeWalker.Walk(mRoot, delegate (object compound)
 				{
 					Type compoundType = compound.GetType();
 
-					if (
-						compoundType.IsPrimitive
-						|| compoundType.IsEnum
-						|| compoundType == typeof(string)
-					)
+					if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
 						return true;
 
 					bool handled = false;
-					if (compound is GameData.IFileIdsProvider)
+					if (compound is IFilesProvider)
 					{
-						GameData.IFileIdsProvider f = compound as GameData.IFileIdsProvider;
-						mFileIdsProviders.Add(f);
+						IFilesProvider f = compound as IFilesProvider;
+						mFilesProviders.Add(f);
 						handled = true;
 					}
 
@@ -311,8 +302,7 @@ namespace DataBuildSystem
 			{
 				// Handout StreamReferences to int64s, uint64s classes, compounds and arrays taking care of equality of these objects.
 				// Note: Strings are a bit of a special case since we also will collect the names of members and classes.
-				Dictionary<Int64, StreamReference> referencesForInt64Dict =
-					new Dictionary<Int64, StreamReference>();
+				Dictionary<Int64, StreamReference> referencesForInt64Dict =	new ();
 				foreach (Int64Member i in int64s)
 				{
 					StreamReference reference;
@@ -327,8 +317,7 @@ namespace DataBuildSystem
 					}
 				}
 
-				Dictionary<UInt64, StreamReference> referencesForUInt64Dict =
-					new Dictionary<UInt64, StreamReference>();
+				Dictionary<UInt64, StreamReference> referencesForUInt64Dict = new ();
 				foreach (UInt64Member i in uint64s)
 				{
 					StreamReference reference;
@@ -343,8 +332,7 @@ namespace DataBuildSystem
 					}
 				}
 
-				Dictionary<object, StreamReference> referencesForClassesDict =
-					new Dictionary<object, StreamReference>();
+				Dictionary<object, StreamReference> referencesForClassesDict = new();
 				foreach (ObjectMember c in classes)
 				{
 					if (c.value != null)
@@ -366,8 +354,7 @@ namespace DataBuildSystem
 					}
 				}
 
-				Dictionary<object, StreamReference> referencesForCompoundsDict =
-					new Dictionary<object, StreamReference>();
+				Dictionary<object, StreamReference> referencesForCompoundsDict = new();
 				foreach (CompoundMember c in compounds)
 				{
 					if (c.value != null)
@@ -389,8 +376,7 @@ namespace DataBuildSystem
 					}
 				}
 
-				Dictionary<object, StreamReference> referencesForArraysDict =
-					new Dictionary<object, StreamReference>();
+				Dictionary<object, StreamReference> referencesForArraysDict = new();
 				foreach (ArrayMember a in arrays)
 				{
 					if (a.value != null)
@@ -455,9 +441,9 @@ namespace DataBuildSystem
 		private void generateCppCodeAndData(object data, string dataFilename, string codeFilename, string relocFilename)
 		{
 			// Analyze Data.Root and generate a list of 'Code.Class' objects from this.
-			Reflector reflector = new Reflector(null);
+			Reflector reflector = new (null);
 
-			MyMemberBook book = new MyMemberBook();
+			MyMemberBook book = new ();
 			reflector.Analyze(data, book);
 			book.HandoutReferences();
 
@@ -466,12 +452,12 @@ namespace DataBuildSystem
 				c.sortMembers(new MemberSizeComparer());
 
 			// The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
-			StringTable stringTable = new StringTable();
-			FileIdTable fileIdTable = new FileIdTable();
+			StringTable stringTable = new ();
+			FileIdTable fileIdTable = new ();
 
 			// Compile every 'Code.Class' to the DataStream.
-			CppDataStream dataStream = new CppDataStream(BuildSystemCompilerConfig.Endian);
-			CppCodeStream.DataStreamWriter dataStreamWriter = new CppCodeStream.DataStreamWriter(stringTable,fileIdTable,dataStream);
+			CppDataStream dataStream = new (BuildSystemCompilerConfig.Endian);
+			CppCodeStream.DataStreamWriter dataStreamWriter = new (stringTable,fileIdTable,dataStream);
 			dataStreamWriter.open();
 			{
 				ObjectMember root = book.classes[0];
@@ -481,11 +467,11 @@ namespace DataBuildSystem
 
 			// Finalize the DataStream and obtain a database of the position of the
 			// 'Code.Class' objects in the DataStream.
-			FileInfo dataFileInfo = new FileInfo(BuildSystemCompilerConfig.SrcPath + "\\" + dataFilename);
-			FileStream dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
+			FileInfo dataFileInfo = new (BuildSystemCompilerConfig.SrcPath + "\\" + dataFilename);
+			FileStream dataFileStream = new (dataFileInfo.FullName, FileMode.Create);
 			IBinaryWriter dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream,BuildSystemCompilerConfig.Endian);
-			FileInfo relocFileInfo = new FileInfo(BuildSystemCompilerConfig.SrcPath + "\\" + relocFilename);
-			FileStream relocFileStream = new FileStream(relocFileInfo.FullName, FileMode.Create);
+			FileInfo relocFileInfo = new (BuildSystemCompilerConfig.SrcPath + "\\" + relocFilename);
+			FileStream relocFileStream = new (relocFileInfo.FullName, FileMode.Create);
 			IBinaryWriter relocFileStreamWriter = EndianUtils.CreateBinaryWriter(relocFileStream,BuildSystemCompilerConfig.Endian);
 			Dictionary<StreamReference, int> referenceOffsetDatabase;
 			dataStream.finalize(dataFileStreamWriter,relocFileStreamWriter,out referenceOffsetDatabase);
@@ -495,9 +481,9 @@ namespace DataBuildSystem
 			relocFileStream.Close();
 
 			// Generate the c++ code using the CppCodeWriter.
-			FileInfo codeFileInfo = new FileInfo(BuildSystemCompilerConfig.SrcPath + "\\" + codeFilename);
+			FileInfo codeFileInfo = new (BuildSystemCompilerConfig.SrcPath + "\\" + codeFilename);
 			FileStream codeFileStream = codeFileInfo.Create();
-			StreamWriter codeFileStreamWriter = new StreamWriter(codeFileStream);
+			StreamWriter codeFileStreamWriter = new (codeFileStream);
 			CppCodeStream.CppCodeWriter codeWriter = new CppCodeStream.CppCodeWriter();
 			codeWriter.write(book.classes, codeFileStreamWriter);
 			codeFileStreamWriter.Close();
@@ -510,12 +496,12 @@ namespace DataBuildSystem
 		private void generateStdData(object data, string dataFilename, string relocFilename)
 		{
 			// Generate the generic data
-			FileInfo dataFileInfo = new FileInfo(dataFilename);
-			FileStream dataStream = new FileStream(dataFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024);
+			FileInfo dataFileInfo = new (dataFilename);
+			FileStream dataStream = new (dataFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024);
 			IBinaryWriter dataStreamWriter = EndianUtils.CreateBinaryWriter(dataStream, BuildSystemCompilerConfig.Endian);
 
-			FileInfo reallocTableFileInfo = new FileInfo(relocFilename);
-			FileStream reallocTableStream = new FileStream(reallocTableFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 2 * 1024 * 1024);
+			FileInfo reallocTableFileInfo = new (relocFilename);
+			FileStream reallocTableStream = new (reallocTableFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 2 * 1024 * 1024);
 			IBinaryWriter reallocTableStreamWriter = EndianUtils.CreateBinaryWriter(reallocTableStream, BuildSystemCompilerConfig.Endian);
 
 			StdDataStream stdDataStream = new StdDataStream(BuildSystemCompilerConfig.Endian);

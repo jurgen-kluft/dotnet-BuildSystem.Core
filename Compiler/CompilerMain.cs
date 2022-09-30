@@ -168,7 +168,7 @@ namespace DataBuildSystem
 						Console.WriteLine("------ Generating game data started: Project: {0}", resourceFilename);
 
 						// The resource data
-						if (!dataAssemblyManager.save(Path.Join(BuildSystemCompilerConfig.PubPath, BuildSystemCompilerConfig.SubPath), resourceFilename))
+						if (!dataAssemblyManager.Save(Path.Join(BuildSystemCompilerConfig.PubPath, BuildSystemCompilerConfig.SubPath, "test.gdd")))
 						{
 							end = DateTime.Now;
 							Console.WriteLine("Generating game data finished -- error (Duration: {0}s)", (end - start).TotalSeconds);

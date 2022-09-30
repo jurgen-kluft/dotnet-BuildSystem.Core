@@ -6,7 +6,7 @@ using GameCore;
 using DataBuildSystem;
 namespace GameData
 {
-    public class LocalizationCompiler : IDataCompiler, IDataCompilerClient, IFileIdsProvider
+    public class LocalizationCompiler : IDataCompiler, IFileIdsProvider
     {
         private readonly string mSrcFilename;
         private readonly List<string> mDstFilenames = new ();
@@ -17,7 +17,7 @@ namespace GameData
             mSrcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
         }
 
-        public void CompilerSetup()
+        public void CompilerSignature(IBinaryWriter stream)
         {
         }
 
@@ -25,12 +25,11 @@ namespace GameData
         {
         }
 
-        public Hash160 CompilerRead(IBinaryReader stream)
+        public void CompilerRead(IBinaryReader stream)
         {
-            return Hash160.Empty;
         }
 
-        public void CompilerExecute()
+        public int CompilerExecute(List<string> out_dst_relative_filepaths)
         {
             // Load 'languages list' file
             try
@@ -51,11 +50,13 @@ namespace GameData
             catch (Exception)
             {
                 //mStatus = ERROR;
+                return -1;
             }
             finally
             {
                 //mStatus = SUCCESS;
             }
+            return 0;
         }
 
         public void CompilerFinished()

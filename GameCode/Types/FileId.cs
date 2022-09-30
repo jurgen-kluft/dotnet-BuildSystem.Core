@@ -4,55 +4,31 @@ using GameCore;
 
 namespace GameData
 {
+    public interface IFileId
+    {
+        UInt64 Value { get; }
+    }
+
     public class FileId : IFileId
     {
-        private readonly Hash160 mFileId;
-        private readonly IFileIdsProvider mProvider;
+        private readonly IFilesProvider mProvider;
 
-        public FileId()
+        public static readonly FileId sEmpty = new ();
+
+        public FileId() : this (null)
         {
-            mFileId = Hash160.Empty;
-            mProvider = null;
         }
-        private FileId(Hash160 id)
+        public FileId(IFilesProvider provider)
         {
-            mFileId = id;
-            mProvider = null;
-        }
-        public FileId(IFileIdsProvider provider)
-        {
-            mFileId = Hash160.Empty;
             mProvider = provider;
         }
 
-        public static FileId NewInstance(string filename)
-        {
-            FileId fileId = new (HashUtility.Compute_UTF8(filename.ToLower()));
-            return fileId;
-        }
-
-        public Hash160 ID
-        {
-            get
-            {
-                return mFileId;
-            }
-        }
-
-        public object Value
+        public UInt64 Value
         {
             get 
             {
-                if (mProvider!=null)
-                    return mProvider.FileIds[0].ID;
-                else
-                    return mFileId; 
+                return mProvider.FilesProviderId;
             }
-        }
-
-        public override string ToString()
-        {
-            return mFileId.ToString();
         }
     }
 }

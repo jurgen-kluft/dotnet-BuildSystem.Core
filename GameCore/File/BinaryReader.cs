@@ -35,7 +35,7 @@ namespace GameCore
     {
         #region Fields
 
-        private static IEndian mEndian = new BigEndian();
+        private static BigEndian mEndian = new ();
         private readonly BinaryReader mReader;
 
         #endregion
@@ -49,8 +49,8 @@ namespace GameCore
         #endregion
         #region IBinaryReader Members
 
-        public Int64 Position { get { return mReader.Position; } }
-        public Int64 Length { get { return mReader.Length; } }
+        public Int64 Position { get { return mReader.BaseStream.Position; } }
+        public Int64 Length { get { return mReader.BaseStream.Length; } }
 
         public bool SkipBytes(Int64 numbytes)
         {
@@ -108,15 +108,13 @@ namespace GameCore
 
         public float ReadFloat()
         {
-            float v;
-            mEndian.Convert(mReader.ReadBytes(4), out v);
+            mEndian.Convert(mReader.ReadBytes(4), out float v);
             return v;
         }
 
         public double ReadDouble()
         {
-            double v;
-            mEndian.Convert(mReader.ReadBytes(8), out v);
+            mEndian.Convert(mReader.ReadBytes(8), out double v);
             return v;
         }
 
@@ -156,8 +154,8 @@ namespace GameCore
         #endregion
         #region IBinaryReader Members
 
-        public Int64 Position { get { return mReader.Position; } }
-        public Int64 Length { get { return mReader.Length; } }
+        public Int64 Position { get { return mReader.BaseStream.Position; } }
+        public Int64 Length { get { return mReader.BaseStream.Length; } }
 
         public bool SkipBytes(Int64 numbytes)
 		{

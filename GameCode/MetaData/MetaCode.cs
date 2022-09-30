@@ -276,12 +276,12 @@ namespace GameData
             Member newUInt64Member(UInt64 content, string memberName);
             Member newFloatMember(float content, string memberName);
             Member newStringMember(string content, string memberName);
-            Member newFileIdMember(Hash160 content, string memberName);
+            Member newFileIdMember(UInt64 content, string memberName);
             Member newEnumMember(object content, string memberName);
             ObjectMember newObjectMember(Type objectType, object content, string memberName);
             ArrayMember newArrayMember(Type arrayType, object content, Member elementMember, string memberName);
             AtomMember newAtomMember(Type atomType, Member atomContentMember, string memberName);
-            FileIdMember newFileIdMember(Type atomType, Hash160 content, string memberName);
+            FileIdMember newFileIdMember(Type atomType, UInt64 content, string memberName);
             CompoundMember newCompoundMember(Type compoundType, object content, string memberName);
         }
 
@@ -1017,14 +1017,16 @@ namespace GameData
             public static readonly FileIdType sType = new FileIdType(typeof(GameData.FileId), typeof(GameData.FileId).Name);
 
             private StreamReference mStreamReference = StreamReference.Empty;
-            private readonly Hash160 mValue;
+            private readonly UInt64 mValue;
 
-            public FileIdMember(string name, Hash160 value)
-                : base(sType, name, 4)
+            public FileIdMember(string name, UInt64 value)
+                : base(sType, name, 8)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = EStreamAlignment.ALIGN_64;
             }
+
+            public UInt64 ID { get { return mValue; } }
 
             public override object value
             {
@@ -1038,7 +1040,7 @@ namespace GameData
             {
                 get
                 {
-                    return mValue == Hash160.Empty;
+                    return mValue == UInt64.MaxValue;
                 }
             }
 
@@ -1054,17 +1056,9 @@ namespace GameData
                 }
             }
 
-            public Hash160 id
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
-
             public override Member Default()
             {
-                return new FileIdMember(name, Hash160.Empty);
+                return new FileIdMember(name, UInt64.MaxValue);
             }
 
             public override bool write(IMemberWriter writer)

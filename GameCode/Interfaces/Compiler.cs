@@ -12,20 +12,20 @@ namespace GameData
     {
         ///<summary>
         /// A signature is generated from the 'stable' properties of a DataCompiler.
-        /// For example: for the CopyCompiler should write SrcFilename and DstFilename into the stream.
+        /// For example: for the CopyCompiler should write SrcFilename and DstFilename into the Writer stream.
         ///</summary>
-		void CompilerSignature(IBinaryWriter stream);
+		void CompilerSignature(IBinaryWriter writer);
         ///<summary>
         /// Write all the necessary properties and data to the stream
         ///</summary>
-        void CompilerWrite(IBinaryWriter stream);
+        void CompilerWrite(IBinaryWriter writer);
         ///<summary>
         /// Read all the properties and data from the stream in the same order and type as they where written
         ///</summary>
-        void CompilerRead(IBinaryReader stream);
+        void CompilerRead(IBinaryReader reader);
 
         ///<summary>
-        /// Execute the compiler and add the destination filenames to @dst_relative_filepaths
+        /// Execute the compiler and add the destination filenames to @dst_relative_filepaths using ctx.StringDb
         /// - return 0 if src and dst are up-to-date
         /// - return 1 if execution was successful and dst files where updated
         /// - return 2 if execution was successful and dst files where updated and compiler version changes where detected

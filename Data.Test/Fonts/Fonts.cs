@@ -10,7 +10,7 @@ namespace GameData
 
 			public string descr = "This is fonts data";
 
-			public CopyCompiler Font = new("ARCADECLASSIC.TTF");
+			public FileId Font = new (new CopyCompiler("ARCADECLASSIC.TTF"));
 		}
 	}
 }

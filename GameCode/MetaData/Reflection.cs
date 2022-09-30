@@ -139,7 +139,7 @@ namespace GameData
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
-                // A FileId is holding a Hash128 object
+                // A FileId is holding a simple index
                 PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
                 object contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
                 Hash160 hash = (Hash160)contentObject;

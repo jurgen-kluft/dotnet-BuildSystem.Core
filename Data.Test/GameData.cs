@@ -6,7 +6,7 @@ namespace GameData
 	{
 		public string Name { get { return "Game Name"; } }
 
-		public CopyCompiler bootSound = new("Sound/BootChime.wav");
+		public FileId bootSound = new (new CopyCompiler("Sound/BootChime.wav"));
 
 		public DataUnit ai = new DataUnit("AI", "AI/", EDataUnit.Embed);
 		public DataUnit fonts = new DataUnit("Fonts", "Fonts/", EDataUnit.Embed);

@@ -16,7 +16,7 @@
     <Compile Include="Config/*.cs" />
     <Compile Include="Dependency/*.cs" />
     <Compile Include="MetaData/*.cs" />
-    <Compile Include="Providers/*.cs" />
+    <Compile Include="Interfaces/*.cs" />
     <Compile Include="Types/*.cs" />
     <Compile Include="Utils/*.cs" />
   </ItemGroup>

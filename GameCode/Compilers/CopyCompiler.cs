@@ -15,7 +15,7 @@ namespace GameData
 	 */
 
     // e.g. new CopyCompiler("Textures/Background.PNG");
-    public class CopyCompiler : IDataCompiler, IFileIdsProvider
+    public class CopyCompiler : IDataCompiler, IFilesProvider
     {
         private  string mSrcFilename;
         private  string mDstFilename;
@@ -65,11 +65,12 @@ namespace GameData
             mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
             mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
             mDependency.Update(Dependency.OnUpdateNop);
-
+        
             dst_relative_filepaths.Add(mDstFilename);
             return 0;
         }
 
-        public FileId[] FileIds { get { return new FileId[] { FileId.NewInstance(mDstFilename) }; } }
+        public UInt64 FilesProviderId { get; set; }
+        public string[] FilesProviderFilepaths { get { return new string[] { mDstFilename }; } }
     }
 }

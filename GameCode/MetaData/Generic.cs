@@ -691,7 +691,7 @@ namespace GameData
             public bool writeFileIdMember(FileIdMember c)
             {
                 if (mAlignMembers) align(c.alignment);
-                StreamReference reference = mFileIdTable.Add(c.reference, c.id);
+                StreamReference reference = mFileIdTable.Add(c.reference, c.ID);
                 mWriter.Write(reference);
                 return true;
             }
@@ -981,7 +981,7 @@ namespace GameData
             }
             public bool writeFileIdMember(FileIdMember c)
             {
-                StreamReference reference = mFileIdTable.Add(c.reference, c.id);
+                StreamReference reference = mFileIdTable.Add(c.reference, c.ID);
                 mWriter.Write(reference);
                 return true;
             }
@@ -1319,18 +1319,18 @@ namespace GameData
                 {
                 }
 
-                Dictionary<Hash160, StreamReference> referencesForFileIdDict = new Dictionary<Hash160, StreamReference>();
+                Dictionary<UInt64, StreamReference> referencesForFileIdDict = new ();
                 foreach (FileIdMember c in fileids)
                 {
                     StreamReference reference;
-                    if (referencesForFileIdDict.TryGetValue(c.id, out reference))
+                    if (referencesForFileIdDict.TryGetValue(c.ID, out reference))
                     {
                         c.reference = reference;
                     }
                     else
                     {
                         c.reference = StreamReference.Instance;
-                        referencesForFileIdDict.Add(c.id, c.reference);
+                        referencesForFileIdDict.Add(c.ID, c.reference);
                     }
                 }
 
@@ -1411,7 +1411,7 @@ namespace GameData
             public Member newUInt64Member(UInt64 o, string memberName) { return new UInt64Member(memberName, o); }
             public Member newFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
             public Member newStringMember(string o, string memberName) { return new StringMember(memberName, o); }
-            public Member newFileIdMember(Hash160 o, string memberName) { return new FileIdMember(memberName, o); }
+            public Member newFileIdMember(UInt64 o, string memberName) { return new FileIdMember(memberName, o); }
             public Member newEnumMember(object o, string memberName) { return new Int32Member(memberName, (Int32)o); }
 
             #endregion
@@ -1502,23 +1502,23 @@ namespace GameData
 
             public ArrayMember newArrayMember(Type arrayType, object content, Member elementMember, string memberName)
             {
-                ArrayMember arrayMember = new ArrayMember(arrayType, content, elementMember, memberName);
+                ArrayMember arrayMember = new (arrayType, content, elementMember, memberName);
                 return arrayMember;
             }
 
             public AtomMember newAtomMember(Type atomType, Member atomContentMember, string memberName)
             {
-                AtomMember atom = new AtomMember(memberName, newAtomType(atomType), atomContentMember);
+                AtomMember atom = new (memberName, newAtomType(atomType), atomContentMember);
                 return atom;
             }
-            public FileIdMember newFileIdMember(Type fileidType, Hash160 content, string memberName)
+            public FileIdMember newFileIdMember(Type fileidType, UInt64 content, string memberName)
             {
-                FileIdMember fileid = new FileIdMember(memberName, content);
+                FileIdMember fileid = new (memberName, content);
                 return fileid;
             }
             public CompoundMember newCompoundMember(Type compoundType, object compoundObject, string memberName)
             {
-                CompoundMember compoundMember = new CompoundMember(compoundObject, newCompoundType(compoundType), memberName);
+                CompoundMember compoundMember = new (compoundObject, newCompoundType(compoundType), memberName);
                 return compoundMember;
             }
 
@@ -1535,18 +1535,18 @@ namespace GameData
                 IMemberGenerator genericMemberGenerator = new GenericMemberGenerator(inDataFormat);
 
                 // Analyze Root and generate a list of 'Code.Class' objects from this.
-                Reflector reflector = new Reflector(genericMemberGenerator);
+                Reflector reflector = new (genericMemberGenerator);
 
-                MyMemberBook book = new MyMemberBook();
+                MyMemberBook book = new ();
                 reflector.Analyze(inData, book);
                 book.HandoutReferences();
 
                 // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
-                StringTable stringTable = new StringTable();
+                StringTable stringTable = new ();
                 stringTable.reference = StreamReference.Instance;
 
                 // The FileIdTable to collect (and collapse duplicate) all FileIds
-                FileIdTable fileIdTable = new FileIdTable();
+                FileIdTable fileIdTable = new ();
                 fileIdTable.reference = StreamReference.Instance;
 
                 // Database of offsets of references written in the stream as well as the offsets of references to those references
@@ -1567,12 +1567,12 @@ namespace GameData
 
                     // Collect all strings (class names + member names)
                     // Collect all strings from member content
-                    StringTableWriter strTableWriter = new StringTableWriter(stringTable);
+                    StringTableWriter strTableWriter = new (stringTable);
                     rootClass.write(strTableWriter);
                     stringTable.SortByHash();
 
                     // Write 'SResource' array
-                    ObjectWriter genericObjectTreeWriter = new ObjectWriter(inDataFormat, stringTable, fileIdTable, dataWriter);
+                    ObjectWriter genericObjectTreeWriter = new (inDataFormat, stringTable, fileIdTable, dataWriter);
                     for (int i = 0; i < book.classes.Count; i++)
                         genericObjectTreeWriter.write(book.classes[i]);
 
@@ -1587,7 +1587,7 @@ namespace GameData
                 dataWriter.End();
 
                 // Validate member data
-                MemberDataValidator memberDataValidator = new MemberDataValidator();
+                MemberDataValidator memberDataValidator = new ();
                 rootClass.write(memberDataValidator);
 
                 // Finalize the dataWriter, this will write the data to @name resourceDataWriter and the
@@ -1620,7 +1620,7 @@ namespace GameData
 
                 if (unresolvedReferences.Count > 0)
                 {
-                    UnresolvedReferencesLogger logger = new UnresolvedReferencesLogger(stringTable, unresolvedReferences);
+                    UnresolvedReferencesLogger logger = new (stringTable, unresolvedReferences);
                     foreach (ObjectMember c in book.classes)
                         c.write(logger);
                 }

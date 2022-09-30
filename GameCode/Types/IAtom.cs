@@ -16,8 +16,4 @@ namespace GameData
         object Value { get; }
     }
 
-    public interface IFileId
-    {
-        object Value { get; }
-    }
 }

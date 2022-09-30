@@ -49,12 +49,15 @@ namespace DataBuildSystem
 					// All is up-to-date, but source files might have changed!
 					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
 
+					// Load the compiler log so that they can be used to verify the source files
 					List<IDataCompiler> loaded_compilers = new();
 					gdcl.Load(loaded_compilers);
 					
+					// Execute all compilers, every compiler will thus check it's dependencies (source and destination files)
 					Result result = gdcl.Execute(loaded_compilers, out List<string> dst_relative_filepaths);
 					if (result != Result.Ok)
 					{
+						// Some (or all) compilers reported a change, now we have to load the assembly and build the Bigfile and Game Data.
 						Assembly gdasm = LoadAssembly(gdu.FilePath);
 						GameDataData gdd = new(gdasm);
 
@@ -64,7 +67,7 @@ namespace DataBuildSystem
 						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), dst_relative_filepaths);
 						gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
-						// Everything is saved, now save the compiler log
+						// Lastly we need to save the game data compiler log
 						gdcl.Save(loaded_compilers);
 
 						UnloadAssembly();
@@ -142,12 +145,12 @@ namespace DataBuildSystem
 
 					List<IDataCompiler> current_compilers = gdd.CollectDataCompilers();
 					List<IDataCompiler> loaded_compilers = new(current_compilers.Count);
-					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
 
+					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
 					gdcl.Load(loaded_compilers);
+					gdcl.Execute(loaded_compilers, out List<string> dst_relative_filepaths);
 
 					GameDataBigfile bff = new();
-					gdcl.Execute(loaded_compilers, out List<string> dst_relative_filepaths);
 					bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), dst_relative_filepaths);
 					gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 					gdcl.Save(loaded_compilers);
@@ -156,6 +159,47 @@ namespace DataBuildSystem
 				}
 				else if (gduGameDataDll.IsOk && gduCompilerLog.IsOk && gduGameDataData.IsNotOk && gduBigfile.IsOk)
 				{
+					// Game Data (.gdd) file or it's relocation data has changed or is deleted
+
+					List<IDataCompiler> loaded_compilers = new();
+
+					// We need the list of destination files (for determining the FileId's)
+					// So we need to load the Game Data Compiler Log and verify that source and destination files
+					// have not changed.
+					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+					gdcl.Load(loaded_compilers);
+					Result result = gdcl.Execute(loaded_compilers, out List<string> dst_relative_filepaths);
+					if (result == Result.Ok)
+					{
+						Assembly gdasm = LoadAssembly(gdu.FilePath);
+						GameDataData gdd = new(gdasm);
+
+						// All source and destination files are up-to-date
+						gdd.PrepareFilesProviders(loaded_compilers);
+						gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
+
+						UnloadAssembly();
+					}
+					else
+					{
+						// Hmmmm, the GameDataCompilerLog indicated that some (or all) compilers detected changes.
+						Assembly gdasm = LoadAssembly(gdu.FilePath);
+						GameDataData gdd = new(gdasm);
+
+						// All source and destination files are up-to-date
+						gdd.PrepareFilesProviders(loaded_compilers);
+						gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
+
+						GameDataBigfile bff = new();
+						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), dst_relative_filepaths);
+
+						gdcl.Save(loaded_compilers);
+
+						UnloadAssembly();
+
+
+					}
+
 
 
 				}

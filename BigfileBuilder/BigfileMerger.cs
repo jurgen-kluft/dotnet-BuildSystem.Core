@@ -23,8 +23,8 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private Dirname mMainBigfileFolder;
-        private Filename mMainBigfileFilename;
+        private readonly string mMainBigfileFolder;
+        private readonly string mMainBigfileFilename;
         private List<Filename> mBigfileFilenames = new List<Filename>();
         private List<Filename> mBigfileTocFilenames = new List<Filename>();
 
@@ -49,20 +49,20 @@ namespace DataBuildSystem
         /// <summary>
         /// Merge the Bigfiles and BigfileTocs and output one Bigfile and one BigfileToc
         /// </summary>
-        public void MergeInto(Dirname inDstPath, Dirname inSubPath, Dirname inDepPath, Dirname inBigfilePath, Filename inBigfileFilename, bool mergeBigfileData)
+        public void MergeInto(string inDstPath, string inSubPath, string inPubPath, string inBigfilePath, string inBigfileFilename, bool mergeBigfileData)
         {
             // Initialize a list of main Bigfile StreamOffsets of every sub Bigfile that is streamed into it, we need this for the BigfileToc items
-            List<StreamOffset> mainStreamOffsets = new List<StreamOffset>();
+            List<StreamOffset> mainStreamOffsets = new ();
 
-            BigfileBuilder bfb = new BigfileBuilder(inDstPath, inSubPath, inDepPath, inBigfilePath, inBigfileFilename);
+            BigfileBuilder bfb = new (inDstPath, inSubPath, inPubPath, inBigfileFilename);
             foreach (Filename bfn in mBigfileFilenames)
             {
-                FileInfo fileInfo = new FileInfo(bfn);
+                FileInfo fileInfo = new (bfn);
                 Hash160 fileHash = HashUtility.compute(fileInfo);
                 bfb.add(bfn, fileHash);
 
                 //TODO: This needs to be implemented!
-                StreamOffset offset = new StreamOffset();
+                StreamOffset offset = new ();
                 mainStreamOffsets.Add(offset);
             }
 
@@ -70,9 +70,9 @@ namespace DataBuildSystem
 
             // Create the 'total' BigfileToc
             // The entries are kept in the order as they are added to the Toc.
-            BigfileToc mainBigfileToc = new BigfileToc();
+            BigfileToc mainBigfileToc = new ();
             // Initialize a list of TFileId base values
-            List<Int32> fileIdOffsetList = new List<Int32>();
+            List<Int32> fileIdOffsetList = new ();
             // Initialize an initial TFileId offset
             Int32 fileIdBase = 0;
             // For every BigfileToc:
@@ -81,7 +81,7 @@ namespace DataBuildSystem
                 Filename bft = mBigfileTocFilenames[i];
 
                 //   Load it
-                BigfileToc toc = new BigfileToc();
+                BigfileToc toc = new ();
                 toc.load(bft, BuildSystemCompilerConfig.Endian);
 
                 //   Add TFileId offset to the list

@@ -57,6 +57,11 @@ namespace DataBuildSystem
             return b1.AsInt != b2.AsInt;
         }
 
+        public override int GetHashCode()
+        {
+            return AsInt;
+        }
+
         public override bool Equals(object obj)
         {
             State other = (State)obj;
@@ -97,35 +102,32 @@ namespace DataBuildSystem
         /// a very specific optimizations which will speed up the loading.
 
         private List<byte> Paths { get; set; } = new List<byte>();
-        private List<string> SubFilePaths { get; set; } = new List<string>();
-        private List<int> Ids { get; set; } = new List<int>();
+        private List<string> FilePaths { get; set; } = new List<string>();
+        private List<short> Ids { get; set; } = new List<short>();
         private List<EMethod> Methods { get; set; } = new List<EMethod>();
         private List<Hash160> Hashes { get; set; } = new List<Hash160>();
 
         public Dependency()
 		{
-
 		}
-        public Dependency(EGameDataPath path, string subfilepath)
+
+        public Dependency(EGameDataPath path, string filepath)
         {
-            Add(0, path, subfilepath);
+            Add(0, path, filepath);
         }
 
-        public void Add(
-            int id,
-            EGameDataPath p,
-            string subfilepath        )
+        public void Add(short id, EGameDataPath p, string filepath)
         {
             Paths.Add((byte)p);
-            SubFilePaths.Add(subfilepath);
+            FilePaths.Add(filepath);
             Ids.Add(id);
             Methods.Add(EMethod.TIMESTAMP_HASH);
             Hashes.Add(new Hash160());
         }
 
-        public delegate void OnUpdateDelegate(int id, State state);
+        public delegate void OnUpdateDelegate(short id, State state);
 
-        public static void OnUpdateNop(int id, State state)
+        public static void OnUpdateNop(short id, State state)
 		{
 
 		}
@@ -138,7 +140,7 @@ namespace DataBuildSystem
 
                 // Return ids of dependencies that have changed
                 Hash160 newHash = null;
-                string filepath = Path.Join(GameDataPath.GetPath((EGameDataPath)Paths[i]), SubFilePaths[i]);
+                string filepath = Path.Join(GameDataPath.GetPath((EGameDataPath)Paths[i]), FilePaths[i]);
                 switch (method)
                 {
                     case EMethod.CONTENT_HASH:
@@ -178,15 +180,19 @@ namespace DataBuildSystem
             }
         }
 
-        public static Dependency Load(EGameDataPath path, string subfilepath)
+        public static Dependency Load(EGameDataPath path, string _filepath)
         {
             BinaryFileReader reader = new();
-            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), subfilepath, ".dep"));
+            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), _filepath, ".dep"));
             if (reader.Open(filepath))
             {
-                Dependency dep = ReadFrom(reader);
-                reader.Close();
-                return dep;
+                UInt32 magic = reader.ReadUInt32();
+                if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
+                {
+                    Dependency dep = ReadFrom(reader );
+                    reader.Close();
+                    return dep;
+                }
             }
             return null;
         }
@@ -194,10 +200,11 @@ namespace DataBuildSystem
         public bool Save()
         {
             BinaryFileWriter writer = new();
-            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), SubFilePaths[0] + ".dep");
+            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), FilePaths[0] + ".dep");
             if (writer.Open(filepath))
             {
-                WriteTo(writer);
+                writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
+                WriteTo(writer );
                 writer.Close();
                 return true;
             }
@@ -209,16 +216,12 @@ namespace DataBuildSystem
 
         public static Dependency ReadFrom(IBinaryReader reader)
         {
-            Dependency dep = null;
-            UInt32 magic = reader.ReadUInt32();
-            if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
+            Dependency dep = new ();
             {
                 Int32 count = reader.ReadInt32();
-
-                dep = new ();
                 dep.Paths = new(count);
-                dep.SubFilePaths = new List<string>(count);
-                dep.Ids = new List<int>(count);
+                dep.FilePaths = new List<string>(count);
+                dep.Ids = new List<short>(count);
                 dep.Methods = new List<EMethod>(count);
                 dep.Hashes = new List<Hash160>(count);
 
@@ -228,11 +231,12 @@ namespace DataBuildSystem
                 }
                 for (int i = 0; i < count; i++)
                 {
-                    dep.SubFilePaths.Add(reader.ReadString());
+                    string fp = reader.ReadString();
+                    dep.FilePaths.Add(fp);
                 }
                 for (int i = 0; i < count; i++)
                 {
-                    dep.Ids.Add(reader.ReadInt32());
+                    dep.Ids.Add(reader.ReadInt16());
                 }
                 for (int i = 0; i < count; i++)
                 {
@@ -248,17 +252,16 @@ namespace DataBuildSystem
 
         public void WriteTo(IBinaryWriter writer)
         { 
-            writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
             writer.Write(Count);
             foreach (byte b in Paths)
             {
                 writer.Write(b);
             }
-            foreach (string subpath in SubFilePaths)
+            foreach (string fp in FilePaths)
             {
-                writer.Write(subpath);
+                writer.Write(fp);
             }
-            foreach (int id in Ids)
+            foreach (short id in Ids)
             {
                 writer.Write(id);
             }
