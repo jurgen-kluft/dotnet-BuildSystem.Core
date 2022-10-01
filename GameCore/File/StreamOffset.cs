@@ -7,8 +7,8 @@ namespace GameCore
     {
         #region Fields
 
-        public readonly static StreamOffset Empty = new StreamOffset(-1);
-        public readonly static StreamOffset Zero = new StreamOffset(0);
+        public readonly static StreamOffset Empty = new (-1);
+        public readonly static StreamOffset Zero = new (0);
 
         private Int64 mOffset;
 

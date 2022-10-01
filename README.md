@@ -8,7 +8,7 @@ following things will be done by the BuildSystem:
 - It will search for ``IDataRoot`` and will treat it as the root of a DataUnit
 - It recognizes the following types:
   - ``DataUnit``; A reference to a ``IDataRoot`` that exists in another ``GameData...DLL``
-  - ``FileId``; An Id that can be retrieved interacting with BigfileManager
+  - ``FileId``; An Id that can be used to interact with BigfileManager to read a file
   - ``s8``/``s16``/``s32``/``s64``;
   - ``u8``/``u16``/``u32``/``u64``;
   - ``fx16``/``fx32``;

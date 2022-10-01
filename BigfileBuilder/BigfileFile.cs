@@ -3,76 +3,85 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    public struct BigfileFile
+    public class BigfileFile
     {
         #region Fields
 
-        public readonly static BigfileFile Empty = new BigfileFile(string.Empty, 0, StreamOffset.Empty);
-
-        private string mFilename;
-        private Int64 mFileSize;
-        private StreamOffset[] mFileOffsets;
-        private Hash160 mContentHash;                                                  // Content hash
+        public readonly static BigfileFile Empty = new(string.Empty, 0, StreamOffset.Empty);
 
         #endregion
         #region Constructor
 
-        public BigfileFile(BigfileFile file)
+        public BigfileFile(BigfileFile other)
         {
-            mFilename = file.filename;
-            mFileSize = file.size;
-            mFileOffsets = file.offsets;
-            mContentHash = Hash160.Empty;
+            Filename = other.Filename;
+            FileSize = other.FileSize;
+            FileOffset = new StreamOffset(other.FileOffset.value);
+            FileId = other.FileId;
+            FileContentHash = other.FileContentHash;
         }
 
-        public BigfileFile(string filename, Int64 size)
+        public BigfileFile(string filename)
         {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[] { StreamOffset.Empty };
-            mContentHash = Hash160.Empty;
+            Filename = filename;
+            FileSize = -1;
+            FileOffset = StreamOffset.Zero;
+            FileId = UInt64.MaxValue;
+            FileContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(string filename, Int64 size, StreamOffset offset)
+        public BigfileFile(string filename, Int32 size)
         {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[] { offset };
-            mContentHash = Hash160.Empty;
+            Filename = filename;
+            FileSize = size;
+            FileOffset = StreamOffset.Empty;
+            FileId = UInt64.MaxValue;
+            FileContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(string filename, Int64 size, Hash160 contentHash)
+        public BigfileFile(string filename, Int32 size, StreamOffset offset)
         {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[] { StreamOffset.Empty };
-            mContentHash = contentHash;
+            Filename = filename;
+            FileSize = size;
+            FileOffset = offset;
+            FileId = UInt64.MaxValue;
+            FileContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(string filename, Int64 size, StreamOffset offset, Hash160 contentHash)
+        public BigfileFile(string filename, Int32 size, UInt64 fileId)
         {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[] { offset };
-            mContentHash = contentHash;
-        }
-        
-        public BigfileFile(string filename, Int64 size, StreamOffset[] offsets)
-        {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[offsets.Length];
-            offsets.CopyTo(mFileOffsets, 0);
-            mContentHash = Hash160.Empty;
+            Filename = filename;
+            FileSize = size;
+            FileOffset = StreamOffset.Empty;
+            FileId = fileId;
+            FileContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(string filename, Int64 size, StreamOffset[] offsets, Hash160 contentHash)
+        public BigfileFile(string filename, Int32 size, UInt64 fileId, Hash160 contentHash)
         {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[offsets.Length];
-            offsets.CopyTo(mFileOffsets, 0);
-            mContentHash = contentHash;
+            Filename = filename;
+            FileSize = size;
+            FileOffset = StreamOffset.Empty;
+            FileId = fileId;
+            FileContentHash = contentHash;
+        }
+
+        public BigfileFile(string filename, Int32 size, StreamOffset offset, UInt64 fileId)
+        {
+            Filename = filename;
+            FileSize = size;
+            FileOffset = offset;
+            FileId = fileId;
+            FileContentHash = Hash160.Empty;
+        }
+
+        public BigfileFile(string filename, Int32 size, StreamOffset offset, UInt64 fileId, Hash160 contentHash)
+        {
+            Filename = filename;
+            FileSize = size;
+            FileOffset = offset;
+            FileId = fileId;
+            FileContentHash = contentHash;
         }
 
         #endregion
@@ -82,101 +91,28 @@ namespace DataBuildSystem
         {
             get
             {
-                return mFileSize == 0 && mFileOffsets[0].isEmpty && mFilename == string.Empty;
+                return FileSize == 0 && FileOffset.isEmpty && Filename == string.Empty;
             }
         }
 
-        public string filename
-        {
-            set
-            {
-                mFilename = value;
-            }
-            get
-            {
-                return mFilename;
-            }
-        }
-
-        public Int32 size32
-        {
-            get
-            {
-                return (Int32)mFileSize;
-            }
-        }
-
-        public Int64 size
-        {
-            get
-            {
-                return mFileSize;
-            }
-            set
-            {
-                mFileSize = value;
-            }
-        }
-
-        public StreamOffset offset
-        {
-            set
-            {
-                mFileOffsets = new StreamOffset[1];
-                mFileOffsets[0] = value;
-            }
-            get
-            {
-                return mFileOffsets[0];
-            }
-        }
-
-
-        public StreamOffset[] offsets
-        {
-            set
-            {
-                mFileOffsets = new StreamOffset[value.Length];
-                value.CopyTo(mFileOffsets, 0);
-            }
-            get
-            {
-                return mFileOffsets;
-            }
-        }
-
-        public Hash160 contenthash
-        {
-            get
-            {
-                return mContentHash;
-            }
-        }
+        public string Filename { get; set; }
+        public Int32 FileSize { get; set; }
+        public StreamOffset FileOffset { get; set; }
+        public UInt64 FileId { get; set; }
+        public Hash160 FileContentHash { get; set; }
+        public List<UInt64> ChildFileIds { get; set; }
 
         #endregion
         #region Operators
 
         public static bool operator ==(BigfileFile a, BigfileFile b)
         {
-            if (a.mFileSize == b.mFileSize && a.mFilename == b.mFilename && a.offsets.Length == b.offsets.Length)
-            {
-                for (int i = 0; i < a.offsets.Length; ++i)
-                    if (a.offsets[i] != b.offsets[i])
-                        return false;
-
-                return true;
-            }
-            return false;
+            return (a.FileSize == b.FileSize && a.Filename == b.Filename && a.FileOffset == b.FileOffset);
         }
         public static bool operator !=(BigfileFile a, BigfileFile b)
         {
-            if (a.mFileSize != b.mFileSize || a.mFilename != b.mFilename || a.offsets.Length != b.offsets.Length)
-                return false;
-
-            for (int i = 0; i<a.offsets.Length; ++i)
-                if (a.offsets[i] != b.offsets[i])
-                    return true;
-
+            if (a.FileSize != b.FileSize || a.Filename != b.Filename || a.FileOffset != b.FileOffset)
+                return true;
             return false;
         }
 
@@ -185,18 +121,16 @@ namespace DataBuildSystem
 
         public override bool Equals(object o)
         {
-            if (o is BigfileFile)
+            if (o is BigfileFile other)
             {
-                BigfileFile other = (BigfileFile)o;
                 return this == other;
             }
-
             return false;
         }
 
         public override int GetHashCode()
         {
-            return mFileOffsets[0].value32;
+            return FileOffset.value32;
         }
 
         #endregion

@@ -18,14 +18,14 @@ namespace DataBuildSystem
         {
             #region Properties
 
-            int count { get; }
+            int Count { get; }
 
             #endregion
             #region Methods
 
-            void read(IBinaryReader reader);
-            void read(IBinaryReader reader, ITocEntry e);
-            bool next();
+            void Read(IBinaryReader reader);
+            void Read(IBinaryReader reader, ITocEntry e);
+            bool Next();
 
             #endregion
         }
@@ -34,14 +34,14 @@ namespace DataBuildSystem
         {
             #region Properties
 
-            int count { get; set; }
+            int Count { get; set; }
 
             #endregion
             #region Methods
 
-            void write(IBinaryWriter writer);
-            void write(IBinaryWriter writer, ITocEntry e);
-            bool next();
+            void Write(IBinaryWriter writer);
+            void Write(IBinaryWriter writer, ITocEntry e);
+            bool Next();
 
             #endregion
         }
@@ -50,23 +50,19 @@ namespace DataBuildSystem
         {
             #region Properties
 
-            StreamOffset[] offsets { get; set; }
-            UInt32 size { get; set; }
-            bool compressed { get; set; }
-            string filename { get; set; }
-            Hash160 hash { get; set; }
-            Hash160 contenthash { get; set; }
-
-            #endregion
-            #region FileOffset Methods
-
-            void addFileOffset(StreamOffset offset);
+            StreamOffset FileOffset { get; set; }
+            Int32 FileSize { get; set; }
+            bool IsCompressed { get; set; }
+            string Filename { get; set; }
+            UInt64 FileId { get; set; }
+            Hash160 FileContentHash { get; set; }
+            List<ITocEntry> ChildEntries { get; set; }
 
             #endregion
             #region Read/Write
 
-            void read(IBinaryReader reader, IReadContext context);
-            void write(IBinaryWriter writer, IWriteContext context);
+            void Read(IBinaryReader reader, IReadContext context);
+            void Write(IBinaryWriter writer, IWriteContext context);
 
             #endregion
         }
@@ -82,11 +78,11 @@ namespace DataBuildSystem
             {
                 return new TocEntry();
             }
-            public static ITocEntry Create(StreamOffset fileOffset, UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public static ITocEntry Create(StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileOffset, fileSize, filename, type, contentHash);
             }
-            public static ITocEntry Create(UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public static ITocEntry Create(Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileSize, filename, type, contentHash);
             }
@@ -136,181 +132,85 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private StreamOffset[] mFileOffsets;
-            private UInt32 mFileSize;
-            private string mFilename;
-            private Hash160 mHash;
-            private Hash160 mContentHash;
-            private StreamOffset[] mEmptyOffset = new StreamOffset[] { StreamOffset.Empty };
-
             #endregion
             #region Constructor
 
             public TocEntry()
             {
-                mFileOffsets = null;
-                mFilename = string.Empty;
-                mHash = Hash160.Empty;
-                mContentHash = Hash160.Empty;
-                size = 0;
-                compressed = false;
+                FileOffset = StreamOffset.Empty;
+                Filename = string.Empty;
+                FileId = UInt64.MaxValue;
+                FileContentHash = Hash160.Empty;
+                FileSize = 0;
+                IsCompressed = false;
             }
             public TocEntry(string filename, ECompressed type, Hash160 contentHash)
             {
-                mFileOffsets = null;
-                mFilename = filename;
-                mHash = Hash160.FromString(mFilename.ToLower());
-                mContentHash = contentHash;
+                FileOffset = StreamOffset.Empty;
+                Filename = filename;
+                FileId = UInt64.MaxValue;
+                FileContentHash = contentHash;
 
-                size = 0;
-                compressed = (type == ECompressed.YES);
+                FileSize = 0;
+                IsCompressed = (type == ECompressed.YES);
             }
-            public TocEntry(StreamOffset fileOffset, UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public TocEntry(StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
                 : this(filename, type, contentHash)
             {
-                mFileOffsets = new StreamOffset[] { fileOffset };
-                size = fileSize;
+                FileOffset = fileOffset ;
+                FileSize = fileSize;
             }
-            public TocEntry(UInt32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public TocEntry(Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
                 : this(filename, type, contentHash)
             {
-                mFileOffsets = null;
-                size = fileSize;
+                FileOffset = StreamOffset.Empty;
+                FileSize = fileSize;
             }
 
             #endregion
             #region Properties
 
-            public StreamOffset[] offsets
-            {
-                get
-                {
-                    if (null == mFileOffsets)
-                    {
-                        return mEmptyOffset;
-                    }
-                    else
-                    {
-                        return mFileOffsets;
-                    }
-                }
-                set
-                {
-                    if (value.Length == 0)
-                    {
-                        mFileOffsets = new StreamOffset[] { StreamOffset.Empty };
-                    }
-                    else
-                    {
-                        mFileOffsets = new StreamOffset[value.Length];
-                        value.CopyTo(mFileOffsets, 0);
-                    }
-                }
-            }
+            public StreamOffset FileOffset { get; set; }
+            public Int32 FileSize { get; set; }
+            public string Filename { get; set; }
+            public UInt64 FileId { get; set; }
+            public Hash160 FileContentHash { get; set; }
+            public bool IsCompressed { get; set; }
+            public List<ITocEntry> ChildEntries { get; set; } = new ();
 
-            public UInt32 size
+            public static Int32 EncodeFileSize(Int32 fileSize, bool isCompressed)
             {
-                get
-                {
-                    return mFileSize & 0x7FFFFFFF;
-                }
-                set
-                {
-                    mFileSize = mFileSize & 0x80000000;
-                    mFileSize |= (value & 0x7FFFFFFF);
-                }
-            }
-
-            public string filename
-            {
-                get
-                {
-                    return mFilename;
-                }
-                set
-                {
-                    mFilename = value;
-                }
-            }
-
-            public Hash160 hash
-            {
-                get
-                {
-                    return mHash;
-                }
-                set
-                {
-                    mHash = value;
-                }
-            }
-
-            public Hash160 contenthash
-            {
-                get
-                {
-                    return mContentHash;
-                }
-                set
-                {
-                    mContentHash = value;
-                }
-            }
-
-            public bool compressed
-            {
-                get
-                {
-                    return (mFileSize & 0x80000000) == 0x80000000;
-                }
-                set
-                {
-                    if (value)
-                        mFileSize = mFileSize | 0x80000000;
-                    else
-                        mFileSize = mFileSize & 0x7FFFFFFF;
-                }
+                if (isCompressed)
+                    return (Int32)(fileSize | 0x80000000);
+                return fileSize & 0x7fffffff;
             }
 
             #endregion
             #region Methods
 
-            public void addFileOffset(StreamOffset o)
+            public void Read(IBinaryReader reader, IReadContext context)
             {
-                if (null != mFileOffsets && mFileOffsets.Length > 0)
-                {
-                    StreamOffset[] newOffsets = new StreamOffset[mFileOffsets.Length + 1];
-                    mFileOffsets.CopyTo(newOffsets, 0);
-                    newOffsets[newOffsets.Length - 1] = o;
-                    mFileOffsets = newOffsets;
-                }
-                else
-                {
-                    mFileOffsets = new StreamOffset[1];
-                    mFileOffsets[0] = o;
-                }
+                context.Read(reader, this);
             }
 
-            public void read(IBinaryReader reader, IReadContext context)
+            public void Write(IBinaryWriter writer, IWriteContext context)
             {
-                context.read(reader, this);
-            }
-
-            public void write(IBinaryWriter writer, IWriteContext context)
-            {
-                context.write(writer, this);
+                context.Write(writer, this);
             }
 
             #endregion
 
-            #region TocEntryHashComparer (IComparer<ITocEntry>)
+            #region TocEntryFileIdComparer (IComparer<ITocEntry>)
 
-            public class TocEntryHashComparer : IComparer<ITocEntry>
+            public class TocEntryFileIdComparer : IComparer<ITocEntry>
             {
                 public int Compare(ITocEntry x, ITocEntry y)
                 {
-                    int c = Hash160.Compare(x.hash, y.hash);
-                    return c;
+                    if (x.FileId == y.FileId)
+                        return 0;
+                    if (x.FileId < y.FileId)
+                        return -1;
+                    return 1;
                 }
             }
 
@@ -331,7 +231,6 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private int mCount;
             private int mIteration;
             private int mIndex;
             private List<ITocEntry> mTable;
@@ -348,24 +247,17 @@ namespace DataBuildSystem
             #endregion
             #region IReadContext Members
 
-            public int count
-            {
-                get
-                {
-                    return mCount;
-                }
-            }
+            public int Count { get; set; }
 
-
-            public void read(IBinaryReader reader)
+            public void Read(IBinaryReader reader)
             {
                 // Read the header
-                mCount = reader.ReadInt32();
+                Count = reader.ReadInt32();
 
                 mTable.Clear();
-                mTable.Capacity = mCount;
+                mTable.Capacity = Count;
 
-                for (int i = 0; i < mCount; i++)
+                for (int i = 0; i < Count; i++)
                 {
                     ITocEntry fileEntry = Factory.Create();
                     mTable.Add(fileEntry);
@@ -373,17 +265,17 @@ namespace DataBuildSystem
 
             }
 
-            private static bool isValidOffset(UInt32 offset)
+            private static bool IsValidOffset(UInt32 offset)
             {
                 return offset != UInt32.MaxValue;
             }
 
-            private static bool isMultiOffset(UInt32 offset)
+            private static bool IsMultiOffset(UInt32 offset)
             {
                 return (offset & 0x80000000) != 0;
             }
 
-            public void read(IBinaryReader reader, ITocEntry e)
+            public void Read(IBinaryReader reader, ITocEntry e)
             {
                 switch (mIteration)
                 {
@@ -391,33 +283,33 @@ namespace DataBuildSystem
                         {
                             if (mIndex == 0)
                             {
-                                mMultiOffset = new List<UInt32>(mCount);
+                                mMultiOffset = new List<UInt32>(Count);
                             }
 
                             UInt32 offset = reader.ReadUInt32(); // FileOffset OR DataOffset to FileOffset(Int32)[]
                             mMultiOffset.Add(offset);
-                            e.size = reader.ReadUInt32(); // File size
+                            e.FileSize = reader.ReadInt32(); // File size
                         }
                         break;
                     case 1:
                         {
                             UInt32 offset = mMultiOffset[mIndex];
-                            if (isValidOffset(offset))
+                            if (IsValidOffset(offset))
                             {
-                                if (isMultiOffset(offset))
+                                if (IsMultiOffset(offset))
                                 {
                                     int instancesNum = reader.ReadInt32();
                                     for (int i = 0; i < instancesNum; i++)
-                                        e.addFileOffset(new StreamOffset(reader.ReadUInt32()));
+                                        e.FileOffset = new StreamOffset(reader.ReadUInt32());
                                 }
                                 else
                                 {
-                                    e.addFileOffset(new StreamOffset(offset));
+                                    e.FileOffset = new StreamOffset(offset);
                                 }
                             }
                             else
                             {
-                                e.addFileOffset(new StreamOffset(offset));
+                                e.FileOffset = new StreamOffset(offset);
                             }
                         }
                         break;
@@ -426,7 +318,7 @@ namespace DataBuildSystem
                 ++mIndex;
             }
 
-            public bool next()
+            public bool Next()
             {
                 mIndex = 0;
                 mIteration++;
@@ -453,27 +345,20 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private int mCount;
             private int mIteration;
             private int mIndex;
 
             #endregion
             #region IReadContext Members
 
-            public int count
+            public int Count { get; set; }
+
+            public void Read(IBinaryReader reader)
             {
-                get
-                {
-                    return mCount;
-                }
+                Count = reader.ReadInt32();
             }
 
-            public void read(IBinaryReader reader)
-            {
-                mCount = reader.ReadInt32();
-            }
-
-            public void read(IBinaryReader reader, ITocEntry e)
+            public void Read(IBinaryReader reader, ITocEntry e)
             {
                 switch (mIteration)
                 {
@@ -485,14 +370,14 @@ namespace DataBuildSystem
                     case 1: // Read the Filename(string)[]
                         {
                             string filename = reader.ReadString();
-                            e.filename = filename;
+                            e.Filename = filename;
                         }
                         break;
                 }
                 ++mIndex;
             }
 
-            public bool next()
+            public bool Next()
             {
                 mIndex = 0;
                 mIteration++;
@@ -503,10 +388,10 @@ namespace DataBuildSystem
         }
 
         /// <summary>
-        /// The Hdb (holding the Hash128[]) consists of 1 iteration
+        /// The Hdb (holding the Hash[]) consists of 1 iteration
         /// 
         ///     Iteration 1:
-        ///         Reading the Hash128[] to the filename for every TocEntry
+        ///         Reading the Hash[] to the filename for every TocEntry
         /// 
         ///     Iteration 2:
         ///         Reading the filenames
@@ -519,41 +404,34 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private int mCount;
             private int mIteration;
             private int mIndex;
 
             #endregion
             #region IReadContext Members
 
-            public int count
+            public int Count { get; set; }
+
+            public void Read(IBinaryReader reader)
             {
-                get
-                {
-                    return mCount;
-                }
+                Count = reader.ReadInt32();
             }
 
-            public void read(IBinaryReader reader)
-            {
-                mCount = reader.ReadInt32();
-            }
-
-            public void read(IBinaryReader reader, ITocEntry e)
+            public void Read(IBinaryReader reader, ITocEntry e)
             {
                 switch (mIteration)
                 {
-                    case 0: // Read the FilenameOffset(Int32)[]
+                    case 0: 
                         {
                             byte[] hash = reader.ReadBytes(16);
-                            e.hash = Hash160.ConstructTake(hash);
+                            e.FileContentHash = Hash160.ConstructTake(hash);
                         }
                         break;
                 }
                 ++mIndex;
             }
 
-            public bool next()
+            public bool Next()
             {
                 mIndex = 0;
                 mIteration++;
@@ -564,23 +442,22 @@ namespace DataBuildSystem
         }
 
         /// <summary>
-        /// The (32 bit) Toc, holding TocEntry[] (TocEntry with multiple file offsets), needs 3 iterations
+        /// The (32 bit) Toc, holding TocEntry[] (TocEntry), needs 3 iterations
         /// 
         ///     Iteration 1:
-        ///         Calculating the offset to the FileOffset(Int32)[] for every TocEntry
+        ///         Calculating the offset to the FileId(Int32)[] for every TocEntry
         /// 
         ///     Iteration 2:
         ///         Writing the TocEntry[]
         /// 
         ///     Iteration 3:
-        ///         Writing the FileOffset(Int32)[] for every TocEntry
+        ///         Writing the FileId(Int32)[] for every TocEntry
         /// 
         /// </summary>
         private class WriteToc32Context : IWriteContext
         {
             #region Fields
 
-            private int mCount;
             private int mIteration;
             private int mIndex;
             private int mOffset;
@@ -589,44 +466,34 @@ namespace DataBuildSystem
             #endregion
             #region IWriteContext Members
 
-            public int count
+            public int Count { get; set; }
+
+            public void Write(IBinaryWriter writer)
             {
-                set
-                {
-                    mCount = value;
-                }
-                get
-                {
-                    return mCount;
-                }
+                writer.Write(Count);
             }
 
-            public void write(IBinaryWriter writer)
-            {
-                writer.Write(mCount);
-            }
-
-            private static bool isValidOffset(Int32 offset)
+            private static bool IsValidOffset(Int32 offset)
             {
                 return offset != -1;
             }
 
-            private static Int32 makeInvalidOffset()
+            private static Int32 MakeInvalidOffset()
             {
                 return -1;
             }
 
-            private static Int32 makeMultiOffset(Int32 offset)
+            private static Int32 MakeMultiOffset(Int32 offset)
             {
                 return (Int32)((UInt32)offset | 0x80000000);
             }
 
-            private static bool isMultiOffset(Int32 offset)
+            private static bool IsMultiOffset(Int32 offset)
             {
                 return (offset & 0x80000000) != 0;
             }
 
-            public void write(IBinaryWriter writer, ITocEntry e)
+            public void Write(IBinaryWriter writer, ITocEntry e)
             {
                 switch (mIteration)
                 {
@@ -634,22 +501,22 @@ namespace DataBuildSystem
                         {
                             if (mIndex == 0)
                             {
-                                mMultiOffset = new List<Int32>(mCount);
-                                mOffset = (int)writer.Position + mCount * (sizeof(Int32) + sizeof(Int32));
+                                mMultiOffset = new List<Int32>(Count);
+                                mOffset = (int)writer.Position + Count * (sizeof(Int32) + sizeof(Int32));
                             }
 
-                            if (e.offsets.Length == 0)
+                            if (e.ChildEntries.Count == 0)
                             {
-                                mMultiOffset.Add(makeInvalidOffset());
+                                mMultiOffset.Add(MakeInvalidOffset());
                             }
-                            else if (e.offsets.Length == 1)
+                            else if (e.ChildEntries.Count == 1)
                             {
-                                mMultiOffset.Add(e.offsets[0].value32);
+                                mMultiOffset.Add(e.ChildEntries[0].FileOffset.value32);
                             }
                             else
                             {
-                                mMultiOffset.Add(makeMultiOffset(mOffset));
-                                mOffset += sizeof(Int32) + (e.offsets.Length * sizeof(Int32));
+                                mMultiOffset.Add(MakeMultiOffset(mOffset));
+                                mOffset += sizeof(Int32) + (e.ChildEntries.Count * sizeof(Int32));
                             }
                         }
                         break;
@@ -657,17 +524,17 @@ namespace DataBuildSystem
                         {
                             Int32 offset = mMultiOffset[mIndex];
                             writer.Write(offset);
-                            writer.Write(e.size);
+                            writer.Write(e.FileSize);
                         }
                         break;
                     case 2: // Write the FileOffset(Int32)[] for every TocEntry that needs it
                         {
                             Int32 offset = mMultiOffset[mIndex];
-                            if (isValidOffset(offset) && isMultiOffset(offset))
+                            if (IsValidOffset(offset) && IsMultiOffset(offset))
                             {
-                                writer.Write(e.offsets.Length);
-                                foreach (StreamOffset o in e.offsets)
-                                    writer.Write(o.value32);
+                                writer.Write(e.ChildEntries.Count);
+                                foreach (ITocEntry te in e.ChildEntries)
+                                    writer.Write(te.FileId);
                             }
                         }
                         break;
@@ -676,7 +543,7 @@ namespace DataBuildSystem
             }
 
 
-            public bool next()
+            public bool Next()
             {
                 mIndex = 0;
                 mIteration++;
@@ -703,7 +570,6 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private int mCount;
             private int mIteration;
             private int mIndex;
             private int mOffset;
@@ -712,27 +578,15 @@ namespace DataBuildSystem
             #endregion
             #region IWriteContext Members
 
-            public int count
-            {
-                set
-                {
-                    mCount = value;
-                    int[] array = new int[mCount];
-                    mOffsets = new List<int>(array);
-                }
-                get
-                {
-                    return mCount;
-                }
-            }
+            public int Count { get; set; }
 
-            public void write(IBinaryWriter writer)
+            public void Write(IBinaryWriter writer)
             {
                 // The file header
-                writer.Write(mCount);
+                writer.Write(Count);
             }
 
-            public void write(IBinaryWriter writer, ITocEntry e)
+            public void Write(IBinaryWriter writer, ITocEntry e)
             {
                 switch (mIteration)
                 {
@@ -742,7 +596,7 @@ namespace DataBuildSystem
                                 mOffset = 0;
 
                             mOffsets[mIndex] = mOffset;
-                            string filename = e.filename;
+                            string filename = e.Filename;
                             mOffset += filename.Length + 1;
                         }
                         break;
@@ -753,7 +607,7 @@ namespace DataBuildSystem
                         break;
                     case 2: // Write the Filename(string)[]
                         {
-                            writer.Write(e.filename);
+                            writer.Write(e.Filename);
                         }
                         break;
                 }
@@ -761,7 +615,7 @@ namespace DataBuildSystem
                 ++mIndex;
             }
 
-            public bool next()
+            public bool Next()
             {
                 mIndex = 0;
                 mIteration++;
@@ -780,53 +634,37 @@ namespace DataBuildSystem
         /// </summary>
         private class WriteHdbContext : IWriteContext
         {
-            #region Fields
-
-            private int mCount = 0;
-            private int mIteration = 0;
-            private int mIndex = 0;
-
-            #endregion
             #region IWriteContext Members
 
-            public int count
-            {
-                set
-                {
-                    mCount = value;
-                }
-                get
-                {
-                    return mCount;
-                }
-            }
+            private int Iteration { get; set; }
+            private int Index { get; set; }
+            public int Count { get; set; }
 
-            public void write(IBinaryWriter writer)
+            public void Write(IBinaryWriter writer)
             {
                 // The file header
-                writer.Write(mCount);
+                writer.Write(Count);
             }
 
-            public void write(IBinaryWriter writer, ITocEntry e)
+            public void Write(IBinaryWriter writer, ITocEntry e)
             {
-                switch (mIteration)
+                switch (Iteration)
                 {
                     case 0:
                         {
-                            byte[] b = e.hash.Data;
+                            byte[] b = e.FileContentHash.Data;
                             writer.Write(b);
                         }
                         break;
                 }
-
-                ++mIndex;
+                ++Index;
             }
 
-            public bool next()
+            public bool Next()
             {
-                mIndex = 0;
-                mIteration++;
-                return mIteration < 1;
+                Index = 0;
+                Iteration++;
+                return Iteration < 1;
             }
 
             #endregion
@@ -835,8 +673,8 @@ namespace DataBuildSystem
         #region Fields
 
         private static IBigfileConfig sConfig = new BigfileDefaultConfig();
-        private readonly List<ITocEntry> mTable = new List<ITocEntry>();
-        private readonly Dictionary<string, UInt32> mFilenameToFileEntryIndexDictionary = new Dictionary<string, UInt32>(StringComparer.CurrentCultureIgnoreCase);
+        private readonly List<ITocEntry> mTable = new ();
+        private readonly Dictionary<string, UInt32> mFilenameToFileEntryIndexDictionary = new (StringComparer.CurrentCultureIgnoreCase);
 
         #endregion
         #region Properties
@@ -849,20 +687,19 @@ namespace DataBuildSystem
             }
         }
 
-        public BigfileFile infoOf(int index)
+        public BigfileFile InfoOf(int index)
         {
             if (index >= 0 && index < Count)
             {
                 ITocEntry e = mTable[index];
-                return new BigfileFile(new Filename(e.filename), e.size, e.offsets, e.contenthash);
+                return new BigfileFile(e.Filename, e.FileSize, e.FileOffset, e.FileId, e.FileContentHash);
             }
             return BigfileFile.Empty;
         }
 
-        public UInt32 indexOf(Filename filename)
+        public UInt32 IndexOf(string filename)
         {
-            UInt32 index;
-            if (!mFilenameToFileEntryIndexDictionary.TryGetValue(filename, out index))
+            if (!mFilenameToFileEntryIndexDictionary.TryGetValue(filename, out UInt32 index))
                 index = UInt32.MaxValue;
             return index;
         }
@@ -870,44 +707,44 @@ namespace DataBuildSystem
         #endregion
         #region Methods
 
-        public static void setConfig(IBigfileConfig config)
+        public static void SetConfig(IBigfileConfig config)
         {
             sConfig = config;
         }
 
-        public static bool exists(string filename)
+        public static bool Exists(string filename)
         {
             string bigFileTocFilename = filename;
             bigFileTocFilename = Path.ChangeExtension(bigFileTocFilename , sConfig.BigFileTocExtension);
-            FileInfo fileInfo = new FileInfo(bigFileTocFilename);
+            FileInfo fileInfo = new (bigFileTocFilename);
             return fileInfo.Exists;
         }
 
-        public void add(BigfileFile file, bool isCompressed)
+        public void Add(BigfileFile file, bool isCompressed)
         {
             UInt32 index;
-            if (mFilenameToFileEntryIndexDictionary.TryGetValue(file.filename, out index) == false)
+            if (mFilenameToFileEntryIndexDictionary.TryGetValue(file.Filename, out index) == false)
             {
-                ITocEntry fileEntry = Factory.Create(file.offset, (UInt32)file.size, file.filename, isCompressed ? ECompressed.YES : ECompressed.NO, file.contenthash);
+                ITocEntry fileEntry = Factory.Create(file.FileOffset, file.FileSize, file.Filename, isCompressed ? ECompressed.YES : ECompressed.NO, file.FileContentHash);
                 index = (UInt32)mTable.Count;
                 mTable.Add(fileEntry);
-                mFilenameToFileEntryIndexDictionary.Add(file.filename, index);
+                mFilenameToFileEntryIndexDictionary.Add(file.Filename, index);
             }
             else
             {
-                Debug.Assert(file.size == mTable[(int)index].size);
-                mTable[(int)index].addFileOffset(file.offset);
+                Debug.Assert(file.FileSize == mTable[(int)index].FileSize);
+                mTable[(int)index].FileOffset = file.FileOffset;
             }
         }
-        public void add(BigfileFile file)
+        public void Add(BigfileFile file)
         {
-            add(file, false);
+            Add(file, false);
         }
-        public void sort()
+        private void Sort()
         {
-            mTable.Sort(new TocEntry.TocEntryHashComparer());
+            mTable.Sort(new TocEntry.TocEntryFileIdComparer());
         }
-        public void copyFilesOrder(BigfileToc orgToc)
+        public void CopyFilesOrder(BigfileToc orgToc)
         {
             mTable.Clear();
             mFilenameToFileEntryIndexDictionary.Clear();
@@ -915,14 +752,14 @@ namespace DataBuildSystem
             for (int i = 0; i < orgToc.Count; i++)
             {
                 ITocEntry oldEntry = orgToc.mTable[i];
-                bool isCompressed = (oldEntry.size & 0x80000000) == 0x80000000;
-                ITocEntry newEntry = Factory.Create((UInt32)oldEntry.size, oldEntry.filename, isCompressed ? ECompressed.YES : ECompressed.NO, oldEntry.contenthash);
+                bool isCompressed = (oldEntry.IsCompressed);
+                ITocEntry newEntry = Factory.Create(oldEntry.FileSize, oldEntry.Filename, isCompressed ? ECompressed.YES : ECompressed.NO, oldEntry.FileContentHash);
                 UInt32 index = (UInt32)mTable.Count;
                 mTable.Add(newEntry);
-                mFilenameToFileEntryIndexDictionary.Add(new Filename(oldEntry.filename), index);
+                mFilenameToFileEntryIndexDictionary.Add(oldEntry.Filename, index);
             }
         }
-        public void copyFilesOrder(List<BigfileFile> srcBigfileFiles)
+        public void CopyFilesOrder(List<BigfileFile> srcBigfileFiles)
         {
             mTable.Clear();
             mFilenameToFileEntryIndexDictionary.Clear();
@@ -930,54 +767,54 @@ namespace DataBuildSystem
             for (int i = 0; i < srcBigfileFiles.Count; i++)
             {
                 BigfileFile oldFile = srcBigfileFiles[i];
-                bool isCompressed = (oldFile.size & 0x80000000) == 0x80000000;
-                ITocEntry newEntry = Factory.Create((UInt32)oldFile.size, oldFile.filename, isCompressed ? ECompressed.YES : ECompressed.NO, oldFile.contenthash);
+                bool isCompressed = (oldFile.FileSize & 0x80000000) == 0x80000000;
+                ITocEntry newEntry = Factory.Create(oldFile.FileSize, oldFile.Filename, isCompressed ? ECompressed.YES : ECompressed.NO, oldFile.FileContentHash);
                 UInt32 index = (UInt32)mTable.Count;
                 mTable.Add(newEntry);
-                mFilenameToFileEntryIndexDictionary.Add(new Filename(oldFile.filename), index);
+                mFilenameToFileEntryIndexDictionary.Add(oldFile.Filename, index);
             }
         }
 
-        private static void sReadTable(List<ITocEntry> table, IReadContext context, FileStream stream, EEndian endian)
+        private static void ReadTable(List<ITocEntry> table, IReadContext context, FileStream stream, EEndian endian)
         {
             IBinaryReader binaryReader = EndianUtils.CreateBinaryReader(stream, endian);
             {
-                context.read(binaryReader);
+                context.Read(binaryReader);
                 do
                 {
-                    for (int i = 0; i < context.count; i++)
-                        table[i].read(binaryReader, context);
-                } while (context.next());
+                    for (int i = 0; i < context.Count; i++)
+                        table[i].Read(binaryReader, context);
+                } while (context.Next());
             }
             binaryReader.Close();
         }
 
-        private static FileStream sOpenFileStreamForReading(string filename)
+        private static FileStream OpenFileStreamForReading(string filename)
         {
-            FileInfo fileInfo = new FileInfo(filename);
+            FileInfo fileInfo = new (filename);
             if (!fileInfo.Exists)
             {
                 Console.WriteLine("We tried to load " + fileInfo + " but it does not exist.");
                 return null;
             }
-            FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+            FileStream fileStream = new (fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
             return fileStream;
         }
 
-        public bool load(string filename, EEndian endian)
+        public bool Load(string filename, EEndian endian)
         {
             try
             {
-                FileStream bigFileTocFileStream = sOpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileTocExtension));
-                FileStream bigFileFdbFileStream = sOpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileFdbExtension));
-                FileStream bigFileHdbFileStream = sOpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileHdbExtension));
+                FileStream bigFileTocFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileTocExtension));
+                FileStream bigFileFdbFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileFdbExtension));
+                FileStream bigFileHdbFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileHdbExtension));
                 {
                     try
                     {
                         mTable.Clear();
-                        sReadTable(mTable, Factory.CreateReadTocContext(mTable), bigFileTocFileStream, endian);
-                        sReadTable(mTable, Factory.CreateReadFdbContext(), bigFileFdbFileStream, endian);
-                        sReadTable(mTable, Factory.CreateReadHdbContext(), bigFileHdbFileStream, endian);
+                        ReadTable(mTable, Factory.CreateReadTocContext(mTable), bigFileTocFileStream, endian);
+                        ReadTable(mTable, Factory.CreateReadFdbContext(), bigFileFdbFileStream, endian);
+                        ReadTable(mTable, Factory.CreateReadHdbContext(), bigFileHdbFileStream, endian);
                     }
                     catch (Exception e)
                     {
@@ -998,52 +835,52 @@ namespace DataBuildSystem
             return true;
         }
 
-        private static void sWriteTable(List<ITocEntry> table, IWriteContext context, FileStream stream, EEndian endian)
+        private static void WriteTable(List<ITocEntry> table, IWriteContext context, FileStream stream, EEndian endian)
         {
             IBinaryWriter binaryWriter = EndianUtils.CreateBinaryWriter(stream, endian);
             {
-                context.count = table.Count;
-                context.write(binaryWriter);
+                context.Count = table.Count;
+                context.Write(binaryWriter);
 
                 do
                 {
-                    for (int i = 0; i < context.count; i++)
-                        table[i].write(binaryWriter, context);
-                } while (context.next());
+                    for (int i = 0; i < context.Count; i++)
+                        table[i].Write(binaryWriter, context);
+                } while (context.Next());
 
                 // We are done, close the writer
                 binaryWriter.Close();
             }
         }
 
-        private static FileStream sOpenFileStreamForWriting(string filename)
+        private static FileStream OpenFileStreamForWriting(string filename)
         {
-            FileInfo fileInfo = new FileInfo(filename);
+            FileInfo fileInfo = new (filename);
             if (!fileInfo.Exists)
             {
                 FileStream fileCreationStream = File.Create(fileInfo.FullName);
                 fileCreationStream.Close();
             }
-            FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.Write, 1 * 1024 * 1024, FileOptions.Asynchronous);
+            FileStream fileStream = new (fileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.Write, 1 * 1024 * 1024, FileOptions.Asynchronous);
             return fileStream;
         }
 
-        public bool save(string bigfileFilename, EEndian endian)
+        public bool Save(string bigfileFilename, EEndian endian)
         {
-            sort();
+            Sort();
 
             try
             {
-                FileStream bigFileTocFileStream = sOpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
-                FileStream bigFileFdbFileStream = sOpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileFdbExtension));
-                FileStream bigFileHdbFileStream = sOpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileHdbExtension));
+                FileStream bigFileTocFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
+                FileStream bigFileFdbFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileFdbExtension));
+                FileStream bigFileHdbFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileHdbExtension));
 
                 {
                     try
                     {
-                        sWriteTable(mTable, Factory.CreateWriteTocContext(), bigFileTocFileStream, endian);
-                        sWriteTable(mTable, Factory.CreateWriteFdbContext(), bigFileFdbFileStream, endian);
-                        sWriteTable(mTable, Factory.CreateWriteHdbContext(), bigFileHdbFileStream, endian);
+                        WriteTable(mTable, Factory.CreateWriteTocContext(), bigFileTocFileStream, endian);
+                        WriteTable(mTable, Factory.CreateWriteFdbContext(), bigFileFdbFileStream, endian);
+                        WriteTable(mTable, Factory.CreateWriteHdbContext(), bigFileHdbFileStream, endian);
                     }
                     catch (Exception e)
                     {

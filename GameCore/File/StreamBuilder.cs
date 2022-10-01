@@ -9,35 +9,23 @@ namespace GameCore
     {
         #region Fields
 
-        public readonly static StreamFile Empty = new StreamFile(string.Empty, 0, StreamOffset.Empty);
-
-        private string mFilename;
-        private readonly Int64 mFileSize;
-        private StreamOffset[] mFileOffsets;
+        public readonly static StreamFile Empty = new (string.Empty, 0, StreamOffset.Empty);
 
         #endregion
         #region Constructor
 
         public StreamFile(StreamFile file)
         {
-            mFilename = file.filename;
-            mFileSize = file.size;
-            mFileOffsets = file.offsets;
+            Filename = file.Filename;
+            FileSize = file.FileSize;
+            FileOffset = file.FileOffset;
         }
 
-        public StreamFile(string filename, Int64 size, StreamOffset offset)
+        public StreamFile(string filename, Int32 size, StreamOffset offset)
         {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[] { offset };
-        }
-
-        public StreamFile(string filename, Int64 size, StreamOffset[] offsets)
-        {
-            mFilename = filename;
-            mFileSize = size;
-            mFileOffsets = new StreamOffset[offsets.Length];
-            offsets.CopyTo(mFileOffsets, 0);
+            Filename = filename;
+            FileSize = size;
+            FileOffset = offset;
         }
 
         #endregion
@@ -47,88 +35,29 @@ namespace GameCore
         {
             get
             {
-                return mFileSize == 0 && mFileOffsets[0].isEmpty && mFilename  == string.Empty;
+                return FileSize == 0 && FileOffset == StreamOffset.Empty && Filename  == string.Empty;
             }
         }
 
-        public string filename
-        {
-            set
-            {
-                mFilename = value;
-            }
-            get
-            {
-                return mFilename;
-            }
-        }
+        public string Filename { get; set; }
 
-        public Int32 size32
-        {
-            get
-            {
-                return (Int32)mFileSize;
-            }
-        }
+        public Int32 FileSize { get; set; }
 
-        public Int64 size
-        {
-            get
-            {
-                return mFileSize;
-            }
-        }
-
-        public StreamOffset offset
-        {
-            set
-            {
-                mFileOffsets = new StreamOffset[1];
-                mFileOffsets[0] = value;
-            }
-            get
-            {
-                return mFileOffsets[0];
-            }
-        }
-
-        public StreamOffset[] offsets
-        {
-            set
-            {
-                mFileOffsets = new StreamOffset[value.Length];
-                value.CopyTo(mFileOffsets, 0);
-            }
-            get
-            {
-                return mFileOffsets;
-            }
-        }
+        public StreamOffset FileOffset { get; set; }
 
         #endregion
         #region Operators
 
         public static bool operator ==(StreamFile a, StreamFile b)
         {
-            if (a.mFileSize == b.mFileSize && a.mFilename == b.mFilename && a.offsets.Length == b.offsets.Length)
-            {
-                for (int i = 0; i < a.offsets.Length; ++i)
-                    if (a.offsets[i] != b.offsets[i])
-                        return false;
-
+            if (a.FileSize == b.FileSize && a.Filename == b.Filename && a.FileOffset == b.FileOffset)
                 return true;
-            }
             return false;
         }
         public static bool operator !=(StreamFile a, StreamFile b)
         {
-            if (a.mFileSize != b.mFileSize || a.mFilename != b.mFilename || a.offsets.Length != b.offsets.Length)
-                return false;
-
-            for (int i = 0; i < a.offsets.Length; ++i)
-                if (a.offsets[i] != b.offsets[i])
-                    return true;
-
+            if (a.FileSize != b.FileSize || a.Filename != b.Filename || a.FileOffset != b.FileOffset)
+                return true;
             return false;
         }
 
@@ -148,7 +77,7 @@ namespace GameCore
 
         public override int GetHashCode()
         {
-            return mFileOffsets[0].value32;
+            return FileOffset.value32;
         }
 
         #endregion
@@ -163,7 +92,7 @@ namespace GameCore
 
         public class StreamToCache
         {
-            public static readonly StreamToCache Null = new StreamToCache();
+            public static readonly StreamToCache Null = new ();
 
             private byte[] mCache;
             private int mCachePos;
@@ -184,8 +113,8 @@ namespace GameCore
             public void WriteToCacheReadFromStream(StreamFile file)
             {
                 // Read from Stream = Write to Cache
-                mStream = new FileStream(file.filename, FileMode.Open, FileAccess.Read, FileShare.Read, 8, true);
-                mAsyncResult = mStream.BeginRead(mCache, mCachePos, file.size32, null, null);
+                mStream = new (file.Filename, FileMode.Open, FileAccess.Read, FileShare.Read, 8, true);
+                mAsyncResult = mStream.BeginRead(mCache, mCachePos, file.FileSize, null, null);
             }
 
             internal bool IsBusy
@@ -215,7 +144,7 @@ namespace GameCore
 
         public class CacheToStream
         {
-            public static readonly CacheToStream Null = new CacheToStream(null);
+            public static readonly CacheToStream Null = new (null);
 
             private byte[] mCache;
             private int mSize;
@@ -351,10 +280,10 @@ namespace GameCore
             {
                 if (mNumBytesInCache == 0)
                 {
-                    mCacheOffset = file.offset.value32;
+                    mCacheOffset = file.FileOffset.value32;
                 }
 
-                if ((CacheAlign(file.offset.value32 - mCacheOffset, alignment) + (Int32)file.size) <= mSize)
+                if ((CacheAlign(file.FileOffset.value32 - mCacheOffset, alignment) + (Int32)file.FileSize) <= mSize)
                 {
                     return true;
                 }
@@ -377,10 +306,10 @@ namespace GameCore
                         mState = ECacheState.WRITING_TO_CACHE;
 
                         // The offset of where the file is written in the output stream should match the precalculated one
-                        Debug.Assert(file.offset.value32 == (mCacheOffset + mNumBytesInCache));
-                        buffer.Init(mCache, (Int32)(file.offset.value - mCacheOffset));
+                        Debug.Assert(file.FileOffset.value32 == (mCacheOffset + mNumBytesInCache));
+                        buffer.Init(mCache, (Int32)(file.FileOffset.value - mCacheOffset));
 
-                        mNumBytesInCache = CacheAlign(mNumBytesInCache + (Int32)file.size, alignment);
+                        mNumBytesInCache = CacheAlign(mNumBytesInCache + (Int32)file.FileSize, alignment);
 
                         return true;
                     }
@@ -609,8 +538,8 @@ namespace GameCore
             Int64 offset = 0;
             foreach (StreamFile s in srcFiles)
             {
-                s.offset = new StreamOffset(offset);
-                offset = CacheAlign(offset + s.size, mAlignment);
+                s.FileOffset = new StreamOffset(offset);
+                offset = CacheAlign(offset + s.FileSize, mAlignment);
             }
             Int64 fileSize = offset;
 
