@@ -142,9 +142,9 @@ namespace GameData
                 // A FileId is holding a simple index
                 PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
                 object contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
-                Hash160 hash = (Hash160)contentObject;
+                UInt64 id = (UInt64)contentObject;
 
-                MetaCode.FileIdMember fileIdMember = mMemberGenerator.newFileIdMember(dataObjectFieldValue.GetType(), hash, memberName);
+                MetaCode.FileIdMember fileIdMember = mMemberGenerator.newFileIdMember(dataObjectFieldValue.GetType(), id, memberName);
                 member = fileIdMember;
             }
             else if (mMemberGenerator.isCompound(dataObjectFieldType))

@@ -121,15 +121,16 @@ namespace DataBuildSystem
 
 			gameDataAssemblyContext.Unload();
 
-			// NOTE: We should be able to generate the .sln and .csproj/Directory.Build.props files, so that we do not have to manage them
+			// NOTES
+			//       We should be able to generate the .sln and .csproj/Directory.Build.props files, so that we do not have to manage them
 			//       and track them in source control.
-			//       This does mean that each 'folder' in the Data folder is going to be a project?
+			//       This does mean that each 'folder' in the Data folder is going to be a project or how else do we know where the generate
+			//       a project?
 
 			GameDataUnits gdus = new();
 			gdus.Load(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.GddPath);
 			gdus.Update(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
 			gdus.Save(BuildSystemCompilerConfig.DstPath);
-			// Done
 
 			GameDataData dataAssemblyManager = new(gameDataRootAssembly);
 
@@ -148,17 +149,9 @@ namespace DataBuildSystem
 						start = DateTime.Now;
 						Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
 
-						// TODO need to implement the compiler streaming execution
-
-						// TODO Hash->FileId
-						//      Since in DEV mode we only need this per 'Game Data Unit' it should actually be sufficient to
-						//      just resolve this just before building the Bigfile.
-						//      Collect all the Hashes and assign them a FileId (Dictionary<Hash160, UInt64>)
-
+						// NOTES
 						// Development: Do not merge all bigfiles into one
-
-						// Development: Game has a large list of all bigfiles, their hash, their filehandle (if opened).
-
+						// Development: Game Runtime has a large list of all bigfiles, their hash, their filehandle (if opened).
 
 						end = DateTime.Now;
 						Console.WriteLine("Data compilation complete -- ok (Duration: {0}s)", (end - start).TotalSeconds);

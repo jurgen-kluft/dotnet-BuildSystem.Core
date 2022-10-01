@@ -5,7 +5,7 @@ using System.IO;
 
 namespace GameCore
 {
-    public class Hash160
+    public struct Hash160
     {
         public static readonly byte[] hash_null_ = new byte[20]
         {
@@ -96,7 +96,7 @@ namespace GameCore
             CopyFrom(hash_null_, 0);
         }
 
-        public Hash160(Hash160 _other)
+        private Hash160(Hash160 _other)
         {
             hash_ = new byte[Size];
             CopyFrom(_other.Data, 0);
@@ -244,33 +244,33 @@ namespace GameCore
 
         public static bool operator ==(Hash160 b1, Hash160 b2)
         {
-            bool equal = sEquals(b1.hash_, 0, b2.hash_, 0);
+            bool equal = Equals(b1.hash_, 0, b2.hash_, 0);
             return equal;
         }
 
         public static bool operator !=(Hash160 b1, Hash160 b2)
         {
-            bool equal = sEquals(b1.hash_, 0, b2.hash_, 0);
+            bool equal = Equals(b1.hash_, 0, b2.hash_, 0);
             return equal == false;
         }
 
         public override bool Equals(object obj)
         {
             Hash160 _other = (Hash160)obj;
-            return sEquals(this.hash_, 0, _other.hash_, 0);
+            return Equals(this.hash_, 0, _other.hash_, 0);
         }
 
         public int Compare(Hash160 _other)
         {
-            return sCompare(this.hash_, 0, _other.hash_, 0);
+            return Compare(this.hash_, 0, _other.hash_, 0);
         }
 
         public static int Compare(Hash160 a, Hash160 b)
         {
-            return sCompare(a.hash_, 0, b.hash_, 0);
+            return Compare(a.hash_, 0, b.hash_, 0);
         }
 
-        private static bool sEquals(byte[] _this, int _thisstart, byte[] _other, int _otherstart)
+        private static bool Equals(byte[] _this, int _thisstart, byte[] _other, int _otherstart)
         {
             for (int j = 0; j < Size; j++)
             {
@@ -282,7 +282,7 @@ namespace GameCore
             return true;
         }
 
-        private static int sCompare(byte[] _this, int _thisstart, byte[] _other, int _otherstart)
+        private static int Compare(byte[] _this, int _thisstart, byte[] _other, int _otherstart)
         {
             for (int j = 0; j < Size; j++)
             {
@@ -317,11 +317,11 @@ namespace GameCore
 
         public static void UnitTest()
         {
-            Hash160 h1 = new Hash160();
-            Hash160 h2 = new Hash160();
+            Hash160 h1 = new ();
+            Hash160 h2 = new ();
 
-            Hash160 h3 = new Hash160(Hash160.Error);
-            Hash160 h4 = new Hash160(Hash160.Error);
+            Hash160 h3 = new (Hash160.Error);
+            Hash160 h4 = new (Hash160.Error);
 
             Debug.Assert(h1 == Hash160.Null);
             Debug.Assert(h2 == Hash160.Null);

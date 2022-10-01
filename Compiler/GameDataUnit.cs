@@ -83,7 +83,6 @@ namespace DataBuildSystem
 
 					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
 					gdcl.Load(loaded_compilers);
-
 					gdcl.Merge(loaded_compilers, current_compilers, out List<IDataCompiler> merged_compilers);
 
 					Result result = gdcl.Execute(merged_compilers, out List<string> dst_relative_filepaths);
@@ -325,7 +324,7 @@ namespace DataBuildSystem
 			Dep = Dependency.Load(EGameDataPath.Dst, FilePath);
 			if (Dep != null)
 			{
-				Dep.Update(delegate (int idx, State state)
+				Dep.Update(delegate (short idx, State state)
 				{
 					States[idx] = state;
 				});
@@ -340,20 +339,9 @@ namespace DataBuildSystem
 				Dep = new();
 				foreach (var e in (EGameData[])Enum.GetValues(typeof(EGameData)))
 				{
-					Dep.Add((int)e, GameDataPath.GetPathFor(e), Path.ChangeExtension(FilePath, GameDataPath.GetExtFor(e)));
+					Dep.Add((short)e, GameDataPath.GetPathFor(e), Path.ChangeExtension(FilePath, GameDataPath.GetExtFor(e)));
 				}
 			}
-		}
-
-		public State VerifySource()
-		{
-			// Check if source files have changed, a change in any source file will have to be handled
-			// by executing the DataCompiler to build up-to-date destination files.
-
-			// So we need to use ActorFlow to stream the CompilerLog and each DataCompiler needs to check if
-			// its source file(s) are up-to-date.
-
-			return State.Ok;
 		}
 
 		public void Save(IBinaryWriter writer)
@@ -378,53 +366,4 @@ namespace DataBuildSystem
 			return gdu;
 		}
 	}
-
-	// TODO  Write up full design with all possible cases of data modification
-
-	// A DataCompiler:
-	//
-	//     - Reads one or more source (input) files from srcpath
-	//     - Processes those (can use external processes, e.g. 'dxc.exe')
-	//     - Writes resulting (output) files to destination (dstpath)
-	//     - Keeps track of the dependency information by itself
-
-	//
-	// Q: How to name and where to place the destination files?
-	// A: Filename=HashOf(source filename), Extension can be used to distinguish many files (0000 to 9999?)
-	//    So for one Data Compiler we only actually need to store the 'extensions'(number?) of the destination
-	//    files in the stream, the path and filename is the same for each destination file.
-	//
-	// Q: Should we write the dependency information also in 'HashOf(source filename).dep'?
-	// A: No, if we do, do we really need the 'Game Data Compiler Log' ?
-	//    Yes, well the 'Game Data Compiler Log' is a very convenient way to do multi-core stream processing.
-	//    We do not need to search for .dep files etc... and we do not need to keep opening, reading and
-	//    closing those small files.
-
-	// Need a database for DataUnit's that can map from Hash -> Index
-	// DataUnits should be saved to and loaded from a BinaryFile 'GameDataUnits.slog'
-
-	// A 'Game Data Unit' consists of (.GDU):
-	//     - Name
-	//     - Hash               (HashOf(filename of 'Game Data DLL'))
-	//     - Index
-	//     - State of 'Game Data DLL' (.DLL)
-	//     - State of 'Game Data Compiler Log' (.GDCL)
-	//     - State of 'Game Data File' and 'Game Data Relocation File' (.GDF, .GDR)
-	//     - State of 'Game Data Bigfile/TOC/Filename/Hashes' (.BFN, .BFH, .BFT, .BFD)
-
-	// gddpath    = path with all the gamedata DLL's
-	// srcpath    = path containing all the 'intermediate' assets (TGA, PGN, TRI, processed FBX files)
-	// dstpath    = path containing all the 'cooked' assets and databases
-	// pubpath    = path where all the 'Game Data' files and Bigfiles will be written (they are also written in the dstpath)
-
-	// Collect all Game Data DLL's that need to be processed
-
-	// There is a dependency on 'DataUnit.Index' for the generation of FileId's.
-	// If this database is deleted then ALL Game Data and Bigfiles have to be regenerated.
-	// The pollution of this database with stale items is ok, it does not impact memory usage.
-	// It mainly results in empty bff sections, each of them being an offset of 4 bytes.
-
-
-	// Note: We could mitigate risks by adding full dependency information as a file header of each target file, or still
-	//       have each DataCompiler write a .dep file to the destination.
 }

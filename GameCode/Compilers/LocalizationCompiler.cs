@@ -6,11 +6,10 @@ using GameCore;
 using DataBuildSystem;
 namespace GameData
 {
-    public class LocalizationCompiler : IDataCompiler, IFileIdsProvider
+    public class LocalizationCompiler : IDataCompiler, IFilesProvider
     {
         private readonly string mSrcFilename;
         private readonly List<string> mDstFilenames = new ();
-        private readonly List<FileId> mFileIds = new ();
 
         public LocalizationCompiler(string localizationFile)
         {
@@ -29,6 +28,14 @@ namespace GameData
         {
         }
 
+        public IFilesProvider CompilerFilesProvider
+        {
+            get
+            {
+                return this;
+            }
+        }
+        
         public int CompilerExecute(List<string> out_dst_relative_filepaths)
         {
             // Load 'languages list' file
@@ -42,7 +49,6 @@ namespace GameData
                     if (String.IsNullOrEmpty(filename))
                     {
                         mDstFilenames.Add(filename);
-                        mFileIds.Add(FileId.NewInstance(filename.ToLower()));
                     }
                 }
                 ts.Close();
@@ -59,11 +65,7 @@ namespace GameData
             return 0;
         }
 
-        public void CompilerFinished()
-        {
-            
-        }
-
-        public FileId[] FileIds { get { return mFileIds.ToArray(); } }
+        public UInt64 FilesProviderId { get; set; }
+        public string[] FilesProviderFilepaths { get { return mDstFilenames.ToArray(); } }
     }
 }

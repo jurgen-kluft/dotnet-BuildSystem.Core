@@ -15,17 +15,99 @@ namespace DataBuildSystem
 			FilePath = filepath;
 		}
 
-		public Result Merge(List<GameData.IDataCompiler> previous_compilers, List<GameData.IDataCompiler> current_compilers, out List<GameData.IDataCompiler> merged_compilers)
+		private class SignatureComparer : IComparer<KeyValuePair<Hash160, IDataCompiler>>
 		{
-			merged_compilers = new List<IDataCompiler>(current_compilers.Count);
-			return Result.Ok;
+			public int Compare(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
+			{
+				return Hash160.Compare(lhs.Key, rhs.Key);
+			}
 		}
 
-		public Result Execute(List<GameData.IDataCompiler> compilers, out List<string> dst_relative_filepaths)
+		public Result Merge(List<IDataCompiler> previous_compilers, List<IDataCompiler> current_compilers, out List<IDataCompiler> merged_compilers)
+		{
+			merged_compilers = new List<IDataCompiler>(current_compilers.Count);
+
+			// Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into
+			// 'merged_compilers'.
+			// Report if there was anything 'merged'.
+			
+			// Build the signature database of 'previous_compilers'
+			var previousCompilerSignatureList = BuildCompilerSignatureList(previous_compilers);
+			var currentCompilerSignatureList = BuildCompilerSignatureList(current_compilers);
+
+			int merged_previous_count = 0;
+			int merged_current_count = 0;
+			Result result = Result.Ok;
+			foreach (var signature in currentCompilerSignatureList)
+			{
+				int index = previousCompilerSignatureList.BinarySearch(signature, new SignatureComparer());
+				if (index >= 0)
+				{
+					merged_previous_count++;
+					merged_compilers.Add(previousCompilerSignatureList[index].Value);
+				}
+				else
+				{
+					merged_current_count++;
+					merged_compilers.Add(signature.Value);
+				}
+			}
+			if (merged_previous_count == current_compilers.Count)
+			{
+				return Result.Ok;
+			}
+			return Result.OutOfData;
+		}
+
+		private List<KeyValuePair<Hash160, IDataCompiler>> BuildCompilerSignatureList(List<IDataCompiler> compilers)
+		{
+            MemoryStream memoryStream = new();
+            BinaryMemoryWriter memoryWriter = new();
+
+            List<KeyValuePair<Hash160, IDataCompiler>> signatureList = new(compilers.Count);
+			foreach(IDataCompiler cl in compilers)
+            {
+                memoryWriter.Reset();
+                Type compilerType = cl.GetType();
+                Hash160 compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
+                compilerTypeSignature.WriteTo(memoryWriter);
+                cl.CompilerSignature(memoryWriter);
+                Hash160 compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                signatureList.Add(new KeyValuePair<Hash160, IDataCompiler>(compilerSignature, cl));
+            }
+            int Comparer(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
+            {
+                return Hash160.Compare(lhs.Key, rhs.Key);
+            }
+            signatureList.Sort(Comparer);
+			return signatureList;
+		}
+
+		private Dictionary<Hash160, IDataCompiler> BuildCompilerSignatureDict(List<IDataCompiler> compilers)
+		{
+            MemoryStream memoryStream = new();
+            BinaryMemoryWriter memoryWriter = new();
+
+            Dictionary<Hash160, IDataCompiler> signatureDict = new(compilers.Count);
+			foreach(IDataCompiler cl in compilers)
+            {
+                memoryWriter.Reset();
+                Type compilerType = cl.GetType();
+                Hash160 compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
+                compilerTypeSignature.WriteTo(memoryWriter);
+                cl.CompilerSignature(memoryWriter);
+                Hash160 compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                signatureDict.Add(compilerSignature, cl);
+            }
+            return signatureDict;
+		}
+
+
+		public Result Execute(List<IDataCompiler> compilers, out List<string> dst_relative_filepaths)
 		{
 			dst_relative_filepaths = new();
 			int result = 0;
-			foreach (GameData.IDataCompiler c in compilers)
+			foreach (IDataCompiler c in compilers)
 			{
 				int r = c.CompilerExecute(dst_relative_filepaths);
 				if (r < 0) return Result.Error;
@@ -38,12 +120,16 @@ namespace DataBuildSystem
 			return Result.OutOfData;
 		}
 
-		public void RegisterCompiler(Type type)
+		private void RegisterCompilers(List<IDataCompiler> compilers)
 		{
-			Hash160 typeSignature = HashUtility.Compute_ASCII(type.FullName);
-			if (!mCompilerTypeSet.ContainsKey(typeSignature))
+			foreach(var cl in compilers)
 			{
-				mCompilerTypeSet.Add(typeSignature, type);
+				Type type = cl.GetType();
+				Hash160 typeSignature = HashUtility.Compute_ASCII(type.FullName);
+				if (!mCompilerTypeSet.ContainsKey(typeSignature))
+				{
+					mCompilerTypeSet.Add(typeSignature, type);
+				}
 			}
 		}
 

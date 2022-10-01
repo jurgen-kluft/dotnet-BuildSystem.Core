@@ -125,21 +125,14 @@ namespace DataBuildSystem
             Hashes.Add(new Hash160());
         }
 
-        public delegate void OnUpdateDelegate(short id, State state);
-
-        public static void OnUpdateNop(short id, State state)
-		{
-
-		}
-
-        public void Update(OnUpdateDelegate ood)
+        public void Update(Action<short, State> ood)
         {
             for (int i = 0; i < Count; ++i)
             {
                 EMethod method = Methods[i];
 
                 // Return ids of dependencies that have changed
-                Hash160 newHash = null;
+                Hash160 newHash = Hash160.Null;
                 string filepath = Path.Join(GameDataPath.GetPath((EGameDataPath)Paths[i]), FilePaths[i]);
                 switch (method)
                 {
@@ -147,7 +140,7 @@ namespace DataBuildSystem
                         {
                             FileInfo fileInfo = new(filepath);
                             if (fileInfo.Exists)
-                                newHash=HashUtility.compute(fileInfo);
+                                newHash = HashUtility.compute(fileInfo);
                         }
                         break;
                     case EMethod.TIMESTAMP_HASH:
@@ -163,7 +156,7 @@ namespace DataBuildSystem
                         break;
                 }
 
-                if (newHash == null)
+                if (newHash == Hash160.Null)
                 {
                     Hashes[i] = newHash;
                     ood(Ids[i], State.Missing);

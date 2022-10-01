@@ -25,6 +25,11 @@ namespace GameData
         void CompilerRead(IBinaryReader reader);
 
         ///<summary>
+        /// Return the FilesProvider associated with this IDataCompiler
+        ///</summary>
+        IFilesProvider CompilerFilesProvider { get; }
+
+        ///<summary>
         /// Execute the compiler and add the destination filenames to @dst_relative_filepaths using ctx.StringDb
         /// - return 0 if src and dst are up-to-date
         /// - return 1 if execution was successful and dst files where updated

@@ -17,8 +17,8 @@ namespace GameData
     // e.g. new CopyCompiler("Textures/Background.PNG");
     public class CopyCompiler : IDataCompiler, IFilesProvider
     {
-        private  string mSrcFilename;
-        private  string mDstFilename;
+        private string mSrcFilename;
+        private string mDstFilename;
         private Dependency mDependency;
 
         public CopyCompiler(string filename) : this(filename, filename)
@@ -32,22 +32,30 @@ namespace GameData
 
         public void CompilerSignature(IBinaryWriter stream)
         {
-			stream.Write(mSrcFilename);
-			stream.Write(mDstFilename);
+            stream.Write(mSrcFilename);
+            stream.Write(mDstFilename);
         }
 
         public void CompilerWrite(IBinaryWriter stream)
         {
-			stream.Write(mSrcFilename);
-			stream.Write(mDstFilename);
+            stream.Write(mSrcFilename);
+            stream.Write(mDstFilename);
             mDependency.WriteTo(stream);
         }
 
         public void CompilerRead(IBinaryReader stream)
         {
-			mSrcFilename = stream.ReadString();
-			mDstFilename = stream.ReadString();
+            mSrcFilename = stream.ReadString();
+            mDstFilename = stream.ReadString();
             mDependency = Dependency.ReadFrom(stream);
+        }
+
+        public IFilesProvider CompilerFilesProvider
+        {
+            get
+            {
+                return this;
+            }
         }
 
         public int CompilerExecute(List<string> dst_relative_filepaths)
@@ -58,14 +66,14 @@ namespace GameData
                 File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
             }
             catch (Exception)
-			{
+            {
                 return -1;
-			}
+            }
 
             mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
             mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
-            mDependency.Update(Dependency.OnUpdateNop);
-        
+            mDependency.Update(delegate(short id, State state){});
+
             dst_relative_filepaths.Add(mDstFilename);
             return 0;
         }
