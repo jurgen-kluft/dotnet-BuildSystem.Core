@@ -35,12 +35,12 @@ namespace GameData
             public bool open()
             {
                 mDataStream.beginBlock();
-                return true; 
+                return true;
             }
-            public bool close() 
+            public bool close()
             {
                 mDataStream.endBlock();
-                return true; 
+                return true;
             }
 
             public bool writeNullMember(NullMember c)
@@ -105,73 +105,73 @@ namespace GameData
             }
             public bool writeFileIdMember(FileIdMember c)
             {
-                mDataStream.write(c.reference);
+                mDataStream.write(c.Reference);
                 return true;
             }
             public bool writeArrayMember(ArrayMember c)
             {
-                mDataStream.write(c.members.Count);
-                if (c.reference != StreamReference.Empty)
+                mDataStream.write(c.Members.Count);
+                if (c.Reference != StreamReference.Empty)
                 {
-                    mDataStream.write(c.reference);
+                    mDataStream.write(c.Reference);
                 }
                 else
                 {
-                    c.reference = mDataStream.beginBlock();
+                    c.Reference = mDataStream.beginBlock();
                     {
-                        foreach (Member m in c.members)
-                            m.write(this);
+                        foreach (Member m in c.Members)
+                            m.Write(this);
                     }
                     mDataStream.endBlock();
-                    mDataStream.write(c.reference);
+                    mDataStream.write(c.Reference);
                 }
                 return true;
             }
             public bool writeObjectMember(ObjectMember c)
             {
-                if (c.reference != StreamReference.Empty)
+                if (c.Reference != StreamReference.Empty)
                 {
-                    mDataStream.write(c.reference);
+                    mDataStream.write(c.Reference);
                 }
                 else
                 {
-                    c.reference = mDataStream.beginBlock();
+                    c.Reference = mDataStream.beginBlock();
                     {
                         foreach (Member m in c.members)
-                            m.write(this);
+                            m.Write(this);
                     }
                     mDataStream.endBlock();
-                    mDataStream.write(c.reference);
+                    mDataStream.write(c.Reference);
                 }
                 return true;
             }
             public bool writeAtomMember(AtomMember c)
             {
-                return c.member.write(this);
+                return c.member.Write(this);
             }
             public bool writeCompoundMember(CompoundMember c)
             {
                 if (c.isNullType)
                 {
-                    if (c.reference != StreamReference.Empty)
+                    if (c.Reference != StreamReference.Empty)
                     {
-                        mDataStream.write(c.reference);
+                        mDataStream.write(c.Reference);
                     }
                     else
                     {
-                        c.reference = mDataStream.beginBlock();
+                        c.Reference = mDataStream.beginBlock();
                         {
                             foreach (Member m in c.members)
-                                m.write(this);
+                                m.Write(this);
                         }
                         mDataStream.endBlock();
-                        mDataStream.write(c.reference);
+                        mDataStream.write(c.Reference);
                     }
                 }
                 else
                 {
                     foreach (Member m in c.members)
-                        m.write(this);
+                        m.Write(this);
                 }
                 return true;
             }
@@ -201,112 +201,112 @@ namespace GameData
 
             public bool open()
             {
-                return true; 
+                return true;
             }
 
-            public bool close() 
+            public bool close()
             {
-                return true; 
+                return true;
             }
 
             public bool writeNullMember(NullMember c)
             {
-                string line = "\tvoid*\tget" + c.name + "() const\t{ return 0; }";
+                string line = "\tvoid*\tget" + c.Name + "() const\t{ return 0; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeBool8Member(BoolMember c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt8Member(Int8Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt16Member(Int16Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt32Member(Int32Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt64Member(Int64Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt8Member(UInt8Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt16Member(UInt16Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt32Member(UInt32Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt64Member(UInt64Member c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeFloatMember(FloatMember c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeStringMember(StringMember c)
             {
-                string line = "\tconst " + c.type.typeName + "&\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeFileIdMember(FileIdMember c)
             {
-                string line = "\t" + c.type.typeName + "\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeArrayMember(ArrayMember c)
             {
-                string line = "\tconst " + c.type.typeName + "&\tget" + c.name + "() const\t{ return m" + c.name + "; }";
+                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeObjectMember(ObjectMember c)
             {
-                string line = "\tconst " + c.type.typeName + "*\tget" + c.name + "() const { return m" + c.name + "; }";
+                string line = "\tconst " + c.Type.typeName + "*\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeAtomMember(AtomMember c)
             {
-                c.member.write(this);
+                c.member.Write(this);
                 return true;
             }
             public bool writeCompoundMember(CompoundMember c)
             {
-                string line = "\tconst " + c.type.typeName + "*\tget" + c.name + "() const { return m" + c.name + "; }";
+                string line = "\tconst " + c.Type.typeName + "*\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
@@ -336,12 +336,12 @@ namespace GameData
 
             public bool open()
             {
-                return true; 
+                return true;
             }
 
-            public bool close() 
+            public bool close()
             {
-                return true; 
+                return true;
             }
 
             public bool write(string type, string name, StreamWriter writer)
@@ -353,71 +353,71 @@ namespace GameData
 
             public bool writeNullMember(NullMember c)
             {
-                return write("void*", c.name, mWriter);
+                return write("void*", c.Name, mWriter);
             }
             public bool writeBool8Member(BoolMember c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeInt8Member(Int8Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeInt16Member(Int16Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeInt32Member(Int32Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeInt64Member(Int64Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeUInt8Member(UInt8Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeUInt16Member(UInt16Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeUInt32Member(UInt32Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeUInt64Member(UInt64Member c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeFloatMember(FloatMember c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeStringMember(StringMember c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeFileIdMember(FileIdMember c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeArrayMember(ArrayMember c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeObjectMember(ObjectMember c)
             {
-                return write(c.type.typeName + "*", c.name, mWriter);
+                return write(c.Type.typeName + "*", c.Name, mWriter);
             }
             public bool writeAtomMember(AtomMember c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
             public bool writeCompoundMember(CompoundMember c)
             {
-                return write(c.type.typeName, c.name, mWriter);
+                return write(c.Type.typeName, c.Name, mWriter);
             }
         }
 
@@ -434,21 +434,21 @@ namespace GameData
                 mMemberGetterWriter.setWriter(writer);
                 mMemberWriter.setWriter(writer);
 
-                writer.WriteLine("class {0}", c.type.typeName);
+                writer.WriteLine("class {0}", c.Type.typeName);
                 writer.WriteLine("{");
 
                 // Member getters
                 writer.WriteLine("public:");
                 foreach (Member m in c.members)
                 {
-                    m.write(mMemberGetterWriter);
+                    m.Write(mMemberGetterWriter);
                 }
 
                 // Member data
                 writer.WriteLine("private:");
                 foreach (Member m in c.members)
                 {
-                    m.write(mMemberWriter);
+                    m.Write(mMemberWriter);
                 }
 
                 writer.WriteLine("};");
@@ -461,10 +461,10 @@ namespace GameData
 
                 foreach (ObjectMember c in classes)
                 {
-                    if (!writtenClasses.ContainsKey(c.type.typeName))
+                    if (!writtenClasses.ContainsKey(c.Type.typeName))
                     {
                         write(c, writer);
-                        writtenClasses.Add(c.type.typeName, c);
+                        writtenClasses.Add(c.Type.typeName, c);
                     }
                 }
             }
@@ -477,9 +477,9 @@ namespace GameData
     /// A CppDataStream is used to write DataBlocks, DataBlocks are stored and when
     /// the final data is written identical (MD5) DataBlocks are collapsed to one.
     /// All references (pointers to blocks) are also resolved at the final stage.
-    /// 
-    /// Output: a database of the offset of every reference (DataBlock) 
-    /// 
+    ///
+    /// Output: a database of the offset of every reference (DataBlock)
+    ///
     /// </summary>
     public class CppDataStream
     {
@@ -509,28 +509,28 @@ namespace GameData
                 mTypeInfoWriter = EndianUtils.CreateBinaryWriter(mTypeInfoStream, inEndian);
             }
 
-            internal StreamReference reference
-            {
-                get 
-                {
-                    return mReference; 
-                }
-            }
-
-            public void align(EStreamAlignment align)
-            {
-                StreamUtils.align(mDataWriter, align);
-            }
-
-            internal int position
+            internal StreamReference Reference
             {
                 get
                 {
-                    return (int)mDataStream.Position;
+                    return mReference;
                 }
             }
 
-            internal int size
+            public void Align(Int64 align)
+            {
+                StreamUtils.Align(mDataWriter, align);
+            }
+
+            internal Int64 Position
+            {
+                get
+                {
+                    return mDataStream.Position;
+                }
+            }
+
+            internal int Size
             {
                 get
                 {
@@ -540,7 +540,7 @@ namespace GameData
 
             internal void write(float v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(float)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
@@ -551,19 +551,19 @@ namespace GameData
             }
             internal void write(Int16 v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_16));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
             internal void write(Int32 v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
             internal void write(Int64 v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int64)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
@@ -574,34 +574,34 @@ namespace GameData
             }
             internal void write(UInt16 v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_16));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt16)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
             internal void write(UInt32 v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt32)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
             internal void write(UInt64 v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
             internal void write(StreamReference v)
             {
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt32)));
 
                 if (mPointers.ContainsKey(v))
                 {
-                    mPointers[v].Add(new StreamOffset(position));
+                    mPointers[v].Add(new StreamOffset(Position));
                 }
                 else
                 {
                     List<StreamOffset> offsets = new List<StreamOffset>();
-                    offsets.Add(new StreamOffset(position));
+                    offsets.Add(new StreamOffset(Position));
                     mPointers.Add(v, offsets);
                 }
 
@@ -659,7 +659,7 @@ namespace GameData
                         foreach (StreamOffset o in k.Value)
                         {
                             mDataWriter.Seek(o);
-                            mDataWriter.Write(outDataOffset.value32);
+                            mDataWriter.Write(outDataOffset.value);
                         }
                     }
                 }
@@ -669,14 +669,14 @@ namespace GameData
                 outData.Write(mDataStream.GetBuffer());
 
                 StreamOffset currentOffset;
-                dataOffsetDataBase.TryGetValue(reference, out currentOffset);
+                dataOffsetDataBase.TryGetValue(Reference, out currentOffset);
 
                 // Write reallocation info
                 foreach (KeyValuePair<StreamReference, List<StreamOffset>> k in mPointers)
                 {
                     foreach (StreamOffset o in k.Value)
                     {
-                        outReallocationTable.Write(currentOffset.value32 + o.value32);
+                        outReallocationTable.Write(currentOffset.value + o.value);
                     }
                 }
             }
@@ -711,7 +711,7 @@ namespace GameData
 
             mCurrent = new DataBlock(mEndian);
             mData.Add(mCurrent);
-            return mCurrent.reference;
+            return mCurrent.Reference;
         }
 
         public void write(float v)
@@ -767,11 +767,11 @@ namespace GameData
             // Dictionary for mapping a Reference object to a Data object
             Dictionary<StreamReference, DataBlock> dataDataBase = new Dictionary<StreamReference, DataBlock>();
             foreach (DataBlock d in mData)
-                dataDataBase.Add(d.reference, d);
+                dataDataBase.Add(d.Reference, d);
 
             Dictionary<StreamReference, DataBlock> finalDataDataBase = new Dictionary<StreamReference, DataBlock>();
             foreach (DataBlock d in mData)
-                finalDataDataBase.Add(d.reference, d);
+                finalDataDataBase.Add(d.Reference, d);
 
             // For all blocks, calculate an MD5
             // Collapse identical blocks, and when a collapse has occurred we have
@@ -791,29 +791,29 @@ namespace GameData
                         // After the first iteration it might be the case that
                         // they have the same 'Reference' since they are collapsed.
                         StreamReference newRef = dataMD5DataBase[md5];
-                        if (d.reference != newRef)
+                        if (d.Reference != newRef)
                         {
                             if (!duplicateDataBase.ContainsKey(newRef))
                             {
-                                if (finalDataDataBase.ContainsKey(d.reference))
+                                if (finalDataDataBase.ContainsKey(d.Reference))
                                 {
                                     List<StreamReference> duplicateReferences = new List<StreamReference>();
-                                    duplicateReferences.Add(d.reference);
+                                    duplicateReferences.Add(d.Reference);
                                     duplicateDataBase[newRef] = duplicateReferences;
                                 }
                             }
                             else
                             {
-                                if (finalDataDataBase.ContainsKey(d.reference))
-                                    duplicateDataBase[newRef].Add(d.reference);
+                                if (finalDataDataBase.ContainsKey(d.Reference))
+                                    duplicateDataBase[newRef].Add(d.Reference);
                             }
-                            finalDataDataBase.Remove(d.reference);
+                            finalDataDataBase.Remove(d.Reference);
                         }
                     }
                     else
                     {
                         // This block of data is unique
-                        dataMD5DataBase.Add(md5, d.reference);
+                        dataMD5DataBase.Add(md5, d.Reference);
                     }
                 }
 
@@ -841,7 +841,7 @@ namespace GameData
             foreach (KeyValuePair<StreamReference, DataBlock> k in finalDataDataBase)
             {
                 dataOffsetDataBase.Add(k.Key, new StreamOffset(offset));
-                offset += k.Value.size;
+                offset += k.Value.Size;
             }
 
             // Dump all blocks to outData
@@ -856,5 +856,5 @@ namespace GameData
 
         #endregion
     }
-	
+
 }

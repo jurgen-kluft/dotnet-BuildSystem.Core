@@ -68,7 +68,7 @@ namespace GameCore
         {
             get
             {
-                StreamReference sr = new StreamReference(sID);
+                StreamReference sr = new(sID);
                 ++sID;
                 return sr;
             }

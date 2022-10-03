@@ -6,28 +6,28 @@ namespace GameData
 {
     public interface IFileId
     {
-        UInt64 Value { get; }
+        Int64 Value { get; }
     }
 
     public class FileId : IFileId
     {
-        private readonly IFilesProvider mProvider;
+        private readonly IFileIdProvider mProvider;
 
         public static readonly FileId sEmpty = new ();
 
         public FileId() : this (null)
         {
         }
-        public FileId(IFilesProvider provider)
+        public FileId(IFileIdProvider provider)
         {
             mProvider = provider;
         }
 
-        public UInt64 Value
+        public Int64 Value
         {
-            get 
+            get
             {
-                return mProvider.FilesProviderId;
+                return mProvider.FileId;
             }
         }
     }

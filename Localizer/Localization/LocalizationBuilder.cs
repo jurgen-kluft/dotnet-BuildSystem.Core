@@ -12,7 +12,7 @@ namespace DataBuildSystem
         {
             #region Methods
 
-            public static bool sValidateString(string inColumnName, ref string text)
+            public static bool ValidateString(string inColumnName, ref string text)
             {
                 char[] temp = text.ToCharArray();
                 bool valid = true;
@@ -142,10 +142,10 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private List<string> mStrings = new List<string>();
-            private List<UInt64> mStringHashes = new List<UInt64>();
+            private List<string> mStrings = new ();
+            private List<UInt64> mStringHashes = new ();
             private uint mOffset = 0;
-            private List<uint> mStringOffsets = new List<uint>();
+            private List<uint> mStringOffsets = new ();
 
             #endregion
             #region Methods
@@ -178,7 +178,7 @@ namespace DataBuildSystem
 
             public List<int> Consolidate()
             {
-                List<int> map = new List<int>();
+                List<int> map = new ();
                 List<string> strings = mStrings;
                 Clear();
 
@@ -250,7 +250,7 @@ namespace DataBuildSystem
             public void GetRemap(out List<int> outRemap)
             {
                 int i = 0;
-                List<KeyValuePair<UInt64, Int32>> hashes = new List<KeyValuePair<UInt64, Int32>>(Count);
+                List<KeyValuePair<UInt64, Int32>> hashes = new (Count);
                 foreach (UInt64 hash in mStringHashes)
                     hashes.Add(new KeyValuePair<UInt64, Int32>(hash, i++));
 
@@ -439,7 +439,7 @@ namespace DataBuildSystem
                 for (int i = 0; i < mStringTable.All.Count; i++)
                 {
                     string str = mStringTable.All[i];
-                    valid = valid && Validation.sValidateString(mName, ref str);
+                    valid = valid && Validation.ValidateString(mName, ref str);
                     mStringTable.All[i] = str;
                 }
                 return valid;
@@ -513,18 +513,18 @@ namespace DataBuildSystem
             #region Save
 
             // Return the written data size 
-            public int Save(Filename filename, Int64 magic)
+            public int Save(string filename, Int64 magic)
             {
                 try
                 {
-                    FileInfo fileInfo = new FileInfo(filename);
+                    FileInfo fileInfo = new (filename);
                     if (fileInfo.Exists)
                     {
                         fileInfo.Delete();
-                        fileInfo = new FileInfo(filename);
+                        fileInfo = new (filename);
                     }
 
-                    FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.OpenOrCreate, FileAccess.Write);
+                    FileStream fileStream = new (fileInfo.FullName, FileMode.OpenOrCreate, FileAccess.Write);
                     IBinaryWriter writer = EndianUtils.CreateBinaryWriter(fileStream, LocalizerConfig.Endian);
 
                     writer.Write((Int32)(magic >> 32));
@@ -561,21 +561,21 @@ namespace DataBuildSystem
             #region Fields
 
             private string mName = string.Empty;
-            private Filename mFilename = Filename.Empty;
-            private Dirname mFolder = Dirname.Empty;
+            private string mFilename = string.Empty;
+            private string mFolder = string.Empty;
             private Int64 mFileSize = 0;
             private StringTable mStrTable = new StringTable();
 
             #endregion
             #region Constructors
 
-            public IdFile(Filename filename, Dirname folder)
+            public IdFile(string filename, string folder)
             {
                 mFilename = filename;
                 mFolder = folder;
             }
 
-            public IdFile(string name, Filename filename, Dirname folder)
+            public IdFile(string name, string filename, string folder)
             {
                 mName = name;
                 mFilename = filename;
@@ -585,19 +585,19 @@ namespace DataBuildSystem
             #endregion
             #region Properties
 
-            public Filename filename
+            public string filename
             {
                 get
                 {
-                    return new Filename(mFilename);
+                    return mFilename;
                 }
             }
 
-            public Dirname folder
+            public string folder
             {
                 get
                 {
-                    return new Dirname(mFolder);
+                    return mFolder;
                 }
             }
 
@@ -688,15 +688,15 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    xBinaryStream bs = new xBinaryStream(mFolder + mFilename, LocalizerConfig.Endian);
-                    bs.Open(xBinaryStream.EMode.WRITE);
+                    BinaryStream bs = new (mFolder + mFilename, LocalizerConfig.Endian);
+                    bs.Open(BinaryStream.EMode.WRITE);
 
                     bs.write.Write(magic);
                     mStrTable.Write(bs.write);
 
                     bs.Close();
 
-                    FileInfo fileinfoXlsIds = new FileInfo(mFolder + mFilename);
+                    FileInfo fileinfoXlsIds = new (mFolder + mFilename);
                     if (fileinfoXlsIds.Exists)
                     {
                         mFileSize = fileinfoXlsIds.Length;
@@ -720,8 +720,8 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    xTextStream textStream = new xTextStream(mFolder + mFilename.PushedExtension(".h"));
-                    textStream.Open(xTextStream.EMode.WRITE);
+                    TextStream textStream = new (mFolder + Path.ChangeExtension(mFilename, (".h")));
+                    textStream.Open(TextStream.EMode.WRITE);
 
                     string line;
 
@@ -771,21 +771,21 @@ namespace DataBuildSystem
             #region Fields
 
             private string mName = string.Empty;
-            private Filename mFilename = Filename.Empty;
-            private Dirname mFolder = Dirname.Empty;
+            private string mFilename = string.Empty;
+            private string mFolder = string.Empty;
             private Int64 mFileSize = 0;
             private StringTable mStrTable = new StringTable();
 
             #endregion
             #region Constructors
 
-            public LocFile(Filename filename, Dirname folder)
+            public LocFile(string filename, string folder)
             {
                 mFilename = filename;
                 mFolder = folder;
             }
 
-            public LocFile(string name, Filename filename, Dirname folder)
+            public LocFile(string name, string filename, string folder)
             {
                 mName = name;
                 mFilename = filename;
@@ -795,19 +795,19 @@ namespace DataBuildSystem
             #endregion
             #region Properties
 
-            public Filename filename
+            public string filename
             {
                 get
                 {
-                    return new Filename(mFilename);
+                    return mFilename;
                 }
             }
 
-            public Dirname folder
+            public string folder
             {
                 get
                 {
-                    return new Dirname(mFolder);
+                    return mFolder;
                 }
             }
 
@@ -855,12 +855,12 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    FileInfo fileinfoXlsIds = new FileInfo(mFolder + mFilename);
+                    FileInfo fileinfoXlsIds = new (Path.Join(mFolder, mFilename));
                     if (fileinfoXlsIds.Exists)
                     {
                         mFileSize = fileinfoXlsIds.Length;
 
-                        FileStream filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        FileStream filestreamXlsIds = new (fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
                         IBinaryReader filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, LocalizerConfig.Endian);
 
                         Int64 magic = filestreamXlsIdsReader.ReadInt64();
@@ -896,15 +896,15 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    xBinaryStream bs = new xBinaryStream(mFolder + mFilename, LocalizerConfig.Endian);
-                    bs.Open(xBinaryStream.EMode.WRITE);
+                    BinaryStream bs = new (Path.Join(mFolder, mFilename), LocalizerConfig.Endian);
+                    bs.Open(BinaryStream.EMode.WRITE);
 
                     bs.write.Write(magic);
                     mStrTable.Write(bs.write);
                     
                     bs.Close();
 
-                    FileInfo fileinfoXlsIds = new FileInfo(mFolder + mFilename);
+                    FileInfo fileinfoXlsIds = new (Path.Join(mFolder, mFilename));
                     if (fileinfoXlsIds.Exists)
                     {
                         mFileSize = fileinfoXlsIds.Length;
@@ -935,13 +935,13 @@ namespace DataBuildSystem
         /// </summary>
         public class LocDatabase
         {
-            private Filename mMainFilename;
+            private string mMainFilename;
             private bool mIsModified = true;
-            private Int64 mMagic = DateTime.Now.Ticks;
-            private List<LocFile> mLocFiles = new List<LocFile>();
-            private List<LocFile> mMasterLocFiles = new List<LocFile>();
-            private List<IdFile> mIDFiles = new List<IdFile>();
-            private List<IdFile> mMasterIDFiles = new List<IdFile>();
+            private readonly Int64 mMagic = DateTime.Now.Ticks;
+            private readonly List<LocFile> mLocFiles = new ();
+            private readonly List<LocFile> mMasterLocFiles = new ();
+            private readonly List<IdFile> mIDFiles = new ();
+            private readonly List<IdFile> mMasterIDFiles = new ();
 
             public Int64 magic
             {
@@ -961,11 +961,11 @@ namespace DataBuildSystem
 
             public void init(string main)
             {
-                mMainFilename = new Filename(main);
+                mMainFilename = main;
                 
                 mIsModified = true;
                 {
-                    DepFile depFile = new DepFile(mMainFilename, LocalizerConfig.SrcPath);
+                    DepFile depFile = new (mMainFilename, LocalizerConfig.SrcPath);
                     depFile.extension = LocalizerConfig.MainDepFileExtension;
 
                     if (depFile.load(LocalizerConfig.DepPath))
@@ -975,13 +975,13 @@ namespace DataBuildSystem
                 }
             }
 
-            private LocFile newLoc(Dirname dstSubPath, string name)
+            private LocFile newLoc(string dstSubPath, string name)
             {
-                LocFile newLocFile = new LocFile(name, dstSubPath + new Filename(name + LocalizerConfig.MainLocFileExtension), LocalizerConfig.DstPath);
+                LocFile newLocFile = new (name, dstSubPath + (name + LocalizerConfig.MainLocFileExtension), LocalizerConfig.DstPath);
                 return newLocFile;
             }
 
-            private LocFile openLoc(Dirname dstSubPath, string name, bool master)
+            private LocFile openLoc(string dstSubPath, string name, bool master)
             {
                 LocFile newLocFile = null;
                 if (master)
@@ -1003,13 +1003,13 @@ namespace DataBuildSystem
                 return newLocFile;
             }
 
-            private IdFile newId(Dirname dstSubPath, string name)
+            private IdFile newId(string dstSubPath, string name)
             {
-                IdFile newIdFile = new IdFile(name, dstSubPath + new Filename(name + ".ids"), LocalizerConfig.DstPath);
+                IdFile newIdFile = new IdFile(name, Path.Join(dstSubPath, (name + ".ids")), LocalizerConfig.DstPath);
                 return newIdFile;
             }
 
-            private IdFile openId(Dirname dstSubPath, string name, bool master)
+            private IdFile openId(string dstSubPath, string name, bool master)
             {
                 IdFile newIdFile = null;
                 if (master)
@@ -1037,41 +1037,41 @@ namespace DataBuildSystem
                 return newIdFile;
             }
 
-            public bool saveIds(Dirname dstSubPath, string name, StringTable ids, out Filename idsFilename)
+            public bool saveIds(string dstSubPath, string name, StringTable ids, out string idsFilename)
             {
                 IdFile masterIdFile = openId(dstSubPath, "Localization", true);
                 IdFile localIdFile = newId(dstSubPath, name);
                 localIdFile.add(ids);
 
-                idsFilename = Filename.Empty;
+                idsFilename = string.Empty;
 
                 if (!localIdFile.save(mMagic))
                     return false;
 
                 masterIdFile.add(ids);
 
-                idsFilename = new Filename(localIdFile.filename);
+                idsFilename = localIdFile.filename;
                 return true;
             }
 
-            public bool saveLoc(Dirname dstSubPath, string name, string language, StringTable ids, out Filename locFilename)
+            public bool saveLoc(string dstSubPath, string name, string language, StringTable ids, out string locFilename)
             {
                 LocFile masterLocFile = openLoc(dstSubPath, "Localization" + "." + language, true);
                 LocFile localLocFile = newLoc(dstSubPath, name + "." + language);
                 localLocFile.add(ids);
 
-                locFilename = Filename.Empty;
+                locFilename = string.Empty;
 
                 if (!localLocFile.save(mMagic))
                     return false;
 
                 masterLocFile.add(ids);
 
-                locFilename = new Filename(localLocFile.filename);
+                locFilename = localLocFile.filename;
                 return true;
             }
 
-            public bool loadIds(Dirname dstSubPath, string name)
+            public bool loadIds(string dstSubPath, string name)
             {
                 IdFile masterIdFile = openId(dstSubPath, "Localization", true);
                 IdFile localIdFile = openId(dstSubPath, name, false);
@@ -1086,7 +1086,7 @@ namespace DataBuildSystem
                 }
             }
 
-            public bool loadLoc(Dirname dstSubPath, string name, string language)
+            public bool loadLoc(string dstSubPath, string name, string language)
             {
                 LocFile masterLocFile = openLoc(dstSubPath, "Localization" + "." + language, true);
                 LocFile localLocFile = openLoc(dstSubPath, name + "." + language, false);
@@ -1105,18 +1105,17 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    Filename allIdsFilename = new Filename(LocalizerConfig.Excel0);
-                    allIdsFilename.ChangeExtension(LocalizerConfig.MainLocFileExtension);
+                    string allIdsFilename = LocalizerConfig.Excel0;
+                    allIdsFilename = Path.ChangeExtension(allIdsFilename, LocalizerConfig.MainLocFileExtension);
 
-                    allIdsFilename.PushExtension(".ids");
-                    IdFile allIds = new IdFile(allIdsFilename, LocalizerConfig.DstPath);
+                    allIdsFilename = allIdsFilename + ".ids";
+                    IdFile allIds = new (allIdsFilename, LocalizerConfig.DstPath);
                     foreach (IdFile l in mMasterIDFiles)
                         allIds.add(l);
 
                     // The main IdFile needs to be sorted by hash, and the remapping 
                     // needs to be used to sort all LocFiles in the same order.
-                    List<int> remap;
-                    allIds.getRemap(out remap);
+                    allIds.getRemap(out List<int> remap);
                     allIds.remap(remap);
                     allIds.save(mMagic);
 
@@ -1132,9 +1131,9 @@ namespace DataBuildSystem
                             maxFileSize = l.filesize;
                     }
 
-                    Filename languageFilesListFilename = allIds.filename.PushedExtension(".lst");
-                    xTextStream fileWithListOfLanguageFiles = new xTextStream(LocalizerConfig.DstPath + languageFilesListFilename);
-                    fileWithListOfLanguageFiles.Open(xTextStream.EMode.WRITE);
+                    string languageFilesListFilename = allIds.filename + ".lst";
+                    TextStream fileWithListOfLanguageFiles = new (Path.Join(LocalizerConfig.DstPath, languageFilesListFilename));
+                    fileWithListOfLanguageFiles.Open(TextStream.EMode.WRITE);
                     foreach (LocFile l in mMasterLocFiles)
                         fileWithListOfLanguageFiles.write.WriteLine(l.filename);
                     fileWithListOfLanguageFiles.Close();
@@ -1146,7 +1145,7 @@ namespace DataBuildSystem
                     depFile.extension = LocalizerConfig.MainDepFileExtension;
                     depFile.addOut(languageFilesListFilename, LocalizerConfig.DstPath, DepInfo.EDepRule.MUST_EXIST);
                     depFile.addOut(allIds.filename, allIds.folder, DepInfo.EDepRule.MUST_EXIST);
-                    depFile.addOut(allIds.filename.PushedExtension(".h"), allIds.folder, DepInfo.EDepRule.MUST_EXIST);
+                    depFile.addOut(allIds.filename + ".h", allIds.folder, DepInfo.EDepRule.MUST_EXIST);
 
                     foreach (LocFile l in mMasterLocFiles)
                         depFile.addOut(l.filename, l.folder, DepInfo.EDepRule.MUST_EXIST);
@@ -1173,11 +1172,11 @@ namespace DataBuildSystem
             #region Fields
 
             private readonly string[] mSheetNames = null;
-            private readonly Filename mFilename = Filename.Empty;
+            private readonly string mFilename = string.Empty;
             private bool mIsModified = false;
-            private List<Excel.Worksheet> mWorksheets = new List<Excel.Worksheet>();
+            private List<Excel.Worksheet> mWorksheets = new();
             private Column mIDColumn = null;
-            private List<Column> mColumns = new List<Column>();
+            private List<Column> mColumns = new ();
 
             #endregion
             #region Exceptions
@@ -1231,7 +1230,7 @@ namespace DataBuildSystem
             public Builder(string excelFilename, string[] sheetNames)
             {
                 mSheetNames = sheetNames;
-                mFilename = new Filename(excelFilename);
+                mFilename = excelFilename;
             }
 
             #endregion
@@ -1279,13 +1278,13 @@ namespace DataBuildSystem
                 {
                     string[] sheetNames = mSheetNames;
 
-                    FileInfo xlsFileInfo = new FileInfo(LocalizerConfig.SrcPath + "\\" + mFilename);
+                    FileInfo xlsFileInfo = new (LocalizerConfig.SrcPath + "\\" + mFilename);
                     if (!xlsFileInfo.Exists)
                     {
                         Console.WriteLine("Localization file \"" + xlsFileInfo.FullName + "\" could not be found.");
                         return false;
                     }
-                    Excel.Workbook workbook = new Excel.Workbook(xlsFileInfo.FullName);
+                    Excel.Workbook workbook = new (xlsFileInfo.FullName);
 
                     foreach (Excel.Worksheet worksheet in workbook.Sheets)
                     {
@@ -1347,27 +1346,27 @@ namespace DataBuildSystem
                     }
 
                     // Make sure path exists
-                    DirUtils.Create(LocalizerConfig.DstPath + mFilename.Path);
-                    DirUtils.Create(LocalizerConfig.DepPath + mFilename.Path);
+                    DirUtils.Create(Path.Join(LocalizerConfig.DstPath, mFilename));
+                    DirUtils.Create(Path.Join(LocalizerConfig.DepPath, mFilename));
 
                     // The dependency file
-                    DepFile depFile = new DepFile(mFilename, LocalizerConfig.SrcPath);
+                    DepFile depFile = new (mFilename, LocalizerConfig.SrcPath);
                     depFile.extension = LocalizerConfig.SubDepFileExtension;
 
                     // Write "filename.ids" file
-                    StringTable ids = new StringTable();
+                    StringTable ids = new ();
                     for (int i = 0; i < mIDColumn.Count; i++)
                         ids.Add(mIDColumn[i]);
 
-                    Filename idsFilename;
-                    db.saveIds(mFilename.Path, mFilename.Name, ids, out idsFilename);
+                    string idsFilename;
+                    db.saveIds(Path.GetDirectoryName(mFilename), Path.GetFileName(mFilename), ids, out idsFilename);
                     depFile.addOut(idsFilename, LocalizerConfig.DstPath, DepInfo.EDepRule.MUST_EXIST);
 
                     // Write all "filename.%LANGUAGE%.loc" files
                     foreach (Column c in mColumns)
                     {
-                        Filename locFilename;
-                        if (!db.saveLoc(mFilename.Path, mFilename.Name, c.Name, c.Table, out locFilename))
+                        string locFilename;
+                        if (!db.saveLoc(Path.GetDirectoryName(mFilename), Path.GetFileName(mFilename), c.Name, c.Table, out locFilename))
                         {
                             Console.WriteLine("Unable to save column \"" + c.Name + "\".");
                             return false;
@@ -1383,7 +1382,7 @@ namespace DataBuildSystem
 
             public bool load(LocDatabase db)
             {
-                if (!db.loadIds(mFilename.Path, mFilename.Name))
+                if (!db.loadIds(Path.GetDirectoryName(mFilename), Path.GetFileName(mFilename)))
                     return false;
 
                 foreach(Column c in mColumns)
@@ -1392,7 +1391,7 @@ namespace DataBuildSystem
                         continue;
 
                     string language = c.Name;
-                    if (!db.loadLoc(mFilename.Path, mFilename.Name, language))
+                    if (!db.loadLoc(Path.GetDirectoryName(mFilename), Path.GetFileName(mFilename), language))
                         return false;
                 }
                 return true;

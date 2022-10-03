@@ -337,9 +337,9 @@ namespace GameCore
                 if (!Directory.Exists(depFilename))
                     Directory.CreateDirectory(depFilename);
 
-                xTextStream ts = new xTextStream(depFilename);
-                ts.Open(xTextStream.EMode.WRITE);
-                save(ts.write);
+                TextStream ts = new TextStream(depFilename);
+                ts.Open(TextStream.EMode.Write);
+                save(ts.Writer);
                 ts.Close();
 
                 return true;
@@ -430,7 +430,7 @@ namespace GameCore
 
             if (a.main == null && b.main == null)
                 return true;
-            
+
             if (a.main == null || b.main == null)
                 return false;
 
@@ -490,7 +490,7 @@ namespace GameCore
         {
             return sCreate(MainFilename, new string[0], srcFolder, OutFilenames, dstFolder, string.Empty);
         }
-        
+
         public static DepFile sCreate(string MainFilename, string srcFolder, string[] OutFilenames, string dstFolder, string userKey)
         {
             return sCreate(MainFilename, new string[0], srcFolder, OutFilenames, dstFolder, userKey);
@@ -604,7 +604,7 @@ namespace GameCore
                         }
                         else if (depfile != null)
                         {
-                            depfile.main.Method = method; 
+                            depfile.main.Method = method;
                         }
                     }
                 }

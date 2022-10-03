@@ -53,7 +53,7 @@ namespace DataBuildSystem
         #region Methods & Properties
         public string Platform { get { return "Default"; } }
         public string DataFilename(string name) { return "Game" + "." + name; }
-        public string DataFileExtension { get { return ".gdf"; } }
+        public string DataFileExtension { get { return ".gdd"; } }
         public string DataRelocFileExtension { get { return ".gdr"; } }
         public bool LittleEndian { get { return true; } }
         public bool EnumIsInt32 { get { return false; } }
@@ -110,7 +110,6 @@ namespace DataBuildSystem
         public static string ToolPath{ get; private set;}
         public static string DataFileExtension { get { return sConfig.DataFileExtension; } }
         public static string DataRelocFileExtension { get { return sConfig.DataRelocFileExtension; } }
-        public static Filename[] ReferencedAssemblies { get { return sReferencedAssemblies.ToArray(); } }
 
         #endregion
         #region Methods

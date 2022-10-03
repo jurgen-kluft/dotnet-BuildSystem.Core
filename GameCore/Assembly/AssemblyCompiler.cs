@@ -12,12 +12,12 @@ namespace DataBuildSystem
         {
             try
             {
-                xTextStream ts = new xTextStream(_csincludeFilename);
-                if (ts.Open(xTextStream.EMode.READ))
+                TextStream ts = new TextStream(_csincludeFilename);
+                if (ts.Open(TextStream.EMode.Read))
                 {
-                    while (!ts.read.EndOfStream)
+                    while (!ts.Reader.EndOfStream)
                     {
-                        string filename = ts.read.ReadLine();
+                        string filename = ts.Reader.ReadLine();
                         collectedCsFiles.Add(new Filename(filename));
                     }
                     ts.Close();

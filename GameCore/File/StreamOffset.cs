@@ -15,11 +15,6 @@ namespace GameCore
         #endregion
         #region Constructor
 
-        public StreamOffset(Int32 offset)
-        {
-            mOffset = offset;
-        }
-
         public StreamOffset(Int64 offset)
         {
             mOffset = offset;
@@ -58,14 +53,6 @@ namespace GameCore
             get
             {
                 return mOffset;
-            }
-        }
-
-        public Int32 value32
-        {
-            get
-            {
-                return (Int32)mOffset;
             }
         }
 
@@ -131,7 +118,7 @@ namespace GameCore
         #endregion
         #region Methods
 
-        public void align(Int64 alignment)
+        public void Align(Int64 alignment)
         {
             mOffset = (mOffset + (alignment - 1)) & ~(alignment - 1);
         }

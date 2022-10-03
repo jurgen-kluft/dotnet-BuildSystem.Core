@@ -3,17 +3,12 @@ using GameCore;
 
 namespace GameData
 {
-    public interface IFilesProvider
+    public interface IFileIdProvider
     {
         /// <summary>
-        /// The FileIndex is set by and outside process and this index is used to connect to an instance
-        /// of this interface. With that we can thus connect 'FileIndex' with 'FileNames'.
+        /// The FileId is set by and outside process and this id is used to connect to an instance
+        /// of this interface. With that we can thus connect 'FileId' with 'FileNames'.
         /// </summary>
-        UInt64 FilesProviderId { get; set; }
-
-        /// <summary>
-        /// The actual Filepaths associated with 'FilesProviderIndex'
-        /// </summary>
-        string[] FilesProviderFilepaths { get; }
+        Int64 FileId { get; set; }
     }
 }

@@ -57,8 +57,8 @@ namespace DataBuildSystem
 				Console.WriteLine("       -target [PLATFORM]");
 				Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");
 				Console.WriteLine("       -basepath [BASEPATH]");
-				Console.WriteLine("       -srcpath [SRCPATH]");
 				Console.WriteLine("       -gddpath [GDDPATH]");
+				Console.WriteLine("       -srcpath [SRCPATH]");
 				Console.WriteLine("       -subpath [SUBPATH]");
 				Console.WriteLine("       -dstpath [DSTPATH]");
 				Console.WriteLine("       -pubpath [PUBLISHPATH]");

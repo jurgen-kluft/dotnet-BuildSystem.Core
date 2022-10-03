@@ -3,11 +3,11 @@ using System.IO;
 
 namespace GameCore
 {
-    #region IBinaryReader 
+    #region IBinaryReader
 
     public interface IBinaryReader
     {
-        Int64 Position { get; }
+        Int64 Position { get; set; }
         Int64 Length { get; }
 
         bool SkipBytes(Int64 size);
@@ -35,10 +35,11 @@ namespace GameCore
     {
         #region Fields
 
-        private static BigEndian mEndian = new ();
+        private static BigEndian mEndian = new();
         private readonly BinaryReader mReader;
 
         #endregion
+
         #region Constructor
 
         public BinaryReaderBigEndian(BinaryReader reader)
@@ -47,10 +48,19 @@ namespace GameCore
         }
 
         #endregion
+
         #region IBinaryReader Members
 
-        public Int64 Position { get { return mReader.BaseStream.Position; } }
-        public Int64 Length { get { return mReader.BaseStream.Length; } }
+        public Int64 Position
+        {
+            get { return mReader.BaseStream.Position; }
+            set { mReader.BaseStream.Position = value; }
+        }
+
+        public Int64 Length
+        {
+            get { return mReader.BaseStream.Length; }
+        }
 
         public bool SkipBytes(Int64 numbytes)
         {
@@ -135,6 +145,7 @@ namespace GameCore
     }
 
     #endregion
+
     #region BinaryReader (Little Endian)
 
     public class BinaryReaderLittleEndian : IBinaryReader
@@ -144,6 +155,7 @@ namespace GameCore
         private readonly BinaryReader mReader;
 
         #endregion
+
         #region Constructor
 
         public BinaryReaderLittleEndian(BinaryReader reader)
@@ -152,17 +164,26 @@ namespace GameCore
         }
 
         #endregion
+
         #region IBinaryReader Members
 
-        public Int64 Position { get { return mReader.BaseStream.Position; } }
-        public Int64 Length { get { return mReader.BaseStream.Length; } }
+        public Int64 Position
+        {
+            get { return mReader.BaseStream.Position; }
+            set { mReader.BaseStream.Position = value; }
+        }
+
+        public Int64 Length
+        {
+            get { return mReader.BaseStream.Length; }
+        }
 
         public bool SkipBytes(Int64 numbytes)
-		{
+        {
             Int64 curpos = mReader.BaseStream.Position;
             Int64 newpos = mReader.BaseStream.Seek(numbytes, SeekOrigin.Current);
-            return (newpos - curpos)  == numbytes;
-		}
+            return (newpos - curpos) == numbytes;
+        }
 
         public byte[] ReadBytes(int count)
         {
@@ -252,6 +273,7 @@ namespace GameCore
                 mBinaryReader = new BinaryReaderLittleEndian(mBinaryFileReader);
                 return true;
             }
+
             return false;
         }
 
@@ -264,8 +286,16 @@ namespace GameCore
             }
         }
 
-        public Int64 Position { get { return mBinaryReader.Position; } }
-        public Int64 Length { get { return mBinaryReader.Length; } }
+        public Int64 Position
+        {
+            get { return mBinaryReader.Position; }
+            set { mBinaryReader.Position = value; }
+        }
+
+        public Int64 Length
+        {
+            get { return mBinaryReader.Length; }
+        }
 
         public bool SkipBytes(Int64 numbytes)
         {
@@ -276,51 +306,61 @@ namespace GameCore
         {
             return mBinaryReader.ReadBytes(size);
         }
+
         public sbyte ReadInt8()
         {
             return mBinaryReader.ReadInt8();
         }
+
         public byte ReadUInt8()
         {
             return mBinaryReader.ReadUInt8();
         }
+
         public Int16 ReadInt16()
         {
             return mBinaryReader.ReadInt16();
         }
+
         public UInt16 ReadUInt16()
         {
             return mBinaryReader.ReadUInt16();
         }
+
         public Int32 ReadInt32()
         {
             return mBinaryReader.ReadInt32();
         }
+
         public UInt32 ReadUInt32()
         {
             return mBinaryReader.ReadUInt32();
         }
+
         public Int64 ReadInt64()
         {
             return mBinaryReader.ReadInt64();
         }
+
         public UInt64 ReadUInt64()
         {
             return mBinaryReader.ReadUInt64();
         }
+
         public float ReadFloat()
         {
             return mBinaryReader.ReadFloat();
         }
+
         public double ReadDouble()
         {
             return mBinaryReader.ReadDouble();
         }
+
         public string ReadString()
         {
             return mBinaryReader.ReadString();
         }
-
     }
 
     #endregion

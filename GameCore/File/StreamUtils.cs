@@ -3,58 +3,47 @@ using System.IO;
 
 namespace GameCore
 {
-    public enum EStreamAlignment : int
-    {
-        NONE = 0,
-        ALIGN_8 = 1,
-        ALIGN_16 = 2,
-        ALIGN_32 = 4,
-        ALIGN_64 = 8,
-        ALIGN_128 = 16,
-    }
-
     public static class Alignment
     {
-        public static Int64 calculate(Int64 position, EStreamAlignment alignment)
+        public static Int64 Align(Int64 position, Int64 alignment)
         {
-            // Example: ALIGN_32 = 4
-            // Position = 0 --> p = 0
-            // Position = 1 --> p = 3
-            // Position = 2 --> p = 2
-            // Position = 3 --> p = 1
-            // Position = 4 --> p = 0
-
-            Int64 p = ((Int64)alignment) - (position & ((Int64)alignment - 1)) & (Int64)((Int64)alignment - 1);
-            return p;
+            return (position + (alignment - 1)) & ~(alignment - 1);
         }
+        public static bool IsAligned(Int64 position, Int64 alignment)
+        {
+            Int64 newpos = (position + (alignment - 1)) & ~(alignment - 1);
+            return newpos == position;
+        }
+
+        public static Int32 Align32(Int32 position, Int32 alignment)
+        {
+            return (position + (alignment - 1)) & ~(alignment - 1);
+        }
+
     }
 
-    public class xTextStream
+    public class TextStream
     {
-        private string mFilename;
-
         private FileStream mFileStream;
-        private StreamWriter mWriter;
-        private StreamReader mReader;
 
-        public xTextStream(string filename)
+        public TextStream(string filename)
         {
-            mFilename = filename;
+            Filename = filename;
         }
 
         public enum EMode
         {
-            READ,
-            WRITE,
+            Read,
+            Write,
         }
 
-        public string filename { get { return mFilename;  } }
-        public StreamWriter write { get { return mWriter; } }
-        public StreamReader read { get { return mReader; } }
+        public string Filename { get; private set; }
+        public StreamWriter Writer { get; private set; }
+        public StreamReader Reader { get; private set; }
 
         public bool Exists()
         {
-            return File.Exists(mFilename);
+            return File.Exists(Filename);
         }
 
         public bool Open(EMode mode)
@@ -63,62 +52,68 @@ namespace GameCore
             FileStream stream = null;
             try
             {
-                stream = new FileStream(mFilename, (mode == EMode.READ) ? FileMode.Open : FileMode.Create, (mode == EMode.READ) ? FileAccess.Read : FileAccess.Write);
-                if (mode == EMode.WRITE) mWriter = new StreamWriter(stream);
-                else if (mode == EMode.READ) mReader = new StreamReader(stream);
+                stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
+                switch (mode)
+                {
+                    case EMode.Write:
+                        Writer = new StreamWriter(stream);
+                        break;
+                    case EMode.Read:
+                        Reader = new StreamReader(stream);
+                        break;
+                    default:
+                        break;
+                }
             }
             finally
             {
                 mFileStream = stream;
                 success = true;
             }
+
             return success;
         }
 
         public void Close()
         {
-            if (mWriter != null)
+            if (Writer != null)
             {
-                mWriter.Flush();
-                mWriter.Close();
+                Writer.Flush();
+                Writer.Close();
                 mFileStream.Close();
             }
-            else if (mReader != null)
+            else if (Reader != null)
             {
-                mReader.Close();
+                Reader.Close();
                 mFileStream.Close();
             }
-            mWriter = null;
-            mReader = null;
+
+            Writer = null;
+            Reader = null;
             mFileStream = null;
         }
     }
 
-    public class xBinaryStream
+    public class BinaryStream
     {
-        private string mFilename;
-        private EEndian mEndian;
-
         private FileStream mFileStream;
-        private IBinaryWriter mWriter;
-        private IBinaryReader mReader;
 
-        public xBinaryStream(string filename, EEndian endian)
+        public BinaryStream(string filename, EEndian endian)
         {
-            mFilename = filename;
-            mEndian = endian;
+            Filename = filename;
+            Endian = endian;
         }
 
         public enum EMode
         {
-            READ,
-            WRITE,
+            Read,
+            Write,
         }
 
-        public string filename { get { return mFilename; } }
-        public EEndian endian { get { return mEndian; } }
-        public IBinaryWriter write { get { return mWriter; } }
-        public IBinaryReader read { get { return mReader; } }
+        private string Filename { get; }
+        private EEndian Endian { get; }
+        private IBinaryWriter Writer { get; set; }
+        private IBinaryReader Reader { get; set; }
 
         public bool Open(EMode mode)
         {
@@ -126,11 +121,11 @@ namespace GameCore
             FileStream stream = null;
             try
             {
-                stream = new FileStream(mFilename, (mode == EMode.READ) ? FileMode.Open : FileMode.Create, (mode == EMode.READ) ? FileAccess.Read : FileAccess.Write);
-                if (mode == EMode.WRITE) mWriter = EndianUtils.CreateBinaryWriter(stream, mEndian);
-                else if (mode == EMode.READ) mReader = EndianUtils.CreateBinaryReader(stream, mEndian);
+                stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
+                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryWriter(stream, Endian);
+                else if (mode == EMode.Read) Reader = EndianUtils.CreateBinaryReader(stream, Endian);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 stream = null;
             }
@@ -139,46 +134,46 @@ namespace GameCore
                 mFileStream = stream;
                 success = true;
             }
+
             return success;
         }
 
         public void Close()
         {
-            if (mWriter != null)
+            if (Writer != null)
             {
-                mWriter.Close();
+                Writer.Close();
+                Writer = null;
                 mFileStream.Close();
             }
-            else if (mReader != null)
+            else if (Reader != null)
             {
-                mReader.Close();
+                Reader.Close();
+                Reader = null;
                 mFileStream.Close();
             }
-            mWriter = null;
-            mReader = null;
+
             mFileStream = null;
         }
     }
 
     public static class StreamUtils
     {
-        private static Int64 position(IBinaryWriter writer)
+        private static Int64 Position(IBinaryWriter writer)
         {
             Int64 p = writer.Position;
             return p;
         }
 
-        public static bool aligned(IBinaryWriter writer, EStreamAlignment alignment)
+        public static bool Aligned(IBinaryWriter writer, Int64 alignment)
         {
-            Int64 p = Alignment.calculate(writer.Position, alignment);
-            return (p == 0);
+            Int64 p = Alignment.Align(writer.Position, alignment);
+            return (p == writer.Position);
         }
 
-        public static void align(IBinaryWriter writer, EStreamAlignment alignment)
+        public static void Align(IBinaryWriter writer, Int64 alignment)
         {
-            Int64 p = Alignment.calculate(writer.Position, alignment);
-            while (--p >= 0)
-                writer.Write((byte)0xCD);
+            writer.Position = Alignment.Align(writer.Position, alignment);
         }
     }
 }

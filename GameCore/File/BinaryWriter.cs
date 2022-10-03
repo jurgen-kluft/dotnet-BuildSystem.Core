@@ -8,7 +8,7 @@ namespace GameCore
 
     public interface IBinaryWriter
     {
-        Int64 Position { get; }
+        Int64 Position { get; set; }
         Int64 Length { get; }
 
         Int64 Write(byte[] data);
@@ -128,9 +128,11 @@ namespace GameCore
         public Int64 Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            Debug.Assert(Alignment.IsAligned(mWriter.BaseStream.Position, 4));
             Write(data.Length);
             Write(data);
-            return 4 + data.Length;
+            Write((byte)0);
+            return 4 + data.Length + 1;
         }
 
         public Int64 Position
@@ -138,6 +140,10 @@ namespace GameCore
             get
             {
                 return mWriter.BaseStream.Position;
+            }
+            set
+            {
+                mWriter.BaseStream.Position = value;
             }
         }
 
@@ -151,7 +157,8 @@ namespace GameCore
 
         public bool Seek(StreamOffset offset)
         {
-            Int64 newPos = mWriter.Seek(offset.value32, SeekOrigin.Begin);
+            // TODO figure out how to seek to a position larger than 32 bit
+            Int64 newPos = mWriter.Seek((int)offset.value, SeekOrigin.Begin);
             return offset.value == newPos;
         }
 
@@ -259,16 +266,22 @@ namespace GameCore
         public Int64 Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            Debug.Assert(Alignment.IsAligned(mWriter.BaseStream.Position, 4));
             Write(data.Length);
             Write(data);
-            return 4 + s.Length;
+            Write((byte)0);
+            return 4 + s.Length + 1;
         }
-        
+
         public Int64 Position
         {
             get
             {
                 return mWriter.BaseStream.Position;
+            }
+            set
+            {
+                mWriter.BaseStream.Position = value;
             }
         }
 
@@ -282,7 +295,8 @@ namespace GameCore
 
         public bool Seek(StreamOffset offset)
         {
-            Int64 newPos = mWriter.Seek(offset.value32, SeekOrigin.Begin);
+            // TODO figure out how to seek to a position larger than 32 bit
+            Int64 newPos = mWriter.Seek((int)offset.value, SeekOrigin.Begin);
             return offset.value == newPos;
         }
 
@@ -388,14 +402,19 @@ namespace GameCore
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
-            return 4 + data.Length;
+            Write((byte)0);
+            return 4 + data.Length + 1;
         }
-        
+
         public Int64 Position
         {
             get
             {
                 return mBinaryStreamWriter.BaseStream.Position;
+            }
+            set
+            {
+                mBinaryStreamWriter.BaseStream.Position = value;
             }
         }
 
@@ -418,7 +437,7 @@ namespace GameCore
             mStream.Close();
         }
 
-        #endregion        
+        #endregion
     }
 
     public class BinaryMemoryWriter : IBinaryWriter
@@ -520,7 +539,8 @@ namespace GameCore
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
-            return 4 + data.Length;
+            Write((byte)0);
+            return 4 + data.Length + 1;
         }
 
         public Int64 Position
@@ -528,6 +548,10 @@ namespace GameCore
             get
             {
                 return mBinaryStreamWriter.BaseStream.Position;
+            }
+            set
+            {
+                mBinaryStreamWriter.BaseStream.Position = value;
             }
         }
 
@@ -550,7 +574,7 @@ namespace GameCore
             mStream.Close();
         }
 
-        #endregion        
+        #endregion
     }
 
     #endregion

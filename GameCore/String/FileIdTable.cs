@@ -16,7 +16,7 @@ namespace GameCore
         #endregion
         #region Properties
 
-        public StreamReference reference
+        public StreamReference Reference
         {
             get
             {
@@ -99,14 +99,14 @@ namespace GameCore
 
         public void Write(IDataWriter writer)
         {
-            writer.BeginBlock(reference, EStreamAlignment.ALIGN_32);
+            writer.BeginBlock(Reference, sizeof(Int32));
             {
                 StreamReference idReference = StreamReference.Instance;
 
                 writer.Write(Count);
                 writer.Write(idReference);
 
-                writer.BeginBlock(idReference, EStreamAlignment.ALIGN_128);
+                writer.BeginBlock(idReference, 16);
                 {
                     for (int i = 0; i < mItems.Count; ++i)
                     {

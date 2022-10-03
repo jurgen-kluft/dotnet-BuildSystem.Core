@@ -2,7 +2,7 @@ using System;
 
 namespace DataBuildSystem
 {
-    public class BigfileDefaultConfig : IBigfileConfig
+    public sealed class BigfileDefaultConfig : IBigfileConfig
     {
         #region Methods & Properties
 
@@ -12,11 +12,9 @@ namespace DataBuildSystem
         public string BigFileTocExtension { get { return ".gdt"; } }
         public string BigFileFdbExtension { get { return ".gdf"; } }
         public string BigFileHdbExtension { get { return ".gdh"; } }
-        public string BigFileNodeExtension { get { return ".gdn"; } }
         public bool LittleEndian { get { return true; } }
-        public UInt32 FileAlignment { get { return 2048; } }
+        public Int64 FileAlignment { get { return 256; } }
         public bool AllowDuplicateFiles { get { return false; } }
-        public bool WriteAsync { get { return true; } }
         public UInt32 ReadBufferSize { get { return 8*1024*1024; } }
         public UInt32 WriteBufferSize { get { return 48*1024*1024; } }
 
@@ -46,11 +44,9 @@ namespace DataBuildSystem
         public static string BigFileTocExtension { get { return sConfig.BigFileTocExtension; } }
         public static string BigFileFdbExtension { get { return sConfig.BigFileFdbExtension; } }
         public static string BigFileHdbExtension { get { return sConfig.BigFileHdbExtension; } }
-        public static string BigFileNodeExtension { get { return sConfig.BigFileNodeExtension; } }
         public static bool LittleEndian { get { return sConfig.LittleEndian; } }
-        public static UInt32 FileAlignment { get { return sConfig.FileAlignment; } }
+        public static Int64 FileAlignment { get { return sConfig.FileAlignment; } }
         public static bool AllowDuplicateFiles { get { return sConfig.AllowDuplicateFiles; } }
-        public static bool WriteAsync { get { return sConfig.WriteAsync; } }
         public static UInt32 ReadBufferSize { get { return sConfig.ReadBufferSize; } }
         public static UInt32 WriteBufferSize { get { return sConfig.WriteBufferSize; } }
 

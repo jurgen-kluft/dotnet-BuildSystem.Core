@@ -323,7 +323,7 @@ namespace GameData
             if (member == null)
                 return null;
 
-            inCompound.addMember(member);
+            inCompound.AddMember(member);
 
             if (mMemberGenerator.isAtom(dataObjectFieldType))
             {

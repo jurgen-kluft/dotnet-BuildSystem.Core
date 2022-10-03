@@ -62,32 +62,31 @@ namespace DataBuildSystem
         {
             CommandLine cmdLine = new CommandLine(args);
 
-            // On the command-line we have:
-            // - Platform     NDS                                           (NDS/WII/PSP/PS2/PS3/XBOX/X360/PC)
-            // - Target       NDS                                           (NDS/WII/PSP/PS2/PS3/XBOX/X360/PC)
-            // - Config       Config.%PLATFORM%.cs
-            // - Name         Game
-            // - Territory    Europe                                        (Europe/USA/Asia/Japan)
-            // - SrcPath      I:\Dev\Game\Data\Data
-            // - Root         Root.cs
-            // - DstPath      %SrcPath%\Bin.%PLATFORM%
-            // - PubPath      %SrcPath%\Publish.%PLATFORM%
-            // - ToolPath     %SrcPath%\Tools
-            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["config"], cmdLine.HasParameter("bigfile"), cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["srcpath"], cmdLine["folder"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["toolpath"], cmdLine["pubpath"]))
+			// On the command-line we have:
+			// - platform     PC                                            (PS4/PS5/XBOXONE/XSX/PC)
+			// - target       PC                                            (PS4/PS5/XBOXONE/XSX/PC)
+			// - name         Game
+			// - territory    Europe                                        (Europe/USA/Asia/Japan)
+			// - basepath     i:\Data                                       (Can be set and used as %BASEPATH%)
+			// - gddpath      %BASEPATH%\Gdd\Compiled
+			// - srcpath      %BASEPATH%\Assets
+			// - subpath                                                    (AI, Boot, Levels, Menu\FrontEnd)
+			// - dstpath      %BASEPATH%\Bin.%PLATFORM%.%TARGET%
+			// - pubpath      %BASEPATH%\Publish.%PLATFORM%.%TARGET%
+			// - toolpath     %BASEPATH%\Tools
+			if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["basepath"], cmdLine["srcpath"], cmdLine["gddpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["pubpath"], cmdLine["toolpath"]))
             {
-                Console.WriteLine("Usage: -name [NAME]");
-                Console.WriteLine("       -config [FILENAME]");
-                Console.WriteLine("       -platform [PLATFORM]");
-                Console.WriteLine("       -target [PLATFORM]");
-                Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");
-                Console.WriteLine("       -srcpath [SRCPATH]");
-                Console.WriteLine("       -dstpath [DSTPATH]");
-                Console.WriteLine("       -deppath [DSTDEPPATH]");
-                Console.WriteLine("       -toolpath [TOOLPATH]");
-                Console.WriteLine("       -pubpath [PUBLISHPATH]");
-                Console.WriteLine();
-                Console.WriteLine("Optional:");
-                Console.WriteLine("       -bigfile => If not given then only the BigfileToc and FilenameDb will be build.");
+				Console.WriteLine("Usage: -name [NAME]");
+				Console.WriteLine("       -platform [PLATFORM]");
+				Console.WriteLine("       -target [PLATFORM]");
+				Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");
+				Console.WriteLine("       -basepath [BASEPATH]");
+				Console.WriteLine("       -gddpath [GDDPATH]");
+				Console.WriteLine("       -srcpath [SRCPATH]");
+				Console.WriteLine("       -subpath [SUBPATH]");
+				Console.WriteLine("       -dstpath [DSTPATH]");
+				Console.WriteLine("       -pubpath [PUBLISHPATH]");
+				Console.WriteLine("       -toolpath [TOOLPATH]");
                 Console.WriteLine();
                 Console.WriteLine("Press a key");
                 Console.ReadKey();
@@ -100,14 +99,14 @@ namespace DataBuildSystem
             Assembly configDataAssembly = null;
             if (!BuildSystemCompilerConfig.ConfigFilename.IsEmpty)
             {
-                List<Filename> referencedAssemblies = new List<Filename>();
-                referencedAssemblies.Add(new Filename(Assembly.GetExecutingAssembly().Location));
+                List<string> referencedAssemblies = new List<string>();
+                referencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
 
-                List<Filename> configSrcFiles = new List<Filename>();
-                configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
-                Filename configAsmFilename = new Filename(BuildSystemCompilerConfig.Name + "Linker.Config.dll");
-                Filename configAssemblyFilename = configAsmFilename;
-                configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, referencedAssemblies.ToArray());
+                List<string> configSrcFiles = new List<string>();
+                configSrcFiles.Add((GameCore.Environment.expandVariables(BuildSystemCompilerConfig.ConfigFilename)));
+                string configAsmFilename = Path.Join(BuildSystemCompilerConfig.Name, "Linker.Config.dll");
+                string configAssemblyFilename = configAsmFilename;
+                configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new string[0], BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.DepPath, referencedAssemblies.ToArray());
             }
 
             // BuildSystem.DataCompiler configuration
@@ -119,7 +118,7 @@ namespace DataBuildSystem
             IBigfileConfig configForBigfileBuilder = AssemblyUtil.Create1<IBigfileConfig>(configDataAssembly);
             if (configForBigfileBuilder != null)
                 BigfileConfig.Init(configForBigfileBuilder);
-            Filename bigFilename = new Filename(BuildSystemCompilerConfig.Name);
+            string bigFilename = BuildSystemCompilerConfig.Name;
 
             // Dependency system configuration
             /// IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
@@ -154,19 +153,19 @@ namespace DataBuildSystem
             ///  - 
             /// 
 
-            Filename mainNodeFile = new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileNodeExtension);
-            Filename fileEntriesCacheFilename = new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileTocExtension + ".cache");
+            string mainNodeFile = Path.Join(BuildSystemCompilerConfig.Name , BigfileConfig.BigFileNodeExtension);
+            string fileEntriesCacheFilename = Path.Join(BuildSystemCompilerConfig.Name, BigfileConfig.BigFileTocExtension + ".cache");
 
-            Dictionary<Filename, FileEntry> loadedFileEntries;
+            Dictionary<string, FileEntry> loadedFileEntries;
             LoadFileEntryCache(BuildSystemCompilerConfig.DstPath + fileEntriesCacheFilename, out loadedFileEntries);
             UpdateFileEntryCache(BuildSystemCompilerConfig.DstPath, loadedFileEntries);
 
-            Queue<Filename> allNodeFilenames = new Queue<Filename>();
-            Dictionary<Filename, FileEntry> currentFileEntries = new Dictionary<Filename, FileEntry>(loadedFileEntries.Count);
+            Queue<string> allNodeFilenames = new ();
+            Dictionary<string, FileEntry> currentFileEntries = new(loadedFileEntries.Count);
             allNodeFilenames.Enqueue(mainNodeFile);
             while (allNodeFilenames.Count > 0)
             {
-                Filename subNodeFile = allNodeFilenames.Dequeue();
+                string subNodeFile = allNodeFilenames.Dequeue();
                 LoadNodeFile(BuildSystemCompilerConfig.DstPath + subNodeFile, ref allNodeFilenames, loadedFileEntries, ref currentFileEntries);
             }
 
@@ -194,43 +193,45 @@ namespace DataBuildSystem
 
             // Create a dependency file with:
             // MAIN
-            //  - The bigfile file
+            //  - The large bigfile file
             // IN
-            //  - All node files
+            //  - All bigfiles (.bfd, .bft, .bff, .bfh)
             // OUT
             //  - BigfileToc
             //  - BigfileFdb
             //  - BigfileHdb
-            Filename bigfileFilename = new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileTocExtension);
+            string bigfileFilename = Path.Join(BuildSystemCompilerConfig.Name, BigfileConfig.BigFileTocExtension);
             DepFile depFile = new DepFile(bigfileFilename, BuildSystemCompilerConfig.PubPath);
             if (!depFile.load(BuildSystemCompilerConfig.DepPath))
             {
                 depFile.addIn(fileEntriesCacheFilename, BuildSystemCompilerConfig.DstPath);
                 if (BuildSystemCompilerConfig.BuildBigfile)
-                    depFile.addOut(new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileExtension), BuildSystemCompilerConfig.PubPath);
-                depFile.addOut(new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileFdbExtension), BuildSystemCompilerConfig.PubPath);
-                depFile.addOut(new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileHdbExtension), BuildSystemCompilerConfig.PubPath);
+                    depFile.addOut(Path.Join(BuildSystemCompilerConfig.Name , BigfileConfig.BigFileExtension), BuildSystemCompilerConfig.PubPath);
+                depFile.addOut(Path.Join(BuildSystemCompilerConfig.Name , BigfileConfig.BigFileFdbExtension), BuildSystemCompilerConfig.PubPath);
+                depFile.addOut(Path.Join(BuildSystemCompilerConfig.Name , BigfileConfig.BigFileHdbExtension), BuildSystemCompilerConfig.PubPath);
             }
             else
             {
                 if (BuildSystemCompilerConfig.BuildBigfile)
-                    depFile.addOut(new Filename(BuildSystemCompilerConfig.Name + BigfileConfig.BigFileExtension), BuildSystemCompilerConfig.PubPath);
+                    depFile.addOut(Path.Join(BuildSystemCompilerConfig.Name , BigfileConfig.BigFileExtension), BuildSystemCompilerConfig.PubPath);
             }
 
             if (!allLoadedFileEntriesAreUsed || !allFileEntriesAreUpToDate || depFile.isModified())
             {
-                BigfileBuilder bfb = new BigfileBuilder(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DepPath, BuildSystemCompilerConfig.PubPath, bigfileFilename);
-                foreach (FileEntry f in currentFileEntries.Values)
-                    bfb.add(f.filename, f.contenthash);
+                //BigfileBuilder bfb = new BigfileBuilder(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.SubPath, BuildSystemCompilerConfig.DepPath, BuildSystemCompilerConfig.PubPath, bigfileFilename);
 
-                Console.WriteLine("Linking... (Bigfile={0})", BuildSystemCompilerConfig.BuildBigfile ? "Yes" : "No");
-                if (bfb.save(BuildSystemCompilerConfig.Endian, BuildSystemCompilerConfig.BuildBigfile))
-                {
-                    if (!allLoadedFileEntriesAreUsed || !allFileEntriesAreUpToDate)
-                        SaveFileEntryCache(BuildSystemCompilerConfig.DstPath + fileEntriesCacheFilename, currentFileEntries);
+                // TODO Linker's purpose is to merge Bigfiles into one large Bigfile
 
-                    depFile.save(BuildSystemCompilerConfig.DepPath);
-                }
+                //foreach (FileEntry f in currentFileEntries.Values)
+                //    bfb.Add(f.filename, f.filesize);
+
+                // Console.WriteLine("Linking... (Bigfile={0})", BuildSystemCompilerConfig.BuildBigfile ? "Yes" : "No");
+                // if (bfb.Save(BuildSystemCompilerConfig.Endian, BuildSystemCompilerConfig.BuildBigfile))
+                // {
+                //     if (!allLoadedFileEntriesAreUsed || !allFileEntriesAreUpToDate)
+                //         SaveFileEntryCache(BuildSystemCompilerConfig.DstPath + fileEntriesCacheFilename, currentFileEntries);
+                //     depFile.save(BuildSystemCompilerConfig.DepPath);
+                // }
             }
             else
             {
@@ -242,18 +243,18 @@ namespace DataBuildSystem
 
         internal class FileEntry
         {
-            private Filename mFilename;
+            private string mFilename;
             public Int64 mFileSize;
             public Int64 mFileLastWriteTime;
             public Hash160 mFileContentHash;
             public bool mUsed;
             public bool mUpToDate;
 
-            public FileEntry(Filename filename)
+            public FileEntry(string filename)
                 : this(filename, 0, 0, Hash160.Empty)
             {
             }
-            public FileEntry(Filename filename, Int64 filesize, Int64 filelastwritetime, Hash160 filecontenthash)
+            public FileEntry(string filename, Int64 filesize, Int64 filelastwritetime, Hash160 filecontenthash)
             {
                 mFilename = filename;
                 mFileSize = filesize;
@@ -263,7 +264,7 @@ namespace DataBuildSystem
                 mUpToDate = false;
             }
 
-            public Filename filename
+            public string filename
             {
                 get { return mFilename; }
                 set { mFilename = value; }
@@ -293,9 +294,9 @@ namespace DataBuildSystem
                 get { return mUpToDate; }
             }
 
-            public void update(Dirname path)
+            public void update(string path)
             {
-                FileInfo fileinfo = new FileInfo(path + mFilename);
+                FileInfo fileinfo = new FileInfo(Path.Join(path, mFilename));
                 if (!fileinfo.Exists)
                 {
                     mFileSize = 0;
@@ -316,14 +317,14 @@ namespace DataBuildSystem
             }
         }
 
-        public static bool LoadFileEntryCache(Filename inCacheFilename, out Dictionary<Filename, FileEntry> outFileEntries)
+        public static bool LoadFileEntryCache(string inCacheFilename, out Dictionary<string, FileEntry> outFileEntries)
         {
-            outFileEntries = new Dictionary<Filename, FileEntry>();
+            outFileEntries = new Dictionary<string, FileEntry>();
 
-            xTextStream ts = new xTextStream(inCacheFilename);
+            TextStream ts = new TextStream(inCacheFilename);
             if (ts.Exists())
             {
-                ts.Open(xTextStream.EMode.READ);
+                ts.Open(TextStream.EMode.READ);
                 while (true)
                 {
                     string line = ts.read.ReadLine();
@@ -333,7 +334,7 @@ namespace DataBuildSystem
                     string[] items = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
                     if (items.Length == 4)
                     {
-                        Filename filename = new Filename(items[0]);
+                        string filename = items[0];
                         Int64 filesize = StringTools.HexToInt64(items[1]);
                         Int64 filelastwritetime = StringTools.HexToInt64(items[2]);
                         Hash160 filemd5 = Hash160.FromString(items[3]);
@@ -345,16 +346,16 @@ namespace DataBuildSystem
             return true;
         }
 
-        public static void UpdateFileEntryCache(Dirname dstPath, Dictionary<Filename, FileEntry> inFileEntries)
+        public static void UpdateFileEntryCache(string dstPath, Dictionary<string, FileEntry> inFileEntries)
         {
             foreach (FileEntry f in inFileEntries.Values)
                 f.update(dstPath);
         }
 
-        public static bool SaveFileEntryCache(Filename inCacheFilename, Dictionary<Filename, FileEntry> inFileEntries)
+        public static bool SaveFileEntryCache(string inCacheFilename, Dictionary<string, FileEntry> inFileEntries)
         {
-            xTextStream ts = new xTextStream(inCacheFilename);
-            if (ts.Open(xTextStream.EMode.WRITE))
+            TextStream ts = new TextStream(inCacheFilename);
+            if (ts.Open(TextStream.EMode.WRITE))
             {
                 foreach(FileEntry f in inFileEntries.Values)
                 {
@@ -365,10 +366,10 @@ namespace DataBuildSystem
             return true;
         }
 
-        public static bool LoadNodeFile(Filename inNodeFilename, ref Queue<Filename> outNodeFilenames, Dictionary<Filename, FileEntry> inLoadedFileEntries, ref Dictionary<Filename, FileEntry> outCurrentFileEntries)
+        public static bool LoadNodeFile(string inNodeFilename, ref Queue<string> outNodeFilenames, Dictionary<string, FileEntry> inLoadedFileEntries, ref Dictionary<string, FileEntry> outCurrentFileEntries)
         {
-            xTextStream ts = new xTextStream(inNodeFilename);
-            ts.Open(xTextStream.EMode.READ);
+            TextStream ts = new TextStream(inNodeFilename);
+            ts.Open(TextStream.EMode.READ);
 
             while (true)
             {
@@ -379,13 +380,13 @@ namespace DataBuildSystem
                 if (line.StartsWith("Node"))
                 {
                     string[] keyValuePair = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
-                    outNodeFilenames.Enqueue(new Filename(keyValuePair[1]));
+                    outNodeFilenames.Enqueue(keyValuePair[1]);
                 }
                 else if (line.StartsWith("File"))
                 {
                     string[] keyValuePair = line.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
                     
-                    Filename filename = new Filename(keyValuePair[1]);
+                    string filename = keyValuePair[1];
                     FileEntry fileentry;
                     if (inLoadedFileEntries.TryGetValue(filename, out fileentry))
                     {

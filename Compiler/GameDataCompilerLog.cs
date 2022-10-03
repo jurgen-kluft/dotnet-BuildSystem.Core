@@ -4,7 +4,7 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-	public class GameDataCompilerLog
+	public sealed class GameDataCompilerLog
 	{
 		private Dictionary<Hash160, Type> mCompilerTypeSet = new Dictionary<Hash160, Type>();
 		private HashSet<Hash160> mCompilerSignatureSet = new HashSet<Hash160>();
@@ -30,7 +30,7 @@ namespace DataBuildSystem
 			// Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into
 			// 'merged_compilers'.
 			// Report if there was anything 'merged'.
-			
+
 			// Build the signature database of 'previous_compilers'
 			var previousCompilerSignatureList = BuildCompilerSignatureList(previous_compilers);
 			var currentCompilerSignatureList = BuildCompilerSignatureList(current_compilers);
@@ -102,14 +102,26 @@ namespace DataBuildSystem
             return signatureDict;
 		}
 
-
-		public Result Execute(List<IDataCompiler> compilers, out List<string> dst_relative_filepaths)
+		public void AssignFileId(int unitIndex, List<IDataCompiler> compilers)
 		{
-			dst_relative_filepaths = new();
+			Int64 fileId = unitIndex;
+			fileId = fileId << 32;
+
+			var sortedCompilerList = BuildCompilerSignatureList(compilers);
+			foreach(var cl in sortedCompilerList)
+			{
+				cl.Value.CompilerFileIdProvider.FileId = fileId;
+				fileId += 1;
+			}
+		}
+
+		public Result Execute(List<IDataCompiler> compilers, out List<DataCompilerOutput> gdcl_output)
+		{
+			gdcl_output = new();
 			int result = 0;
 			foreach (IDataCompiler c in compilers)
 			{
-				int r = c.CompilerExecute(dst_relative_filepaths);
+				int r = c.CompilerExecute(gdcl_output);
 				if (r < 0) return Result.Error;
 				else result = r;
 			}

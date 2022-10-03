@@ -3,7 +3,7 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    public class BigfileFile
+    public sealed class BigfileFile
     {
         #region Fields
 
@@ -100,7 +100,7 @@ namespace DataBuildSystem
         public StreamOffset FileOffset { get; set; }
         public UInt64 FileId { get; set; }
         public Hash160 FileContentHash { get; set; }
-        public List<UInt64> ChildFileIds { get; set; }
+        public List<BigfileFile> Children { get; set; } = new ();
 
         #endregion
         #region Operators
@@ -130,7 +130,7 @@ namespace DataBuildSystem
 
         public override int GetHashCode()
         {
-            return FileOffset.value32;
+            return FileOffset.value.GetHashCode();
         }
 
         #endregion

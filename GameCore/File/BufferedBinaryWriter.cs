@@ -29,7 +29,7 @@ namespace GameCore
             mEndianWriter = new IBinaryWriter[2];
             mEndianWriter[0] = EndianUtils.CreateBinaryWriter(mMemoryStream[0], endian);
             mEndianWriter[1] = EndianUtils.CreateBinaryWriter(mMemoryStream[1], endian);
-           
+
             mMaxBufferedBytes = bufferSize;
         }
 
@@ -41,6 +41,10 @@ namespace GameCore
             get
             {
                 return mNumWrittenBytes;
+            }
+            set
+            {
+                mNumWrittenBytes = value;
             }
         }
 

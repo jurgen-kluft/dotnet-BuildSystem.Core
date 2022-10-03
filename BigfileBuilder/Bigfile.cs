@@ -16,33 +16,33 @@ namespace DataBuildSystem
 
         public enum EMode
         {
-            READ,
-            WRITE
+            Read,
+            Write
         }
 
         #endregion
         #region Methods
 
-		public static bool exists(string filename)
-		{
-			string bigFileFilename = Path.ChangeExtension(filename, BigfileConfig.BigFileExtension);
-			FileInfo fileInfo = new FileInfo(bigFileFilename);
-			return fileInfo.Exists;
-		}
-
-        public bool open(string filename, EMode mode)
+        public static bool Exists(string filename)
         {
-			try
-			{
-				close();
+            string bigFileFilename = Path.ChangeExtension(filename, BigfileConfig.BigFileExtension);
+            FileInfo fileInfo = new(bigFileFilename);
+            return fileInfo.Exists;
+        }
+
+        public bool Open(string filename, EMode mode)
+        {
+            try
+            {
+                Close();
 
                 string bigFilename = filename;
                 bigFilename = Path.ChangeExtension(bigFilename, BigfileConfig.BigFileExtension);
-				FileInfo bigfileInfo = new FileInfo(bigFilename);
+                FileInfo bigfileInfo = new(bigFilename);
 
                 mReadCache = new byte[BigfileConfig.ReadBufferSize];
 
-                if (mode == EMode.WRITE)
+                if (mode == EMode.Write)
                 {
                     DirUtils.Create(bigFilename);
 
@@ -52,24 +52,24 @@ namespace DataBuildSystem
                         bigFileTempStream.Close();
                     }
 
-                    mFileStream = new FileStream(bigfileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.None, (Int32)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
+                    mFileStream = new(bigfileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.None, (Int32)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
                 }
                 else
                 {
-                    mFileStream = new FileStream(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
-                    mBinaryReader = new BinaryReader(mFileStream);
+                    mFileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
+                    mBinaryReader = new(mFileStream);
                 }
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e.Message);
-				return false;
-			}
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
 
             return true;
         }
 
-        public void close()
+        public void Close()
         {
             if (mFileStream != null)
             {
@@ -78,6 +78,7 @@ namespace DataBuildSystem
                     mBinaryReader.Close();
                     mBinaryReader = null;
                 }
+
                 mFileStream.Close();
                 mFileStream = null;
             }
@@ -87,7 +88,7 @@ namespace DataBuildSystem
         /// Set the size of the Bigfile that we are writing to
         /// </summary>
         /// <param name="length"></param>
-        public void setLength(Int64 length)
+        public void SetLength(Int64 length)
         {
             if (mFileStream.CanWrite)
             {
@@ -95,12 +96,9 @@ namespace DataBuildSystem
             }
         }
 
-        public void align(EStreamAlignment alignment)
+        public void Align(Int64 alignment)
         {
-            byte[] data = { 0xCD };
-            Int64 p = Alignment.calculate(mFileStream.Position, alignment);
-            while (--p >= 0)
-                mFileStream.Write(data, 0, 1);
+            mFileStream.Position = Alignment.Align(mFileStream.Position, alignment);
         }
 
         /// <summary>
@@ -109,7 +107,7 @@ namespace DataBuildSystem
         /// <param name="offset">Offset into the Bigfile</param>
         /// <param name="data">Data to write into the Bigfile</param>
         /// <returns></returns>
-        public void write(StreamOffset offset, byte[] data)
+        public void Write(StreamOffset offset, byte[] data)
         {
             if (data == null)
                 return;
@@ -129,7 +127,7 @@ namespace DataBuildSystem
         /// <param name="offset">Offset into the Bigfile</param>
         /// <param name="data">Data to write into the Bigfile</param>
         /// <param name="count">Number of bytes to write into the Bigfile</param>
-        public void write(StreamOffset offset, byte[] data, int count)
+        public void Write(StreamOffset offset, byte[] data, int count)
         {
             if (data == null)
                 return;
@@ -142,58 +140,34 @@ namespace DataBuildSystem
             mFileStream.Seek(offset.value, SeekOrigin.Begin);
             mFileStream.Write(data, 0, count);
         }
-        
+
         /// <summary>
-        /// Save all BigfileFiles into the Bigfile, this uses a different approach. It allocates 
+        /// Save all BigfileFiles into the Bigfile, this uses a different approach. It allocates
         /// the full size of the Bigfile first and uses seek to write all the BigfileFiles.
         /// </summary>
         /// <param name="path">The absolute path of where 'files' can be found</param>
         /// <param name="files">All the files to include in the Bigfile</param>
         /// <returns>True if successful</returns>
-        public bool save(string path, List<BigfileFile> files)
+        public bool Save(string path, BigfileFile[] files)
         {
             try
             {
                 // Compute the full size of the Bigfile by tracking the largest file offset + file size
                 Int64 bigfileFilesize = 0;
-
-                // Simulation of writing
-                StreamOffset currentOffset = new StreamOffset(0);
-                for (int i = 0; i < files.Count; ++i)
+                for (int i = 0; i < files.Length; ++i)
                 {
                     BigfileFile e = files[i];
 
-                    FileInfo fileInfo = new FileInfo(Path.Join(path, e.filename));
-                    if (!fileInfo.Exists)
-                    {
-                        e.offsets = new StreamOffset[] { StreamOffset.Empty };
-                        e.size = 0;
-                    }
-
-                    foreach (StreamOffset o in e.offsets)
-                    {
-                        if (bigfileFilesize < o.value + e.size)
-                            bigfileFilesize = o.value + e.size;
-                    }
-
-                    currentOffset += e.size32;
-                    currentOffset.align(BigfileConfig.FileAlignment);
-
-                    // Write back the updated BigfileFile into the array
-                    files[i] = e;
+                    if (bigfileFilesize < e.FileOffset.value + e.FileSize)
+                        bigfileFilesize = e.FileOffset.value + e.FileSize;
                 }
 
                 mFileStream.SetLength((Int64)bigfileFilesize);
 
                 foreach (BigfileFile e in files)
                 {
-                    if (e.offsets.Length == 0)
-                        continue;
-
-                    FileStream inputStream = new FileStream(path + e.filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-                    foreach (StreamOffset o in e.offsets)
-                        write(inputStream, o, e.size);
+                    FileStream inputStream = new(path + e.Filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    Write(inputStream, e.FileOffset, e.FileSize);
 
                     inputStream.Dispose();
                     inputStream.Close();
@@ -208,12 +182,14 @@ namespace DataBuildSystem
             return true;
         }
 
-        private void write(Stream readStream, StreamOffset fileOffset, Int64 fileSize)
+        private void Write(Stream readStream, StreamOffset fileOffset, Int64 fileSize)
         {
             // Align the file on the calculated offset
             mFileStream.Seek(fileOffset.value, SeekOrigin.Begin);
 
-            if (fileSize < BigfileConfig.ReadBufferSize)
+            Debug.Assert(fileSize < Int32.MaxValue);
+
+            if (fileSize <= BigfileConfig.ReadBufferSize)
             {
                 readStream.Read(mReadCache, 0, (Int32)fileSize);
                 mFileStream.Write(mReadCache, 0, (Int32)fileSize);
@@ -226,13 +202,15 @@ namespace DataBuildSystem
             }
         }
 
-        public void copy(StreamOffset offset, Int64 size, Bigfile dstBigfile, StreamOffset dstOffset)
+        public void Copy(StreamOffset offset, Int64 size, Bigfile dstBigfile, StreamOffset dstOffset)
         {
             // Align the file on the calculated offset
             mFileStream.Seek(offset.value, SeekOrigin.Begin);
             dstBigfile.mFileStream.Seek(dstOffset.value, SeekOrigin.Begin);
 
-            if (size < mReadCache.Length)
+            Debug.Assert(size < Int32.MaxValue);
+
+            if (size <= mReadCache.Length)
             {
                 mFileStream.Read(mReadCache, 0, (Int32)size);
                 dstBigfile.mFileStream.Write(mReadCache, 0, (Int32)size);
@@ -243,22 +221,24 @@ namespace DataBuildSystem
                 while (size > 0)
                 {
                     int numBytesRead = mFileStream.Read(mReadCache, 0, cacheReadSize);
-					if (size > 0 && 0 == numBytesRead)
-					{
-						throw new Exception("Invalid stream offset");
-					}
+                    if (0 == numBytesRead)
+                    {
+                        throw new Exception("Invalid stream offset");
+                    }
+
                     size -= numBytesRead;
                     if (size > 0)
                     {
                         if (cacheReadSize > size)
-                            cacheReadSize = (Int32)size;
+                            cacheReadSize = (int)size;
                     }
+
                     dstBigfile.mFileStream.Write(mReadCache, 0, numBytesRead);
                 }
             }
         }
 
-        public byte[] read(StreamOffset fileOffset, Int32 fileSize)
+        public byte[] Read(StreamOffset fileOffset, Int32 fileSize)
         {
             byte[] data;
             if (mBinaryReader != null)
@@ -266,12 +246,13 @@ namespace DataBuildSystem
                 data = new byte[fileSize];
                 mFileStream.Seek(fileOffset.value, SeekOrigin.Begin);
                 if (mBinaryReader.Read(data, 0, fileSize) != fileSize)
-                    data = new byte[0];
+                    data = Array.Empty<byte>();
             }
             else
             {
-                data = new byte[0];
+                data = Array.Empty<byte>();
             }
+
             return data;
         }
 
@@ -280,7 +261,7 @@ namespace DataBuildSystem
 
         public void Dispose()
         {
-            close();
+            Close();
         }
 
         #endregion

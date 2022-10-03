@@ -6,7 +6,7 @@ using GameCore;
 using DataBuildSystem;
 namespace GameData
 {
-    public class LocalizationCompiler : IDataCompiler, IFilesProvider
+    public sealed class LocalizationCompiler : IDataCompiler, IFileIdProvider
     {
         private readonly string mSrcFilename;
         private readonly List<string> mDstFilenames = new ();
@@ -28,29 +28,30 @@ namespace GameData
         {
         }
 
-        public IFilesProvider CompilerFilesProvider
+        public IFileIdProvider CompilerFileIdProvider
         {
             get
             {
                 return this;
             }
         }
-        
-        public int CompilerExecute(List<string> out_dst_relative_filepaths)
+
+        public int CompilerExecute(List<DataCompilerOutput> output)
         {
             // Load 'languages list' file
             try
             {
-                xTextStream ts = new (mSrcFilename);
-                ts.Open(xTextStream.EMode.READ);
-                while (!ts.read.EndOfStream)
+                TextStream ts = new (mSrcFilename);
+                ts.Open(TextStream.EMode.Read);
+                while (!ts.Reader.EndOfStream)
                 {
-                    string filename = ts.read.ReadLine();
+                    string filename = ts.Reader.ReadLine();
                     if (String.IsNullOrEmpty(filename))
                     {
                         mDstFilenames.Add(filename);
                     }
                 }
+                output.Add(new DataCompilerOutput(FileId, mDstFilenames.ToArray()));
                 ts.Close();
             }
             catch (Exception)
@@ -58,14 +59,9 @@ namespace GameData
                 //mStatus = ERROR;
                 return -1;
             }
-            finally
-            {
-                //mStatus = SUCCESS;
-            }
             return 0;
         }
 
-        public UInt64 FilesProviderId { get; set; }
-        public string[] FilesProviderFilepaths { get { return mDstFilenames.ToArray(); } }
+        public Int64 FileId { get; set; }
     }
 }

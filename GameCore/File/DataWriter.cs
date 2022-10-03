@@ -17,7 +17,7 @@ namespace GameCore
         /// <param name="reference"></param>
         /// <param name="alignment"></param>
         /// <returns>True if successful, False if the reference was already processed before!</returns>
-        bool BeginBlock(StreamReference reference, EStreamAlignment alignment);
+        bool BeginBlock(StreamReference reference, Int64 alignment);
         Int64 Write(StreamReference v);
         void Mark(StreamReference reference);
         void EndBlock();
@@ -30,11 +30,11 @@ namespace GameCore
     #endregion
 
     /// <summary>
-    /// 
+    ///
     /// A DataWriter is used to write DataBlocks, DataBlocks are stored and when
     /// Finalized data with identical (Hash) are collapsed.
     /// All references (pointers to blocks) are also resolved at the final stage.
-    /// 
+    ///
     /// </summary>
     public class DataWriter : IDataWriter
     {
@@ -46,7 +46,7 @@ namespace GameCore
 
             private Hash160 mHash = Hash160.Empty;
 
-            private readonly EStreamAlignment mAlignment = EStreamAlignment.ALIGN_32;
+            private readonly Int64 mAlignment = 4;
             private readonly MemoryStream mDataStream = new MemoryStream();
             private readonly IBinaryWriter mDataWriter;
 
@@ -75,7 +75,7 @@ namespace GameCore
             #endregion
             #region Constructor
 
-            internal DataBlock(EStreamAlignment alignment, EEndian endian)
+            internal DataBlock(Int64 alignment, EEndian endian)
             {
                 mAlignment = alignment;
                 mDataWriter = EndianUtils.CreateBinaryWriter(mDataStream, endian);
@@ -92,7 +92,11 @@ namespace GameCore
             {
                 get
                 {
-                    return mDataStream.Length;
+                    return mDataStream.Position;
+                }
+                set
+                {
+                    mDataStream.Position = value;
                 }
             }
 
@@ -143,7 +147,7 @@ namespace GameCore
             internal void Write(float v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
                 mTypeWriter.Write((int) EDataType.FLOAT);
                 mDataWriter.Write(v);
             }
@@ -151,7 +155,7 @@ namespace GameCore
             internal void Write(double v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
                 mTypeWriter.Write((UInt64) EDataType.DOUBLE);
                 mDataWriter.Write(v);
             }
@@ -166,7 +170,7 @@ namespace GameCore
             internal void Write(Int16 v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_16));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
                 mTypeWriter.Write((short) EDataType.INT16);
                 mDataWriter.Write(v);
             }
@@ -174,7 +178,7 @@ namespace GameCore
             internal void Write(Int32 v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
                 mTypeWriter.Write((Int32) EDataType.INT32);
                 mDataWriter.Write(v);
             }
@@ -182,7 +186,7 @@ namespace GameCore
             internal void Write(Int64 v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
                 mTypeWriter.Write((Int64) EDataType.INT64);
                 mDataWriter.Write(v);
             }
@@ -197,7 +201,7 @@ namespace GameCore
             internal void Write(UInt16 v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_16));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
                 mTypeWriter.Write((UInt16) EDataType.UINT16);
                 mDataWriter.Write(v);
             }
@@ -205,7 +209,7 @@ namespace GameCore
             internal void Write(UInt32 v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
                 mTypeWriter.Write((UInt32) EDataType.UINT32);
                 mDataWriter.Write(v);
             }
@@ -213,7 +217,7 @@ namespace GameCore
             internal void Write(UInt64 v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_64));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
                 mTypeWriter.Write((UInt64) EDataType.UINT64);
                 mDataWriter.Write(v);
             }
@@ -221,7 +225,7 @@ namespace GameCore
             internal void Write(StreamReference v)
             {
                 mHash = Hash160.Empty;
-                Debug.Assert(StreamUtils.aligned(mDataWriter, EStreamAlignment.ALIGN_32));
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
 
                 if (mReferenceContextDatabase.ContainsKey(v))
                 {
@@ -300,7 +304,7 @@ namespace GameCore
 
             internal void Finalize(IBinaryWriter outData, StreamContext currentContext, IDictionary<StreamReference, StreamContext> referenceDataBase, IDictionary<StreamReference, StreamContext> markerDataBase)
             {
-                StreamUtils.align(outData, mAlignment);
+                StreamUtils.Align(outData, mAlignment);
                 currentContext.Offset = new StreamOffset(outData.Position);
 
                 // (The order of handling markers and references is not important)
@@ -413,7 +417,7 @@ namespace GameCore
 
         public void Begin()
         {
-            const EStreamAlignment alignment = EStreamAlignment.ALIGN_32;
+            const Int64 alignment = sizeof(Int32);
             StreamReference reference = mMainReference;
             BeginBlock(reference, alignment);
         }
@@ -423,7 +427,7 @@ namespace GameCore
             EndBlock();
         }
 
-        public bool BeginBlock(StreamReference reference, EStreamAlignment alignment)
+        public bool BeginBlock(StreamReference reference, Int64 alignment)
         {
             if (mStreamReferenceToDataBlockIdxDictionary.ContainsKey(reference))
                 return false;
@@ -524,6 +528,10 @@ namespace GameCore
             {
                 return mCurrentDataBlock.Position;
             }
+            set
+            {
+                mCurrentDataBlock.Position = value;
+            }
         }
 
         public Int64 Length
@@ -566,7 +574,7 @@ namespace GameCore
                 foreach (StreamReferenceDataBlockPair d in mDataBlocks)
                     finalDataBlockDatabase.Add(d.Reference, d.DataBlock);
 
-                // Build dictionary collecting the DataBlocks for every StreamReference so that we do 
+                // Build dictionary collecting the DataBlocks for every StreamReference so that we do
                 // not have to iterate over the whole list when replacing references.
                 Dictionary<StreamReference, List<DataBlock>> streamReferenceInWhichDataBlocks = new Dictionary<StreamReference, List<DataBlock>>(new StreamReference.Comparer());
                 foreach (StreamReferenceDataBlockPair d in mDataBlocks)
@@ -585,7 +593,7 @@ namespace GameCore
                 }
 
                 // Note on further optimization:
-                //    We can speed up the algorithm below by creating Buckets of different DataBlock size ranges. 
+                //    We can speed up the algorithm below by creating Buckets of different DataBlock size ranges.
                 //    This will localize the search and reduce the hit count on the ContainsKey() function.
 
                 // For all blocks, calculate an MD5

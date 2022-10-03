@@ -7,14 +7,14 @@ namespace GameCore
     {
         #region Fields
 
-        private readonly Dictionary<string, int> mDictionary = new Dictionary<string, int>();
-        private readonly List<uint> mHashes = new List<uint>();
-        private readonly List<StreamReference> mReferences = new List<StreamReference>();
+        private readonly Dictionary<string, int> mDictionary = new ();
+        private readonly List<uint> mHashes = new();
+        private readonly List<StreamReference> mReferences = new ();
 
         #endregion
         #region Properties
 
-        public StreamReference reference { get; set; }
+        public StreamReference Reference { get; set; }
 
         public List<string> All { get; } = new List<string>();
         public string this[int index]
@@ -71,7 +71,7 @@ namespace GameCore
         public uint HashOf(string inString)
         {
             int index = IndexOf(inString);
-            if (index == -1) 
+            if (index == -1)
                 return UInt32.MaxValue;
             else
                 return mHashes[index];
@@ -80,7 +80,7 @@ namespace GameCore
         private StreamReference InternalReferenceOf(string inString)
         {
             int index = InternalIndexOf(inString);
-            if (index==-1) 
+            if (index==-1)
                 return StreamReference.Empty;
             else
                 return mReferences[index];
@@ -95,8 +95,8 @@ namespace GameCore
         public void SortByHash()
         {
             mHashes.Clear();
-            Dictionary<uint, string> hashToString = new Dictionary<uint, string>();
-            Dictionary<uint, StreamReference> hashToReference = new Dictionary<uint, StreamReference>();
+            Dictionary<uint, string> hashToString = new ();
+            Dictionary<uint, StreamReference> hashToReference = new ();
             foreach (string s in All)
             {
                 uint hash = ComputeHashOf(s);
@@ -133,7 +133,7 @@ namespace GameCore
             SortByHash();
 
             // Write StringTable
-            writer.BeginBlock(reference, EStreamAlignment.ALIGN_32);
+            writer.BeginBlock(Reference, sizeof(Int32));
             {
                 StreamReference hashesReference = StreamReference.Instance;
                 StreamReference referencesReference = StreamReference.Instance;
@@ -144,7 +144,7 @@ namespace GameCore
                 writer.Write(referencesReference);
 
                 // String hashes
-                writer.BeginBlock(hashesReference, EStreamAlignment.ALIGN_32);
+                writer.BeginBlock(hashesReference, sizeof(Int32));
                 {
                     foreach (uint s in mHashes)
                         writer.Write(s);
@@ -152,7 +152,7 @@ namespace GameCore
                 }
 
                 // String References
-                writer.BeginBlock(referencesReference, EStreamAlignment.ALIGN_32);
+                writer.BeginBlock(referencesReference, sizeof(Int32));
                 {
                     foreach (string s in All)
                     {
@@ -162,12 +162,12 @@ namespace GameCore
                 }
 
                 // String Data
-                writer.BeginBlock(stringsReference, EStreamAlignment.ALIGN_32);
+                writer.BeginBlock(stringsReference, sizeof(Int32));
                 {
                     foreach (string s in All)
                     {
                         StreamReference r = InternalReferenceOf(s);
-                        if (writer.BeginBlock(r, EStreamAlignment.ALIGN_8))
+                        if (writer.BeginBlock(r, sizeof(Int32)))
                         {
                             writer.Write(s);
                             writer.EndBlock();

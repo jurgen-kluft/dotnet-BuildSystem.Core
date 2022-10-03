@@ -199,7 +199,7 @@ namespace GameData
             private readonly Member mElement;
 
             public ArrayType(Type arrayObjectType, Member elementMember)
-                : base(arrayObjectType, elementMember.type.typeName + "[]")
+                : base(arrayObjectType, elementMember.Type.typeName + "[]")
             {
                 mElement = elementMember;
             }
@@ -338,8 +338,8 @@ namespace GameData
             //
             public int Compare(Member x, Member y)
             {
-                if (x.alignment == y.alignment) return 0;
-                else if (x.alignment < y.alignment) return 1;
+                if (x.Alignment == y.Alignment) return 0;
+                else if (x.Alignment < y.Alignment) return 1;
                 else return -1;
             }
         }
@@ -373,8 +373,8 @@ namespace GameData
 
             public int Compare(Member x, Member y)
             {
-                uint hx = mStringTable.HashOf(x.name);
-                uint hy = mStringTable.HashOf(y.name);
+                uint hx = mStringTable.HashOf(x.Name);
+                uint hy = mStringTable.HashOf(y.Name);
                 if (hx == hy) return 0;
                 else if (hx < hy) return 1;
                 else return -1;
@@ -390,13 +390,13 @@ namespace GameData
             private readonly string mName = string.Empty;
             private readonly MetaType mType = null;
             private readonly int mDataSize = 0;
-            protected EStreamAlignment mAlignment = EStreamAlignment.ALIGN_8;
+            protected Int64 mAlignment = sizeof(UInt8);
             
-            public string name { get { return mName; } }
-            public MetaType type { get { return mType; } }
-            public int size { get { return mDataSize; } }
-            public EStreamAlignment alignment { get { return mAlignment; } }
-            public abstract object value { get; }
+            public string Name { get { return mName; } }
+            public MetaType Type { get { return mType; } }
+            public int Size { get { return mDataSize; } }
+            public Int64 Alignment { get { return mAlignment; } }
+            public abstract object Value { get; }
 
             public abstract bool IsDefault { get; }
             public abstract Member Default();
@@ -408,7 +408,7 @@ namespace GameData
                 mDataSize = dataSize;
             }
 
-            public abstract bool write(IMemberWriter writer);
+            public abstract bool Write(IMemberWriter writer);
         }
 
         #endregion
@@ -421,10 +421,10 @@ namespace GameData
             public NullMember(string name)
                 : base(sNullType, name, 4)
             {
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -442,10 +442,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new NullMember(name);
+                return new NullMember(Name);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeNullMember(this);
                 return true;
@@ -465,10 +465,10 @@ namespace GameData
                 : base(sType, name, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -495,10 +495,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new BoolMember(name, false);
+                return new BoolMember(Name, false);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeBool8Member(this);
                 return true;
@@ -518,10 +518,10 @@ namespace GameData
                 : base(sType, name, 1)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_8;
+                mAlignment = sizeof(UInt8);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -547,10 +547,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new Int8Member(name, 0);
+                return new Int8Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeInt8Member(this);
                 return true;
@@ -570,10 +570,10 @@ namespace GameData
                 : base(sType, name, 2)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_16;
+                mAlignment = sizeof(Int16);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -599,10 +599,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new Int16Member(name, 0);
+                return new Int16Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeInt16Member(this);
                 return true;
@@ -622,10 +622,10 @@ namespace GameData
                 : base(sType, name, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -651,10 +651,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new Int32Member(name, 0);
+                return new Int32Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeInt32Member(this);
                 return true;
@@ -675,10 +675,10 @@ namespace GameData
                 : base(sType, name, 8)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_64;
+                mAlignment = sizeof(Int64);
             }
 
-            public StreamReference reference
+            public StreamReference Reference
             {
                 get
                 {
@@ -690,7 +690,7 @@ namespace GameData
                 }
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -716,10 +716,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new Int64Member(name, 0);
+                return new Int64Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeInt64Member(this);
                 return true;
@@ -739,10 +739,10 @@ namespace GameData
                 : base(sType, name, 1)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_8;
+                mAlignment = sizeof(UInt8);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -768,10 +768,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new UInt8Member(name, 0);
+                return new UInt8Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeUInt8Member(this);
                 return true;
@@ -791,10 +791,10 @@ namespace GameData
                 : base(sType, name, 2)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_16;
+                mAlignment = sizeof(Int16);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -820,10 +820,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new UInt16Member(name, 0);
+                return new UInt16Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeUInt16Member(this);
                 return true;
@@ -843,10 +843,10 @@ namespace GameData
                 : base(sType, name, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -872,10 +872,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new UInt32Member(name, 0);
+                return new UInt32Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeUInt32Member(this);
                 return true;
@@ -893,20 +893,20 @@ namespace GameData
                 : base(sType, name, 8)
             {
                 uint64 = value;
-                mAlignment = EStreamAlignment.ALIGN_64;
+                mAlignment = sizeof(Int64);
             }
 
-            public StreamReference reference { get; set; } = StreamReference.Empty;
-            public override object value { get { return uint64; } }
+            public StreamReference Reference { get; set; } = StreamReference.Empty;
+            public override object Value { get { return uint64; } }
             public UInt64 uint64 { get; }
             public override bool IsDefault{ get { return uint64 == 0; } }
 
             public override Member Default()
             {
-                return new UInt64Member(name, 0);
+                return new UInt64Member(Name, 0);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeUInt64Member(this);
                 return true;
@@ -924,10 +924,10 @@ namespace GameData
                 : base(sType, name, 4)
             {
                 real = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -947,10 +947,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new FloatMember(name, 0.0f);
+                return new FloatMember(Name, 0.0f);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeFloatMember(this);
                 return true;
@@ -970,10 +970,10 @@ namespace GameData
                 : base(sType, name, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -999,10 +999,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new StringMember(name, string.Empty);
+                return new StringMember(Name, string.Empty);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeStringMember(this);
                 return true;
@@ -1023,12 +1023,12 @@ namespace GameData
                 : base(sType, name, 8)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_64;
+                mAlignment = sizeof(Int64);
             }
 
             public UInt64 ID { get { return mValue; } }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -1044,7 +1044,7 @@ namespace GameData
                 }
             }
 
-            public StreamReference reference
+            public StreamReference Reference
             {
                 get
                 {
@@ -1058,10 +1058,10 @@ namespace GameData
 
             public override Member Default()
             {
-                return new FileIdMember(name, UInt64.MaxValue);
+                return new FileIdMember(Name, UInt64.MaxValue);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeFileIdMember(this);
                 return true;
@@ -1077,13 +1077,13 @@ namespace GameData
             private readonly Member mValue;
 
             public AtomMember(string name, MetaType type, Member member)
-                : base(type, name, member.size)
+                : base(type, name, member.Size)
             {
                 mValue = member;
-                mAlignment = member.alignment;
+                mAlignment = member.Alignment;
             }
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -1112,7 +1112,7 @@ namespace GameData
                 return mValue.Default();
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 return writer.writeAtomMember(this);
             }
@@ -1139,7 +1139,7 @@ namespace GameData
             #endregion
             #region Properties
 
-            public StreamReference reference
+            public StreamReference Reference
             {
                 get
                 {
@@ -1168,7 +1168,7 @@ namespace GameData
             #endregion
             #region Public Methods
 
-            public abstract void addMember(Member m);
+            public abstract void AddMember(Member m);
 
             #endregion
         }
@@ -1191,7 +1191,7 @@ namespace GameData
                 : base(new ArrayType(arrayObjectType, elementMember), memberName, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
                 mMembers = new List<Member>();
             }
 
@@ -1199,14 +1199,14 @@ namespace GameData
                 : base(arrayType, memberName, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
                 mMembers = new List<Member>();
             }
 
             #endregion
             #region Properties
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -1222,7 +1222,7 @@ namespace GameData
                 }
             }
 
-            public List<Member> members
+            public List<Member> Members
             {
                 get
                 {
@@ -1235,15 +1235,15 @@ namespace GameData
 
             public override Member Default()
             {
-                return new ArrayMember(type, null, name);
+                return new ArrayMember(Type, null, Name);
             }
 
-            public override void addMember(Member m)
+            public override void AddMember(Member m)
             {
                 mMembers.Add(m);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 writer.writeArrayMember(this);
                 return true;
@@ -1271,7 +1271,7 @@ namespace GameData
                 : base(new ObjectType(value.GetType(), className), memberName, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
                 mMembers = new List<Member>();
             }
 
@@ -1279,14 +1279,14 @@ namespace GameData
                 : base(type, memberName, 4)
             {
                 mValue = value;
-                mAlignment = EStreamAlignment.ALIGN_32;
+                mAlignment = sizeof(Int32);
                 mMembers = new List<Member>();
             }
 
             #endregion
             #region Properties
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -1327,14 +1327,14 @@ namespace GameData
 
             public override Member Default()
             {
-                ObjectMember c = new ObjectMember(null, type, name);
+                ObjectMember c = new ObjectMember(null, Type, Name);
                 return c;
             }
 
-            public override void addMember(Member m)
+            public override void AddMember(Member m)
             {
-                if (m.alignment > mAlignment)
-                    mAlignment = m.alignment;
+                if (m.Alignment > mAlignment)
+                    mAlignment = m.Alignment;
 
                 bool mitigate = true;
                 if (baseClass == null)
@@ -1343,28 +1343,28 @@ namespace GameData
                 }
                 else if (!mitigate)
                 {
-                    Type classType = type.type;
+                    Type classType = Type.type;
                     FieldInfo[] fields = classType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
                     foreach (FieldInfo fi in fields)
                     {
-                        if (fi.Name == m.name)
+                        if (fi.Name == m.Name)
                         {
                             mMembers.Add(m);
                             return;
                         }
                     }
 
-                    baseClass.addMember(m);
+                    baseClass.AddMember(m);
                 }
                 else if (mitigate)
                 {
-                    Type classType = type.type;
+                    Type classType = Type.type;
                     FieldInfo[] fields = classType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
                     
                     bool isThisMember = false;
                     foreach (FieldInfo fi in fields)
                     {
-                        if (fi.Name == m.name)
+                        if (fi.Name == m.Name)
                         {
                             isThisMember = true;
                             break;
@@ -1380,7 +1380,7 @@ namespace GameData
                         if (!isThisMember && baseClass != null)
                         {
                             m = m.Default();
-                            baseClass.addMember(m);
+                            baseClass.AddMember(m);
                         }
                     }
                     else
@@ -1392,7 +1392,7 @@ namespace GameData
                         else
                         {
                             if (baseClass != null)
-                                baseClass.addMember(m);
+                                baseClass.AddMember(m);
                         }
                     }
                 }
@@ -1410,7 +1410,7 @@ namespace GameData
             #endregion
             #region Member methods
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 return (writer.writeObjectMember(this));
             }
@@ -1449,7 +1449,7 @@ namespace GameData
             #endregion
             #region Properties
 
-            public override object value
+            public override object Value
             {
                 get
                 {
@@ -1490,21 +1490,21 @@ namespace GameData
 
             public override Member Default()
             {
-                CompoundMember cm = new CompoundMember(null, type, name);
+                CompoundMember cm = new CompoundMember(null, Type, Name);
                 foreach (Member m in mMembers)
-                    cm.addMember(m.Default());
+                    cm.AddMember(m.Default());
                 return cm;
             }
 
-            public override void addMember(Member m)
+            public override void AddMember(Member m)
             {
-                if (m.alignment > mAlignment)
-                    mAlignment = m.alignment;
+                if (m.Alignment > mAlignment)
+                    mAlignment = m.Alignment;
 
                 mMembers.Add(m);
             }
 
-            public override bool write(IMemberWriter writer)
+            public override bool Write(IMemberWriter writer)
             {
                 return writer.writeCompoundMember(this);
             }

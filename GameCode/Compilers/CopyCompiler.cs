@@ -5,7 +5,7 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    /*	
+    /*
 
 	TODO
 	- MeshCompiler
@@ -15,7 +15,7 @@ namespace GameData
 	 */
 
     // e.g. new CopyCompiler("Textures/Background.PNG");
-    public class CopyCompiler : IDataCompiler, IFilesProvider
+    public sealed class CopyCompiler : IDataCompiler, IFileIdProvider
     {
         private string mSrcFilename;
         private string mDstFilename;
@@ -50,7 +50,7 @@ namespace GameData
             mDependency = Dependency.ReadFrom(stream);
         }
 
-        public IFilesProvider CompilerFilesProvider
+        public IFileIdProvider CompilerFileIdProvider
         {
             get
             {
@@ -58,8 +58,10 @@ namespace GameData
             }
         }
 
-        public int CompilerExecute(List<string> dst_relative_filepaths)
+        public int CompilerExecute(List<DataCompilerOutput> output)
         {
+            output.Add(new DataCompilerOutput(FileId, new[] { mDstFilename }));
+
             // Execute the actual purpose of this compiler
             try
             {
@@ -74,11 +76,9 @@ namespace GameData
             mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
             mDependency.Update(delegate(short id, State state){});
 
-            dst_relative_filepaths.Add(mDstFilename);
             return 0;
         }
 
-        public UInt64 FilesProviderId { get; set; }
-        public string[] FilesProviderFilepaths { get { return new string[] { mDstFilename }; } }
+        public Int64 FileId { get; set; }
     }
 }

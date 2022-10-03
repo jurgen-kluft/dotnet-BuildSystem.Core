@@ -110,7 +110,7 @@ namespace DataBuildSystem
         #endregion
     }
 
-    public class GameDataData
+    public sealed class GameDataData
     {
         #region Fields
 
@@ -118,7 +118,7 @@ namespace DataBuildSystem
         private GameData.IDataRoot mRoot;
 
         private List<IDataCompiler> mCompilers;
-        private List<IFilesProvider> mFilesProviders;
+        private List<IFileIdProvider> mFilesProviders;
 
         #endregion
         #region Constructor
@@ -229,12 +229,12 @@ namespace DataBuildSystem
             }
             signatureList.Sort(Comparer);
 
-            UInt64 index = 0;
+            Int64 index = 0;
             Hash160 prevSignature = signatureList[0].Key;
             foreach (var scl in signatureList)
             {
-				IFilesProvider filesProvider = scl.Value.CompilerFilesProvider;
-                filesProvider.FilesProviderId = index;
+				IFileIdProvider filesProvider = scl.Value.CompilerFileIdProvider;
+                filesProvider.FileId = index;
                 if (prevSignature != scl.Key)
                     index++;
                 prevSignature = scl.Key;
@@ -253,9 +253,9 @@ namespace DataBuildSystem
                         return true;
 
                     bool handled = false;
-                    if (compound is IFilesProvider)
+                    if (compound is IFileIdProvider)
                     {
-                        IFilesProvider f = compound as IFilesProvider;
+                        IFileIdProvider f = compound as IFileIdProvider;
                         mFilesProviders.Add(f);
                         handled = true;
                     }
@@ -285,12 +285,12 @@ namespace DataBuildSystem
                     StreamReference reference;
                     if (referencesForInt64Dict.TryGetValue(i.int64, out reference))
                     {
-                        i.reference = reference;
+                        i.Reference = reference;
                     }
                     else
                     {
-                        i.reference = StreamReference.Instance;
-                        referencesForInt64Dict.Add(i.int64, i.reference);
+                        i.Reference = StreamReference.Instance;
+                        referencesForInt64Dict.Add(i.int64, i.Reference);
                     }
                 }
 
@@ -300,78 +300,78 @@ namespace DataBuildSystem
                     StreamReference reference;
                     if (referencesForUInt64Dict.TryGetValue(i.uint64, out reference))
                     {
-                        i.reference = reference;
+                        i.Reference = reference;
                     }
                     else
                     {
-                        i.reference = StreamReference.Instance;
-                        referencesForUInt64Dict.Add(i.uint64, i.reference);
+                        i.Reference = StreamReference.Instance;
+                        referencesForUInt64Dict.Add(i.uint64, i.Reference);
                     }
                 }
 
                 Dictionary<object, StreamReference> referencesForClassesDict = new();
                 foreach (ObjectMember c in classes)
                 {
-                    if (c.value != null)
+                    if (c.Value != null)
                     {
                         StreamReference reference;
-                        if (referencesForClassesDict.TryGetValue(c.value, out reference))
+                        if (referencesForClassesDict.TryGetValue(c.Value, out reference))
                         {
-                            c.reference = reference;
+                            c.Reference = reference;
                         }
                         else
                         {
-                            c.reference = StreamReference.Instance;
-                            referencesForClassesDict.Add(c.value, c.reference);
+                            c.Reference = StreamReference.Instance;
+                            referencesForClassesDict.Add(c.Value, c.Reference);
                         }
                     }
                     else
                     {
-                        c.reference = StreamReference.Empty;
+                        c.Reference = StreamReference.Empty;
                     }
                 }
 
                 Dictionary<object, StreamReference> referencesForCompoundsDict = new();
                 foreach (CompoundMember c in compounds)
                 {
-                    if (c.value != null)
+                    if (c.Value != null)
                     {
                         StreamReference reference;
-                        if (referencesForCompoundsDict.TryGetValue(c.value, out reference))
+                        if (referencesForCompoundsDict.TryGetValue(c.Value, out reference))
                         {
-                            c.reference = reference;
+                            c.Reference = reference;
                         }
                         else
                         {
-                            c.reference = StreamReference.Instance;
-                            referencesForCompoundsDict.Add(c.value, c.reference);
+                            c.Reference = StreamReference.Instance;
+                            referencesForCompoundsDict.Add(c.Value, c.Reference);
                         }
                     }
                     else
                     {
-                        c.reference = StreamReference.Empty;
+                        c.Reference = StreamReference.Empty;
                     }
                 }
 
                 Dictionary<object, StreamReference> referencesForArraysDict = new();
                 foreach (ArrayMember a in arrays)
                 {
-                    if (a.value != null)
+                    if (a.Value != null)
                     {
                         StreamReference reference;
-                        if (referencesForArraysDict.TryGetValue(a.value, out reference))
+                        if (referencesForArraysDict.TryGetValue(a.Value, out reference))
                         {
-                            a.reference = reference;
+                            a.Reference = reference;
                         }
                         else
                         {
-                            a.reference = StreamReference.Instance;
-                            referencesForArraysDict.Add(a.value, a.reference);
+                            a.Reference = StreamReference.Instance;
+                            referencesForArraysDict.Add(a.Value, a.Reference);
                         }
                     }
                     else
                     {
-                        a.reference = StreamReference.Empty;
+                        a.Reference = StreamReference.Empty;
                     }
                 }
             }
@@ -438,7 +438,7 @@ namespace DataBuildSystem
             dataStreamWriter.open();
             {
                 ObjectMember root = book.classes[0];
-                root.write(dataStreamWriter);
+                root.Write(dataStreamWriter);
             }
             dataStreamWriter.close();
 
