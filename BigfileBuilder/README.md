@@ -2,20 +2,19 @@
 
 ## TOC
 
-The TOC file can contains multiple TOC-Sections, so the first Array is an array containing Offsets to Sections.
+The TOC file can contain multiple TOC-Sections.
 
 The main TOC layout:
-  - Int32: Total number of Entries
+  - Int32: Number of Entries in total
   - Int32: Number of Sections
-  - {Int32:toc offset, Int32:toc count, Int64:data offset}: Offset and Count of each Section
+  - Array {Int32:toc count, Int32:toc offset, Int64:data offset}
 
 ## TOC Section
 
 A TOC Section layout:
-  - Entry[]:
-    - File Offset (may offset to a FileId[], depends on bit 31 in FileSize)
-    - File Size
-  - Many {Int32: length, FileId[]: array}
+  - Array {Int32: file offset, Int32: file size}
+    - Offset can be an offset to a FileId[], depends on bit 31 in FileSize
+  - Array {Int32: length, FileId[]: array}
 
 ## Bigfile Filenames and Hashes
 
