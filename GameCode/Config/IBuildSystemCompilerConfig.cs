@@ -1,7 +1,4 @@
-using System;
 using System.Globalization;
-using System.IO;
-using System.Collections.Generic;
 using GameCore;
 
 namespace DataBuildSystem
@@ -51,13 +48,13 @@ namespace DataBuildSystem
     public class BuildSystemCompilerConfigDefault : IBuildSystemCompilerConfig
     {
         #region Methods & Properties
-        public string Platform { get { return "Default"; } }
+        public string Platform => "Default";
         public string DataFilename(string name) { return "Game" + "." + name; }
-        public string DataFileExtension { get { return ".gdd"; } }
-        public string DataRelocFileExtension { get { return ".gdr"; } }
-        public bool LittleEndian { get { return true; } }
-        public bool EnumIsInt32 { get { return false; } }
-        public int SizeOfBool { get { return 1; } }
+        public string DataFileExtension => ".gdd";
+        public string DataRelocFileExtension => ".gdr";
+        public bool LittleEndian => true;
+        public bool EnumIsInt32 => false;
+        public int SizeOfBool => 1;
 
         #endregion
     }
@@ -66,41 +63,37 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private static EPlatform sPlatform = EPlatform.PC;
-        private static EPlatform sTarget = EPlatform.PC;
-        private static ETerritory sTerritory = ETerritory.USA;
+        private static EPlatform _sTarget = EPlatform.PC;
+        private static ETerritory _sTerritory = ETerritory.USA;
 
-        private static List<Filename> sReferencedAssemblies = new List<Filename>();
-
-        //private static bool sBuildBigfile = false;
-
-        private static IBuildSystemCompilerConfig sConfig = new BuildSystemCompilerConfigDefault();
+        private static IBuildSystemCompilerConfig _sConfig = new BuildSystemCompilerConfigDefault();
 
         #endregion
         #region Properties
 
-        public static bool PlatformPC { get { return sPlatform == EPlatform.PC; } }
-        public static bool PlatformXboxOne { get { return sPlatform == EPlatform.XBOX_ONE; } }
-        public static bool PlatformXboxOneX { get { return sPlatform == EPlatform.XBOX_ONE_X; } }
-        public static bool PlatformPS4 { get { return sPlatform == EPlatform.PS4; } }
-        public static bool PlatformPS4Pro { get { return sPlatform == EPlatform.PS4_PRO; } }
+        public static bool PlatformPc => Platform == EPlatform.PC;
+        public static bool PlatformXboxOne => Platform == EPlatform.XBOX_ONE;
+        public static bool PlatformXboxOneX => Platform == EPlatform.XBOX_ONE_X;
+        public static bool PlatformPs4 => Platform == EPlatform.PS4;
+        public static bool PlatformPs4Pro => Platform == EPlatform.PS4_PRO;
 
-        public static bool TargetPC { get { return sTarget == EPlatform.PC; } }
-        public static bool TargetXboxOne { get { return sTarget == EPlatform.XBOX_ONE; } }
-        public static bool TargetXboxOneX { get { return sTarget == EPlatform.XBOX_ONE_X; } }
-        public static bool TargetPS4 { get { return sTarget == EPlatform.PS4; } }
-        public static bool TargetPS4Pro { get { return sTarget == EPlatform.PS4_PRO; } }
+        public static bool TargetPc => _sTarget == EPlatform.PC;
+        public static bool TargetXboxOne => _sTarget == EPlatform.XBOX_ONE;
+        public static bool TargetXboxOneX => _sTarget == EPlatform.XBOX_ONE_X;
+        public static bool TargetPs4 => _sTarget == EPlatform.PS4;
+        public static bool TargetPs4Pro => _sTarget == EPlatform.PS4_PRO;
 
-        public static EEndian Endian { get { return sConfig.LittleEndian ? EEndian.LITTLE : EEndian.BIG; } }
+        public static EEndian Endian => _sConfig.LittleEndian ? EEndian.LITTLE : EEndian.BIG;
         public static string Name { get; private set; }
-        public static EPlatform Platform { get { return sPlatform; } }
-        public static string PlatformName { get { return sPlatform.ToString(); } }
-        public static EPlatform Target { get { return sTarget; } }
-        public static string TargetName { get { return sTarget.ToString(); } }
-        public static ETerritory Territory { get { return sTerritory; } }
-        public static string TerritoryName { get { return sTerritory.ToString(); } }
-        public static bool EnumIsInt32 { get { return sConfig.EnumIsInt32; } }
-        public static int SizeOfBool { get { return sConfig.SizeOfBool; } }
+        public static EPlatform Platform { get; private set; } = EPlatform.PC;
+
+        public static string PlatformName => Platform.ToString();
+        public static EPlatform Target => _sTarget;
+        public static string TargetName => _sTarget.ToString();
+        public static ETerritory Territory => _sTerritory;
+        public static string TerritoryName => _sTerritory.ToString();
+        public static bool EnumIsInt32 => _sConfig.EnumIsInt32;
+        public static int SizeOfBool => _sConfig.SizeOfBool;
         public static string BasePath { get; private set;}
         public static string SrcPath { get; private set;}
         public static string GddPath { get; private set;}
@@ -108,8 +101,8 @@ namespace DataBuildSystem
         public static string DstPath { get; private set;}
         public static string PubPath { get; private set;}
         public static string ToolPath{ get; private set;}
-        public static string DataFileExtension { get { return sConfig.DataFileExtension; } }
-        public static string DataRelocFileExtension { get { return sConfig.DataRelocFileExtension; } }
+        public static string DataFileExtension => _sConfig.DataFileExtension;
+        public static string DataRelocFileExtension => _sConfig.DataRelocFileExtension;
 
         #endregion
         #region Methods
@@ -124,7 +117,7 @@ namespace DataBuildSystem
                 return true;
             if (folder.EndsWith(".svn", true, CultureInfo.InvariantCulture))
                 return true;
-            if (String.Compare(folder, PlatformName, true, CultureInfo.InvariantCulture) == 0)
+            if (string.Compare(folder, PlatformName, true, CultureInfo.InvariantCulture) == 0)
                 return true;
 
             return false;
@@ -156,20 +149,20 @@ namespace DataBuildSystem
             Console.WriteLine("dst path: " + dstPath);
             Console.WriteLine("tool path: " + toolPath);
 
-            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory))
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(platform) || string.IsNullOrEmpty(territory))
                 return false;
-            if (String.IsNullOrEmpty(srcPath))
+            if (string.IsNullOrEmpty(srcPath))
                 return false;
-            if (String.IsNullOrEmpty(gddPath))
+            if (string.IsNullOrEmpty(gddPath))
                 return false;
-            if (String.IsNullOrEmpty(dstPath))
+            if (string.IsNullOrEmpty(dstPath))
                 return false;
-            if (String.IsNullOrEmpty(pubPath))
+            if (string.IsNullOrEmpty(pubPath))
                 return false;
-            if (String.IsNullOrEmpty(toolPath))
+            if (string.IsNullOrEmpty(toolPath))
                 return false;
 
-            if (String.IsNullOrEmpty(target))
+            if (string.IsNullOrEmpty(target))
                 target = platform;
 
 
@@ -179,9 +172,9 @@ namespace DataBuildSystem
             GameCore.Environment.addVariable("TERRITORY", territory);
             GameCore.Environment.addVariable("BASEPATH", GameCore.Environment.expandVariables(basePath));
 
-            sPlatform = FromString(platform, EPlatform.PC);
-            sTarget = FromString(target, EPlatform.PC);
-            sTerritory = FromString(territory, ETerritory.USA);
+            Platform = FromString(platform, EPlatform.PC);
+            _sTarget = FromString(target, EPlatform.PC);
+            _sTerritory = FromString(territory, ETerritory.USA);
 
             Name = name;
             BasePath = GameCore.Environment.expandVariables(basePath);
@@ -195,47 +188,30 @@ namespace DataBuildSystem
             return true;
         }
 
-        public static void AddReferencedAssembly(Filename referencedAssembly)
-        {
-            if (!sReferencedAssemblies.Contains(referencedAssembly))
-                sReferencedAssemblies.Add(referencedAssembly);
-        }
-
-        public static void AddReferencedAssemblies(List<Filename> referencedAssemblies)
-        {
-            foreach (Filename a in referencedAssemblies)
-                AddReferencedAssembly(a);
-        }
-
         public static void Init(IBuildSystemCompilerConfig config)
         {
-            if (config != null)
-                sConfig = config;
-            else
-                sConfig = new BuildSystemCompilerConfigDefault();
+            _sConfig = config ?? new BuildSystemCompilerConfigDefault();
         }
 
-        public static T FromString<T>(string _string, T _default)
+        private static T FromString<T>(string @string, T @default)
         {
             string[] names = Enum.GetNames(typeof(T));
             string name = string.Empty;
             foreach (string p in names)
             {
-                if (String.Compare(p, _string, true) == 0)
-                {
-                    name = p;
-                    break;
-                }
+                if (string.Compare(p, @string, StringComparison.OrdinalIgnoreCase) != 0) continue;
+                name = p;
+                break;
             }
-            if (String.IsNullOrEmpty(name))
-                return _default;
+            if (string.IsNullOrEmpty(name))
+                return @default;
 
             return (T)Enum.Parse(typeof(T), name);
         }
 
         public static string DataFilename(string name)
         {
-            return sConfig.DataFilename(name);
+            return _sConfig.DataFilename(name);
         }
 
         #endregion

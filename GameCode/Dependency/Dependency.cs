@@ -69,7 +69,7 @@ namespace DataBuildSystem
         }
     }
 
-    public class Dependency
+    public sealed class Dependency
     {
         public enum EState : byte
         {
@@ -125,8 +125,11 @@ namespace DataBuildSystem
             Hashes.Add(new Hash160());
         }
 
-        public void Update(Action<short, State> ood)
+        // Return false if dependencies are up-to-date
+        // Return true if dependencies where updated
+        public bool Update(Action<short, State> ood)
         {
+            bool result = false;
             for (int i = 0; i < Count; ++i)
             {
                 EMethod method = Methods[i];
@@ -158,19 +161,22 @@ namespace DataBuildSystem
 
                 if (newHash == Hash160.Null)
                 {
+                    result = true;
                     Hashes[i] = newHash;
-                    ood(Ids[i], State.Missing);
+                    ood?.Invoke(Ids[i], State.Missing);
                 }
                 else if (newHash != Hashes[i])
                 {
+                    result = true;
                     Hashes[i] = newHash;
-                    ood(Ids[i], State.Modified);
+                    ood?.Invoke(Ids[i], State.Modified);
                 }
                 else
                 {
-                    ood(Ids[i], State.Ok);
+                    ood?.Invoke(Ids[i], State.Ok);
                 }
             }
+            return result;
         }
 
         public static Dependency Load(EGameDataPath path, string _filepath)
@@ -244,7 +250,7 @@ namespace DataBuildSystem
         }
 
         public void WriteTo(IBinaryWriter writer)
-        { 
+        {
             writer.Write(Count);
             foreach (byte b in Paths)
             {

@@ -6,17 +6,17 @@ namespace DataBuildSystem
     {
         #region Methods & Properties
 
-        public string Platform { get { return "Default"; } }
-        public string BigfileName { get { return "Game"; } }
-        public string BigFileExtension { get { return ".gda"; } }
-        public string BigFileTocExtension { get { return ".gdt"; } }
-        public string BigFileFdbExtension { get { return ".gdf"; } }
-        public string BigFileHdbExtension { get { return ".gdh"; } }
-        public bool LittleEndian { get { return true; } }
-        public Int64 FileAlignment { get { return 256; } }
-        public bool AllowDuplicateFiles { get { return false; } }
-        public UInt32 ReadBufferSize { get { return 8*1024*1024; } }
-        public UInt32 WriteBufferSize { get { return 48*1024*1024; } }
+        public string Platform => "Default";
+        public string BigfileName => "Game";
+        public string BigFileExtension => ".gda";
+        public string BigFileTocExtension => ".gdt";
+        public string BigFileFdbExtension => ".gdf";
+        public string BigFileHdbExtension => ".gdh";
+        public bool LittleEndian => true;
+        public Int64 FileAlignment => 256;
+        public bool AllowDuplicateFiles => false;
+        public UInt32 ReadBufferSize => 8*1024*1024;
+        public UInt32 WriteBufferSize => 48*1024*1024;
 
         #endregion
     }
@@ -26,29 +26,29 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private static IBigfileConfig sConfig = new BigfileDefaultConfig();
+        private static IBigfileConfig _sConfig = new BigfileDefaultConfig();
 
         #endregion
         #region Init
 
         public static void Init(IBigfileConfig config)
         {
-            sConfig = config;
+            _sConfig = config;
         }
 
         #endregion
         #region Methods & Properties
 
-        public static string BigfileName { get { return sConfig.BigfileName; } }
-        public static string BigFileExtension { get { return sConfig.BigFileExtension; } }
-        public static string BigFileTocExtension { get { return sConfig.BigFileTocExtension; } }
-        public static string BigFileFdbExtension { get { return sConfig.BigFileFdbExtension; } }
-        public static string BigFileHdbExtension { get { return sConfig.BigFileHdbExtension; } }
-        public static bool LittleEndian { get { return sConfig.LittleEndian; } }
-        public static Int64 FileAlignment { get { return sConfig.FileAlignment; } }
-        public static bool AllowDuplicateFiles { get { return sConfig.AllowDuplicateFiles; } }
-        public static UInt32 ReadBufferSize { get { return sConfig.ReadBufferSize; } }
-        public static UInt32 WriteBufferSize { get { return sConfig.WriteBufferSize; } }
+        public static string BigfileName => _sConfig.BigfileName;
+        public static string BigFileExtension => _sConfig.BigFileExtension;
+        public static string BigFileTocExtension => _sConfig.BigFileTocExtension;
+        public static string BigFileFdbExtension => _sConfig.BigFileFdbExtension;
+        public static string BigFileHdbExtension => _sConfig.BigFileHdbExtension;
+        public static bool LittleEndian => _sConfig.LittleEndian;
+        public static Int64 FileAlignment => _sConfig.FileAlignment;
+        public static bool AllowDuplicateFiles => _sConfig.AllowDuplicateFiles;
+        public static UInt32 ReadBufferSize => _sConfig.ReadBufferSize;
+        public static UInt32 WriteBufferSize => _sConfig.WriteBufferSize;
 
         #endregion
     }

@@ -9,7 +9,7 @@ namespace GameData
         Int64 Value { get; }
     }
 
-    public class FileId : IFileId
+    public sealed class FileId : IFileId
     {
         private readonly IFileIdProvider mProvider;
 

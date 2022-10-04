@@ -486,7 +486,7 @@ namespace DataBuildSystem
             try
             {
                 StdDataStream.SizeOfBool = BuildSystemCompilerConfig.SizeOfBool;
-                stdDataStream.write(EGenericFormat.STD_FLAT, data, dataStreamWriter, reallocTableStreamWriter);
+                stdDataStream.Write(EGenericFormat.STD_FLAT, data, dataStreamWriter, reallocTableStreamWriter);
             }
             catch (Exception e)
             {

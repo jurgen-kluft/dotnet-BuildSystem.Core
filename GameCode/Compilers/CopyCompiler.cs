@@ -5,16 +5,7 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    /*
-
-	TODO
-	- MeshCompiler
-	- MaterialCompiler
-	- TextureCompiler
-
-	 */
-
-    // e.g. new CopyCompiler("Textures/Background.PNG");
+    // e.g. new FileId(new CopyCompiler("Textures/Background.PNG"));
     public sealed class CopyCompiler : IDataCompiler, IFileIdProvider
     {
         private string mSrcFilename;
@@ -24,10 +15,10 @@ namespace GameData
         public CopyCompiler(string filename) : this(filename, filename)
         {
         }
-        public CopyCompiler(string srcfilename, string dstfilename)
+        public CopyCompiler(string srcFilename, string dstFilename)
         {
-            mSrcFilename = srcfilename;
-            mDstFilename = dstfilename;
+            mSrcFilename = srcFilename;
+            mDstFilename = dstFilename;
         }
 
         public void CompilerSignature(IBinaryWriter stream)
@@ -50,17 +41,20 @@ namespace GameData
             mDependency = Dependency.ReadFrom(stream);
         }
 
-        public IFileIdProvider CompilerFileIdProvider
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public IFileIdProvider CompilerFileIdProvider => this;
+        public long FileId { get; set; }
 
         public int CompilerExecute(List<DataCompilerOutput> output)
         {
+            if (mDependency == null)
+            {
+                mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
+                mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
+            }
+
             output.Add(new DataCompilerOutput(FileId, new[] { mDstFilename }));
+
+            if (!mDependency.Update(null)) return 0;
 
             // Execute the actual purpose of this compiler
             try
@@ -71,14 +65,7 @@ namespace GameData
             {
                 return -1;
             }
-
-            mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
-            mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
-            mDependency.Update(delegate(short id, State state){});
-
-            return 0;
+            return 1;
         }
-
-        public Int64 FileId { get; set; }
     }
 }
