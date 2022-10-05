@@ -34,7 +34,7 @@ namespace GameCore
 
     #region BinaryWriter (Big Endian)
 
-    public class BinaryWriterBigEndian : IBinaryWriter
+    public sealed class BinaryWriterBigEndian : IBinaryWriter
     {
         #region Fields
 
@@ -173,7 +173,7 @@ namespace GameCore
     #endregion
     #region BinaryWriter (Little Endian)
 
-    public class BinaryWriterLittleEndian : IBinaryWriter
+    public sealed class BinaryWriterLittleEndian : IBinaryWriter
     {
         #region Fields
 
@@ -308,7 +308,7 @@ namespace GameCore
         #endregion
     }
 
-    public class BinaryFileWriter : IBinaryWriter
+    public sealed class BinaryFileWriter : IBinaryWriter
     {
         private BinaryWriterLittleEndian mBinaryWriter;
         private BinaryWriter mBinaryStreamWriter;

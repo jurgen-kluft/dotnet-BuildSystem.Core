@@ -1,55 +1,39 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Collections;
-using System.Collections.Generic;
 using GameCore;
+using GameData;
 
 namespace DataBuildSystem
 {
     public sealed class BigfileToc
     {
-        public enum ECompressed
+        private enum ECompressed
         {
-            NO,
-            YES
+            No,
+            Yes
         }
 
         private interface IReadContext
         {
-            #region Properties
-
-            int Count { get; }
-
-            #endregion
-
             #region Methods
 
-            void Read(IBinaryReader reader);
-            void Read(IBinaryReader reader, ITocEntry e);
-            bool Next();
+            int Begin(int block, IBinaryReader reader);
+            void Read(int block, int item, IBinaryReader reader);
+            bool Next(int block);
 
             #endregion
         }
 
         private interface IWriteContext
         {
-            #region Properties
-
-            int Count { get; set; }
-
-            #endregion
-
             #region Methods
 
-            void Write(IBinaryWriter writer);
-            void Write(IBinaryWriter writer, ITocEntry e);
-            bool Next();
+            int Begin(int block, IBinaryWriter writer);
+            void Write(int block, int item, IBinaryWriter writer);
+            bool Next(int block);
 
             #endregion
         }
 
-        private interface ITocEntry
+        public interface ITocEntry
         {
             #region Properties
 
@@ -57,16 +41,9 @@ namespace DataBuildSystem
             Int32 FileSize { get; set; }
             bool IsCompressed { get; set; }
             string Filename { get; set; }
-            UInt64 FileId { get; set; }
+            Int64 FileId { get; set; }
             Hash160 FileContentHash { get; set; }
             List<ITocEntry> Children { get; set; }
-
-            #endregion
-
-            #region Read/Write
-
-            void Read(IBinaryReader reader, IReadContext context);
-            void Write(IBinaryWriter writer, IWriteContext context);
 
             #endregion
         }
@@ -83,7 +60,7 @@ namespace DataBuildSystem
                 return new TocEntry();
             }
 
-            public static ITocEntry Create(UInt64 fileId, StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public static ITocEntry Create(Int64 fileId, StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileId, fileOffset, fileSize, filename, type, contentHash);
             }
@@ -93,35 +70,54 @@ namespace DataBuildSystem
                 return new TocEntry(fileSize, filename, type, contentHash);
             }
 
-            public static IReadContext CreateReadTocContext(List<ITocEntry> table)
+            public static IReadContext CreateReadTocContext(List<TocSection> sections, List<ITocEntry> entries)
             {
-                return new ReadToc32Context(table);
+                return new ReadToc32Context(sections, entries);
             }
 
-            public static IReadContext CreateReadFdbContext()
+            public static IReadContext CreateReadFdbContext(IReadOnlyList<TocSection> sections)
             {
-                return new ReadFdbContext();
+                return new ReadFdbContext(sections);
             }
 
-            public static IReadContext CreateReadHdbContext()
+            public static IReadContext CreateReadHdbContext(IReadOnlyList<TocSection> sections)
             {
-                return new ReadHdbContext();
+                return new ReadHdbContext(sections);
             }
 
-            public static IWriteContext CreateWriteTocContext()
+            public static IWriteContext CreateWriteTocContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
-                return new WriteToc32Context();
+                return new WriteToc32Context(sections, entries);
             }
 
-            public static IWriteContext CreateWriteFdbContext()
+            public static IWriteContext CreateWriteFdbContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
-                return new WriteFdbContext();
+                return new WriteFdbContext(sections, entries);
             }
 
-            public static IWriteContext CreateWriteHdbContext()
+            public static IWriteContext CreateWriteHdbContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
-                return new WriteHdbContext();
+                return new WriteHdbContext(sections, entries);
             }
+
+            #endregion
+        }
+
+
+        public sealed class TocSection
+        {
+            #region Properties
+
+            public Int32 TocOffset { get; set; }
+
+            public Int32 TocCount
+            {
+                get { return Toc.Count; }
+            }
+
+            public Int32 TocExtraCount { get; set; }
+            public Int64 DataOffset { get; set; }
+            public List<ITocEntry> Toc { get; set; }
 
             #endregion
         }
@@ -136,40 +132,46 @@ namespace DataBuildSystem
         /// </summary>
         private sealed class TocEntry : ITocEntry
         {
-            #region Fields
-
-            #endregion
             #region Constructor
 
             public TocEntry()
-                : this(UInt64.MaxValue, StreamOffset.Empty, -1, String.Empty, ECompressed.NO, Hash160.Empty)
+                : this(Int64.MaxValue, StreamOffset.Empty, -1, String.Empty, ECompressed.No, Hash160.Empty)
             {
             }
 
             public TocEntry(string filename, ECompressed type, Hash160 contentHash)
-                : this(UInt64.MaxValue, StreamOffset.Empty, -1, filename, type, contentHash)
+                : this(Int64.MaxValue, StreamOffset.Empty, -1, filename, type, contentHash)
             {
             }
 
             public TocEntry(Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
-                : this(UInt64.MaxValue, StreamOffset.Empty, fileSize, filename, type, contentHash)
+                : this(Int64.MaxValue, StreamOffset.Empty, fileSize, filename, type, contentHash)
             {
             }
 
-            public TocEntry(UInt64 fileId, StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public TocEntry(Int64 fileId, StreamOffset fileOffset, Int32 fileSize)
+                : this(fileId, fileOffset, fileSize, String.Empty, ECompressed.No, Hash160.Empty)
+            {
+            }
+
+            public TocEntry(Int64 fileId, StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 FileOffset = fileOffset;
                 Filename = filename;
                 FileId = fileId;
                 FileContentHash = contentHash;
                 FileSize = fileSize;
-                IsCompressed = (type == ECompressed.YES);
+                IsCompressed = (type == ECompressed.Yes);
             }
 
             #endregion
+
             #region Properties
 
-            public UInt64 FileId { get; set; }
+            public static Int32 BinarySize => (sizeof(Int32) + sizeof(Int32));
+
+            public TocSection Section { get; set; }
+            public Int64 FileId { get; set; }
             public StreamOffset FileOffset { get; set; }
             public Int32 FileSize { get; set; }
             public string Filename { get; set; }
@@ -185,19 +187,7 @@ namespace DataBuildSystem
             }
 
             #endregion
-            #region Methods
 
-            public void Read(IBinaryReader reader, IReadContext context)
-            {
-                context.Read(reader, this);
-            }
-
-            public void Write(IBinaryWriter writer, IWriteContext context)
-            {
-                context.Write(writer, this);
-            }
-
-            #endregion
             #region TocEntryFileIdComparer (IComparer<ITocEntry>)
 
             public class TocEntryFileIdComparer : IComparer<ITocEntry>
@@ -225,101 +215,119 @@ namespace DataBuildSystem
         //         Reading the FileOffset(Int32)[] for every TocEntry
         //
         // </summary>
+
         private sealed class ReadToc32Context : IReadContext
         {
             #region Fields
 
-            private int mIteration;
-            private int mIndex;
-            private List<ITocEntry> mTable;
-            private List<UInt32> mMultiOffset;
+            private List<TocSection> Sections { get; set; }
+            private List<ITocEntry> Entries { get; set; }
 
             #endregion
+
             #region Constructor
 
-            public ReadToc32Context(List<ITocEntry> table)
+            public ReadToc32Context(List<TocSection> sections, List<ITocEntry> entries)
             {
-                mTable = table;
+                Sections = sections;
+                Entries = entries;
             }
 
             #endregion
+
             #region IReadContext Members
 
-            public int Count { get; set; }
-
-            public void Read(IBinaryReader reader)
+            public int Begin(int block, IBinaryReader reader)
             {
-                // Read the header
-                Count = reader.ReadInt32();
-
-                mTable.Clear();
-                mTable.Capacity = Count;
-
-                for (int i = 0; i < Count; i++)
+                if (block == -1)
                 {
-                    ITocEntry fileEntry = Factory.Create();
-                    mTable.Add(fileEntry);
+                    // Read the header
+                    int totalNumberOfEntries = reader.ReadInt32();
+                    int numberOfSections = reader.ReadInt32();
+
+                    Sections = new(numberOfSections);
+                    Entries.Capacity = totalNumberOfEntries;
+
+                    return numberOfSections;
                 }
-            }
 
-            private static bool IsValidOffset(UInt32 offset)
-            {
-                return offset != UInt32.MaxValue;
-            }
-
-            private static bool IsMultiOffset(UInt32 offset)
-            {
-                return (offset & 0x80000000) != 0;
-            }
-
-            public void Read(IBinaryReader reader, ITocEntry e)
-            {
-                switch (mIteration)
+                if (block < Sections.Count)
                 {
-                    case 0:
+                    if ((block & 1) == 0)
                     {
-                        if (mIndex == 0)
+                        return Sections[block].Toc.Count;
+                    }
+                    else
+                    {
+                        return Sections[block].TocExtraCount;
+                    }
+                }
+
+                return 0;
+            }
+
+            private static bool HasChildren(ITocEntry e)
+            {
+                return e.Children.Count > 0;
+            }
+
+            public void Read(int block, int item, IBinaryReader reader)
+            {
+                switch (block)
+                {
+                    case -1:
+                        TocSection ts = Sections[item];
+                        var count = reader.ReadInt32();
+                        ts.TocOffset = reader.ReadInt32();
+                        ts.DataOffset = reader.ReadInt64();
+                        ts.Toc = new(count);
+                        for (int j = 0; j < count; ++j)
                         {
-                            mMultiOffset = new List<UInt32>(Count);
+                            var e = new TocEntry();
+                            ts.Toc.Add(e);
+                            Entries.Add(e);
                         }
 
-                        UInt32 offset = reader.ReadUInt32(); // FileOffset OR DataOffset to FileOffset(Int32)[]
-                        e.FileSize = reader.ReadInt32(); // File size
-                        mMultiOffset.Add(offset);
-                    }
                         break;
-                    case 1:
-                    {
-                        UInt32 offset = mMultiOffset[mIndex];
-                        if (IsValidOffset(offset))
+
+                    case >= 0:
+                        if ((block & 1) == 0)
                         {
-                            if (IsMultiOffset(offset))
+                            // Read Toc Entries
+                            Int32 fileOffset = reader.ReadInt32();
+                            Int32 fileSize = reader.ReadInt32();
+                            int sectionIndex = (block / 2);
+                            TocEntry e = new((Int64)item, new StreamOffset(fileOffset), fileSize);
+                            Sections[sectionIndex].Toc.Add(e);
+                            if (HasChildren(e))
                             {
-                                int instancesNum = reader.ReadInt32();
-                                for (int i = 0; i < instancesNum; i++)
-                                    e.FileOffset = new StreamOffset(reader.ReadUInt32());
-                            }
-                            else
-                            {
-                                e.FileOffset = new StreamOffset(offset);
+                                Sections[sectionIndex].TocExtraCount++;
                             }
                         }
                         else
                         {
-                            e.FileOffset = new StreamOffset(offset);
+                            // Read extra info for some TocEntry
+                            int sectionIndex = (block / 2);
+                            ITocEntry e = Sections[sectionIndex].Toc[item];
+                            if (HasChildren(e))
+                            {
+                                int numChildren = reader.ReadInt32();
+                                for (int i = 0; i < numChildren; ++i)
+                                {
+                                    int childFileId = reader.ReadInt32();
+                                    ITocEntry childEntry = Sections[sectionIndex].Toc[childFileId];
+                                    e.Children.Add(childEntry);
+                                }
+                            }
                         }
-                    }
+
                         break;
                 }
-
-                ++mIndex;
             }
 
-            public bool Next()
+            public bool Next(int block)
             {
-                mIndex = 0;
-                mIteration++;
-                return mIteration < 2;
+                return block < (Sections.Count * 2);
             }
 
             #endregion
@@ -342,45 +350,73 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private int mIteration;
-            private int mIndex;
+            private IReadOnlyList<TocSection> Sections { get; set; }
 
             #endregion
+
+            #region Constructor
+
+            public ReadFdbContext(IReadOnlyList<TocSection> sections)
+            {
+                Sections = sections;
+            }
+
+            #endregion
+
             #region IReadContext Members
 
-            public int Count { get; set; }
-
-            public void Read(IBinaryReader reader)
+            public int Begin(int block, IBinaryReader reader)
             {
-                Count = reader.ReadInt32();
-            }
-
-            public void Read(IBinaryReader reader, ITocEntry e)
-            {
-                switch (mIteration)
+                if (block == -1)
                 {
-                    case 0: // Read the FilenameOffset(Int32)[]
-                    {
-                        reader.ReadInt32();
-                    }
-                        break;
-                    case 1: // Read the Filename(string)[]
-                    {
-                        reader.Position = Alignment.Align(reader.Position, 4);
-                        string filename = reader.ReadString();
-                        e.Filename = filename;
-                    }
-                        break;
+                    // Read the header
+                    int numTotalEntries = reader.ReadInt32();
+                    int numSections = reader.ReadInt32();
+
+                    return numSections;
                 }
 
-                ++mIndex;
+                if ((block & 1) == 0)
+                {
+                    return Sections[block].Toc.Count;
+                }
+
+                return Sections[block].TocExtraCount;
             }
 
-            public bool Next()
+            public void Read(int block, int item, IBinaryReader reader)
             {
-                mIndex = 0;
-                mIteration++;
-                return mIteration < 2;
+                switch (block)
+                {
+                    case -1:
+                        reader.ReadInt32(); // read total number of entries
+                        reader.ReadInt32(); // read number of sections
+
+                        break;
+
+                    case >= 0:
+                        // Read Toc Entry filenames
+                        if ((block & 1) == 0)
+                        {
+                            reader.ReadInt32();
+                        }
+                        else
+                        {
+                            reader.Position = Alignment.Align(reader.Position, 4);
+                            string filename = reader.ReadString();
+
+                            int sectionIndex = (block / 2);
+                            ITocEntry te = Sections[sectionIndex].Toc[item];
+                            te.Filename = filename;
+                        }
+
+                        break;
+                }
+            }
+
+            public bool Next(int block)
+            {
+                return block < (Sections.Count * 2);
             }
 
             #endregion
@@ -403,88 +439,117 @@ namespace DataBuildSystem
         {
             #region Fields
 
-            private int mIteration;
-            private int mIndex;
+            private IReadOnlyList<TocSection> Sections { get; set; }
 
             #endregion
+
+            #region Constructor
+
+            public ReadHdbContext(IReadOnlyList<TocSection> sections)
+            {
+                Sections = sections;
+            }
+
+            #endregion
+
             #region IReadContext Members
 
-            public int Count { get; set; }
-
-            public void Read(IBinaryReader reader)
+            public int Begin(int block, IBinaryReader reader)
             {
-                Count = reader.ReadInt32();
-            }
-
-            public void Read(IBinaryReader reader, ITocEntry e)
-            {
-                switch (mIteration)
+                if (block == -1)
                 {
-                    case 0:
-                    {
-                        byte[] hash = reader.ReadBytes(Hash160.Size);
-                        e.FileContentHash = Hash160.ConstructTake(hash);
-                    }
-                        break;
+                    // Read the header
+                    int numTotalEntries = reader.ReadInt32();
+                    int numSections = reader.ReadInt32();
+
+                    return numSections;
                 }
 
-                ++mIndex;
+                if (block < Sections.Count)
+                {
+                    return Sections[block].Toc.Count;
+                }
+
+                return 0;
             }
 
-            public bool Next()
+            public void Read(int block, int item, IBinaryReader reader)
             {
-                mIndex = 0;
-                mIteration++;
-                return mIteration < 1;
+                switch (block)
+                {
+                    case -1:
+                        TocSection ts = Sections[item];
+                        var count = reader.ReadInt32();
+                        reader.ReadInt32();
+                        reader.ReadInt64();
+
+                        break;
+
+                    case >= 0:
+                        // Read Toc Entry content hash
+                        byte[] hash = reader.ReadBytes(Hash160.Size);
+
+                        int sectionIndex = block;
+                        ITocEntry te = Sections[sectionIndex].Toc[item];
+                        te.FileContentHash = Hash160.ConstructTake(hash);
+                        break;
+                }
+            }
+
+            public bool Next(int block)
+            {
+                return block < Sections.Count;
             }
 
             #endregion
         }
 
         // <summary>
-        // The (32 bit) Toc, holding TocEntry[] (TocEntry), needs 3 iterations
-        //
-        //     Iteration 1:
-        //         Calculating the offset to the FileId(Int32)[] for every TocEntry
-        //
-        //     Iteration 2:
-        //         Writing the TocEntry[]
-        //
-        //     Iteration 3:
-        //         Writing the FileId(Int32)[] for every TocEntry
-        //
+        // Write the multi-section TOC
         // </summary>
         private sealed class WriteToc32Context : IWriteContext
         {
             #region Fields
 
-            private int mIteration;
-            private int mIndex;
-            private int mOffset;
+            private int Iteration { get; set; }
+            private int Index { get; set; }
+            private int Offset { get; set; }
+
+            private IReadOnlyList<TocSection> Sections { get; set; }
+            private IReadOnlyList<ITocEntry> Entries { get; set; }
 
             #endregion
+
             #region IWriteContext Members
 
-            public int Count { get; set; }
-
-            public void Write(IBinaryWriter writer)
+            public WriteToc32Context(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
-                writer.Write(Count);
+                Sections = sections;
+                Entries = entries;
+
+                // Compute the offset of each section
+                Int32 offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
+                foreach (var section in Sections)
+                {
+                    section.TocOffset = offset;
+
+                    // The size of TocEntry[]
+                    offset += section.TocCount * TocEntry.BinarySize;
+                    // However we also have an 'extra' block where we are writing Children of TocEntry's that have them
+                    foreach (var te in section.Toc)
+                    {
+                        if (HasChildren(te))
+                        {
+                            int binarySize = sizeof(Int32) + te.Children.Count * sizeof(Int32);
+                            offset += binarySize;
+                        }
+                    }
+                }
             }
 
             private static bool HasChildren(ITocEntry e)
             {
                 return e.Children.Count > 0;
-            }
-
-            private static bool IsValidOffset(Int32 offset)
-            {
-                return offset != -1;
-            }
-
-            private static Int32 MakeInvalidOffset()
-            {
-                return -1;
             }
 
             private static Int32 MarkHasChildrenInFileSize(Int32 value)
@@ -497,190 +562,230 @@ namespace DataBuildSystem
                 return (Int32)((UInt32)value | (UInt32)0x40000000);
             }
 
-            public void Write(IBinaryWriter writer, ITocEntry e)
+            public int Begin(int block, IBinaryWriter writer)
             {
-                switch (mIteration)
+                if (block == -1)
                 {
-                    case 0: // Calculate the DataOffset to it's FileOffset(Int32)[] for every TocEntry
-                    {
-                        // Ok, so we are going to use the following flags in the FileSize
-                        // - bit 31: Multi Offsets
-                        // - bit 30: Multi FileIds
-
-                        if (mIndex == 0)
-                        {
-                            mOffset = (int)writer.Position + Count * (sizeof(Int32) + sizeof(Int32));
-                        }
-                    }
-                        break;
-                    case 1: // Write every TocEntry
-                    {
-                        Int32 offset = (Int32)(e.FileOffset.value >> 5);
-                        Int32 size = e.FileSize;
-                        if (HasChildren(e))
-                        {
-                            // Mark file size so that it is known that offset is actually an offset
-                            // within TOC to an array:
-                            // Int32   Number of Children
-                            // Int32[] FileId
-                            size = MarkHasChildrenInFileSize(size);
-                        }
-
-                        writer.Write(offset); // 32-bit
-                        writer.Write(size); // 32-bit
-
-                        // Increment the offset with the size of the Array(Length + Count + sizeof(FileId))
-                        mOffset += sizeof(Int32) + (e.Children.Count * sizeof(Int32));
-                    }
-                        break;
-                    case 2: // Write the FileId(Int32)[] for every TocEntry that needs it
-                    {
-                        if (HasChildren(e))
-                        {
-                            writer.Write(e.Children.Count);
-                            foreach (ITocEntry te in e.Children)
-                                writer.Write(te.FileId);
-                        }
-                    }
-                        break;
+                    // Header
+                    writer.Write(Entries.Count);
+                    writer.Write(Sections.Count);
+                    return Sections.Count;
                 }
-                ++mIndex;
+
+                TocSection section = Sections[block / 2];
+                return section.TocCount;
             }
 
-
-            public bool Next()
+            public void Write(int block, int item, IBinaryWriter writer)
             {
-                mIndex = 0;
-                mIteration++;
-                return mIteration < 3;
+                switch (block)
+                {
+                    case -1:
+                    {
+                        // Write the offset to each section
+                        TocSection section = Sections[item];
+                        writer.Write(section.TocOffset);
+                        break;
+                    }
+                    case >= 0:
+                    {
+                        if (block.IsEven())
+                        {
+                            TocSection section = Sections[block / 2];
+                            ITocEntry e = section.Toc[item];
+
+                            Int32 offset = (Int32)(e.FileOffset.value >> 5);
+                            Int32 size = e.FileSize;
+                            if (HasChildren(e))
+                            {
+                                // Mark file size so that it is known that offset is actually an offset
+                                // within TOC to an array:
+                                // Int32   Number of Children
+                                // Int32[] FileId
+                                size = MarkHasChildrenInFileSize(size);
+                            }
+
+                            writer.Write(offset); // 32-bit
+                            writer.Write(size); // 32-bit
+                        }
+                        else
+                        {
+                            TocSection section = Sections[block / 2];
+                            ITocEntry e = section.Toc[item];
+                            if (HasChildren(e))
+                            {
+                                writer.Write(e.Children.Count);
+                                foreach (var ce in e.Children)
+                                {
+                                    writer.Write(ce.FileId.Lower32());
+                                }
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            public bool Next(int block)
+            {
+                return block < (2 * Sections.Count);
             }
 
             #endregion
         }
 
         // <summary>
-        // The Fdb (holding FilenameOffset(Int32)[] and Filename(string)[]) consists of 3 iterations
-        //
-        //     Iteration 1:
-        //         Computing the offset to every filename
-        //
-        //     Iteration 2: FilenameOffset(Int32)[]
-        //         Writing the offset to the filename for every TocEntry
-        //
-        //     Iteration 3: Filename(string)[]
-        //         Writing the filename (string) for every TocEntry
-        //
+        // Each section of the Fdb holds {FilenameOffset(Int32)[],  Filename(string)[]}
         // </summary>
         private sealed class WriteFdbContext : IWriteContext
         {
             #region Fields
 
-            private int mIteration;
-            private int mIndex;
-            private Int32 mOffset;
-            private List<int> mOffsets = new List<int>();
-
-            #endregion
-            #region IWriteContext Members
-
-            public int Count { get; set; }
-
-            public void Write(IBinaryWriter writer)
-            {
-                // The file header
-                writer.Write(Count);
-            }
-
-            public void Write(IBinaryWriter writer, ITocEntry e)
-            {
-                switch (mIteration)
-                {
-                    case 0: // Calculating the filename offsets
-                    {
-                        if (mIndex == 0)
-                            mOffset = 0;
-
-                        mOffsets[mIndex] = mOffset;
-                        string filename = e.Filename;
-                        mOffset = Alignment.Align32(mOffset, 4);
-                        mOffset += sizeof(Int32) + filename.Length + 1;
-                    }
-                        break;
-                    case 1: // Writing the FilenameOffset(Int32)[]
-                    {
-                        writer.Write(mOffsets[mIndex]);
-                    }
-                        break;
-                    case 2: // Write the Filename(string)[]
-                    {
-                        writer.Write(e.Filename);
-                    }
-                        break;
-                }
-
-                ++mIndex;
-            }
-
-            public bool Next()
-            {
-                mIndex = 0;
-                mIteration++;
-                return mIteration < 3;
-            }
-
-            #endregion
-        }
-
-        /// <summary>
-        /// The Hdb (holding Hash160[]) consists of 1 iteration
-        ///
-        ///     Iteration 1:
-        ///         Write every hash of every TocEntry
-        ///
-        /// </summary>
-        private sealed class WriteHdbContext : IWriteContext
-        {
-            #region IWriteContext Members
-
-            private int Iteration { get; set; }
             private int Index { get; set; }
-            public int Count { get; set; }
 
-            public void Write(IBinaryWriter writer)
-            {
-                // The file header
-                writer.Write(Count);
-            }
+            private IReadOnlyList<TocSection> Sections { get; set; }
+            private IReadOnlyList<ITocEntry> Entries { get; set; }
+            private List<Int32> SectionOffsets { get; set; }
+            private List<Int32> FilenameOffsets { get; set; }
 
-            public void Write(IBinaryWriter writer, ITocEntry e)
+            #endregion
+
+            #region IWriteContext Members
+
+            public WriteFdbContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
-                switch (Iteration)
+                Sections = sections;
+                Entries = entries;
+
+                SectionOffsets = new(Sections.Count);
+                FilenameOffsets = new(entries.Count);
+
+                // Compute the offset of each section
+                Int32 offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
+                foreach (var section in Sections)
                 {
-                    case 0:
+                    SectionOffsets.Add(offset);
+                    offset += section.TocCount * sizeof(Int32); // The size of Offset[]
+                    foreach (var e in section.Toc)
                     {
-                        byte[] b = e.FileContentHash.Data;
-                        writer.Write(b);
+                        FilenameOffsets.Add(offset);
+                        offset += sizeof(Int32) + e.Filename.Length + 1;
+                        offset = Alignment.Align32(offset, 4);
                     }
-                        break;
                 }
-                ++Index;
             }
 
-            public bool Next()
+            public int Begin(int block, IBinaryWriter writer)
             {
                 Index = 0;
-                Iteration++;
-                return Iteration < 1;
+
+                if (block == -1)
+                {
+                    // Header
+                    writer.Write(Entries.Count);
+                    writer.Write(Sections.Count);
+                    return Sections.Count;
+                }
+
+                TocSection section = Sections[block / 2];
+                return section.TocCount;
+            }
+
+            public void Write(int block, int item, IBinaryWriter writer)
+            {
+                if (block == -1)
+                {
+                    writer.Write(SectionOffsets[item]); // Write the offset to each section
+                }
+                else
+                {
+                    if (block.IsEven())
+                    {
+                        writer.Write(FilenameOffsets[Index++]);
+                    }
+                    else
+                    {
+                        TocSection section = Sections[block / 2];
+                        writer.Write(section.Toc[item].Filename);
+                    }
+                }
+            }
+
+            public bool Next(int block)
+            {
+                return block < (2 * Sections.Count);
             }
 
             #endregion
         }
 
-        #region Fields
+        // <summary>
+        // The Hdb (holding Hash160[])
+        // </summary>
+        private sealed class WriteHdbContext : IWriteContext
+        {
+            #region Fields
 
-        private ITocEntry[] mTable;
+            private IReadOnlyList<TocSection> Sections { get; set; }
+            private IReadOnlyList<ITocEntry> Entries { get; set; }
+            private List<Int32> SectionOffsets { get; set; }
 
-        #endregion
+            #endregion
+
+            #region IWriteContext Members
+
+            public WriteHdbContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
+            {
+                Sections = sections;
+                Entries = entries;
+
+                SectionOffsets = new(Sections.Count);
+
+                // Compute the offset of each section
+                Int32 offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
+                foreach (var section in Sections)
+                {
+                    SectionOffsets.Add(offset);
+                    offset += section.TocCount * Hash160.Size; // The size of Hash[]
+                }
+            }
+
+            public int Begin(int block, IBinaryWriter writer)
+            {
+                if (block == -1)
+                {
+                    // Header
+                    writer.Write(Entries.Count);
+                    writer.Write(Sections.Count);
+                    return Sections.Count;
+                }
+
+                TocSection section = Sections[block];
+                return section.TocCount;
+            }
+
+            public void Write(int block, int item, IBinaryWriter writer)
+            {
+                if (block == -1)
+                {
+                    writer.Write(SectionOffsets[item]); // Write the offset to each section
+                }
+                else
+                {
+                    TocSection section = Sections[block];
+                    section.Toc[item].FileContentHash.WriteTo(writer);
+                }
+            }
+
+            public bool Next(int block)
+            {
+                return block < Sections.Count;
+            }
+
+            #endregion
+        }
+
         #region Constructor(s)
 
         public BigfileToc()
@@ -688,26 +793,8 @@ namespace DataBuildSystem
         }
 
         #endregion
-        #region Properties
 
-        public int Count
-        {
-            get { return mTable.Length; }
-        }
-
-        #endregion
         #region Methods
-
-        public void Reset()
-        {
-            mTable = Array.Empty<ITocEntry>();
-        }
-
-        public BigfileFile InfoOf(int fileId)
-        {
-            ITocEntry e = mTable[fileId];
-            return new BigfileFile(e.Filename, e.FileSize, e.FileOffset, e.FileId, e.FileContentHash);
-        }
 
         public static bool Exists(string filename)
         {
@@ -722,16 +809,18 @@ namespace DataBuildSystem
             // TODO
         }
 
-        private static void ReadTable(List<ITocEntry> table, IReadContext context, FileStream stream, EEndian endian)
+        private static void ReadTable(IReadContext context, FileStream stream, EEndian endian)
         {
             IBinaryReader binaryReader = EndianUtils.CreateBinaryReader(stream, endian);
             {
-                context.Read(binaryReader);
+                int block = -1;
                 do
                 {
-                    for (int i = 0; i < context.Count; i++)
-                        table[i].Read(binaryReader, context);
-                } while (context.Next());
+                    int count = context.Begin(block, binaryReader);
+                    for (int i = 0; i < count; ++i)
+                        context.Read(block, i, binaryReader);
+                    block += 1;
+                } while (context.Next(block));
             }
             binaryReader.Close();
         }
@@ -741,7 +830,7 @@ namespace DataBuildSystem
             FileInfo fileInfo = new(filename);
             if (!fileInfo.Exists)
             {
-                Console.WriteLine("We tried to load " + fileInfo + " but it does not exist.");
+                Console.WriteLine("We tried to open '" + fileInfo + "' but it does not exist.");
                 return null;
             }
 
@@ -749,8 +838,40 @@ namespace DataBuildSystem
             return fileStream;
         }
 
-        public bool Load(string filename, EEndian endian)
+        private static void WriteTable(IWriteContext context, FileStream stream, EEndian endian)
         {
+            IBinaryWriter binaryWriter = EndianUtils.CreateBinaryWriter(stream, endian);
+            {
+                int block = -1;
+                do
+                {
+                    int count = context.Begin(block, binaryWriter);
+                    for (int i = 0; i < count; ++i)
+                        context.Write(block, i, binaryWriter);
+                    block += 1;
+                } while (context.Next(block));
+            }
+            binaryWriter.Close();
+        }
+
+        private static FileStream OpenFileStreamForWriting(string filename)
+        {
+            FileInfo fileInfo = new(filename);
+            if (!fileInfo.Exists)
+            {
+                FileStream fileCreationStream = File.Create(fileInfo.FullName);
+                fileCreationStream.Close();
+            }
+
+            FileStream fileStream = new(fileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.Write, 1 * 1024 * 1024, FileOptions.Asynchronous);
+            return fileStream;
+        }
+
+        public bool Load(string filename, EEndian endian, out List<TocSection> sections, out List<ITocEntry> entries)
+        {
+            sections = new();
+            entries = new();
+
             try
             {
                 FileStream bigFileTocFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileTocExtension));
@@ -759,11 +880,9 @@ namespace DataBuildSystem
                 {
                     try
                     {
-                        List<ITocEntry> table = new List<ITocEntry>();
-                        ReadTable(table, Factory.CreateReadTocContext(table), bigFileTocFileStream, endian);
-                        ReadTable(table, Factory.CreateReadFdbContext(), bigFileFdbFileStream, endian);
-                        ReadTable(table, Factory.CreateReadHdbContext(), bigFileHdbFileStream, endian);
-                        mTable = table.ToArray();
+                        ReadTable(Factory.CreateReadTocContext(sections, entries), bigFileTocFileStream, endian);
+                        ReadTable(Factory.CreateReadFdbContext(sections), bigFileFdbFileStream, endian);
+                        ReadTable(Factory.CreateReadHdbContext(sections), bigFileHdbFileStream, endian);
                     }
                     catch (Exception e)
                     {
@@ -784,60 +903,34 @@ namespace DataBuildSystem
             return true;
         }
 
-        private static void WriteTable(List<ITocEntry> table, IWriteContext context, FileStream stream, EEndian endian)
-        {
-            IBinaryWriter binaryWriter = EndianUtils.CreateBinaryWriter(stream, endian);
-            {
-                context.Count = table.Count;
-                context.Write(binaryWriter);
-
-                do
-                {
-                    for (int i = 0; i < context.Count; i++)
-                        table[i].Write(binaryWriter, context);
-                } while (context.Next());
-
-                // We are done, close the writer
-                binaryWriter.Close();
-            }
-        }
-
-        private static FileStream OpenFileStreamForWriting(string filename)
-        {
-            FileInfo fileInfo = new(filename);
-            if (!fileInfo.Exists)
-            {
-                FileStream fileCreationStream = File.Create(fileInfo.FullName);
-                fileCreationStream.Close();
-            }
-
-            FileStream fileStream = new(fileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.Write, 1 * 1024 * 1024, FileOptions.Asynchronous);
-            return fileStream;
-        }
-
         public bool Save(string bigfileFilename, EEndian endian, BigfileFile[] bigfileFiles)
         {
             // Create all TocEntry items in the same order as the Bigfile files which is important
             // because the FileId is equal to the location(index) in the List/Array.
-            List<ITocEntry> table = new List<ITocEntry>(bigfileFiles.Length);
+            List<ITocEntry> entries = new(bigfileFiles.Length);
             foreach (var file in bigfileFiles)
             {
-                ITocEntry fileEntry = Factory.Create(file.FileId, file.FileOffset, file.FileSize, file.Filename, ECompressed.NO, file.FileContentHash);
-                table.Add(fileEntry);
+                ITocEntry fileEntry = Factory.Create(file.FileId, file.FileOffset, file.FileSize, file.Filename, ECompressed.No, file.FileContentHash);
+                entries.Add(fileEntry);
             }
 
             // Manage children of each TocEntry
+            List<TocSection> sections = new();
+            TocSection section = new();
+            section.Toc = new(bigfileFiles.Length);
+            sections.Add(section);
             foreach (var file in bigfileFiles)
             {
-                ITocEntry entry = table[(int)file.FileId];
+                ITocEntry entry = entries[(int)file.FileId];
+                section.Toc[(int)file.FileId] = entry;
                 foreach (var childFile in file.Children)
                 {
-                    ITocEntry childEntry = table[(int)childFile.FileId];
+                    ITocEntry childEntry = entries[(int)childFile.FileId];
+                    section.Toc[(int)childFile.FileId] = childEntry;
                     entry.Children.Add(childEntry);
+                    section.TocExtraCount++;
                 }
             }
-
-            mTable = table.ToArray();
 
             try
             {
@@ -848,9 +941,9 @@ namespace DataBuildSystem
                 {
                     try
                     {
-                        WriteTable(table, Factory.CreateWriteTocContext(), bigFileTocFileStream, endian);
-                        WriteTable(table, Factory.CreateWriteFdbContext(), bigFileFdbFileStream, endian);
-                        WriteTable(table, Factory.CreateWriteHdbContext(), bigFileHdbFileStream, endian);
+                        WriteTable(Factory.CreateWriteTocContext(sections, entries), bigFileTocFileStream, endian);
+                        WriteTable(Factory.CreateWriteFdbContext(sections, entries), bigFileFdbFileStream, endian);
+                        WriteTable(Factory.CreateWriteHdbContext(sections, entries), bigFileHdbFileStream, endian);
                     }
                     catch (Exception e)
                     {

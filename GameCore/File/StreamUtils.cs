@@ -22,7 +22,7 @@ namespace GameCore
 
     }
 
-    public class TextStream
+    public sealed class TextStream
     {
         private FileStream mFileStream;
 
@@ -94,7 +94,7 @@ namespace GameCore
         }
     }
 
-    public class BinaryStream
+    public sealed class BinaryStream
     {
         private FileStream mFileStream;
 

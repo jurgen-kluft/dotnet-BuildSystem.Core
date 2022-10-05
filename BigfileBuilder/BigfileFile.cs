@@ -26,7 +26,7 @@ namespace DataBuildSystem
             Filename = filename;
             FileSize = -1;
             FileOffset = StreamOffset.Zero;
-            FileId = UInt64.MaxValue;
+            FileId = Int64.MaxValue;
             FileContentHash = Hash160.Empty;
         }
 
@@ -35,7 +35,7 @@ namespace DataBuildSystem
             Filename = filename;
             FileSize = size;
             FileOffset = StreamOffset.Empty;
-            FileId = UInt64.MaxValue;
+            FileId = Int64.MaxValue;
             FileContentHash = Hash160.Empty;
         }
 
@@ -44,11 +44,11 @@ namespace DataBuildSystem
             Filename = filename;
             FileSize = size;
             FileOffset = offset;
-            FileId = UInt64.MaxValue;
+            FileId = Int64.MaxValue;
             FileContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(string filename, Int32 size, UInt64 fileId)
+        public BigfileFile(string filename, Int32 size, Int64 fileId)
         {
             Filename = filename;
             FileSize = size;
@@ -57,7 +57,7 @@ namespace DataBuildSystem
             FileContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(string filename, Int32 size, UInt64 fileId, Hash160 contentHash)
+        public BigfileFile(string filename, Int32 size, Int64 fileId, Hash160 contentHash)
         {
             Filename = filename;
             FileSize = size;
@@ -66,7 +66,7 @@ namespace DataBuildSystem
             FileContentHash = contentHash;
         }
 
-        public BigfileFile(string filename, Int32 size, StreamOffset offset, UInt64 fileId)
+        public BigfileFile(string filename, Int32 size, StreamOffset offset, Int64 fileId)
         {
             Filename = filename;
             FileSize = size;
@@ -75,7 +75,7 @@ namespace DataBuildSystem
             FileContentHash = Hash160.Empty;
         }
 
-        public BigfileFile(string filename, Int32 size, StreamOffset offset, UInt64 fileId, Hash160 contentHash)
+        public BigfileFile(string filename, Int32 size, StreamOffset offset, Int64 fileId, Hash160 contentHash)
         {
             Filename = filename;
             FileSize = size;
@@ -98,7 +98,7 @@ namespace DataBuildSystem
         public string Filename { get; set; }
         public Int32 FileSize { get; set; }
         public StreamOffset FileOffset { get; set; }
-        public UInt64 FileId { get; set; }
+        public Int64 FileId { get; set; }
         public Hash160 FileContentHash { get; set; }
         public List<BigfileFile> Children { get; set; } = new ();
 

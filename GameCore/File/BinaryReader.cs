@@ -31,7 +31,7 @@ namespace GameCore
 
     #region BinaryReader (Big Endian)
 
-    public class BinaryReaderBigEndian : IBinaryReader
+    public sealed class BinaryReaderBigEndian : IBinaryReader
     {
         #region Fields
 
@@ -148,7 +148,7 @@ namespace GameCore
 
     #region BinaryReader (Little Endian)
 
-    public class BinaryReaderLittleEndian : IBinaryReader
+    public sealed class BinaryReaderLittleEndian : IBinaryReader
     {
         #region Fields
 
@@ -258,7 +258,7 @@ namespace GameCore
         #endregion
     }
 
-    public class BinaryFileReader : IBinaryReader
+    public sealed class BinaryFileReader : IBinaryReader
     {
         private IBinaryReader mBinaryReader;
         private BinaryReader mBinaryFileReader;

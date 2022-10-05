@@ -36,7 +36,7 @@ namespace GameCore
     /// All references (pointers to blocks) are also resolved at the final stage.
     ///
     /// </summary>
-    public class DataWriter : IDataWriter
+    public sealed class DataWriter : IDataWriter
     {
         #region DataBlock
 

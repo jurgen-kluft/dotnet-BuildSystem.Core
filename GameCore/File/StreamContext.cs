@@ -11,7 +11,7 @@ namespace GameCore
     /// 'references' by iterating over the list of offsets and writing the 'Offset' to the block of data
     /// at that offset in the stream.
     /// </summary>
-    public class StreamContext
+    public sealed class StreamContext
     {
         #region Fields
 

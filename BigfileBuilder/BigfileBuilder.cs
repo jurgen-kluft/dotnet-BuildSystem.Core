@@ -9,6 +9,7 @@ using GameCore;
 namespace DataBuildSystem
 {
     using u64 = UInt64;
+    using s64 = Int64;
 
     public sealed class BigfileBuilder
     {
@@ -49,7 +50,7 @@ namespace DataBuildSystem
         /// <summary>
         /// A file to add to the data archive
         /// </summary>
-        public void Add(u64 fileId, string[] filenames)
+        public void Add(s64 fileId, string[] filenames)
         {
             for (int i = 0; i < filenames.Length; ++i)
             {
@@ -61,7 +62,7 @@ namespace DataBuildSystem
                         bigfileFile.FileId = fileId;
                         break;
                     case false:
-                        bigfileFile.FileId = UInt64.MaxValue;
+                        bigfileFile.FileId = -1;
                         mBigfileFiles[0].Children.Add(bigfileFile);
                         break;
                 }
@@ -73,11 +74,11 @@ namespace DataBuildSystem
         {
             StreamOffset currentOffset = new(0);
 
-            u64 prevFileId = UInt64.MaxValue;
+            s64 prevFileId = -1;
             for (int fileId = 0; fileId < mBigfileFiles.Count; fileId++)
             {
                 BigfileFile bigfileFile = mBigfileFiles[fileId];
-                if (bigfileFile.FileId == u64.MaxValue)
+                if (bigfileFile.FileId == -1)
                 {
                     bigfileFile.FileId = prevFileId;
                 }
@@ -156,20 +157,20 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool Load(string dstPath, EEndian endian, Dictionary<u64, BigfileFile> fileIdToBigfileFile)
+        public bool Load(string dstPath, EEndian endian, Dictionary<s64, BigfileFile> fileIdToBigfileFile)
         {
             Bigfile bigFile = new();
             bigFile.Open(mDstPath + mSubPath + mBigfileFilename, Bigfile.EMode.Read);
 
             BigfileToc bigFileToc = new();
-            if (bigFileToc.Load(Path.Join(mDstPath, mSubPath, mBigfileFilename), endian))
+            if (bigFileToc.Load(Path.Join(mDstPath, mSubPath, mBigfileFilename), endian, out List<BigfileToc.TocSection> sections, out List<BigfileToc.ITocEntry> entries))
             {
-                for (int i = 0; i < bigFileToc.Count; i++)
+                foreach(var e in entries)
                 {
-                    BigfileFile bff = bigFileToc.InfoOf(i);
+                    BigfileFile bff = new(e.Filename, e.FileSize, e.FileOffset, e.FileId, e.FileContentHash);
                     if (bff.IsEmpty)
                     {
-                        Console.WriteLine("No info for file {0} with index {1}", dstPath + bff.Filename, i);
+                        Console.WriteLine("No info for file {0} with id {1}", dstPath + bff.Filename, e.FileId);
                         return false;
                     }
 

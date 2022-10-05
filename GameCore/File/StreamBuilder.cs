@@ -84,7 +84,7 @@ namespace GameCore
     /// <summary>
     /// 
     /// </summary>
-    public class StreamBuilder
+    public sealed class StreamBuilder
     {
         #region Fields
 

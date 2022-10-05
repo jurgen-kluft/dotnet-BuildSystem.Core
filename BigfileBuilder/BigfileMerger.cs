@@ -14,8 +14,11 @@ namespace DataBuildSystem
     // do not really have to 're-compute' the FileId's when merging
     // Bigfiles.
     //
-    // So we can actually merge TOC's and only need to patch the
+    // So we can actually merge TOCs and only need to Touch the
     // Offset of each TocEntry.
+    // Maybe this is not even necessary, each TOC could also hold
+    // an extra 'member' that holds the base offset in the Bigfile
+    // of the file data.
     //
     // </redesign>
 
@@ -40,7 +43,7 @@ namespace DataBuildSystem
         #endregion
         #region Public Methods
 
-        public void add(Filename bigfileFilename)
+        public void Add(Filename bigfileFilename)
         {
             mBigfileFilenames.Add(bigfileFilename);
             mBigfileTocFilenames.Add(bigfileFilename.ChangedExtension(BigfileConfig.BigFileTocExtension));
@@ -90,21 +93,22 @@ namespace DataBuildSystem
 
                 //   Load it
                 BigfileToc toc = new ();
-                toc.Load(bft, BuildSystemCompilerConfig.Endian);
+                toc.Load(bft, BuildSystemCompilerConfig.Endian, out List<BigfileToc.TocSection> sections, out List<BigfileToc.ITocEntry> entries);
 
                 //   Add TFileId offset to the list
                 fileIdOffsetList.Add(fileIdBase);
 
                 //   Every item in the BigfileToc add the offset and add it to the 'total' BigfileToc
-                for (int j=0; j<toc.Count; ++j)
+                for (int j=0; j<entries.Count; ++j)
                 {
-                    BigfileFile bff = toc.InfoOf(j);
+                    BigfileToc.ITocEntry e = entries[i];
+                    BigfileFile bff = new(e.Filename, e.FileSize, e.FileOffset, e.FileId, e.FileContentHash);
                     bff.FileOffset += mainStreamOffsets[i];
                     bigfileFiles.Add(bff);
                 }
 
-                //   Add count 'number of items in BigfileToc' to main TFileId
-                fileIdBase += toc.Count;
+                // Add count 'number of items in BigfileToc' to main FileId
+                fileIdBase += entries.Count;
             }
 
             BigfileToc mainBigfileToc = new ();
