@@ -278,8 +278,8 @@ namespace DataBuildSystem
                     case -1:
                         TocSection ts = Sections[item];
                         var count = reader.ReadInt32();
+                        ts.DataOffset = reader.ReadInt32() << 5;
                         ts.TocOffset = reader.ReadInt32();
-                        ts.DataOffset = reader.ReadInt64();
                         ts.Toc = new(count);
                         for (int j = 0; j < count; ++j)
                         {
@@ -557,11 +557,6 @@ namespace DataBuildSystem
                 return (Int32)((UInt32)value | (UInt32)0x80000000);
             }
 
-            private static Int32 MarkHasDuplicatesInFileSize(Int32 value)
-            {
-                return (Int32)((UInt32)value | (UInt32)0x40000000);
-            }
-
             public int Begin(int block, IBinaryWriter writer)
             {
                 if (block == -1)
@@ -582,9 +577,10 @@ namespace DataBuildSystem
                 {
                     case -1:
                     {
-                        // Write the offset to each section
+                        // Write the offset to each section, use 64-bit so that
+                        // the C++ side can replace it with a pointer after loading.
                         TocSection section = Sections[item];
-                        writer.Write(section.TocOffset);
+                        writer.Write((UInt64)section.TocOffset);
                         break;
                     }
                     case >= 0:

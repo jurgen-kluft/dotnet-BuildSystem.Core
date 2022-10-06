@@ -238,11 +238,6 @@ namespace DataBuildSystem
             return false;
         }
 
-        public static bool Exists(string pubPath, Filename bigFileName)
-        {
-            return BigfileToc.Exists(Path.Join(pubPath, bigFileName)) && Bigfile.Exists(Path.Join(pubPath + bigFileName));
-        }
-
         #endregion
     }
 }
