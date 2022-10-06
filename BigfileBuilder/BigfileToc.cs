@@ -576,50 +576,50 @@ namespace DataBuildSystem
                 switch (block)
                 {
                     case -1:
-                    {
-                        // Write the offset to each section, use 64-bit so that
-                        // the C++ side can replace it with a pointer after loading.
-                        TocSection section = Sections[item];
-                        writer.Write((UInt64)section.TocOffset);
-                        break;
-                    }
-                    case >= 0:
-                    {
-                        if (block.IsEven())
                         {
-                            TocSection section = Sections[block / 2];
-                            ITocEntry e = section.Toc[item];
-
-                            Int32 offset = (Int32)(e.FileOffset.value >> 5);
-                            Int32 size = e.FileSize;
-                            if (HasChildren(e))
-                            {
-                                // Mark file size so that it is known that offset is actually an offset
-                                // within TOC to an array:
-                                // Int32   Number of Children
-                                // Int32[] FileId
-                                size = MarkHasChildrenInFileSize(size);
-                            }
-
-                            writer.Write(offset); // 32-bit
-                            writer.Write(size); // 32-bit
+                            // Write the offset to each section, use 64-bit so that
+                            // the C++ side can replace it with a pointer after loading.
+                            TocSection section = Sections[item];
+                            writer.Write((UInt64)section.TocOffset);
+                            break;
                         }
-                        else
+                    case >= 0:
                         {
-                            TocSection section = Sections[block / 2];
-                            ITocEntry e = section.Toc[item];
-                            if (HasChildren(e))
+                            if (block.IsEven())
                             {
-                                writer.Write(e.Children.Count);
-                                foreach (var ce in e.Children)
+                                TocSection section = Sections[block / 2];
+                                ITocEntry e = section.Toc[item];
+
+                                Int32 offset = (Int32)(e.FileOffset.value >> 5);
+                                Int32 size = e.FileSize;
+                                if (HasChildren(e))
                                 {
-                                    writer.Write(ce.FileId.Lower32());
+                                    // Mark file size so that it is known that offset is actually an offset
+                                    // within TOC to an array:
+                                    // Int32   Number of Children
+                                    // Int32[] FileId
+                                    size = MarkHasChildrenInFileSize(size);
+                                }
+
+                                writer.Write(offset); // 32-bit
+                                writer.Write(size); // 32-bit
+                            }
+                            else
+                            {
+                                TocSection section = Sections[block / 2];
+                                ITocEntry e = section.Toc[item];
+                                if (HasChildren(e))
+                                {
+                                    writer.Write(e.Children.Count);
+                                    foreach (var ce in e.Children)
+                                    {
+                                        writer.Write(ce.FileId.Lower32());
+                                    }
                                 }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
 
