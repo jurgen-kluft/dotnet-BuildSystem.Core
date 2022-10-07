@@ -17,13 +17,11 @@ namespace DataBuildSystem
 
         private readonly string mBigfileFilename;
 
-        private readonly List<BigfileFile> mBigfileFiles = new();
-
         private readonly string mDstPath;
         private readonly string mSubPath;
         private readonly string mPubPath;
 
-        private readonly Bigfile mBigFile;
+        private readonly List<Bigfile> mBigFiles;
         private readonly BigfileToc mBigFileToc;
 
         #endregion
@@ -37,7 +35,7 @@ namespace DataBuildSystem
 
             mBigfileFilename = bigfileFilename;
 
-            mBigFile = new();
+            mBigFiles = new();
             mBigFileToc = new();
         }
 
@@ -52,63 +50,71 @@ namespace DataBuildSystem
         /// </summary>
         public void Add(s64 fileId, string[] filenames)
         {
-            for (int i = 0; i < filenames.Length; ++i)
+            BigfileFile mainBigfileFile = new(filenames[0]);
+            for (int i = 1; i < filenames.Length; ++i)
             {
                 string filename = filenames[i];
                 BigfileFile bigfileFile = new(filename);
-                switch (i == 0)
-                {
-                    case true:
-                        bigfileFile.FileId = fileId;
-                        break;
-                    case false:
-                        bigfileFile.FileId = -1;
-                        mBigfileFiles[0].Children.Add(bigfileFile);
-                        break;
-                }
-                mBigfileFiles.Add(bigfileFile);
+                bigfileFile.FileId = -1;
+                mainBigfileFile.Children.Add(bigfileFile);
             }
+
+            // TODO Determine the Bigfile linked to this FileId
+            mBigFiles[0].Files.Add(mainBigfileFile);
         }
 
-        private void Simulate()
+        // Returns the size of the final Bigfile
+        private Int64 Simulate()
         {
-            StreamOffset currentOffset = new(0);
-
-            s64 prevFileId = -1;
-            for (int fileId = 0; fileId < mBigfileFiles.Count; fileId++)
+            // Simulation:
+            // Compute the file Id
+            for (int i = 0; i < mBigFiles.Count; i++)
             {
-                BigfileFile bigfileFile = mBigfileFiles[fileId];
-                if (bigfileFile.FileId == -1)
+                Bigfile bigfile = mBigFiles[i];
+                
+                s64 fileId = 0;
+                for (int j = 0; j < bigfile.Files.Count; j++)
                 {
-                    bigfileFile.FileId = prevFileId;
-                }
-                else
-                {
-                    prevFileId = bigfileFile.FileId;
+                    BigfileFile bigfileFile = bigfile.Files[j];
+                    if (bigfileFile.FileId == -1)
+                    {
+                        bigfileFile.FileId = fileId;
+                    }
+                    else
+                    {
+                        fileId = bigfileFile.FileId;
+                    }
                 }
             }
 
             // Simulation:
-            // Compute the file Id, file size and offset for each BigfileFile
-            for (int fileId = 0; fileId < mBigfileFiles.Count; fileId++)
+            // Compute the file size and offset for each BigfileFile
+            StreamOffset currentOffset = new(0);
+            for (int i = 0; i < mBigFiles.Count; i++)
             {
-                BigfileFile bigfileFile = mBigfileFiles[fileId];
+                Bigfile bigfile = mBigFiles[i];
 
-                FileInfo fileInfo = new(Path.Join(mDstPath, bigfileFile.Filename));
-                if (fileInfo.Exists)
+                for (int j = 0; j < bigfile.Files.Count; j++)
                 {
-                    bigfileFile.FileOffset = new(currentOffset);
-                    bigfileFile.FileSize = (Int32)fileInfo.Length;
-                }
-                else
-                {
-                    bigfileFile.FileOffset = StreamOffset.Empty;
-                    bigfileFile.FileSize = 0;
-                }
+                    BigfileFile bigfileFile = bigfile.Files[j];
 
-                currentOffset += bigfileFile.FileSize;
-                currentOffset.Align(BigfileConfig.FileAlignment);
+                    FileInfo fileInfo = new(Path.Join(mDstPath, bigfileFile.Filename));
+                    if (fileInfo.Exists)
+                    {
+                        bigfileFile.FileOffset = new(currentOffset);
+                        bigfileFile.FileSize = (Int32)fileInfo.Length;
+                    }
+                    else
+                    {
+                        bigfileFile.FileOffset = StreamOffset.Empty;
+                        bigfileFile.FileSize = 0;
+                    }
+
+                    currentOffset += bigfileFile.FileSize;
+                    currentOffset.Align(BigfileConfig.FileAlignment);
+                }
             }
+            return currentOffset.value;
         }
 
         /// <summary>
@@ -117,38 +123,38 @@ namespace DataBuildSystem
         /// <returns>True if build was successful</returns>
         public bool Save(EEndian endian, bool buildBigfileData)
         {
-            Simulate();
+            BigfileWriter writer = new ();
 
-            BigfileFile[] bigfileFiles = new BigfileFile[mBigfileFiles.Count];
+            // Opening the Bigfile
+            if (!writer.Open(Path.Join(mPubPath, mBigfileFilename)))
             {
-                // Opening the Bigfile
-                if (!mBigFile.Open(Path.Join(mPubPath, mBigfileFilename), Bigfile.EMode.Write))
-                {
-                    Console.WriteLine("Error opening Bigfile: {0}", mBigfileFilename);
-                    return false;
-                }
-
-                for (int i = 0; i < mBigfileFiles.Count; i++)
-                {
-                    BigfileFile bigfileFile = mBigfileFiles[i];
-                    bigfileFiles[bigfileFile.FileId] = bigfileFile;
-                }
-
-                // Write all files to the Bigfile
-                if (buildBigfileData)
-                {
-                    if (!mBigFile.Save(mDstPath, bigfileFiles))
-                    {
-                        Console.WriteLine("Error saving Bigfile: {0}", mBigfileFilename);
-                        return false;
-                    }
-                }
-
-                mBigFile.Close();
+                Console.WriteLine("Error opening BigfileWriter: {0}", mBigfileFilename);
+                return false;
             }
 
+            Int64 bigfileSize = Simulate();
+            writer.SetLength(bigfileSize);
+
+            // Write all files to the Bigfile
+            if (buildBigfileData)
+            {
+                for (int i = 0; i < mBigFiles.Count; i++)
+                {
+                    Bigfile bigfile = mBigFiles[i];
+
+                    for (int j = 0; j < bigfile.Files.Count; j++)
+                    {
+                        BigfileFile bigfileFile = bigfile.Files[i];
+                        Int64 offset = writer.Save(Path.Join(mDstPath, bigfileFile.Filename));
+                        bigfileFile.FileOffset = new StreamOffset(offset);
+                    }
+                }
+            }
+
+            writer.Close();
+
             BigfileToc bft = new BigfileToc();
-            if (!bft.Save(Path.Join(mPubPath, Path.ChangeExtension(mBigfileFilename, BigfileConfig.BigFileTocExtension)), endian, bigfileFiles))
+            if (!bft.Save(Path.Join(mPubPath, Path.ChangeExtension(mBigfileFilename, BigfileConfig.BigFileTocExtension)), endian, mBigFiles))
             {
                 Console.WriteLine("Error saving BigFileToc: {0}", mBigfileFilename);
                 return false;
@@ -157,26 +163,23 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool Load(string dstPath, EEndian endian, Dictionary<s64, BigfileFile> fileIdToBigfileFile)
+        public bool Load(string dstPath, EEndian endian, List<Bigfile> bigfiles)
         {
-            Bigfile bigFile = new();
-            bigFile.Open(mDstPath + mSubPath + mBigfileFilename, Bigfile.EMode.Read);
-
+            BigfileReader reader = new();
+            reader.Open(Path.Join(mDstPath, mSubPath, mBigfileFilename));
+            
             BigfileToc bigFileToc = new();
-            if (bigFileToc.Load(Path.Join(mDstPath, mSubPath, mBigfileFilename), endian, out List<BigfileToc.TocSection> sections, out List<BigfileToc.ITocEntry> entries))
+            if (bigFileToc.Load(Path.Join(mDstPath, mSubPath, mBigfileFilename), endian, bigfiles))
             {
-                foreach(var e in entries)
+                foreach(var bf in bigfiles)
                 {
-                    BigfileFile bff = new(e.Filename, e.FileSize, e.FileOffset, e.FileId, e.FileContentHash);
-                    if (bff.IsEmpty)
+                    foreach(var bff in bf.Files)
                     {
-                        Console.WriteLine("No info for file {0} with id {1}", dstPath + bff.Filename, e.FileId);
-                        return false;
-                    }
-
-                    if (!fileIdToBigfileFile.ContainsKey(bff.FileId))
-                    {
-                        fileIdToBigfileFile.Add(bff.FileId, bff);
+                        if (bff.IsEmpty)
+                        {
+                            Console.WriteLine("No info for file {0} with id {1}", dstPath + bff.Filename, bff.FileId);
+                            return false;
+                        }
                     }
                 }
             }
@@ -188,27 +191,38 @@ namespace DataBuildSystem
             return true;
         }
 
-        private bool Save(string dataPath, List<BigfileFile> bigfileFiles, EEndian endian)
+        private bool Save(string dataPath, List<Bigfile> bigfiles, EEndian endian)
         {
+            BigfileWriter writer = new();
+
             // Opening the Bigfile
-            if (!mBigFile.Open(mDstPath + mSubPath + mBigfileFilename, Bigfile.EMode.Write))
+            if (!writer.Open(Path.Join(mDstPath, mSubPath, mBigfileFilename)))
             {
                 Console.WriteLine("Error opening Bigfile: {0}", mBigfileFilename);
                 return false;
             }
 
             // Write all files to the Bigfile
-            if (!mBigFile.Save(dataPath, bigfileFiles.ToArray()))
+            foreach(var bf in bigfiles)
             {
-                Console.WriteLine("Error saving Bigfile: {0}", mBigfileFilename);
-                return false;
+                foreach(var bff in bf.Files)
+                {
+                    Int64 offset = writer.Save(Path.Join(dataPath, bff.Filename));
+                    bff.FileOffset = new StreamOffset(offset);
+                    if (offset < 0)
+                    {
+                        Console.WriteLine("Error saving Bigfile: {0}", mBigfileFilename);
+                        return false;
+                    }
+                }
             }
+            // Close the Bigfile
+            writer.Close();
 
-            mBigFile.Close();
-
+            // Write the TOC
             BigfileToc bft = new();
             string bftFilePath = Path.Join(mDstPath, mSubPath, Path.ChangeExtension(mBigfileFilename, BigfileConfig.BigFileTocExtension));
-            if (!bft.Save(bftFilePath, endian, bigfileFiles.ToArray()))
+            if (!bft.Save(bftFilePath, endian, bigfiles))
             {
                 Console.WriteLine("Error saving {0}", bftFilePath);
                 return false;

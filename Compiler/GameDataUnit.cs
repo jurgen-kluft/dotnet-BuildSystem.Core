@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using GameCore;
@@ -12,17 +10,17 @@ namespace DataBuildSystem
 
 	public class GameDataUnits
 	{
-		private List<GameDataUnit> DataUnits = new List<GameDataUnit>();
+		private List<GameDataUnit> DataUnits { get; set; } = new ();
 
 		public GameDataUnits() { }
 
 		private AssemblyLoadContext mGameDataAssemblyContext;
 		private Assembly mGameDataAssembly;
 
-		private Assembly LoadAssembly(string gamedata_dll_filename)
+		private Assembly LoadAssembly(string gameDataDllFilename)
 		{
 			mGameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-			byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gamedata_dll_filename);
+			byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataDllFilename);
 			mGameDataAssembly = mGameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
 
 			return mGameDataAssembly;
@@ -33,7 +31,7 @@ namespace DataBuildSystem
 			mGameDataAssembly = null;
 		}
 
-		public State Update(string srcpath, string dstpath)
+		public State Update(string srcPath, string dstPath)
 		{
 			// Foreach DataUnit that is out-of-date or missing
 			foreach (GameDataUnit gdu in DataUnits)
@@ -47,53 +45,53 @@ namespace DataBuildSystem
 				if (gduGameDataDll.IsOk && gduCompilerLog.IsOk && gduGameDataData.IsOk && gduBigfile.IsOk)
 				{
 					// All is up-to-date, but source files might have changed!
-					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+					GameDataCompilerLog gdCl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
 
 					// Load the compiler log so that they can be used to verify the source files
-					List<IDataCompiler> loaded_compilers = new();
-					gdcl.Load(loaded_compilers);
-					gdcl.AssignFileId(gdu.Index, loaded_compilers);
-					
+					List<IDataCompiler> loadedCompilers = new();
+					gdCl.Load(loadedCompilers);
+					gdCl.AssignFileId(gdu.Index, loadedCompilers);
+
 					// Execute all compilers, every compiler will thus check it's dependencies (source and destination files)
-					Result result = gdcl.Execute(loaded_compilers, out List<DataCompilerOutput> gdcl_output);
+					Result result = gdCl.Execute(loadedCompilers, out List<DataCompilerOutput> gdClOutput);
 					if (result != Result.Ok)
 					{
 						// Some (or all) compilers reported a change, now we have to load the assembly and build the Bigfile and Game Data.
-						Assembly gdasm = LoadAssembly(gdu.FilePath);
-						GameDataData gdd = new(gdasm);
+						Assembly gdAsm = LoadAssembly(gdu.FilePath);
+						GameDataData gdd = new(gdAsm);
 
 						// We have to collect the data compilers from the gdd because we have to assign FileId's
 						// The number and order of data compilers should be identical with 'loaded_compilers'
-						List<IDataCompiler> current_compilers = gdd.CollectDataCompilers();
-						gdcl.AssignFileId(gdu.Index, current_compilers);
+						List<IDataCompiler> currentCompilers = gdd.CollectDataCompilers();
+						gdCl.AssignFileId(gdu.Index, currentCompilers);
 
 						// Compiler log is updated -> rebuild the Bigfile
 						// As long as all the FileId's will be the same we do not need to build/save the game data files
 						GameDataBigfile bff = new();
-						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdcl_output);
+						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
 						gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
 						// Lastly we need to save the game data compiler log
-						gdcl.Save(loaded_compilers);
+						gdCl.Save(loadedCompilers);
 
 						UnloadAssembly();
 					}
 				}
 				else if (gduGameDataDll.IsOk && gduCompilerLog.IsNotOk && gduGameDataData.IsOk && gduBigfile.IsOk)
 				{
-					Assembly gdasm = LoadAssembly(gdu.FilePath);
-					GameDataData gdd = new(gdasm);
+					Assembly gdAsm = LoadAssembly(gdu.FilePath);
+					GameDataData gdd = new(gdAsm);
 
-					List<IDataCompiler> current_compilers = gdd.CollectDataCompilers();
+					List<IDataCompiler> currentCompilers = gdd.CollectDataCompilers();
 
-					List<IDataCompiler> loaded_compilers = new(current_compilers.Count);
-					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
-					gdcl.Load(loaded_compilers);
-				
-					gdcl.Merge(loaded_compilers, current_compilers, out List<IDataCompiler> merged_compilers);
-					gdcl.AssignFileId(gdu.Index, merged_compilers);
+					List<IDataCompiler> loadedCompilers = new(currentCompilers.Count);
+					GameDataCompilerLog gdCl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+					gdCl.Load(loadedCompilers);
 
-					Result result = gdcl.Execute(merged_compilers, out List<DataCompilerOutput> gdcl_output);
+					gdCl.Merge(loadedCompilers, currentCompilers, out List<IDataCompiler> mergedCompilers);
+					gdCl.AssignFileId(gdu.Index, mergedCompilers);
+
+					Result result = gdCl.Execute(mergedCompilers, out List<DataCompilerOutput> gdClOutput);
 					if (result == Result.Ok)
 					{
 						if (gduGameDataData.IsNotOk || gduBigfile.IsNotOk)
@@ -106,32 +104,32 @@ namespace DataBuildSystem
 					{
 						// Compiler log is updated -> rebuild the Bigfiles and GameData files
 						GameDataBigfile bff = new();
-						bff.Save(Path.ChangeExtension(gdu.FilePath, BigfileConfig.BigFileExtension), gdcl_output);
+						bff.Save(Path.ChangeExtension(gdu.FilePath, BigfileConfig.BigFileExtension), gdClOutput);
 						gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
 						// Everything is saved, now save the compiler log
-						gdcl.Save(merged_compilers);
+						gdCl.Save(mergedCompilers);
 					}
 
 					UnloadAssembly();
 				}
 				else if (gduGameDataDll.IsNotOk && gduCompilerLog.IsOk && gduGameDataData.IsOk && gduBigfile.IsOk)
 				{
-					Assembly gdasm = LoadAssembly(gdu.FilePath);
-					GameDataData gdd = new(gdasm);
+					Assembly gdAsm = LoadAssembly(gdu.FilePath);
+					GameDataData gdd = new(gdAsm);
 
-					List<IDataCompiler> current_compilers = gdd.CollectDataCompilers();
+					List<IDataCompiler> currentCompilers = gdd.CollectDataCompilers();
 
-					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+					GameDataCompilerLog gdCl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
 					if (gduGameDataData.IsOk && gduBigfile.IsOk)
 					{
 						// See if compiler log is up-to-date, including the source files
-						List<IDataCompiler> loaded_compilers = new(current_compilers.Count);
-						gdcl.Load(loaded_compilers);
-						Result result = gdcl.Merge(loaded_compilers, current_compilers, out List<IDataCompiler> merged_compilers);
-						gdcl.AssignFileId(gdu.Index, merged_compilers);
+						List<IDataCompiler> loadedCompilers = new(currentCompilers.Count);
+						gdCl.Load(loadedCompilers);
+						Result result = gdCl.Merge(loadedCompilers, currentCompilers, out List<IDataCompiler> mergedCompilers);
+						gdCl.AssignFileId(gdu.Index, mergedCompilers);
 
-						result = gdcl.Execute(merged_compilers, out List<DataCompilerOutput> gdcl_output);
+						result = gdCl.Execute(mergedCompilers, out List<DataCompilerOutput> gdClOutput);
 						if (result == Result.Ok)
 						{
 							UnloadAssembly();
@@ -140,31 +138,31 @@ namespace DataBuildSystem
 
 						// Compiler log is updated -> rebuild the Bigfiles
 						GameDataBigfile bff = new();
-						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdcl_output);
+						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
 
-						gdcl.Save(merged_compilers);
+						gdCl.Save(mergedCompilers);
 					}
 					UnloadAssembly();
 				}
 				else if (gduGameDataDll.IsOk && gduCompilerLog.IsOk && gduGameDataData.IsOk && gduBigfile.IsNotOk)
 				{
-					Assembly gdasm = LoadAssembly(gdu.FilePath);
-					GameDataData gdd = new(gdasm);
+					Assembly gdAsm = LoadAssembly(gdu.FilePath);
+					GameDataData gdd = new(gdAsm);
 
-					List<IDataCompiler> current_compilers = gdd.CollectDataCompilers();
-					List<IDataCompiler> loaded_compilers = new(current_compilers.Count);
+					List<IDataCompiler> currentCompilers = gdd.CollectDataCompilers();
+					List<IDataCompiler> loadedCompilers = new(currentCompilers.Count);
 
-					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
-					gdcl.AssignFileId(gdu.Index, current_compilers);
-					gdcl.Load(loaded_compilers);
-					
-					Result result = gdcl.Execute(loaded_compilers, out List<DataCompilerOutput> gdcl_output);
+					GameDataCompilerLog gdCl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+					gdCl.AssignFileId(gdu.Index, currentCompilers);
+					gdCl.Load(loadedCompilers);
+
+					Result result = gdCl.Execute(loadedCompilers, out List<DataCompilerOutput> gdClOutput);
 					// If the execution shows that everything is up-to-date we do not need to save the .gdd and .gdcl
 
 					GameDataBigfile bff = new();
-					bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdcl_output);
+					bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
 					gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
-					gdcl.Save(loaded_compilers);
+					gdCl.Save(loadedCompilers);
 
 					UnloadAssembly();
 				}
@@ -172,20 +170,20 @@ namespace DataBuildSystem
 				{
 					// Game Data (.gdd) file or it's relocation data has changed or is deleted
 
-					List<IDataCompiler> loaded_compilers = new();
+					List<IDataCompiler> loadedCompilers = new();
 
 					// We need the list of destination files (for determining the FileId's)
 					// So we need to load the Game Data Compiler Log and verify that source and destination files
 					// have not changed.
-					GameDataCompilerLog gdcl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
-					gdcl.Load(loaded_compilers);
-					gdcl.AssignFileId(gdu.Index, loaded_compilers);
+					GameDataCompilerLog gdCl = new(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+					gdCl.Load(loadedCompilers);
+					gdCl.AssignFileId(gdu.Index, loadedCompilers);
 
-					Result result = gdcl.Execute(loaded_compilers, out List<DataCompilerOutput> gdcl_output);
+					Result result = gdCl.Execute(loadedCompilers, out List<DataCompilerOutput> gdClOutput);
 					if (result == Result.Ok)
 					{
-						Assembly gdasm = LoadAssembly(gdu.FilePath);
-						GameDataData gdd = new(gdasm);
+						Assembly gdAsm = LoadAssembly(gdu.FilePath);
+						GameDataData gdd = new(gdAsm);
 
 						// All source and destination files are up-to-date
 						gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
@@ -194,20 +192,20 @@ namespace DataBuildSystem
 					}
 					else
 					{
-						// Hmmmm, the GameDataCompilerLog indicated that some (or all) compilers detected changes.
-						Assembly gdasm = LoadAssembly(gdu.FilePath);
-						GameDataData gdd = new(gdasm);
+						// Hmm, the GameDataCompilerLog indicated that some (or all) compilers detected changes.
+						Assembly gdAsm = LoadAssembly(gdu.FilePath);
+						GameDataData gdd = new(gdAsm);
 
-						List<IDataCompiler> current_compilers = gdd.CollectDataCompilers();
-						gdcl.AssignFileId(gdu.Index, current_compilers);
+						List<IDataCompiler> currentCompilers = gdd.CollectDataCompilers();
+						gdCl.AssignFileId(gdu.Index, currentCompilers);
 
 						// All source and destination files are up-to-date
 						gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
 						GameDataBigfile bff = new();
-						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdcl_output);
+						bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
 
-						gdcl.Save(loaded_compilers);
+						gdCl.Save(loadedCompilers);
 
 						UnloadAssembly();
 
@@ -217,36 +215,35 @@ namespace DataBuildSystem
 			return State.Ok;
 		}
 
-		public void Load(string dstpath, string gddpath)
+		public void Load(string dstPath, string gddPath)
 		{
-			// Scan the gddpath folder for all game data .dll's
+			// Scan the gddPath folder for all game data .dll's
 			Dictionary<Hash160, string> hashToPath = new();
-			foreach (var path in GameCore.DirUtils.EnumerateFiles(gddpath, "*.dll", SearchOption.TopDirectoryOnly))
+			foreach (var path in DirUtils.EnumerateFiles(gddPath, "*.dll", SearchOption.TopDirectoryOnly))
 			{
-				string filepath = path.RelativePath(gddpath.Length + 1).Span.ToString();
-				if (Path.GetFileNameWithoutExtension(filepath).StartsWith("GameData"))
-				{
-					Hash160 hash = HashUtility.Compute_UTF8(filepath);
-					hashToPath.Add(hash, filepath);
-				}
-			}
+				string filepath = path.RelativePath(gddPath.Length + 1).ToString();
+                if (!Path.GetFileNameWithoutExtension(filepath).StartsWith("GameData")) continue;
+
+                Hash160 hash = HashUtility.Compute_UTF8(filepath);
+                hashToPath.Add(hash, filepath);
+            }
 
 			List<int> indices = new();
 			for (int i = 0; i < (2 * hashToPath.Count); i++)
 				indices.Add(i);
 
-			BinaryFileReader binaryfile = new BinaryFileReader();
-			if (binaryfile.Open(Path.Join(dstpath, "GameDataUnits.log")))
+			BinaryFileReader binaryFile = new BinaryFileReader();
+			if (binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log")))
 			{
-				UInt32 magic = binaryfile.ReadUInt32();
+				uint magic = binaryFile.ReadUInt32();
 				if (magic == StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'))
 				{
-					Int32 numUnits = binaryfile.ReadInt32();
+					int numUnits = binaryFile.ReadInt32();
 					DataUnits = new List<GameDataUnit>(numUnits);
 
 					for (int i = 0; i < numUnits; i++)
 					{
-						GameDataUnit gdu = GameDataUnit.Load(binaryfile);
+						GameDataUnit gdu = GameDataUnit.Load(binaryFile);
 
 						// Is this one still in the list of .dll's?
 						if (hashToPath.ContainsKey(gdu.Hash))
@@ -257,7 +254,7 @@ namespace DataBuildSystem
 						}
 					}
 				}
-				binaryfile.Close();
+				binaryFile.Close();
 			}
 
 			// Any new DataUnit's -> create them!
@@ -269,34 +266,28 @@ namespace DataBuildSystem
 			}
 		}
 
-		public void Save(string dstpath)
+		public void Save(string dstPath)
 		{
-			BinaryFileWriter binaryfile = new BinaryFileWriter();
-			binaryfile.Open(Path.Join(dstpath, "GameDataUnits.log"));
+			BinaryFileWriter binaryFile = new BinaryFileWriter();
+			binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log"));
 
-			binaryfile.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
-			binaryfile.Write((Int32)DataUnits.Count);
+			binaryFile.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
+			binaryFile.Write(DataUnits.Count);
 			foreach (GameDataUnit gdu in DataUnits)
 			{
-				gdu.Save(binaryfile);
+				gdu.Save(binaryFile);
 			}
 
-			binaryfile.Close();
+			binaryFile.Close();
 		}
 	}
 
-	/// e.g.
-	/// FilePath: GameData.Fonts.dll
-	/// Index: 1
-	/// Units: [Modified,Ok,Ok,Ok,Ok,Ok,Ok,Ok]
-
-
 	public class GameDataUnit
 	{
-		public string FilePath { get; private set; }
-		public string Name { get; private set; }
-		public Hash160 Hash { get; set; }
-		public Int32 Index { get; set; }
+		public string FilePath { get; private init; }
+		public string Name { get; }
+		public Hash160 Hash { get; private init; }
+		public Int32 Index { get; private init; }
 		private State[] States { get; set; } = new State[(int)EGameData.Count];
 		private Dependency Dep { get; set; }
 
@@ -330,7 +321,6 @@ namespace DataBuildSystem
 
 		public void Verify()
 		{
-			Dep = Dependency.Load(EGameDataPath.Dst, FilePath);
 			if (Dep != null)
 			{
 				Dep.Update(delegate (short idx, State state)
@@ -358,18 +348,21 @@ namespace DataBuildSystem
 			writer.Write(FilePath);
 			Hash.WriteTo(writer);
 			writer.Write(Index);
-			for (int i = 0; i < States.Length; ++i)
-				writer.Write(States[i].AsInt);
-			Dep.WriteTo(writer);
+			foreach (var t in States)
+                writer.Write(t.AsInt);
+
+            Dep.WriteTo(writer);
 		}
 
 		public static GameDataUnit Load(IBinaryReader reader)
 		{
-			GameDataUnit gdu = new();
-			gdu.FilePath = reader.ReadString();
-			gdu.Hash = Hash160.ReadFrom(reader);
-			gdu.Index = reader.ReadInt32();
-			for (int i = 0; i < gdu.States.Length; ++i)
+			GameDataUnit gdu = new()
+            {
+                FilePath = reader.ReadString(),
+                Hash = Hash160.ReadFrom(reader),
+                Index = reader.ReadInt32()
+            };
+            for (int i = 0; i < gdu.States.Length; ++i)
 				gdu.States[i] = new State(reader.ReadInt32());
 			gdu.Dep = Dependency.ReadFrom(reader);
 			return gdu;

@@ -863,10 +863,10 @@ namespace DataBuildSystem
             return fileStream;
         }
 
-        public bool Load(string filename, EEndian endian, out List<TocSection> sections, out List<ITocEntry> entries)
+        public bool Load(string filename, EEndian endian, List<Bigfile> bigfiles)
         {
-            sections = new();
-            entries = new();
+            List<TocSection> sections = new();
+            List<ITocEntry> entries = new();
 
             try
             {
@@ -899,32 +899,46 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool Save(string bigfileFilename, EEndian endian, BigfileFile[] bigfileFiles)
+        public bool Save(string bigfileFilename, EEndian endian, List<Bigfile> bigfiles)
         {
             // Create all TocEntry items in the same order as the Bigfile files which is important
             // because the FileId is equal to the location(index) in the List/Array.
-            List<ITocEntry> entries = new(bigfileFiles.Length);
-            foreach (var file in bigfileFiles)
+            Int32 totalEntries = 0;
+            foreach (var bf in bigfiles)
             {
-                ITocEntry fileEntry = Factory.Create(file.FileId, file.FileOffset, file.FileSize, file.Filename, ECompressed.No, file.FileContentHash);
-                entries.Add(fileEntry);
+                totalEntries += bf.Files.Count;
+            }
+
+            List<TocSection> sections = new();
+            List<ITocEntry> entries = new(totalEntries);
+            foreach (var bf in bigfiles)
+            {
+                TocSection section = new();
+                foreach (var file in bf.Files)
+                {
+                    ITocEntry fileEntry = Factory.Create(file.FileId, file.FileOffset, file.FileSize, file.Filename, ECompressed.No, file.FileContentHash);
+                    entries.Add(fileEntry);
+                    section.Toc.Add(fileEntry);
+                }
+                sections.Add(section);
             }
 
             // Manage children of each TocEntry
-            List<TocSection> sections = new();
-            TocSection section = new();
-            section.Toc = new(bigfileFiles.Length);
-            sections.Add(section);
-            foreach (var file in bigfileFiles)
+            for (int i=0; i<bigfiles.Count; ++i)
             {
-                ITocEntry entry = entries[(int)file.FileId];
-                section.Toc[(int)file.FileId] = entry;
-                foreach (var childFile in file.Children)
+                Bigfile bf = bigfiles[i];
+                TocSection section = sections[i];
+
+                for (int j=0; j<bf.Files.Count; ++j)
                 {
-                    ITocEntry childEntry = entries[(int)childFile.FileId];
-                    section.Toc[(int)childFile.FileId] = childEntry;
-                    entry.Children.Add(childEntry);
-                    section.TocExtraCount++;
+                    BigfileFile bff = bf.Files[i];
+                    ITocEntry entry = entries[(int)bff.FileId];
+                    foreach (var child in bff.Children)
+                    {
+                        ITocEntry childEntry = entries[(int)child.FileId];
+                        entry.Children.Add(childEntry);
+                        section.TocExtraCount++;
+                    }
                 }
             }
 

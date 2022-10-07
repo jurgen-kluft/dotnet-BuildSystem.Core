@@ -8,14 +8,19 @@ namespace DataBuildSystem
 {
     public sealed class BigfileWriter
     {
-        private byte[] mReadCache;
-        private FileStream mFileStream;
+        private FileStream FileStream { get; set; }
+        private byte[] ReadCache { get; set; }
 
         public Int64 Position { get; private set; }
 
+        public BigfileWriter()
+        {
+            ReadCache = new byte[BigfileConfig.ReadBufferSize];
+        }
+
         public void SetLength(Int64 length)
         {
-            mFileStream.SetLength(length);
+            FileStream.SetLength(length);
         }
 
         public bool Open(string filepath)
@@ -26,12 +31,8 @@ namespace DataBuildSystem
 
                 string bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 FileInfo bigfileInfo = new(bigfileFilepath);
-
-                mReadCache = new byte[BigfileConfig.ReadBufferSize];
-
                 DirUtils.Create(bigfileInfo.DirectoryName);
-
-                mFileStream = new(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (Int32)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
+                FileStream = new(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (Int32)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
             }
             catch (Exception e)
             {
@@ -68,21 +69,21 @@ namespace DataBuildSystem
         private Int64 Write(Stream readStream, Int64 fileSize)
         {
             // Align the file on the calculated additionalLength
-            mFileStream.Position = Alignment.Align(mFileStream.Position, BigfileConfig.FileAlignment);
-            Int64 position = mFileStream.Position;
+            FileStream.Position = Alignment.Align(FileStream.Position, BigfileConfig.FileAlignment);
+            Int64 position = FileStream.Position;
 
             Debug.Assert(fileSize < Int32.MaxValue);
 
             if (fileSize <= BigfileConfig.ReadBufferSize)
             {
-                readStream.Read(mReadCache, 0, (Int32)fileSize);
-                mFileStream.Write(mReadCache, 0, (Int32)fileSize);
+                readStream.Read(ReadCache, 0, (Int32)fileSize);
+                FileStream.Write(ReadCache, 0, (Int32)fileSize);
             }
             else
             {
                 int br;
-                while ((br = readStream.Read(mReadCache, 0, mReadCache.Length)) > 0)
-                    mFileStream.Write(mReadCache, 0, br);
+                while ((br = readStream.Read(ReadCache, 0, ReadCache.Length)) > 0)
+                    FileStream.Write(ReadCache, 0, br);
             }
             return position;
         }
@@ -90,17 +91,17 @@ namespace DataBuildSystem
 
         public void Close()
         {
-            if (mFileStream != null)
+            if (FileStream != null)
             {
-                mFileStream.Close();
-                mFileStream = null;
+                FileStream.Close();
+                FileStream = null;
             }
         }
     }
 
     public sealed class BigfileReader
     {
-        private FileStream mFileStream;
+        private FileStream FileStream;
         private BinaryReader mBinaryReader;
 
         public bool Open(string filepath)
@@ -112,8 +113,8 @@ namespace DataBuildSystem
                 string bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 FileInfo bigfileInfo = new(bigfileFilepath);
 
-                mFileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
-                mBinaryReader = new(mFileStream);
+                FileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
+                mBinaryReader = new(FileStream);
             }
             catch (Exception e)
             {
@@ -126,7 +127,7 @@ namespace DataBuildSystem
 
         public void Close()
         {
-            if (mFileStream != null)
+            if (FileStream != null)
             {
                 if (mBinaryReader != null)
                 {
@@ -134,8 +135,8 @@ namespace DataBuildSystem
                     mBinaryReader = null;
                 }
 
-                mFileStream.Close();
-                mFileStream = null;
+                FileStream.Close();
+                FileStream = null;
             }
         }
     }
@@ -145,6 +146,7 @@ namespace DataBuildSystem
         #region Fields
 
         public List<BigfileFile> Files {get;set;} = new();
+        public int Index { get; set; }
 
         #endregion
 
