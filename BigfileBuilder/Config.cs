@@ -1,4 +1,5 @@
 using System;
+using GameCore;
 
 namespace DataBuildSystem
 {
@@ -45,6 +46,7 @@ namespace DataBuildSystem
         public static string BigFileFdbExtension => _sConfig.BigFileFdbExtension;
         public static string BigFileHdbExtension => _sConfig.BigFileHdbExtension;
         public static bool LittleEndian => _sConfig.LittleEndian;
+        public static EEndian Endian => _sConfig.LittleEndian ? EEndian.LITTLE: EEndian.BIG;
         public static Int64 FileAlignment => _sConfig.FileAlignment;
         public static bool AllowDuplicateFiles => _sConfig.AllowDuplicateFiles;
         public static UInt32 ReadBufferSize => _sConfig.ReadBufferSize;

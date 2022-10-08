@@ -75,7 +75,6 @@ namespace DataBuildSystem
 
 			// Create the destination, gdd and publish output paths
 			DirUtils.Create(BuildSystemCompilerConfig.DstPath);
-			DirUtils.Create(BuildSystemCompilerConfig.GddPath);
 			DirUtils.Create(BuildSystemCompilerConfig.PubPath);
 
 			string gameDataRootDllName = "GameData.Root.DLL";
@@ -94,7 +93,10 @@ namespace DataBuildSystem
 				foreach (var config in configsForCompiler)
 				{
 					if (config.Platform == BuildSystemCompilerConfig.PlatformName)
+					{
 						BuildSystemCompilerConfig.Init(config);
+						break;
+					}
 				}
 			}
 			else
@@ -110,7 +112,10 @@ namespace DataBuildSystem
 				foreach (var config in configsForBigfileBuilder)
 				{
 					if (config.Platform == BuildSystemCompilerConfig.PlatformName)
+					{
 						BigfileConfig.Init(config);
+						break;
+					}
 				}
 			}
 			else

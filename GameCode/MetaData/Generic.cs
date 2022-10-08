@@ -1601,7 +1601,7 @@ namespace GameData
                     if (p.Key != StreamReference.Empty)
                     {
                         for (int i = 0; i < p.Value.Count; i++)
-                            resourceDataReallocTableWriter.Write(p.Value[i].value);
+                            resourceDataReallocTableWriter.Write(p.Value[i].Offset);
                     }
                 }
 

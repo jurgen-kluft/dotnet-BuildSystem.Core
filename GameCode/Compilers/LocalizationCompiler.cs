@@ -36,7 +36,7 @@ namespace GameData
             }
         }
 
-        public int CompilerExecute(List<DataCompilerOutput> output)
+        public DataCompilerOutput CompilerExecute()
         {
             // Load 'languages list' file
             try
@@ -51,15 +51,14 @@ namespace GameData
                         mDstFilenames.Add(filename);
                     }
                 }
-                output.Add(new DataCompilerOutput(FileId, mDstFilenames.ToArray()));
                 ts.Close();
             }
             catch (Exception)
             {
                 //mStatus = ERROR;
-                return -1;
+                return new DataCompilerOutput(-1, mDstFilenames.ToArray());
             }
-            return 0;
+            return new DataCompilerOutput(0, mDstFilenames.ToArray());        
         }
 
         public Int64 FileId { get; set; }

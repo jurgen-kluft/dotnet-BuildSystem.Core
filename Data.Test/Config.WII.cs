@@ -13,7 +13,7 @@ namespace DataBuildSystem
 		public string BigFileHdbExtension { get { return ".bfh"; } }
 		public string BigFileNodeExtension { get { return ".bfn"; } }
         public bool LittleEndian { get { return false; } }
-        public UInt32 FileAlignment { get { return 2048; } }
+        public Int64 FileAlignment { get { return 2048; } }
         public bool AllowDuplicateFiles { get { return false; } }
         public bool WriteAsync { get { return true; } }
         public UInt32 ReadBufferSize { get { return 64 * 1024; } }

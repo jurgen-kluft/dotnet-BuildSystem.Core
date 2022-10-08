@@ -323,7 +323,7 @@ namespace GameCore
 
                         for (int i = 0; i < k.Value.Count; i++)
                         {
-                            Debug.Assert(k.Value[i].value != -1);
+                            Debug.Assert(k.Value[i].Offset != -1);
                             context.Add(new StreamOffset(currentContext.Offset + k.Value[i]));
                         }
 
@@ -345,7 +345,7 @@ namespace GameCore
 
                         for (int i = 0; i < k.Value.Count; i++)
                         {
-                            Debug.Assert(k.Value[i].value != -1);
+                            Debug.Assert(k.Value[i].Offset != -1);
                             context.Add(new StreamOffset(currentContext.Offset + k.Value[i]));
                         }
 

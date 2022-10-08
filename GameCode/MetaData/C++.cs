@@ -659,7 +659,7 @@ namespace GameData
                         foreach (StreamOffset o in k.Value)
                         {
                             mDataWriter.Seek(o);
-                            mDataWriter.Write(outDataOffset.value);
+                            mDataWriter.Write(outDataOffset.Offset);
                         }
                     }
                 }
@@ -676,7 +676,7 @@ namespace GameData
                 {
                     foreach (StreamOffset o in k.Value)
                     {
-                        outReallocationTable.Write(currentOffset.value + o.value);
+                        outReallocationTable.Write(currentOffset.Offset + o.Offset);
                     }
                 }
             }

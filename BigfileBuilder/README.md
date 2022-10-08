@@ -5,7 +5,7 @@
 The TOC file can contain multiple TOC-Sections.
 
 The main TOC layout:
-  - Int32: Number of Entries in total
+  - Int32: Number of Entries (Total)
   - Int32: Number of Sections
   - Array {Int32:toc count, Int32:toc offset, Int64:data offset}
 

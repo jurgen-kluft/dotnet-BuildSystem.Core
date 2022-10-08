@@ -89,7 +89,7 @@ namespace GameCore
                     return false;
                 }
 
-                Int32 offsetToWrite = (Int32)mOffsetOfReferenceInStream.value;
+                Int32 offsetToWrite = (Int32)mOffsetOfReferenceInStream.Offset;
 
                 StreamOffset currentOffset = new StreamOffset(writer.Position);
                 foreach (StreamOffset o in mReferencesOfReferenceInStream)

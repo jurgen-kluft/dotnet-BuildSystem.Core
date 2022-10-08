@@ -6,7 +6,7 @@ using DataBuildSystem;
 namespace GameData
 {
     // e.g. new MeshCompiler("Models/Car.tri");
-    public class MeshCompiler : IDataCompiler, IDataCompilerClient, IFileIdsProvider
+    public class MeshCompiler : IDataCompiler, IFileIdProvider
     {
         private string mSrcFilename;
         private string mDstFilename;
@@ -20,6 +20,9 @@ namespace GameData
             mSrcFilename = srcfilename;
             mDstFilename = dstfilename;
         }
+
+        public IFileIdProvider CompilerFileIdProvider => this;
+        public long FileId { get; set; }
 
         public void CompilerSignature(IBinaryWriter stream)
         {
@@ -49,11 +52,13 @@ namespace GameData
 
         }
 
-        public void CompilerExecute()
+        public DataCompilerOutput CompilerExecute()
         {
             // Execute the actual purpose of this compiler
-            
+
             // Call our external process to compile this mesh (obj, ply) into a tri format
+
+            return new(1, new[] { mDstFilename });
         }
 
         public void CompilerFinished()
@@ -61,7 +66,5 @@ namespace GameData
             // Update dependency information of src and dst file
 
         }
-
-        public FileId[] FileIds { get { return new FileId[] { FileId.NewInstance(mDstFilename) }; } }
     }
 }

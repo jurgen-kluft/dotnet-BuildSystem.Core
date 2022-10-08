@@ -20,14 +20,6 @@ namespace DataBuildSystem
         #endregion
         #region Properties
 
-        public bool IsEmpty
-        {
-            get
-            {
-                return FileSize == 0 && FileOffset.isEmpty && Filename == string.Empty;
-            }
-        }
-
         public string Filename { get; private set; }
         public Int32 FileSize { get; set; } = 0;
         public StreamOffset FileOffset { get; set; } = StreamOffset.Empty;
@@ -63,7 +55,7 @@ namespace DataBuildSystem
 
         public override int GetHashCode()
         {
-            return FileOffset.value.GetHashCode();
+            return Filename.GetHashCode();
         }
 
         #endregion

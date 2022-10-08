@@ -590,7 +590,7 @@ namespace DataBuildSystem
                                 TocSection section = Sections[block / 2];
                                 ITocEntry e = section.Toc[item];
 
-                                Int32 offset = (Int32)(e.FileOffset.value >> 5);
+                                Int32 offset = (Int32)(e.FileOffset.Offset >> 5);
                                 Int32 size = e.FileSize;
                                 if (HasChildren(e))
                                 {

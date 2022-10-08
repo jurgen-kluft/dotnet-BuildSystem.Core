@@ -22,7 +22,6 @@ namespace GameData
 		BigFileToc = 5,
 		BigFileFilenames = 6,
 		BigFileHashes = 7,
-		Count = 8,
 	}
 
 	public static class GameDataPath

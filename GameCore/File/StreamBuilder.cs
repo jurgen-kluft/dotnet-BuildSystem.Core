@@ -75,7 +75,7 @@ namespace GameCore
 
         public override int GetHashCode()
         {
-            return FileOffset.value.GetHashCode();
+            return FileOffset.Offset.GetHashCode();
         }
 
         #endregion
@@ -109,7 +109,7 @@ namespace GameCore
             for (int fileIndex=0; fileIndex<files.Count; fileIndex++)
             {
                 StreamFile file = files[fileIndex];
-                mDstFilestream.Position = file.FileOffset.value;
+                mDstFilestream.Position = file.FileOffset.Offset;
                 if (File.Exists(file.Filename))
                 {
                     try

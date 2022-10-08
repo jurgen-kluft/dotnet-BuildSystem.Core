@@ -44,7 +44,7 @@ namespace GameData
         public IFileIdProvider CompilerFileIdProvider => this;
         public long FileId { get; set; }
 
-        public int CompilerExecute(List<DataCompilerOutput> output)
+        public DataCompilerOutput CompilerExecute()
         {
             if (mDependency == null)
             {
@@ -52,9 +52,7 @@ namespace GameData
                 mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
             }
 
-            output.Add(new DataCompilerOutput(FileId, new[] { mDstFilename }));
-
-            if (!mDependency.Update(null)) return 0;
+            if (!mDependency.Update(null)) return new(0, new[] { mDstFilename });
 
             // Execute the actual purpose of this compiler
             try
@@ -63,9 +61,9 @@ namespace GameData
             }
             catch (Exception)
             {
-                return -1;
+                return new(-1, new[] { mDstFilename });
             }
-            return 1;
+            return new(1, new[] { mDstFilename });
         }
     }
 }

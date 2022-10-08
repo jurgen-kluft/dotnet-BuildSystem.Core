@@ -23,36 +23,36 @@ namespace DataBuildSystem
 			}
 		}
 
-		public Result Merge(List<IDataCompiler> previous_compilers, List<IDataCompiler> current_compilers, out List<IDataCompiler> merged_compilers)
+		public Result Merge(List<IDataCompiler> previousCompilers, List<IDataCompiler> currentCompilers, out List<IDataCompiler> mergedCompilers)
 		{
-			merged_compilers = new List<IDataCompiler>(current_compilers.Count);
+			mergedCompilers = new List<IDataCompiler>(currentCompilers.Count);
 
 			// Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into
 			// 'merged_compilers'.
 			// Report if there was anything 'merged'.
 
 			// Build the signature database of 'previous_compilers'
-			var previousCompilerSignatureList = BuildCompilerSignatureList(previous_compilers);
-			var currentCompilerSignatureList = BuildCompilerSignatureList(current_compilers);
+			var previousCompilerSignatureList = BuildCompilerSignatureList(previousCompilers);
+			var currentCompilerSignatureList = BuildCompilerSignatureList(currentCompilers);
 
-			int merged_previous_count = 0;
-			int merged_current_count = 0;
+			int mergedPreviousCount = 0;
+			int mergedCurrentCount = 0;
 			Result result = Result.Ok;
 			foreach (var signature in currentCompilerSignatureList)
 			{
 				int index = previousCompilerSignatureList.BinarySearch(signature, new SignatureComparer());
 				if (index >= 0)
 				{
-					merged_previous_count++;
-					merged_compilers.Add(previousCompilerSignatureList[index].Value);
+					mergedPreviousCount++;
+					mergedCompilers.Add(previousCompilerSignatureList[index].Value);
 				}
 				else
 				{
-					merged_current_count++;
-					merged_compilers.Add(signature.Value);
+					mergedCurrentCount++;
+					mergedCompilers.Add(signature.Value);
 				}
 			}
-			if (merged_previous_count == current_compilers.Count)
+			if (mergedPreviousCount == currentCompilers.Count)
 			{
 				return Result.Ok;
 			}
@@ -61,44 +61,50 @@ namespace DataBuildSystem
 
 		private List<KeyValuePair<Hash160, IDataCompiler>> BuildCompilerSignatureList(List<IDataCompiler> compilers)
 		{
-            MemoryStream memoryStream = new();
-            BinaryMemoryWriter memoryWriter = new();
+			List<KeyValuePair<Hash160, IDataCompiler>> signatureList = new(compilers.Count);
 
-            List<KeyValuePair<Hash160, IDataCompiler>> signatureList = new(compilers.Count);
-			foreach(IDataCompiler cl in compilers)
-            {
-                memoryWriter.Reset();
-                Type compilerType = cl.GetType();
-                Hash160 compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
-                compilerTypeSignature.WriteTo(memoryWriter);
-                cl.CompilerSignature(memoryWriter);
-                Hash160 compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                signatureList.Add(new KeyValuePair<Hash160, IDataCompiler>(compilerSignature, cl));
-            }
-            int Comparer(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
-            {
-                return Hash160.Compare(lhs.Key, rhs.Key);
-            }
-            signatureList.Sort(Comparer);
+			MemoryStream memoryStream = new();
+            BinaryMemoryWriter memoryWriter = new();
+			if (memoryWriter.Open(memoryStream))
+			{
+				foreach (IDataCompiler cl in compilers)
+				{
+					memoryWriter.Reset();
+					Type compilerType = cl.GetType();
+					Hash160 compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
+					compilerTypeSignature.WriteTo(memoryWriter);
+					cl.CompilerSignature(memoryWriter);
+					Hash160 compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+					signatureList.Add(new KeyValuePair<Hash160, IDataCompiler>(compilerSignature, cl));
+				}
+				int Comparer(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
+				{
+					return Hash160.Compare(lhs.Key, rhs.Key);
+				}
+				signatureList.Sort(Comparer);
+			}
 			return signatureList;
 		}
 
 		private Dictionary<Hash160, IDataCompiler> BuildCompilerSignatureDict(List<IDataCompiler> compilers)
 		{
-            MemoryStream memoryStream = new();
+			Dictionary<Hash160, IDataCompiler> signatureDict = new(compilers.Count);
+			
+			MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-
-            Dictionary<Hash160, IDataCompiler> signatureDict = new(compilers.Count);
-			foreach(IDataCompiler cl in compilers)
-            {
-                memoryWriter.Reset();
-                Type compilerType = cl.GetType();
-                Hash160 compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
-                compilerTypeSignature.WriteTo(memoryWriter);
-                cl.CompilerSignature(memoryWriter);
-                Hash160 compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                signatureDict.Add(compilerSignature, cl);
-            }
+			if (memoryWriter.Open(memoryStream))
+			{
+				foreach (IDataCompiler cl in compilers)
+				{
+					memoryWriter.Reset();
+					Type compilerType = cl.GetType();
+					Hash160 compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
+					compilerTypeSignature.WriteTo(memoryWriter);
+					cl.CompilerSignature(memoryWriter);
+					Hash160 compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+					signatureDict.Add(compilerSignature, cl);
+				}
+			}
             return signatureDict;
 		}
 
@@ -115,15 +121,16 @@ namespace DataBuildSystem
 			}
 		}
 
-		public Result Execute(List<IDataCompiler> compilers, out List<DataCompilerOutput> gdcl_output)
+		public Result Execute(List<IDataCompiler> compilers, out List<DataCompilerOutput> gdClOutput)
 		{
-			gdcl_output = new();
+			gdClOutput = new(compilers.Count);
 			int result = 0;
 			foreach (IDataCompiler c in compilers)
 			{
-				int r = c.CompilerExecute(gdcl_output);
-				if (r < 0) return Result.Error;
-				else result = r;
+				var r = c.CompilerExecute();
+				if (r.Result < 0) return Result.Error;
+				else result = r.Result;
+				gdClOutput.Add(r);
 			}
 			if (result == 0)
 			{

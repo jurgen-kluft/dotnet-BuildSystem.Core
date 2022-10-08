@@ -158,8 +158,8 @@ namespace GameCore
         public bool Seek(StreamOffset offset)
         {
             // TODO figure out how to seek to a position larger than 32 bit
-            Int64 newPos = mWriter.Seek((int)offset.value, SeekOrigin.Begin);
-            return offset.value == newPos;
+            Int64 newPos = mWriter.Seek((int)offset.Offset, SeekOrigin.Begin);
+            return offset.Offset == newPos;
         }
 
         public void Close()
@@ -296,8 +296,8 @@ namespace GameCore
         public bool Seek(StreamOffset offset)
         {
             // TODO figure out how to seek to a position larger than 32 bit
-            Int64 newPos = mWriter.Seek((int)offset.value, SeekOrigin.Begin);
-            return offset.value == newPos;
+            Int64 newPos = mWriter.Seek((int)offset.Offset, SeekOrigin.Begin);
+            return offset.Offset == newPos;
         }
 
         public void Close()

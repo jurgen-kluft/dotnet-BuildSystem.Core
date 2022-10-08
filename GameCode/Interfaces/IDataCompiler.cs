@@ -7,13 +7,13 @@ namespace GameData
 {
     public struct DataCompilerOutput
     {
-        public Int64 OutFileId { get; set; }
-        public string[] OutFilenames { get; set; }
+        public string[] Filenames { get; set; }
+        public int Result { get; set; }
 
-        public DataCompilerOutput(Int64 fileId, string[] filenames)
+        public DataCompilerOutput(int result, string[] filenames)
         {
-            OutFileId = fileId;
-            OutFilenames = filenames;
+            Filenames = filenames;
+            Result = result;
         }
     }
 
@@ -50,6 +50,6 @@ namespace GameData
         /// - return 2 if execution was successful and dst files where updated and compiler version changes where detected
         /// - return -1 if execution failed
         ///</summary>
-        int CompilerExecute(List<DataCompilerOutput> output);
+        DataCompilerOutput CompilerExecute();
     }
 }
