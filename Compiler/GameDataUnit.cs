@@ -20,9 +20,8 @@ namespace DataBuildSystem
         private Assembly LoadAssembly(string gameDataDllFilename)
         {
             mGameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataDllFilename);
+            byte[] dllBytes = File.ReadAllBytes(Path.Join(BuildSystemCompilerConfig.GddPath, gameDataDllFilename));
             mGameDataAssembly = mGameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
-
             return mGameDataAssembly;
         }
         private void UnloadAssembly()
@@ -50,7 +49,6 @@ namespace DataBuildSystem
                     // Load the compiler log so that they can be used to verify the source files
                     List<IDataCompiler> loadedCompilers = new();
                     gdCl.Load(loadedCompilers);
-                    gdCl.AssignFileId(gdu.Index, loadedCompilers);
 
                     // Execute all compilers, every compiler will thus check it's dependencies (source and destination files)
                     Result result = gdCl.Execute(loadedCompilers, out List<DataCompilerOutput> gdClOutput);
@@ -63,7 +61,8 @@ namespace DataBuildSystem
                         // We have to collect the data compilers from the gdd because we have to assign FileId's
                         // The number and order of data compilers should be identical with 'loaded_compilers'
                         List<IDataCompiler> currentCompilers = gdd.CollectDataCompilers();
-                        gdCl.AssignFileId(gdu.Index, currentCompilers);
+                        gdCl.Merge(loadedCompilers, currentCompilers, out List<IDataCompiler> mergedCompilers);
+                        gdCl.AssignFileId(gdu.Index, mergedCompilers);
 
                         // Compiler log is updated -> rebuild the Bigfile
                         // As long as all the FileId's will be the same we do not need to build/save the game data files
@@ -72,7 +71,7 @@ namespace DataBuildSystem
                         gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
                         // Lastly we need to save the game data compiler log
-                        gdCl.Save(loadedCompilers);
+                        gdCl.Save(mergedCompilers);
 
                         UnloadAssembly();
                     }

@@ -39,6 +39,11 @@ namespace GameData
         void CompilerRead(IBinaryReader reader);
 
         ///<summary>
+        /// Take the properties from a previous instance as this instance (e.g. 'Copy Constructor')
+        ///</summary>
+        void CompilerConstruct(IDataCompiler dc);
+
+        ///<summary>
         /// Return the FilesProvider associated with this IDataCompiler (this is for Types.FileId)
         ///</summary>
         IFileIdProvider CompilerFileIdProvider { get; }

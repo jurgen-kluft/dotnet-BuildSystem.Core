@@ -36,7 +36,6 @@ namespace DataBuildSystem
 			var currentCompilerSignatureList = BuildCompilerSignatureList(currentCompilers);
 
 			int mergedPreviousCount = 0;
-			int mergedCurrentCount = 0;
 			Result result = Result.Ok;
 			foreach (var signature in currentCompilerSignatureList)
 			{
@@ -44,11 +43,15 @@ namespace DataBuildSystem
 				if (index >= 0)
 				{
 					mergedPreviousCount++;
-					mergedCompilers.Add(previousCompilerSignatureList[index].Value);
+
+                    IDataCompiler pdc = previousCompilerSignatureList[index].Value;
+                    IDataCompiler cdc = signature.Value;
+                    cdc.CompilerConstruct(pdc);
+
+					mergedCompilers.Add(cdc);
 				}
 				else
 				{
-					mergedCurrentCount++;
 					mergedCompilers.Add(signature.Value);
 				}
 			}
@@ -89,7 +92,7 @@ namespace DataBuildSystem
 		private Dictionary<Hash160, IDataCompiler> BuildCompilerSignatureDict(List<IDataCompiler> compilers)
 		{
 			Dictionary<Hash160, IDataCompiler> signatureDict = new(compilers.Count);
-			
+
 			MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
 			if (memoryWriter.Open(memoryStream))
@@ -132,6 +135,13 @@ namespace DataBuildSystem
 				else result = r.Result;
 				gdClOutput.Add(r);
 			}
+
+            // TODO Need to be able to determine
+            // - source files out of date
+            // - destination files missing or out of date
+            // - compiler version mismatch
+            // - compiler bundle out of date
+
 			if (result == 0)
 			{
 				return Result.Ok;

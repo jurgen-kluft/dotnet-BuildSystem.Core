@@ -41,6 +41,16 @@ namespace GameData
             mDependency = Dependency.ReadFrom(stream);
         }
 
+        public void CompilerConstruct(IDataCompiler dc)
+        {
+            if (dc is CopyCompiler cc)
+            {
+                mSrcFilename = cc.mSrcFilename;
+                mDstFilename = cc.mDstFilename;
+                mDependency = cc.mDependency;
+            }
+        }
+
         public IFileIdProvider CompilerFileIdProvider => this;
         public long FileId { get; set; }
 
