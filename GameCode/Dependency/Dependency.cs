@@ -7,20 +7,20 @@ using GameData;
 
 namespace DataBuildSystem
 {
-	public struct State
-	{
-		private enum StateEnum : sbyte
-		{
-			Ok = 0,
-			Modified = 1,
-			Missing = 2,
-		}
-		private sbyte StateValue { get; set; }
+    public struct State
+    {
+        private enum StateEnum : sbyte
+        {
+            Ok = 0,
+            Modified = 1,
+            Missing = 2,
+        }
+        private sbyte StateValue { get; set; }
         public int AsInt { get { return (int)StateValue; } }
 
-		public static readonly State Ok = new() { StateValue = (sbyte)StateEnum.Ok };
-		public static readonly State Missing = new() { StateValue = (sbyte)StateEnum.Missing };
-		public static readonly State Modified = new() { StateValue = (sbyte)StateEnum.Modified };
+        public static readonly State Ok = new() { StateValue = (sbyte)StateEnum.Ok };
+        public static readonly State Missing = new() { StateValue = (sbyte)StateEnum.Missing };
+        public static readonly State Modified = new() { StateValue = (sbyte)StateEnum.Modified };
 
         public static State FromRaw(sbyte b) { return new() { StateValue = (sbyte)(b & 0x3) }; }
 
@@ -32,17 +32,17 @@ namespace DataBuildSystem
         public bool IsOk { get { return StateValue == 0; } }
         public bool IsNotOk { get { return StateValue != 0; } }
         public bool IsModified { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Modified)) != 0; } }
-		public bool IsMissing { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Missing)) != 0; } }
+        public bool IsMissing { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Missing)) != 0; } }
 
         public void Merge(State s)
-		{
+        {
             if (IsModified)
             {
                 if (s.IsMissing)
                     StateValue = s.StateValue;
             }
             else if (IsOk)
-			{
+            {
                 StateValue = s.StateValue;
             }
         }
@@ -108,8 +108,8 @@ namespace DataBuildSystem
         private List<Hash160> Hashes { get; set; } = new List<Hash160>();
 
         public Dependency()
-		{
-		}
+        {
+        }
 
         public Dependency(EGameDataPath path, string filepath)
         {
@@ -122,7 +122,7 @@ namespace DataBuildSystem
             FilePaths.Add(filepath);
             Ids.Add(id);
             Methods.Add(EMethod.TIMESTAMP_HASH);
-            Hashes.Add(new Hash160());
+            Hashes.Add(Hash160.Empty);
         }
 
         // Return false if dependencies are up-to-date
@@ -171,7 +171,7 @@ namespace DataBuildSystem
                     Hashes[i] = newHash;
                     ood?.Invoke(Ids[i], State.Modified);
                 }
-                else
+                else // (newHash == Hashes[i])
                 {
                     ood?.Invoke(Ids[i], State.Ok);
                 }
@@ -188,7 +188,7 @@ namespace DataBuildSystem
                 UInt32 magic = reader.ReadUInt32();
                 if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
                 {
-                    Dependency dep = ReadFrom(reader );
+                    Dependency dep = ReadFrom(reader);
                     reader.Close();
                     return dep;
                 }
@@ -203,7 +203,7 @@ namespace DataBuildSystem
             if (writer.Open(filepath))
             {
                 writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
-                WriteTo(writer );
+                WriteTo(writer);
                 writer.Close();
                 return true;
             }
@@ -215,7 +215,7 @@ namespace DataBuildSystem
 
         public static Dependency ReadFrom(IBinaryReader reader)
         {
-            Dependency dep = new ();
+            Dependency dep = new();
             {
                 Int32 count = reader.ReadInt32();
                 dep.Paths = new(count);

@@ -62,18 +62,41 @@ namespace GameData
                 mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
             }
 
-            if (!mDependency.Update(null)) return new(0, new[] { mDstFilename });
-
-            // Execute the actual purpose of this compiler
-            try
+            DataCompilerOutput.EResult result = DataCompilerOutput.EResult.None;
+            if (!mDependency.Update(delegate(short id, State state) {
+                if (state == State.Missing)
+                {
+                    switch (id)
+                    {
+                        case 0: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.SrcMissing); break;
+                        case 1: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.DstMissing); break;
+                    }
+                }
+                else if (state == State.Modified)
+                {
+                    switch (id)
+                    {
+                        case 0: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.SrcChanged); break;
+                        case 1: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.DstChanged); break;
+                    }
+                }
+            }))
             {
-                File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
+                result = DataCompilerOutput.EState.Ok;
             }
-            catch (Exception)
+            else
             {
-                return new(-1, new[] { mDstFilename });
+                // Execute the actual purpose of this compiler
+                try
+                {
+                    File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
+                }
+                catch (Exception)
+                {
+                    result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.Error);
+                }
             }
-            return new(1, new[] { mDstFilename });
+            return new(result, new[] { mDstFilename });
         }
     }
 }

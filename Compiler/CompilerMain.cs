@@ -132,60 +132,25 @@ namespace DataBuildSystem
 			//       This does mean that each 'folder' in the Data folder is going to be a project or how else do we know where the generate
 			//       a project?
 
-			GameDataUnits gdus = new();
-			gdus.Load(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.GddPath);
-			gdus.Update(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
-			gdus.Save(BuildSystemCompilerConfig.DstPath);
-
-			GameDataData dataAssemblyManager = new(gameDataRootAssembly);
-
 			DateTime start = DateTime.Now;
 			DateTime end = DateTime.Now;
-			{
-				{
-					Console.WriteLine("------ Initializing data compilation");
-					start = DateTime.Now;
-					List<IDataCompiler> compilers = dataAssemblyManager.CollectDataCompilers();
-					end = DateTime.Now;
-					if (compilers.Count>0)
-					{
-						Console.WriteLine("Finished initialization -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 
-						start = DateTime.Now;
-						Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
+			GameDataUnits gdus = new();
 
-						// NOTES
-						// Development: Do not merge all bigfiles into one
-						// Development: Game Runtime has a large list of all bigfiles, their hash, their filehandle (if opened).
+			start = DateTime.Now;
+			Console.WriteLine("------ Initializing data compilation");
+			gdus.Load(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.GddPath);
+			end = DateTime.Now;
+			Console.WriteLine("Finished initialization -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 
-						end = DateTime.Now;
-						Console.WriteLine("Data compilation complete -- ok (Duration: {0}s)", (end - start).TotalSeconds);
+			start = DateTime.Now;
+			Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
+			gdus.Update(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
+			end = DateTime.Now;
+			Console.WriteLine("Data compilation complete -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 
-						start = DateTime.Now;
-						string resourceFilename = BuildSystemCompilerConfig.DataFilename(BuildSystemCompilerConfig.Name);
-						Console.WriteLine("------ Generating game data started: Project: {0}", resourceFilename);
-
-						// The resource data
-						if (!dataAssemblyManager.Save(Path.Join(BuildSystemCompilerConfig.PubPath, BuildSystemCompilerConfig.SubPath, "test.gdd")))
-						{
-							end = DateTime.Now;
-							Console.WriteLine("Generating game data finished -- error (Duration: {0}s)", (end - start).TotalSeconds);
-							return Error();
-						}
-
-						end = DateTime.Now;
-						Console.WriteLine("Generating game data finished -- ok (Duration: {0}s)", (end - start).TotalSeconds);
-					}
-					else
-					{
-						Console.WriteLine("Finished initializing data compilation -- error (Duration: {0}s)", (end - start).TotalSeconds);
-						return Error();
-					}
-				}
-			}
-
-			DateTime buildEnd = DateTime.Now;
-			Console.WriteLine("Finished -- Total build time {0}s", (buildEnd - buildStart).TotalSeconds);
+			gdus.Save(BuildSystemCompilerConfig.DstPath);
+			Console.WriteLine("Finished -- Total build time {0}s", (DateTime.Now - buildStart).TotalSeconds);
 
 			return Success();
 		}

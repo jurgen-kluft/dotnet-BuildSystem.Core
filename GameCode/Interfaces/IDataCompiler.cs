@@ -8,9 +8,22 @@ namespace GameData
     public struct DataCompilerOutput
     {
         public string[] Filenames { get; set; }
-        public int Result { get; set; }
+        public EResult Result { get; set; }
 
-        public DataCompilerOutput(int result, string[] filenames)
+        [Flags]
+        public enum EResult : ushort
+        {
+            None       = 0x0000,
+            Ok         = 0x0000,
+            SrcChanged = 0x0002,
+            SrcMissing = 0x0004,
+            DstChanged = 0x0008,
+            DstMissing = 0x0010,
+            VerChanged = 0x0100, // Version has changed
+            Error      = 0x8000,
+        }
+
+        public DataCompilerOutput(EResult result, string[] filenames)
         {
             Filenames = filenames;
             Result = result;

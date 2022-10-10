@@ -36,6 +36,7 @@ namespace DataBuildSystem
             foreach (GameDataUnit gdu in DataUnits)
             {
                 gdu.Verify();
+
                 State gduGameDataDll = gdu.StateOf(EGameData.GameDataDll);
                 State gduCompilerLog = gdu.StateOf(EGameData.GameDataCompilerLog);
                 State gduGameDataData = gdu.StateOf(EGameData.GameDataData, EGameData.GameDataRelocation);
@@ -72,6 +73,7 @@ namespace DataBuildSystem
 
                         // Lastly we need to save the game data compiler log
                         gdCl.Save(mergedCompilers);
+                        gdu.Verify();
 
                         UnloadAssembly();
                     }
@@ -101,7 +103,7 @@ namespace DataBuildSystem
                     {
                         gdCl.AssignFileId(gdu.Index, mergedCompilers);
 
-                        // Compiler log is updated -> rebuild the Bigfiles and GameData files
+                        // Rebuild the Bigfiles and GameData files
                         GameDataBigfile bff = new();
                         bff.Save(Path.ChangeExtension(gdu.FilePath, BigfileConfig.BigFileExtension), gdClOutput);
                         gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
@@ -110,6 +112,7 @@ namespace DataBuildSystem
                         gdCl.Save(mergedCompilers);
                     }
 
+                    gdu.Verify();
                     UnloadAssembly();
                 }
             }
@@ -218,35 +221,24 @@ namespace DataBuildSystem
             Name = Path.GetFileNameWithoutExtension(filepath);
             Hash = HashUtility.Compute_UTF8(FilePath);
             Index = index;
+            Dep = new();
 
             for (int i = 0; i < States.Length; ++i)
             {
                 States[i] = State.Missing;
             }
+            foreach (var e in (EGameData[])Enum.GetValues(typeof(EGameData)))
+            {
+                Dep.Add((short)e, GameDataPath.GetPathFor(e), Path.ChangeExtension(FilePath, GameDataPath.GetExtFor(e)));
+            }
         }
 
         public void Verify()
         {
-            if (Dep != null)
+            Dep.Update(delegate (short idx, State state)
             {
-                Dep.Update(delegate (short idx, State state)
-                {
-                    States[idx] = state;
-                });
-            }
-            else
-            {
-                for (int i = 0; i < States.Length; ++i)
-                {
-                    States[i] = State.Missing;
-                }
-
-                Dep = new();
-                foreach (var e in (EGameData[])Enum.GetValues(typeof(EGameData)))
-                {
-                    Dep.Add((short)e, GameDataPath.GetPathFor(e), Path.ChangeExtension(FilePath, GameDataPath.GetExtFor(e)));
-                }
-            }
+                States[idx] = state;
+            });
         }
 
         public void Save(IBinaryWriter writer)
