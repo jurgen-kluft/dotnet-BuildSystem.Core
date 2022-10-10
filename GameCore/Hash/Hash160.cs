@@ -158,7 +158,7 @@ namespace GameCore
                 chars[i + 1] = (char)((bl < 10) ? ('0' + bl) : ('A' + bl - 10));
             }
             string str = new string(chars);
-            while (str.Length < 32)
+            while (str.Length < (Size*2))
                 str = "0" + str;
             return str;
         }
@@ -199,7 +199,7 @@ namespace GameCore
 
         public static Hash160 FromString(string _hashstr)
         {
-            return ConstructTake(FromStringN(_hashstr, 32));
+            return ConstructTake(FromStringN(_hashstr, Size));
         }
 
         public static Hash160 FromDateTime(DateTime dt)

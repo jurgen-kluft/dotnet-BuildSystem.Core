@@ -126,13 +126,18 @@ namespace DataBuildSystem
 
 		public Result Execute(List<IDataCompiler> compilers, out List<DataCompilerOutput> gdClOutput)
 		{
+			// Make sure the directory structure of @SrcPath is duplicated at @DstPath
+			DirUtils.DuplicateFolderStructure(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
+
 			gdClOutput = new(compilers.Count);
 			int result = 0;
 			foreach (IDataCompiler c in compilers)
 			{
 				var r = c.CompilerExecute();
-				if (r.Result < 0) return Result.Error;
-				else result = r.Result;
+				if (r.Result.HasFlag(DataCompilerOutput.EResult.Error))
+					return Result.Error;
+				if (!r.Result.HasFlag(DataCompilerOutput.EResult.Ok))
+					result++;
 				gdClOutput.Add(r);
 			}
 

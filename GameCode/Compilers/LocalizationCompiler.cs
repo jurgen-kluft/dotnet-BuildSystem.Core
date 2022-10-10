@@ -61,9 +61,9 @@ namespace GameData
             catch (Exception)
             {
                 //mStatus = ERROR;
-                return new DataCompilerOutput(-1, mDstFilenames.ToArray());
+                return new DataCompilerOutput(DataCompilerOutput.EResult.Error, mDstFilenames.ToArray());
             }
-            return new DataCompilerOutput(0, mDstFilenames.ToArray());
+            return new DataCompilerOutput(DataCompilerOutput.EResult.Ok, mDstFilenames.ToArray());
         }
     }
 }
