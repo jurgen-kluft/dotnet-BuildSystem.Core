@@ -418,7 +418,9 @@ namespace DataBuildSystem
         private void generateCppCodeAndData(object data, string dataFilename, string codeFilename, string relocFilename)
         {
             // Analyze Data.Root and generate a list of 'Code.Class' objects from this.
-            Reflector reflector = new(null);
+            IMemberGenerator genericMemberGenerator = new GenericMemberGenerator(EGenericFormat.CPP_KEEP);
+
+            Reflector reflector = new(genericMemberGenerator);
 
             MyMemberBook book = new();
             reflector.Analyze(data, book);
@@ -444,10 +446,10 @@ namespace DataBuildSystem
 
             // Finalize the DataStream and obtain a database of the position of the
             // 'Code.Class' objects in the DataStream.
-            FileInfo dataFileInfo = new(BuildSystemCompilerConfig.SrcPath + "\\" + dataFilename);
+            FileInfo dataFileInfo = new(Path.ChangeExtension(dataFilename, BuildSystemCompilerConfig.DataFileExtension));
             FileStream dataFileStream = new(dataFileInfo.FullName, FileMode.Create);
             IBinaryWriter dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, BuildSystemCompilerConfig.Endian);
-            FileInfo relocFileInfo = new(BuildSystemCompilerConfig.SrcPath + "\\" + relocFilename);
+            FileInfo relocFileInfo = new(Path.ChangeExtension(dataFilename, BuildSystemCompilerConfig.DataRelocFileExtension));
             FileStream relocFileStream = new(relocFileInfo.FullName, FileMode.Create);
             IBinaryWriter relocFileStreamWriter = EndianUtils.CreateBinaryWriter(relocFileStream, BuildSystemCompilerConfig.Endian);
             Dictionary<StreamReference, int> referenceOffsetDatabase;
@@ -458,7 +460,7 @@ namespace DataBuildSystem
             relocFileStream.Close();
 
             // Generate the c++ code using the CppCodeWriter.
-            FileInfo codeFileInfo = new(BuildSystemCompilerConfig.SrcPath + "\\" + codeFilename);
+            FileInfo codeFileInfo = new(codeFilename);
             FileStream codeFileStream = codeFileInfo.Create();
             StreamWriter codeFileStreamWriter = new(codeFileStream);
             CppCodeStream.CppCodeWriter codeWriter = new CppCodeStream.CppCodeWriter();
@@ -516,6 +518,7 @@ namespace DataBuildSystem
             GameData.FileCommander.createDirectoryOnDisk(Path.GetDirectoryName(dataFilename));
 
             generateStdData(mRoot, dataFilename, relocFilename);
+            generateCppCodeAndData(mRoot, dataFilename + "c", Path.ChangeExtension(dataFilename, ".h"), relocFilename + "c");
             return true;
         }
 

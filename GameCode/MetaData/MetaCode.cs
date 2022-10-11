@@ -123,7 +123,7 @@ namespace GameData
         public class StringType : IMetaType
         {
             public Type type { get; set; }
-            public string typeName => "string";
+            public string typeName { get; set; }
         }
 
         #endregion
@@ -919,7 +919,7 @@ namespace GameData
 
         public sealed class StringMember : Member
         {
-            public static readonly StringType sType = new() { type = typeof(string) };
+            public static readonly StringType sType = new() { type = typeof(string), typeName = "const char*" };
 
             private readonly string mValue;
 
@@ -938,7 +938,7 @@ namespace GameData
                 }
             }
 
-            public string str
+            public string StringValue
             {
                 get
                 {
@@ -971,7 +971,7 @@ namespace GameData
 
         public sealed class FileIdMember : Member
         {
-            public static readonly FileIdType sType = new() { type = typeof(GameData.FileId), typeName = typeof(GameData.FileId).Name };
+            public static readonly FileIdType sType = new() { type = typeof(GameData.FileId), typeName = "fileid_t" };
 
             private StreamReference mStreamReference = StreamReference.Empty;
             private readonly Int64 mValue;
@@ -1259,7 +1259,7 @@ namespace GameData
                 }
             }
 
-            public List<Member> members
+            public List<Member> Members
             {
                 get
                 {
@@ -1267,7 +1267,7 @@ namespace GameData
                 }
             }
 
-            public ObjectMember baseClass
+            public ObjectMember BaseClass
             {
                 get
                 {
@@ -1294,7 +1294,7 @@ namespace GameData
                     mAlignment = m.Alignment;
 
                 bool mitigate = true;
-                if (baseClass == null)
+                if (BaseClass == null)
                 {
                     mMembers.Add(m);
                 }
@@ -1311,7 +1311,7 @@ namespace GameData
                         }
                     }
 
-                    baseClass.AddMember(m);
+                    BaseClass.AddMember(m);
                 }
                 else if (mitigate)
                 {
@@ -1334,10 +1334,10 @@ namespace GameData
                         mMembers.Add(m);
 
                         // Create member with default value to add to the base class if this member does not belong to This
-                        if (!isThisMember && baseClass != null)
+                        if (!isThisMember && BaseClass != null)
                         {
                             m = m.Default();
-                            baseClass.AddMember(m);
+                            BaseClass.AddMember(m);
                         }
                     }
                     else
@@ -1348,8 +1348,8 @@ namespace GameData
                         }
                         else
                         {
-                            if (baseClass != null)
-                                baseClass.AddMember(m);
+                            if (BaseClass != null)
+                                BaseClass.AddMember(m);
                         }
                     }
                 }
@@ -1360,8 +1360,8 @@ namespace GameData
                 // Sort the members on their data size, from big to small
                 mMembers.Sort(c);
 
-                if (baseClass != null)
-                    baseClass.sortMembers(c);
+                if (BaseClass != null)
+                    BaseClass.sortMembers(c);
             }
 
             #endregion

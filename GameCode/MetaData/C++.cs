@@ -100,7 +100,7 @@ namespace GameData
             }
             public bool writeStringMember(StringMember s)
             {
-                mDataStream.write(mStringTable.ReferenceOf(s.str));
+                mDataStream.write(mStringTable.ReferenceOf(s.StringValue));
                 return true;
             }
             public bool writeFileIdMember(FileIdMember c)
@@ -137,7 +137,7 @@ namespace GameData
                 {
                     c.Reference = mDataStream.beginBlock();
                     {
-                        foreach (Member m in c.members)
+                        foreach (Member m in c.Members)
                             m.Write(this);
                     }
                     mDataStream.endBlock();
@@ -434,19 +434,19 @@ namespace GameData
                 mMemberGetterWriter.setWriter(writer);
                 mMemberWriter.setWriter(writer);
 
-                writer.WriteLine("class {0}", c.Type.typeName);
+                writer.WriteLine("class {0}", c.Name);
                 writer.WriteLine("{");
 
                 // Member getters
                 writer.WriteLine("public:");
-                foreach (Member m in c.members)
+                foreach (Member m in c.Members)
                 {
                     m.Write(mMemberGetterWriter);
                 }
 
                 // Member data
                 writer.WriteLine("private:");
-                foreach (Member m in c.members)
+                foreach (Member m in c.Members)
                 {
                     m.Write(mMemberWriter);
                 }

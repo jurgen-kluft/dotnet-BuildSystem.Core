@@ -3,21 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compiler", "Compiler\Compiler.csproj", "{3BCBF79F-6428-420E-9834-DE5F66ABF462}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Compiler", "Compiler\Compiler.csproj", "{3BCBF79F-6428-420E-9834-DE5F66ABF462}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigfileViewer", "BigfileViewer\BigfileViewer.csproj", "{CC921115-EAF3-4AA0-97B3-A15ED51C85C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameCode", "GameCode\GameCode.csproj", "{9F3BCBF7-6428-420E-9834-DE5F66ABF462}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigfileReorder", "BigfileReorder\BigfileReorder.csproj", "{5D0B6A61-E6F3-4610-9F3D-30EFB5E8AE02}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigfilePacker", "BigfilePacker\BigfilePacker.csproj", "{C5DB69CE-291F-44E4-96CE-77C3075C1C76}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localizer", "Localizer\Localizer.csproj", "{E720AB27-BC86-42E8-A58F-F17990213770}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Linker", "Linker\Linker.csproj", "{E720AB27-BC86-42E8-A58F-F17990213776}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCode", "GameCode\GameCode.csproj", "{9F3BCBF7-6428-420E-9834-DE5F66ABF462}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCore", "GameCore\GameCore.csproj", "{BF79F3BC-420E-6428-9834-DE5F66ABF462}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameCore", "GameCore\GameCore.csproj", "{BF79F3BC-420E-6428-9834-DE5F66ABF462}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BigfileBuilder", "BigfileBuilder\BigfileBuilder.csproj", "{0969B4F5-DA6E-4494-9A54-C85D8AABA053}"
 EndProject
@@ -31,26 +21,6 @@ Global
 		{3BCBF79F-6428-420E-9834-DE5F66ABF462}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BCBF79F-6428-420E-9834-DE5F66ABF462}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BCBF79F-6428-420E-9834-DE5F66ABF462}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CC921115-EAF3-4AA0-97B3-A15ED51C85C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC921115-EAF3-4AA0-97B3-A15ED51C85C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC921115-EAF3-4AA0-97B3-A15ED51C85C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC921115-EAF3-4AA0-97B3-A15ED51C85C6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5D0B6A61-E6F3-4610-9F3D-30EFB5E8AE02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D0B6A61-E6F3-4610-9F3D-30EFB5E8AE02}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D0B6A61-E6F3-4610-9F3D-30EFB5E8AE02}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D0B6A61-E6F3-4610-9F3D-30EFB5E8AE02}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5DB69CE-291F-44E4-96CE-77C3075C1C76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5DB69CE-291F-44E4-96CE-77C3075C1C76}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5DB69CE-291F-44E4-96CE-77C3075C1C76}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5DB69CE-291F-44E4-96CE-77C3075C1C76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213770}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213770}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213770}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213770}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213776}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213776}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213776}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E720AB27-BC86-42E8-A58F-F17990213776}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9F3BCBF7-6428-420E-9834-DE5F66ABF462}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9F3BCBF7-6428-420E-9834-DE5F66ABF462}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F3BCBF7-6428-420E-9834-DE5F66ABF462}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -122,7 +122,7 @@ namespace GameData
             public bool writeStringMember(StringMember c)
             {
                 StreamContext ctx;
-                if (mUnresolvedReferences.TryGetValue(mStringTable.ReferenceOf(c.str), out ctx))
+                if (mUnresolvedReferences.TryGetValue(mStringTable.ReferenceOf(c.StringValue), out ctx))
                     Log(c.Name, c.Type.typeName);
                 return true;
             }
@@ -151,12 +151,12 @@ namespace GameData
                     Log(c.Name, c.Type.typeName);
 
                 mHierarchy.Add(c);
-                foreach (Member m in c.members)
+                foreach (Member m in c.Members)
                     m.Write(this);
                 mHierarchy.RemoveAt(mHierarchy.Count - 1);
 
-                if (c.baseClass != null)
-                    writeObjectMember(c.baseClass);
+                if (c.BaseClass != null)
+                    writeObjectMember(c.BaseClass);
 
                 return true;
             }
@@ -302,12 +302,12 @@ namespace GameData
             public bool writeObjectMember(ObjectMember c)
             {
                 mHierarchy.Add(c);
-                foreach (Member m in c.members)
+                foreach (Member m in c.Members)
                     m.Write(this);
                 mHierarchy.RemoveAt(mHierarchy.Count - 1);
 
-                if (c.baseClass != null)
-                    writeObjectMember(c.baseClass);
+                if (c.BaseClass != null)
+                    writeObjectMember(c.BaseClass);
 
                 return true;
             }
@@ -499,7 +499,7 @@ namespace GameData
                     mStringTable.Add(c.Type.typeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
-                mStringTable.Add(c.str);
+                mStringTable.Add(c.StringValue);
                 return true;
             }
             public bool writeFileIdMember(FileIdMember c)
@@ -522,14 +522,14 @@ namespace GameData
             }
             public bool writeObjectMember(ObjectMember c)
             {
-                foreach (Member m in c.members)
+                foreach (Member m in c.Members)
                     m.Write(this);
 
                 mStringTable.Add(c.Type.typeName);
                 mStringTable.Add(c.Name.ToLower());
 
-                if (c.baseClass != null)
-                    writeObjectMember(c.baseClass);
+                if (c.BaseClass != null)
+                    writeObjectMember(c.BaseClass);
 
                 return true;
             }
@@ -674,7 +674,7 @@ namespace GameData
             public bool writeStringMember(StringMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
-                WriteReference(mStringTable.ReferenceOf(c.str));
+                WriteReference(mStringTable.ReferenceOf(c.StringValue));
                 return true;
             }
             public bool writeFileIdMember(FileIdMember c)
@@ -842,11 +842,11 @@ namespace GameData
             }
             public bool writeObjectMember(ObjectMember c)
             {
-                foreach (Member m in c.members)
+                foreach (Member m in c.Members)
                     m.Write(this);
 
-                if (c.baseClass != null)
-                    writeObjectMember(c.baseClass);
+                if (c.BaseClass != null)
+                    writeObjectMember(c.BaseClass);
 
                 return true;
             }
@@ -966,7 +966,7 @@ namespace GameData
             }
             public bool writeStringMember(StringMember c)
             {
-                return WriteReferenceMember(mStringTable.ReferenceOf(c.str));
+                return WriteReferenceMember(mStringTable.ReferenceOf(c.StringValue));
             }
             public bool writeFileIdMember(FileIdMember c)
             {
@@ -1146,8 +1146,8 @@ namespace GameData
                 {
                     if (mDataFormat != EGenericFormat.STD_FLAT)
                     {
-                        if (c.baseClass != null)
-                            mWriter.Write(c.baseClass.Reference);
+                        if (c.BaseClass != null)
+                            mWriter.Write(c.BaseClass.Reference);
                         else
                             mWriter.Write(StreamReference.Empty);
                     }
@@ -1156,16 +1156,16 @@ namespace GameData
                     //       binary search to find the member by name/hash.
                     c.sortMembers(new MemberNameHashComparer(mStringTable));
 
-                    mWriter.Write(c.members.Count);
+                    mWriter.Write(c.Members.Count);
 
                     // Offset to members array
                     Int64 offsetsPos = mWriter.Position;
-                    foreach (Member m in c.members)
+                    foreach (Member m in c.Members)
                         mWriter.Write((short)0);
                     StreamUtils.Align(mWriter, sizeof(short));
 
-                    List<short> memberOffsets = new (c.members.Count);
-                    foreach (Member m in c.members)
+                    List<short> memberOffsets = new (c.Members.Count);
+                    foreach (Member m in c.Members)
                     {
                         StreamUtils.Align(mWriter, m.Alignment);
                         memberOffsets.Add((short)(mWriter.Position - offsetsPos));
@@ -1185,8 +1185,8 @@ namespace GameData
                     mWriter.EndBlock();
                 }
 
-                if (c.baseClass != null)
-                    Write(c.baseClass);
+                if (c.BaseClass != null)
+                    Write(c.BaseClass);
 
                 return true;
             }
@@ -1242,11 +1242,11 @@ namespace GameData
                     {
                         i.Reference = StreamReference.Empty;
 
-                        i = i.baseClass;
+                        i = i.BaseClass;
                         while (i != null)
                         {
                             i.Reference = StreamReference.Empty;
-                            i = i.baseClass;
+                            i = i.BaseClass;
                         }
                     }
                     else
@@ -1262,13 +1262,13 @@ namespace GameData
                             referencesForClassesDict.Add(i.Value, c);
                         }
                         // Do base classes
-                        r = (r != null) ? r.baseClass : null;
-                        i = i.baseClass;
+                        r = (r != null) ? r.BaseClass : null;
+                        i = i.BaseClass;
                         while (i != null)
                         {
                             i.Reference = (r != null) ? r.Reference : StreamReference.Instance;
-                            i = i.baseClass;
-                            r = (r != null) ? r.baseClass : null;
+                            i = i.BaseClass;
+                            r = (r != null) ? r.BaseClass : null;
                         }
                     }
                 }
@@ -1347,172 +1347,6 @@ namespace GameData
 
         #endregion
 
-        #region Generic MemberGenerator
-
-        public sealed class GenericMemberGenerator : IMemberGenerator
-        {
-            #region Fields
-
-            private readonly EGenericFormat mDataFormat;
-
-            #endregion
-            #region Constructor
-
-            public GenericMemberGenerator(EGenericFormat inDataFormat)
-            {
-                mDataFormat = inDataFormat;
-            }
-
-            #endregion
-            #region Private Methods
-
-            public bool isNull(Type t) { return (t == null); }
-            public bool isBool(Type t) { return t == typeof(bool); }
-            public bool isInt8(Type t) { return t == typeof(SByte); }
-            public bool isUInt8(Type t) { return t == typeof(Byte); }
-            public bool isInt16(Type t) { return t == typeof(Int16); }
-            public bool isUInt16(Type t) { return t == typeof(UInt16); }
-            public bool isInt32(Type t) { return t == typeof(Int32); }
-            public bool isUInt32(Type t) { return t == typeof(UInt32); }
-            public bool isInt64(Type t) { return t == typeof(Int64); }
-            public bool isUInt64(Type t) { return t == typeof(UInt64); }
-            public bool isFloat(Type t) { return t == typeof(float); }
-            public bool isString(Type t) { return t == typeof(string); }
-            public bool isEnum(Type t) { return t.IsEnum; }
-            public bool isArray(Type t) { return !t.IsPrimitive && t.IsArray; }
-            public bool isObject(Type t) { return t.IsClass && !t.IsArray && !isString(t); }
-            public bool isAtom(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IAtom)); }
-            public bool isFileId(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IFileId)); }
-            public bool isCompound(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.ICompound)); }
-            public bool isDynamicMember(Type t) { return !t.IsPrimitive && Reflector.HasOrIsGenericInterface(t, typeof(GameData.IDynamicMember)); }
-
-            public Member newNullMember(string memberName) { return new NullMember(memberName); }
-            public Member newBoolMember(bool o, string memberName) { return new BoolMember(memberName, o); }
-            public Member newInt8Member(SByte o, string memberName) { return new Int8Member(memberName, o); }
-            public Member newUInt8Member(Byte o, string memberName) { return new UInt8Member(memberName, o); }
-            public Member newInt16Member(Int16 o, string memberName) { return new Int16Member(memberName, o); }
-            public Member newUInt16Member(UInt16 o, string memberName) { return new UInt16Member(memberName, o); }
-            public Member newInt32Member(Int32 o, string memberName) { return new Int32Member(memberName, o); }
-            public Member newUInt32Member(UInt32 o, string memberName) { return new UInt32Member(memberName, o); }
-            public Member newInt64Member(Int64 o, string memberName) { return new Int64Member(memberName, o); }
-            public Member newUInt64Member(UInt64 o, string memberName) { return new UInt64Member(memberName, o); }
-            public Member newFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
-            public Member newStringMember(string o, string memberName) { return new StringMember(memberName, o); }
-            public Member newFileIdMember(Int64 o, string memberName) { return new FileIdMember(memberName, o); }
-            public Member newEnumMember(object o, string memberName) { return new Int32Member(memberName, (Int32)o); }
-
-            #endregion
-            #region IMemberGenerator methods
-
-            public IMetaType NewMemberType(Type type)
-            {
-                if (isNull(type))
-                {
-                    return new NullType();
-                }
-
-                if (isAtom(type))
-                {
-                    return new AtomType(type, type.Name);
-                }
-
-                if (isFileId(type))
-                {
-                    return new FileIdType { type = type, typeName = type.Name };
-                }
-
-                if (isCompound(type))
-                {
-                    return new CompoundType(type, type.Name);
-                }
-
-                if (isBool(type)) return BoolMember.sType;
-                if (isInt8(type)) return Int8Member.sType;
-                if (isUInt8(type)) return UInt8Member.sType;
-                if (isInt16(type)) return Int16Member.sType;
-                if (isUInt16(type)) return UInt16Member.sType;
-                if (isInt32(type)) return Int32Member.sType;
-                if (isUInt32(type)) return UInt32Member.sType;
-                if (isInt64(type)) return Int64Member.sType;
-                if (isUInt64(type)) return UInt64Member.sType;
-                if (isFloat(type)) return FloatMember.sType;
-                if (isString(type)) return StringMember.sType;
-                if (isEnum(type)) return Int32Member.sType;
-                if (isObject(type)) return NewObjectType(type);
-                throw new NotImplementedException();
-            }
-
-            public IMetaType NewObjectType(Type type)
-            {
-                return new ObjectType(type, "Object");
-            }
-
-            public IMetaType NewAtomType(Type type)
-            {
-                return new AtomType(type, type.Name);
-            }
-
-            public IMetaType NewFileIdType(Type type)
-            {
-                return new FileIdType { type = type, typeName = type.Name };
-            }
-
-            public IMetaType NewCompoundType(Type type)
-            {
-                return new CompoundType(type, type.Name);
-            }
-
-            public ObjectMember newObjectMember(Type classType, object content, string memberName)
-            {
-                ObjectMember classMember;
-                if (mDataFormat == EGenericFormat.STD_FLAT)
-                {
-                    classMember = new ObjectMember(content, NewObjectType(classType), memberName);
-                }
-                else
-                {
-                    classMember = new ObjectMember(content, NewObjectType(classType), memberName);
-
-                    ObjectMember c = classMember;
-                    Type baseType = classType.BaseType;
-                    while (baseType != null && baseType != typeof(object))
-                    {
-                        c.baseClass = new ObjectMember(content, NewObjectType(baseType), "");
-                        c = c.baseClass;
-
-                        // Next base class
-                        baseType = baseType.BaseType;
-                    }
-                }
-                return classMember;
-            }
-
-            public ArrayMember newArrayMember(Type arrayType, object content, Member elementMember, string memberName)
-            {
-                ArrayMember arrayMember = new (arrayType, content, elementMember, memberName);
-                return arrayMember;
-            }
-
-            public AtomMember newAtomMember(Type atomType, Member atomContentMember, string memberName)
-            {
-                AtomMember atom = new (memberName, NewAtomType(atomType), atomContentMember);
-                return atom;
-            }
-            public FileIdMember newFileIdMember(Type fileidType, Int64 content, string memberName)
-            {
-                FileIdMember fileid = new (memberName, content);
-                return fileid;
-            }
-            public CompoundMember newCompoundMember(Type compoundType, object compoundObject, string memberName)
-            {
-                CompoundMember compoundMember = new (compoundObject, NewCompoundType(compoundType), memberName);
-                return compoundMember;
-            }
-
-            #endregion
-        }
-
-        #endregion
         #region Generic writer
 
         public bool Write(EGenericFormat inDataFormat, object inData, IBinaryWriter resourceDataWriter, IBinaryWriter resourceDataReallocTableWriter)
@@ -1622,4 +1456,173 @@ namespace GameData
 
         #endregion
     }
+
+
+
+    #region Generic MemberGenerator
+
+    public sealed class GenericMemberGenerator : IMemberGenerator
+    {
+        #region Fields
+
+        private readonly EGenericFormat mDataFormat;
+
+        #endregion
+        #region Constructor
+
+        public GenericMemberGenerator(EGenericFormat inDataFormat)
+        {
+            mDataFormat = inDataFormat;
+        }
+
+        #endregion
+        #region Private Methods
+
+        public bool isNull(Type t) { return (t == null); }
+        public bool isBool(Type t) { return t == typeof(bool); }
+        public bool isInt8(Type t) { return t == typeof(SByte); }
+        public bool isUInt8(Type t) { return t == typeof(Byte); }
+        public bool isInt16(Type t) { return t == typeof(Int16); }
+        public bool isUInt16(Type t) { return t == typeof(UInt16); }
+        public bool isInt32(Type t) { return t == typeof(Int32); }
+        public bool isUInt32(Type t) { return t == typeof(UInt32); }
+        public bool isInt64(Type t) { return t == typeof(Int64); }
+        public bool isUInt64(Type t) { return t == typeof(UInt64); }
+        public bool isFloat(Type t) { return t == typeof(float); }
+        public bool isString(Type t) { return t == typeof(string); }
+        public bool isEnum(Type t) { return t.IsEnum; }
+        public bool isArray(Type t) { return !t.IsPrimitive && t.IsArray; }
+        public bool isObject(Type t) { return t.IsClass && !t.IsArray && !isString(t); }
+        public bool isAtom(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IAtom)); }
+        public bool isFileId(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IFileId)); }
+        public bool isCompound(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.ICompound)); }
+        public bool isDynamicMember(Type t) { return !t.IsPrimitive && Reflector.HasOrIsGenericInterface(t, typeof(GameData.IDynamicMember)); }
+
+        public Member newNullMember(string memberName) { return new NullMember(memberName); }
+        public Member newBoolMember(bool o, string memberName) { return new BoolMember(memberName, o); }
+        public Member newInt8Member(SByte o, string memberName) { return new Int8Member(memberName, o); }
+        public Member newUInt8Member(Byte o, string memberName) { return new UInt8Member(memberName, o); }
+        public Member newInt16Member(Int16 o, string memberName) { return new Int16Member(memberName, o); }
+        public Member newUInt16Member(UInt16 o, string memberName) { return new UInt16Member(memberName, o); }
+        public Member newInt32Member(Int32 o, string memberName) { return new Int32Member(memberName, o); }
+        public Member newUInt32Member(UInt32 o, string memberName) { return new UInt32Member(memberName, o); }
+        public Member newInt64Member(Int64 o, string memberName) { return new Int64Member(memberName, o); }
+        public Member newUInt64Member(UInt64 o, string memberName) { return new UInt64Member(memberName, o); }
+        public Member newFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
+        public Member newStringMember(string o, string memberName) { return new StringMember(memberName, o); }
+        public Member newFileIdMember(Int64 o, string memberName) { return new FileIdMember(memberName, o); }
+        public Member newEnumMember(object o, string memberName) { return new Int32Member(memberName, (Int32)o); }
+
+        #endregion
+        #region IMemberGenerator methods
+
+        public IMetaType NewMemberType(Type type)
+        {
+            if (isNull(type))
+            {
+                return new NullType();
+            }
+
+            if (isAtom(type))
+            {
+                return new AtomType(type, type.Name);
+            }
+
+            if (isFileId(type))
+            {
+                return new FileIdType { type = type, typeName = type.Name };
+            }
+
+            if (isCompound(type))
+            {
+                return new CompoundType(type, type.Name);
+            }
+
+            if (isBool(type)) return BoolMember.sType;
+            if (isInt8(type)) return Int8Member.sType;
+            if (isUInt8(type)) return UInt8Member.sType;
+            if (isInt16(type)) return Int16Member.sType;
+            if (isUInt16(type)) return UInt16Member.sType;
+            if (isInt32(type)) return Int32Member.sType;
+            if (isUInt32(type)) return UInt32Member.sType;
+            if (isInt64(type)) return Int64Member.sType;
+            if (isUInt64(type)) return UInt64Member.sType;
+            if (isFloat(type)) return FloatMember.sType;
+            if (isString(type)) return StringMember.sType;
+            if (isEnum(type)) return Int32Member.sType;
+            if (isObject(type)) return NewObjectType(type);
+            throw new NotImplementedException();
+        }
+
+        public IMetaType NewObjectType(Type type)
+        {
+            return new ObjectType(type, "Object");
+        }
+
+        public IMetaType NewAtomType(Type type)
+        {
+            return new AtomType(type, type.Name);
+        }
+
+        public IMetaType NewFileIdType(Type type)
+        {
+            return new FileIdType { type = type, typeName = type.Name };
+        }
+
+        public IMetaType NewCompoundType(Type type)
+        {
+            return new CompoundType(type, type.Name);
+        }
+
+        public ObjectMember newObjectMember(Type classType, object content, string memberName)
+        {
+            ObjectMember classMember;
+            if (mDataFormat == EGenericFormat.STD_FLAT)
+            {
+                classMember = new ObjectMember(content, NewObjectType(classType), memberName);
+            }
+            else
+            {
+                classMember = new ObjectMember(content, NewObjectType(classType), memberName);
+
+                ObjectMember c = classMember;
+                Type baseType = classType.BaseType;
+                while (baseType != null && baseType != typeof(object))
+                {
+                    c.BaseClass = new ObjectMember(content, NewObjectType(baseType), "");
+                    c = c.BaseClass;
+
+                    // Next base class
+                    baseType = baseType.BaseType;
+                }
+            }
+            return classMember;
+        }
+
+        public ArrayMember newArrayMember(Type arrayType, object content, Member elementMember, string memberName)
+        {
+            ArrayMember arrayMember = new(arrayType, content, elementMember, memberName);
+            return arrayMember;
+        }
+
+        public AtomMember newAtomMember(Type atomType, Member atomContentMember, string memberName)
+        {
+            AtomMember atom = new(memberName, NewAtomType(atomType), atomContentMember);
+            return atom;
+        }
+        public FileIdMember newFileIdMember(Type fileidType, Int64 content, string memberName)
+        {
+            FileIdMember fileid = new(memberName, content);
+            return fileid;
+        }
+        public CompoundMember newCompoundMember(Type compoundType, object compoundObject, string memberName)
+        {
+            CompoundMember compoundMember = new(compoundObject, NewCompoundType(compoundType), memberName);
+            return compoundMember;
+        }
+
+        #endregion
+    }
+
+    #endregion
 }
