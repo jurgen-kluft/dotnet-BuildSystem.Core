@@ -9,8 +9,8 @@ namespace GameCore
 
         private StreamReference mStreamReference;
         private readonly Dictionary<StreamReference, int> mReferenceToIndex = new ();
-        private readonly Dictionary<UInt64, int> mIDToIndex = new ();
-        private readonly List<UInt64> mItems = new();
+        private readonly Dictionary<Int64, int> mIDToIndex = new ();
+        private readonly List<Int64> mItems = new();
         private readonly List<StreamReference> mReferences = new();
 
         #endregion
@@ -36,7 +36,7 @@ namespace GameCore
             }
         }
 
-        public List<UInt64> All
+        public List<Int64> All
         {
             get
             {
@@ -44,7 +44,7 @@ namespace GameCore
             }
         }
 
-        public UInt64 this[int index]
+        public Int64 this[int index]
         {
             get
             {
@@ -55,7 +55,7 @@ namespace GameCore
         #endregion
         #region Private Methods
 
-        private int InternalIndexOf(UInt64 inItem)
+        private int InternalIndexOf(Int64 inItem)
         {
             int index;
             if (!mIDToIndex.TryGetValue(inItem, out index))
@@ -63,7 +63,7 @@ namespace GameCore
             return index;
         }
 
-        private StreamReference InternalReferenceOf(UInt64 inItem)
+        private StreamReference InternalReferenceOf(Int64 inItem)
         {
             int index = InternalIndexOf(inItem);
             if (index == -1)
@@ -75,7 +75,7 @@ namespace GameCore
         #endregion
         #region Public Methods
 
-        public StreamReference Add(StreamReference inReference, UInt64 inItem)
+        public StreamReference Add(StreamReference inReference, Int64 inItem)
         {
             int index;
             if (!mReferenceToIndex.TryGetValue(inReference, out index))
@@ -92,7 +92,7 @@ namespace GameCore
             }
         }
 
-        public StreamReference ReferenceOf(UInt64 inItem)
+        public StreamReference ReferenceOf(Int64 inItem)
         {
             return InternalReferenceOf(inItem);
         }
@@ -110,7 +110,7 @@ namespace GameCore
                 {
                     for (int i = 0; i < mItems.Count; ++i)
                     {
-                        UInt64 id = mItems[i];
+                        Int64 id = mItems[i];
                         writer.Mark(mReferences[i]);
                         writer.Write(id);
                     }

@@ -10,6 +10,7 @@ namespace GameData
     {
         private string mSrcFilename;
         private string mDstFilename;
+        private Dependency mDependency;
 
         public MeshCompiler(string filename) : this(filename, filename)
         {
@@ -30,17 +31,13 @@ namespace GameData
 			stream.Write(mDstFilename);
         }
 
-        public void CompilerSetup()
-        {
-        }
-
         public void CompilerWrite(IBinaryWriter stream)
         {
 			stream.Write(mSrcFilename);
 			stream.Write(mDstFilename);
-            
-            // Save dependency information
 
+            // Save dependency information
+            mDependency.WriteTo(stream);
         }
 
         public void CompilerRead(IBinaryReader stream)
@@ -49,22 +46,29 @@ namespace GameData
 			mDstFilename = stream.ReadString();
 
             // Load dependency information
+            mDependency = Dependency.ReadFrom(stream);
+        }
 
+        public void CompilerConstruct(IDataCompiler dc)
+        {
+            if (dc is MeshCompiler mc)
+            {
+                mSrcFilename = mc.mSrcFilename;
+                mDstFilename = mc.mDstFilename;
+                mDependency = mc.mDependency;
+            }
         }
 
         public DataCompilerOutput CompilerExecute()
         {
+            DataCompilerOutput.EResult result = DataCompilerOutput.EResult.None;
+
             // Execute the actual purpose of this compiler
 
             // Call our external process to compile this mesh (obj, ply) into a tri format
 
-            return new(1, new[] { mDstFilename });
+            return new(result, new[] { mDstFilename });
         }
 
-        public void CompilerFinished()
-        {
-            // Update dependency information of src and dst file
-
-        }
     }
 }

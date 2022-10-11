@@ -3,10 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameData", "GameData.csproj", "{3BCBF79F-6428-420E-9834-DE5F66ABF462}"
+	ProjectSection(ProjectDependencies) = postProject
+		{10876348-DCB8-4730-9A9C-BC2C312CA498} = {10876348-DCB8-4730-9A9C-BC2C312CA498}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AI", "AI\AI.csproj", "{3DCCAB1B-23F1-4BC5-8200-ED881E8EA702}"
+	ProjectSection(ProjectDependencies) = postProject
+		{10876348-DCB8-4730-9A9C-BC2C312CA498} = {10876348-DCB8-4730-9A9C-BC2C312CA498}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fonts", "Fonts\Fonts.csproj", "{C6B1136D-DFFE-49C8-9AA1-EDCCB73449EF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{10876348-DCB8-4730-9A9C-BC2C312CA498} = {10876348-DCB8-4730-9A9C-BC2C312CA498}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Code", "Code\Code.csproj", "{10876348-DCB8-4730-9A9C-BC2C312CA498}"
 EndProject

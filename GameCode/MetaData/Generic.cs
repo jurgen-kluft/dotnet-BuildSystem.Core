@@ -1306,7 +1306,7 @@ namespace GameData
                 {
                 }
 
-                Dictionary<UInt64, StreamReference> referencesForFileIdDict = new ();
+                Dictionary<Int64, StreamReference> referencesForFileIdDict = new ();
                 foreach (FileIdMember c in fileids)
                 {
                     StreamReference reference;
@@ -1398,13 +1398,13 @@ namespace GameData
             public Member newUInt64Member(UInt64 o, string memberName) { return new UInt64Member(memberName, o); }
             public Member newFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
             public Member newStringMember(string o, string memberName) { return new StringMember(memberName, o); }
-            public Member newFileIdMember(UInt64 o, string memberName) { return new FileIdMember(memberName, o); }
+            public Member newFileIdMember(Int64 o, string memberName) { return new FileIdMember(memberName, o); }
             public Member newEnumMember(object o, string memberName) { return new Int32Member(memberName, (Int32)o); }
 
             #endregion
             #region IMemberGenerator methods
 
-            public MetaType NewMemberType(Type type)
+            public IMetaType NewMemberType(Type type)
             {
                 if (isNull(type))
                 {
@@ -1418,7 +1418,7 @@ namespace GameData
 
                 if (isFileId(type))
                 {
-                    return new FileIdType(type, type.Name);
+                    return new FileIdType { type = type, typeName = type.Name };
                 }
 
                 if (isCompound(type))
@@ -1442,22 +1442,22 @@ namespace GameData
                 throw new NotImplementedException();
             }
 
-            public MetaType NewObjectType(Type type)
+            public IMetaType NewObjectType(Type type)
             {
                 return new ObjectType(type, "Object");
             }
 
-            public MetaType NewAtomType(Type type)
+            public IMetaType NewAtomType(Type type)
             {
                 return new AtomType(type, type.Name);
             }
 
-            public MetaType NewFileIdType(Type type)
+            public IMetaType NewFileIdType(Type type)
             {
-                return new FileIdType(type, type.Name);
+                return new FileIdType { type = type, typeName = type.Name };
             }
 
-            public MetaType NewCompoundType(Type type)
+            public IMetaType NewCompoundType(Type type)
             {
                 return new CompoundType(type, type.Name);
             }
@@ -1498,7 +1498,7 @@ namespace GameData
                 AtomMember atom = new (memberName, NewAtomType(atomType), atomContentMember);
                 return atom;
             }
-            public FileIdMember newFileIdMember(Type fileidType, UInt64 content, string memberName)
+            public FileIdMember newFileIdMember(Type fileidType, Int64 content, string memberName)
             {
                 FileIdMember fileid = new (memberName, content);
                 return fileid;

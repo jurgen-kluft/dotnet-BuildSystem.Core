@@ -211,85 +211,85 @@ namespace GameData
 
             public bool writeNullMember(NullMember c)
             {
-                string line = "\tvoid*\tget" + c.Name + "() const\t{ return 0; }";
+                string line = "\tvoid*\tget" + c.Name + "() const { return 0; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeBool8Member(BoolMember c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt8Member(Int8Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt16Member(Int16Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt32Member(Int32Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeInt64Member(Int64Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt8Member(UInt8Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt16Member(UInt16Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt32Member(UInt32Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeUInt64Member(UInt64Member c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeFloatMember(FloatMember c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeStringMember(StringMember c)
             {
-                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeFileIdMember(FileIdMember c)
             {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }
             public bool writeArrayMember(ArrayMember c)
             {
-                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const\t{ return m" + c.Name + "; }";
+                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const { return m" + c.Name + "; }";
                 mWriter.WriteLine(line);
                 return true;
             }

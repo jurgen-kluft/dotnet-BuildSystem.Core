@@ -10,232 +10,189 @@ namespace GameData
 {
     namespace MetaCode
     {
-        #region MetaType
+        #region IMetaType
 
-        public abstract class MetaType
+        public interface IMetaType
         {
-            private Type mType;
-            private string mTypeName;
-
-            public MetaType(Type _type, string _typeName)
-            { 
-                type = type;
-                typeName = _typeName;
-            }
-
-            public Type type
-            {
-                get
-                {
-                    return mType;
-                }
-                set
-                {
-                    mType = value;
-                }
-            }
-
-            public string typeName 
-            { 
-                get 
-                {
-                    return mTypeName;
-                }
-                set
-                {
-                    mTypeName = value.ToLower();
-                }
-            }
+            Type type { get; set; }
+            string typeName { get; }
         }
 
         #endregion
         #region NullType
 
-        public class NullType : MetaType
+        public class NullType : IMetaType
         {
-            public NullType()
-                : base(null, "null")
-            {
-            }
+            public Type type { get { return null; } set { } }
+            public string typeName => "null";
         }
 
         #endregion
         #region BoolType
 
-        public class BoolType : MetaType
+        public class BoolType : IMetaType
         {
-            public BoolType(Type type)
-                : base(type, "bool")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "bool";
         }
 
         #endregion
         #region Int8Type
 
-        public class Int8Type : MetaType
+        public class Int8Type : IMetaType
         {
-            public Int8Type(Type type)
-                : base(type, "int8")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "int8";
         }
 
         #endregion
         #region Int16Type
 
-        public class Int16Type : MetaType
+        public class Int16Type : IMetaType
         {
-            public Int16Type(Type type)
-                : base(type, "int16")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "int16";
         }
 
         #endregion
         #region Int32Type
 
-        public class Int32Type : MetaType
+        public class Int32Type : IMetaType
         {
-            public Int32Type(Type type)
-                : base(type, "int32")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "int32";
         }
 
         #endregion
         #region Int64Type
 
-        public class Int64Type : MetaType
+        public class Int64Type : IMetaType
         {
-            public Int64Type(Type type)
-                : base(type, "int64")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "int64";
         }
 
         #endregion
         #region UInt8Type
 
-        public class UInt8Type : MetaType
+        public class UInt8Type : IMetaType
         {
-            public UInt8Type(Type type)
-                : base(type, "uint8")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "uint8";
         }
 
         #endregion
         #region UInt16Type
 
-        public class UInt16Type : MetaType
+        public class UInt16Type : IMetaType
         {
-            public UInt16Type(Type type)
-                : base(type, "uint16")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "uint16";
         }
 
         #endregion
         #region UInt32Type
 
-        public class UInt32Type : MetaType
+        public class UInt32Type : IMetaType
         {
-            public UInt32Type(Type type)
-                : base(type, "uint32")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "uint32";
         }
 
         #endregion
         #region UInt64Type
 
-        public class UInt64Type : MetaType
+        public class UInt64Type : IMetaType
         {
-            public UInt64Type(Type type)
-                : base(type, "uint64")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "uint64";
         }
 
         #endregion
         #region FloatType
 
-        public class FloatType : MetaType
+        public class FloatType : IMetaType
         {
-            public FloatType(Type type)
-                : base(type, "float")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "float";
         }
 
         #endregion
         #region StringType
 
-        public class StringType : MetaType
+        public class StringType : IMetaType
         {
-            public StringType(Type type)
-                : base(type, "string")
-            {
-            }
+            public Type type { get; set; }
+            public string typeName => "string";
         }
 
         #endregion
         #region FileIdType
 
-        public class FileIdType : MetaType
+        public class FileIdType : IMetaType
         {
-            public FileIdType(Type type, string typeName)
-                : base(type, typeName)
-            {
-            }
+            public Type type { get; set; }
+            public string typeName { get; set; }
         }
 
         #endregion
         #region ArrayType
 
-        public class ArrayType : MetaType
+        public class ArrayType : IMetaType
         {
-            private readonly Member mElement;
+            private Member Element { get; set; }
 
             public ArrayType(Type arrayObjectType, Member elementMember)
-                : base(arrayObjectType, elementMember.Type.typeName + "[]")
             {
-                mElement = elementMember;
+                Element = elementMember;
+                type = arrayObjectType;
+                typeName = elementMember.Type.typeName + "[]";
             }
+            public Type type { get; set; }
+            public string typeName { get; set; }
+
         }
 
         #endregion
         #region ObjectType
 
-        public class ObjectType : MetaType
+        public class ObjectType : IMetaType
         {
             public ObjectType(Type classType, string className)
-                : base(classType, className)
             {
+                type = classType;
+                typeName = className;
             }
+            public Type type { get; set; }
+            public string typeName { get; set; }
         }
 
         #endregion
         #region AtomType
 
-        public class AtomType : MetaType
+        public class AtomType : IMetaType
         {
-            public AtomType(Type type, string typeName)
-                : base(type, typeName)
+            public AtomType(Type _type, string _typeName)
             {
+                type = _type;
+                typeName = _typeName;
             }
+            public Type type { get; set; }
+            public string typeName { get; set; }
         }
 
         #endregion
         #region CompoundType
 
-        public class CompoundType : MetaType
+        public class CompoundType : IMetaType
         {
-            public CompoundType(Type type, string typeName)
-                : base(type, typeName)
+            public CompoundType(Type _type, string _typeName)
             {
+                type = _type;
+                typeName = _typeName;
             }
+            public Type type { get; set; }
+            public string typeName { get; set; }
         }
 
         #endregion
@@ -276,12 +233,12 @@ namespace GameData
             Member newUInt64Member(UInt64 content, string memberName);
             Member newFloatMember(float content, string memberName);
             Member newStringMember(string content, string memberName);
-            Member newFileIdMember(UInt64 content, string memberName);
+            Member newFileIdMember(Int64 content, string memberName);
             Member newEnumMember(object content, string memberName);
             ObjectMember newObjectMember(Type objectType, object content, string memberName);
             ArrayMember newArrayMember(Type arrayType, object content, Member elementMember, string memberName);
             AtomMember newAtomMember(Type atomType, Member atomContentMember, string memberName);
-            FileIdMember newFileIdMember(Type atomType, UInt64 content, string memberName);
+            FileIdMember newFileIdMember(Type atomType, Int64 content, string memberName);
             CompoundMember newCompoundMember(Type compoundType, object content, string memberName);
         }
 
@@ -388,12 +345,12 @@ namespace GameData
         public abstract class Member
         {
             private readonly string mName = string.Empty;
-            private readonly MetaType mType = null;
+            private readonly IMetaType mType = null;
             private readonly int mDataSize = 0;
             protected Int64 mAlignment = sizeof(UInt8);
             
             public string Name { get { return mName; } }
-            public MetaType Type { get { return mType; } }
+            public IMetaType Type { get { return mType; } }
             public int Size { get { return mDataSize; } }
             public Int64 Alignment { get { return mAlignment; } }
             public abstract object Value { get; }
@@ -401,7 +358,7 @@ namespace GameData
             public abstract bool IsDefault { get; }
             public abstract Member Default();
 
-            public Member(MetaType type, string name, int dataSize)
+            public Member(IMetaType type, string name, int dataSize)
             {
                 mType = type;
                 mName = name;
@@ -414,9 +371,9 @@ namespace GameData
         #endregion
         #region NullMember
 
-        public class NullMember : Member
+        public sealed class NullMember : Member
         {
-            public static readonly MetaType sNullType = new NullType();
+            public static readonly IMetaType sNullType = new NullType();
             
             public NullMember(string name)
                 : base(sNullType, name, 4)
@@ -455,9 +412,9 @@ namespace GameData
         #endregion
         #region BoolMember
 
-        public class BoolMember : Member
+        public sealed class BoolMember : Member
         {
-            public static readonly BoolType sType = new BoolType(typeof(bool));
+            public static readonly BoolType sType = new() { type = typeof(bool) };
 
             private readonly bool mValue;
 
@@ -508,9 +465,9 @@ namespace GameData
         #endregion
         #region Int8Member
 
-        public class Int8Member : Member
+        public sealed class Int8Member : Member
         {
-            public static readonly Int8Type sType = new Int8Type(typeof(sbyte));
+            public static readonly Int8Type sType = new() { type = typeof(sbyte) };
 
             private readonly Int8 mValue;
 
@@ -560,9 +517,9 @@ namespace GameData
         #endregion
         #region Int16Member
 
-        public class Int16Member : Member
+        public sealed class Int16Member : Member
         {
-            public static readonly Int16Type sType = new Int16Type(typeof(short));
+            public static readonly Int16Type sType = new () { type=typeof(short) };
 
             private readonly Int16 mValue;
 
@@ -612,9 +569,9 @@ namespace GameData
         #endregion
         #region Int32Member
 
-        public class Int32Member : Member
+        public sealed class Int32Member : Member
         {
-            public static readonly Int32Type sType = new Int32Type(typeof(int));
+            public static readonly Int32Type sType = new() { type = typeof(int) };
 
             private readonly Int32 mValue;
 
@@ -664,9 +621,9 @@ namespace GameData
         #endregion
         #region Int64Member
 
-        public class Int64Member : Member
+        public sealed class Int64Member : Member
         {
-            public static readonly Int64Type sType = new Int64Type(typeof(Int64));
+            public static readonly Int64Type sType = new() { type = typeof(Int64) };
 
             private StreamReference mReference = StreamReference.Empty; 
             private readonly Int64 mValue;
@@ -729,9 +686,9 @@ namespace GameData
         #endregion
         #region UInt8Member
 
-        public class UInt8Member : Member
+        public sealed class UInt8Member : Member
         {
-            public static readonly UInt8Type sType = new UInt8Type(typeof(byte));
+            public static readonly UInt8Type sType = new() { type = typeof(byte) };
 
             private readonly UInt8 mValue;
 
@@ -781,9 +738,9 @@ namespace GameData
         #endregion
         #region UInt16Member
 
-        public class UInt16Member : Member
+        public sealed class UInt16Member : Member
         {
-            public static readonly UInt16Type sType = new UInt16Type(typeof(ushort));
+            public static readonly UInt16Type sType = new() { type = typeof(ushort) };
 
             private readonly UInt16 mValue;
 
@@ -833,9 +790,9 @@ namespace GameData
         #endregion
         #region UInt32Member
 
-        public class UInt32Member : Member
+        public sealed class UInt32Member : Member
         {
-            public static readonly UInt32Type sType = new UInt32Type(typeof(uint));
+            public static readonly UInt32Type sType = new() { type = typeof(uint) };
 
             private readonly UInt32 mValue;
 
@@ -885,9 +842,9 @@ namespace GameData
         #endregion
         #region UInt64Member
 
-        public class UInt64Member : Member
+        public sealed class UInt64Member : Member
         {
-            public static readonly UInt64Type sType = new UInt64Type(typeof(UInt64));
+            public static readonly UInt64Type sType = new() { type = typeof(UInt64) };
 
             public UInt64Member(string name, UInt64 value)
                 : base(sType, name, 8)
@@ -916,9 +873,9 @@ namespace GameData
         #endregion
         #region FloatMember
 
-        public class FloatMember : Member
+        public sealed class FloatMember : Member
         {
-            public static readonly FloatType sType = new FloatType(typeof(float));
+            public static readonly FloatType sType = new() { type = typeof(float) };
 
             public FloatMember(string name, float value)
                 : base(sType, name, 4)
@@ -960,9 +917,9 @@ namespace GameData
         #endregion
         #region StringMember
 
-        public class StringMember : Member
+        public sealed class StringMember : Member
         {
-            public static readonly StringType sType = new StringType(typeof(string));
+            public static readonly StringType sType = new() { type = typeof(string) };
 
             private readonly string mValue;
 
@@ -1012,21 +969,21 @@ namespace GameData
         #endregion
         #region FileIdMember
 
-        public class FileIdMember : Member
+        public sealed class FileIdMember : Member
         {
-            public static readonly FileIdType sType = new FileIdType(typeof(GameData.FileId), typeof(GameData.FileId).Name);
+            public static readonly FileIdType sType = new() { type = typeof(GameData.FileId), typeName = typeof(GameData.FileId).Name };
 
             private StreamReference mStreamReference = StreamReference.Empty;
-            private readonly UInt64 mValue;
+            private readonly Int64 mValue;
 
-            public FileIdMember(string name, UInt64 value)
+            public FileIdMember(string name, Int64 value)
                 : base(sType, name, 8)
             {
                 mValue = value;
                 mAlignment = sizeof(Int64);
             }
 
-            public UInt64 ID { get { return mValue; } }
+            public Int64 ID { get { return mValue; } }
 
             public override object Value
             {
@@ -1040,7 +997,7 @@ namespace GameData
             {
                 get
                 {
-                    return mValue == UInt64.MaxValue;
+                    return mValue == -1;
                 }
             }
 
@@ -1058,7 +1015,7 @@ namespace GameData
 
             public override Member Default()
             {
-                return new FileIdMember(Name, UInt64.MaxValue);
+                return new FileIdMember(Name, -1);
             }
 
             public override bool Write(IMemberWriter writer)
@@ -1072,11 +1029,11 @@ namespace GameData
 
         #region AtomMember
 
-        public class AtomMember : Member
+        public sealed class AtomMember : Member
         {
             private readonly Member mValue;
 
-            public AtomMember(string name, MetaType type, Member member)
+            public AtomMember(string name, IMetaType type, Member member)
                 : base(type, name, member.Size)
             {
                 mValue = member;
@@ -1131,7 +1088,7 @@ namespace GameData
             #endregion
             #region Constructor
 
-            public ReferenceableMember(MetaType type, string name, int size)
+            public ReferenceableMember(IMetaType type, string name, int size)
                 : base(type, name, size)
             {
             }
@@ -1160,7 +1117,7 @@ namespace GameData
         {
             #region Constructor
 
-            public CompoundMemberBase(MetaType type, string name, int size)
+            public CompoundMemberBase(IMetaType type, string name, int size)
                 : base(type, name, size)
             {
             }
@@ -1195,7 +1152,7 @@ namespace GameData
                 mMembers = new List<Member>();
             }
 
-            public ArrayMember(MetaType arrayType, object value, string memberName)
+            public ArrayMember(IMetaType arrayType, object value, string memberName)
                 : base(arrayType, memberName, 4)
             {
                 mValue = value;
@@ -1255,7 +1212,7 @@ namespace GameData
         #endregion
         #region ObjectMember
 
-        public class ObjectMember : CompoundMemberBase
+        public sealed class ObjectMember : CompoundMemberBase
         {
             #region Fields
 
@@ -1275,7 +1232,7 @@ namespace GameData
                 mMembers = new List<Member>();
             }
 
-            public ObjectMember(object value, MetaType type, string memberName)
+            public ObjectMember(object value, IMetaType type, string memberName)
                 : base(type, memberName, 4)
             {
                 mValue = value;
@@ -1421,7 +1378,7 @@ namespace GameData
         #endregion
         #region CompoundMember
 
-        public class CompoundMember : CompoundMemberBase
+        public sealed class CompoundMember : CompoundMemberBase
         {
             #region Fields
 
@@ -1439,7 +1396,7 @@ namespace GameData
                 mMembers = new List<Member>();
             }
 
-            public CompoundMember(object value, MetaType type, string name)
+            public CompoundMember(object value, IMetaType type, string name)
                 : base(type, name, 0)
             {
                 mValue = value;

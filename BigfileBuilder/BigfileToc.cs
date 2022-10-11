@@ -117,7 +117,7 @@ namespace DataBuildSystem
 
             public Int32 TocExtraCount { get; set; }
             public Int64 DataOffset { get; set; }
-            public List<ITocEntry> Toc { get; set; }
+            public List<ITocEntry> Toc { get; set; } = new();
 
             #endregion
         }
