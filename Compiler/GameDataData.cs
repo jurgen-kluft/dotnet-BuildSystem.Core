@@ -446,10 +446,10 @@ namespace DataBuildSystem
 
             // Finalize the DataStream and obtain a database of the position of the
             // 'Code.Class' objects in the DataStream.
-            FileInfo dataFileInfo = new(Path.ChangeExtension(dataFilename, BuildSystemCompilerConfig.DataFileExtension));
+            FileInfo dataFileInfo = new(dataFilename);
             FileStream dataFileStream = new(dataFileInfo.FullName, FileMode.Create);
             IBinaryWriter dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, BuildSystemCompilerConfig.Endian);
-            FileInfo relocFileInfo = new(Path.ChangeExtension(dataFilename, BuildSystemCompilerConfig.DataRelocFileExtension));
+            FileInfo relocFileInfo = new(relocFilename);
             FileStream relocFileStream = new(relocFileInfo.FullName, FileMode.Create);
             IBinaryWriter relocFileStreamWriter = EndianUtils.CreateBinaryWriter(relocFileStream, BuildSystemCompilerConfig.Endian);
             Dictionary<StreamReference, int> referenceOffsetDatabase;

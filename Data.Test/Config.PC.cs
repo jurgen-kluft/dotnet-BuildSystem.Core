@@ -13,7 +13,6 @@ namespace DataBuildSystem
         public string BigFileTocExtension { get { return ".bft"; } }
         public string BigFileFdbExtension { get { return ".bff"; } }
 		public string BigFileHdbExtension { get { return ".bfh"; } }
-		public string BigFileNodeExtension { get { return ".bfn"; } }
         public bool LittleEndian { get { return true; } }
         public Int64 FileAlignment { get { return 1024; } }
         public bool AllowDuplicateFiles { get { return false; } }

@@ -105,7 +105,7 @@ namespace DataBuildSystem
 
                         // Rebuild the Bigfiles and GameData files
                         GameDataBigfile bff = new();
-                        bff.Save(Path.ChangeExtension(gdu.FilePath, BigfileConfig.BigFileExtension), gdClOutput);
+                        bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
                         gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
                         // Everything is saved, now save the compiler log
@@ -137,7 +137,7 @@ namespace DataBuildSystem
             BinaryFileReader binaryFile = new BinaryFileReader();
             if (binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log")))
             {
-                uint magic = binaryFile.ReadUInt32();
+                Int64 magic = binaryFile.ReadInt64();
                 if (magic == StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'))
                 {
                     int numUnits = binaryFile.ReadInt32();

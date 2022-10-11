@@ -131,8 +131,8 @@ namespace GameCore
         public string ReadString()
         {
             Int32 len = ReadInt32();
-            byte[] data = ReadBytes(len);
-            string s = System.Text.Encoding.UTF8.GetString(data);
+            byte[] data = ReadBytes(len + 1);
+            string s = System.Text.Encoding.UTF8.GetString(data, 0, len);
             return s;
         }
 
@@ -245,8 +245,8 @@ namespace GameCore
         public string ReadString()
         {
             Int32 len = ReadInt32();
-            byte[] data = ReadBytes(len);
-            string s = System.Text.Encoding.UTF8.GetString(data);
+            byte[] data = ReadBytes(len + 1); // Also read the terminator
+            string s = System.Text.Encoding.UTF8.GetString(data, 0, len);
             return s;
         }
 

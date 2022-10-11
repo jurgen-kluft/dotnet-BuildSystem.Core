@@ -185,7 +185,7 @@ namespace DataBuildSystem
             string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), _filepath, ".dep"));
             if (reader.Open(filepath))
             {
-                UInt32 magic = reader.ReadUInt32();
+                Int64 magic = reader.ReadInt64();
                 if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
                 {
                     Dependency dep = ReadFrom(reader);

@@ -43,10 +43,20 @@ namespace GameData
 		{
 			return sGameDataUnitToEPath[(int)unit];
 		}
-		private static string[] sGameDataUnitToExtension = { ".dll", ".gdcl", ".gdd", ".gdr", ".bfd", ".bft", ".bff", ".bfh" };
 		public static string GetExtFor(EGameData unit)
 		{
-			return sGameDataUnitToExtension[(int)unit];
+			return unit switch
+			{
+				EGameData.GameDataDll => ".dll",
+				EGameData.GameDataCompilerLog => ".gdcl",
+				EGameData.GameDataData => BuildSystemCompilerConfig.DataFileExtension,
+				EGameData.GameDataRelocation => BuildSystemCompilerConfig.DataRelocFileExtension,
+				EGameData.BigFileData => BigfileConfig.BigFileExtension,
+				EGameData.BigFileToc => BigfileConfig.BigFileTocExtension,
+				EGameData.BigFileFilenames => BigfileConfig.BigFileFdbExtension,
+				EGameData.BigFileHashes => BigfileConfig.BigFileHdbExtension,
+				_ => string.Empty
+			};
 		}
 		public static string GetFilePathFor(string name, EGameData unit)
 		{
