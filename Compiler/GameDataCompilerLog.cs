@@ -135,8 +135,8 @@ namespace DataBuildSystem
 			{
 				var r = c.CompilerExecute();
 				if (r.Result.HasFlag(DataCompilerOutput.EResult.Error))
-					return Result.Error;
-				if (!r.Result.HasFlag(DataCompilerOutput.EResult.Ok))
+					result++;
+				else if (!r.Result.HasFlag(DataCompilerOutput.EResult.Ok))
 					result++;
 				gdClOutput.Add(r);
 			}
