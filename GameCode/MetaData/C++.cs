@@ -346,7 +346,7 @@ namespace GameData
 
             public bool write(string type, string name, StreamWriter writer)
             {
-                string line = "\t" + type + " m" + name + ";";
+                string line = "\t" + type + " const m" + name + ";";
                 writer.WriteLine(line);
                 return true;
             }
@@ -434,23 +434,12 @@ namespace GameData
                 mMemberGetterWriter.setWriter(writer);
                 mMemberWriter.setWriter(writer);
 
-                writer.WriteLine("class {0}", c.Name);
+                writer.WriteLine("struct {0}", c.Name);
                 writer.WriteLine("{");
-
-                // Member getters
-                writer.WriteLine("public:");
-                foreach (Member m in c.Members)
-                {
-                    m.Write(mMemberGetterWriter);
-                }
-
-                // Member data
-                writer.WriteLine("private:");
                 foreach (Member m in c.Members)
                 {
                     m.Write(mMemberWriter);
                 }
-
                 writer.WriteLine("};");
                 return true;
             }
