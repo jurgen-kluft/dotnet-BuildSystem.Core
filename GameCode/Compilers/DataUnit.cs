@@ -5,7 +5,7 @@ using GameCore;
 
 namespace GameData
 {
-    public sealed class DataUnit : IDataUnit, IDynamicMember
+    public sealed class DataUnit : IDataUnit
     {
         public string mMemberName;
         public string mDataUnitPath;

@@ -30,3 +30,11 @@ following things will be done by the BuildSystem:
    - ```ShaderCompiler("shaders/shadow.ps", EShaderFormat.PS_SPIRV)```
 
 In your game runtime you can use the `C++` library `cgamedata` to use it.
+
+## WIP
+
+Currently working on exporting C++ header files containing structs that are direct
+mirrors of their C# counterpart and map directly to the written out data.
+Working with the data in this way is a lot more convenient and easier to understand,
+but it does require that you 'recompile' your game executable (when the layout changes).
+When only the data changes you do not need to recompile your application.

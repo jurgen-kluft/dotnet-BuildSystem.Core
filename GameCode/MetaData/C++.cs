@@ -13,7 +13,7 @@ namespace GameData
     using MetaCode;
 
     /// <summary>
-    /// CodeStream for generating C++ code
+    /// CodeStream for generating C++ header file(s) containing structs that map to 'data'
     /// </summary>
     public class CppCodeStream
     {
@@ -98,6 +98,11 @@ namespace GameData
                 mDataStream.write(c.real);
                 return true;
             }
+            public bool writeDoubleMember(DoubleMember c)
+            {
+                mDataStream.write(c.real);
+                return true;
+            }
             public bool writeStringMember(StringMember s)
             {
                 mDataStream.write(mStringTable.ReferenceOf(s.StringValue));
@@ -119,7 +124,7 @@ namespace GameData
                 {
                     c.Reference = mDataStream.beginBlock();
                     {
-                        foreach (Member m in c.Members)
+                        foreach (ClassMember m in c.Members)
                             m.Write(this);
                     }
                     mDataStream.endBlock();
@@ -127,7 +132,7 @@ namespace GameData
                 }
                 return true;
             }
-            public bool writeObjectMember(ObjectMember c)
+            public bool writeObjectMember(ClassObject c)
             {
                 if (c.Reference != StreamReference.Empty)
                 {
@@ -137,7 +142,7 @@ namespace GameData
                 {
                     c.Reference = mDataStream.beginBlock();
                     {
-                        foreach (Member m in c.Members)
+                        foreach (ClassMember m in c.Members)
                             m.Write(this);
                     }
                     mDataStream.endBlock();
@@ -161,7 +166,7 @@ namespace GameData
                     {
                         c.Reference = mDataStream.beginBlock();
                         {
-                            foreach (Member m in c.members)
+                            foreach (ClassMember m in c.members)
                                 m.Write(this);
                         }
                         mDataStream.endBlock();
@@ -170,7 +175,7 @@ namespace GameData
                 }
                 else
                 {
-                    foreach (Member m in c.members)
+                    foreach (ClassMember m in c.members)
                         m.Write(this);
                 }
                 return true;
@@ -178,142 +183,7 @@ namespace GameData
         }
 
         #endregion
-        #region C++ Class Member Getter writer
-
-        public class MemberGetterWriter : IMemberWriter
-        {
-            private StreamWriter mWriter;
-
-            public MemberGetterWriter()
-            {
-                mWriter = null;
-            }
-
-            public MemberGetterWriter(StreamWriter writer)
-            {
-                mWriter = writer;
-            }
-
-            public void setWriter(StreamWriter writer)
-            {
-                mWriter = writer;
-            }
-
-            public bool open()
-            {
-                return true;
-            }
-
-            public bool close()
-            {
-                return true;
-            }
-
-            public bool writeNullMember(NullMember c)
-            {
-                string line = "\tvoid*\tget" + c.Name + "() const { return 0; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeBool8Member(BoolMember c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeInt8Member(Int8Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeInt16Member(Int16Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeInt32Member(Int32Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeInt64Member(Int64Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeUInt8Member(UInt8Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeUInt16Member(UInt16Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeUInt32Member(UInt32Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeUInt64Member(UInt64Member c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeFloatMember(FloatMember c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeStringMember(StringMember c)
-            {
-                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeFileIdMember(FileIdMember c)
-            {
-                string line = "\t" + c.Type.typeName + "\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeArrayMember(ArrayMember c)
-            {
-                string line = "\tconst " + c.Type.typeName + "&\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeObjectMember(ObjectMember c)
-            {
-                string line = "\tconst " + c.Type.typeName + "*\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-            public bool writeAtomMember(AtomMember c)
-            {
-                c.member.Write(this);
-                return true;
-            }
-            public bool writeCompoundMember(CompoundMember c)
-            {
-                string line = "\tconst " + c.Type.typeName + "*\tget" + c.Name + "() const { return m" + c.Name + "; }";
-                mWriter.WriteLine(line);
-                return true;
-            }
-        }
-
-        #endregion
-        #region C++ Class Member writer
+         #region C++ Struct Member Writer
 
         public class MemberWriter : IMemberWriter
         {
@@ -346,8 +216,7 @@ namespace GameData
 
             public bool write(string type, string name, StreamWriter writer)
             {
-                string line = "\t" + type + " const m" + name + ";";
-                writer.WriteLine(line);
+                writer.WriteLine($"\t{type} const m{name};");
                 return true;
             }
 
@@ -395,6 +264,10 @@ namespace GameData
             {
                 return write(c.Type.typeName, c.Name, mWriter);
             }
+            public bool writeDoubleMember(DoubleMember c)
+            {
+                return write(c.Type.typeName, c.Name, mWriter);
+            }
             public bool writeStringMember(StringMember c)
             {
                 return write(c.Type.typeName, c.Name, mWriter);
@@ -407,7 +280,7 @@ namespace GameData
             {
                 return write(c.Type.typeName, c.Name, mWriter);
             }
-            public bool writeObjectMember(ObjectMember c)
+            public bool writeObjectMember(ClassObject c)
             {
                 return write(c.Type.typeName + "*", c.Name, mWriter);
             }
@@ -426,17 +299,15 @@ namespace GameData
 
         public class CppCodeWriter
         {
-            private readonly MemberGetterWriter mMemberGetterWriter = new MemberGetterWriter();
-            private readonly MemberWriter mMemberWriter = new MemberWriter();
+            private readonly MemberWriter mMemberWriter = new ();
 
-            public bool write(ObjectMember c, StreamWriter writer)
+            public bool write(ClassObject c, StreamWriter writer)
             {
-                mMemberGetterWriter.setWriter(writer);
                 mMemberWriter.setWriter(writer);
 
-                writer.WriteLine("struct {0}", c.Name);
+                writer.WriteLine($"struct {c.Name}");
                 writer.WriteLine("{");
-                foreach (Member m in c.Members)
+                foreach (ClassMember m in c.Members)
                 {
                     m.Write(mMemberWriter);
                 }
@@ -444,11 +315,10 @@ namespace GameData
                 return true;
             }
 
-            public void write(List<ObjectMember> classes, StreamWriter writer)
+            public void write(List<ClassObject> classes, StreamWriter writer)
             {
-                Dictionary<string, ObjectMember> writtenClasses = new Dictionary<string, ObjectMember>();
-
-                foreach (ObjectMember c in classes)
+                Dictionary<string, ClassObject> writtenClasses = new ();
+                foreach (ClassObject c in classes)
                 {
                     if (!writtenClasses.ContainsKey(c.Type.typeName))
                     {
@@ -477,12 +347,12 @@ namespace GameData
         private class DataBlock
         {
             private StreamReference mReference;
-            private readonly MemoryStream mDataStream = new MemoryStream();
+            private readonly MemoryStream mDataStream = new ();
             private readonly IBinaryWriter mDataWriter;
-            private readonly MemoryStream mTypeInfoStream = new MemoryStream();
+            private readonly MemoryStream mTypeInfoStream = new ();
             private readonly IBinaryWriter mTypeInfoWriter;
 
-            private readonly Dictionary<StreamReference, List<StreamOffset>> mPointers = new Dictionary<StreamReference, List<StreamOffset>>();
+            private readonly Dictionary<StreamReference, List<StreamOffset>> mPointers = new ();
 
             private enum EDataType : uint
             {
@@ -530,6 +400,12 @@ namespace GameData
             internal void write(float v)
             {
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(float)));
+                mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
+                mDataWriter.Write(v);
+            }
+            internal void write(double v)
+            {
+                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(double)));
                 mTypeInfoWriter.Write((uint)EDataType.PRIMITIVE);
                 mDataWriter.Write(v);
             }
@@ -589,7 +465,7 @@ namespace GameData
                 }
                 else
                 {
-                    List<StreamOffset> offsets = new List<StreamOffset>();
+                    List<StreamOffset> offsets = new ();
                     offsets.Add(new StreamOffset(Position));
                     mPointers.Add(v, offsets);
                 }
@@ -615,7 +491,7 @@ namespace GameData
                     mPointers.Remove(oldRef);
 
                     // Modify data
-                    StreamOffset currentPos = new StreamOffset(mDataStream.Position);
+                    StreamOffset currentPos = new (mDataStream.Position);
                     foreach (StreamOffset o in oldOffsets)
                     {
                         mDataWriter.Seek(o);
@@ -639,11 +515,10 @@ namespace GameData
 
             internal void writeTo(IBinaryWriter outData, IBinaryWriter outReallocationTable, IDictionary<StreamReference, StreamOffset> dataOffsetDataBase, IDictionary<StreamReference, int> referenceOffsetDataBase)
             {
-                StreamOffset currentPos = new StreamOffset(mDataStream.Position);
+                StreamOffset currentPos = new (mDataStream.Position);
                 foreach (KeyValuePair<StreamReference, List<StreamOffset>> k in mPointers)
                 {
-                    StreamOffset outDataOffset;
-                    if (dataOffsetDataBase.TryGetValue(k.Key, out outDataOffset))
+                    if (dataOffsetDataBase.TryGetValue(k.Key, out StreamOffset outDataOffset))
                     {
                         foreach (StreamOffset o in k.Value)
                         {
@@ -657,8 +532,7 @@ namespace GameData
                 // Write data
                 outData.Write(mDataStream.GetBuffer());
 
-                StreamOffset currentOffset;
-                dataOffsetDataBase.TryGetValue(Reference, out currentOffset);
+                dataOffsetDataBase.TryGetValue(Reference, out StreamOffset currentOffset);
 
                 // Write reallocation info
                 foreach (KeyValuePair<StreamReference, List<StreamOffset>> k in mPointers)
@@ -675,8 +549,8 @@ namespace GameData
 
         #region Fields
 
-        private readonly List<DataBlock> mData = new List<DataBlock>();
-        private readonly Stack<DataBlock> mStack = new Stack<DataBlock>();
+        private readonly List<DataBlock> mData = new ();
+        private readonly Stack<DataBlock> mStack = new ();
 
         private EEndian mEndian = EEndian.LITTLE;
         private DataBlock mCurrent = null;
@@ -698,7 +572,7 @@ namespace GameData
             if (mCurrent!=null)
                 mStack.Push(mCurrent);
 
-            mCurrent = new DataBlock(mEndian);
+            mCurrent = new (mEndian);
             mData.Add(mCurrent);
             return mCurrent.Reference;
         }
@@ -707,6 +581,11 @@ namespace GameData
         {
             mCurrent.write(v);
         }
+        public void write(double v)
+        {
+            mCurrent.write(v);
+        }
+
         public void write(sbyte v)
         {
             mCurrent.write(v);
@@ -754,11 +633,11 @@ namespace GameData
         public void finalize(IBinaryWriter dataWriter, IBinaryWriter relocWriter, out Dictionary<StreamReference, int> referenceOffsetDatabase)
         {
             // Dictionary for mapping a Reference object to a Data object
-            Dictionary<StreamReference, DataBlock> dataDataBase = new Dictionary<StreamReference, DataBlock>();
+            Dictionary<StreamReference, DataBlock> dataDataBase = new ();
             foreach (DataBlock d in mData)
                 dataDataBase.Add(d.Reference, d);
 
-            Dictionary<StreamReference, DataBlock> finalDataDataBase = new Dictionary<StreamReference, DataBlock>();
+            Dictionary<StreamReference, DataBlock> finalDataDataBase = new ();
             foreach (DataBlock d in mData)
                 finalDataDataBase.Add(d.Reference, d);
 
@@ -768,8 +647,8 @@ namespace GameData
             bool collapse = true;
             while (collapse)
             {
-                Dictionary<StreamReference, List<StreamReference>> duplicateDataBase = new Dictionary<StreamReference, List<StreamReference>>();
-                Dictionary<Hash160, StreamReference> dataMD5DataBase = new Dictionary<Hash160, StreamReference>();
+                Dictionary<StreamReference, List<StreamReference>> duplicateDataBase = new ();
+                Dictionary<Hash160, StreamReference> dataMD5DataBase = new ();
 
                 foreach (DataBlock d in mData)
                 {
@@ -786,7 +665,7 @@ namespace GameData
                             {
                                 if (finalDataDataBase.ContainsKey(d.Reference))
                                 {
-                                    List<StreamReference> duplicateReferences = new List<StreamReference>();
+                                    List<StreamReference> duplicateReferences = new ();
                                     duplicateReferences.Add(d.Reference);
                                     duplicateDataBase[newRef] = duplicateReferences;
                                 }
@@ -824,7 +703,7 @@ namespace GameData
             }
 
             // Resolve block references again
-            Dictionary<StreamReference, StreamOffset> dataOffsetDataBase = new Dictionary<StreamReference, StreamOffset>();
+            Dictionary<StreamReference, StreamOffset> dataOffsetDataBase = new ();
 
             int offset = 0;
             foreach (KeyValuePair<StreamReference, DataBlock> k in finalDataDataBase)
@@ -836,7 +715,7 @@ namespace GameData
             // Dump all blocks to outData
             // Dump all reallocation info to outReallocationTable
             // Remember the location of every reference in the memory stream!
-            referenceOffsetDatabase = new Dictionary<StreamReference, int>();
+            referenceOffsetDatabase = new ();
             foreach (KeyValuePair<StreamReference, DataBlock> k in finalDataDataBase)
             {
                 k.Value.writeTo(dataWriter, relocWriter, dataOffsetDataBase, referenceOffsetDatabase);

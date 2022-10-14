@@ -277,40 +277,11 @@ namespace DataBuildSystem
         {
             public void HandoutReferences()
             {
-                // Handout StreamReferences to int64s, uint64s classes, compounds and arrays taking care of equality of these objects.
+                // Handout StreamReferences to classes, compounds and arrays taking care of equality of these objects.
                 // Note: Strings are a bit of a special case since we also will collect the names of members and classes.
-                Dictionary<Int64, StreamReference> referencesForInt64Dict = new();
-                foreach (Int64Member i in int64s)
-                {
-                    StreamReference reference;
-                    if (referencesForInt64Dict.TryGetValue(i.int64, out reference))
-                    {
-                        i.Reference = reference;
-                    }
-                    else
-                    {
-                        i.Reference = StreamReference.Instance;
-                        referencesForInt64Dict.Add(i.int64, i.Reference);
-                    }
-                }
-
-                Dictionary<UInt64, StreamReference> referencesForUInt64Dict = new();
-                foreach (UInt64Member i in uint64s)
-                {
-                    StreamReference reference;
-                    if (referencesForUInt64Dict.TryGetValue(i.uint64, out reference))
-                    {
-                        i.Reference = reference;
-                    }
-                    else
-                    {
-                        i.Reference = StreamReference.Instance;
-                        referencesForUInt64Dict.Add(i.uint64, i.Reference);
-                    }
-                }
 
                 Dictionary<object, StreamReference> referencesForClassesDict = new();
-                foreach (ObjectMember c in classes)
+                foreach (ClassObject c in classes)
                 {
                     if (c.Value != null)
                     {
@@ -384,36 +355,36 @@ namespace DataBuildSystem
         // As binary data and C code for the interface.
 
         // C code
-        // - 2 Builds, Development and Final. During Development we can use a "Property Table"
-        //   defining the name of the member and it's offset so that the data can be out of
-        //   sync with the code when designers are rebuilding the data after changing some
-        //   values. The Final Analyze does not have the property table and reads data directly
-        //   since the data and code are not out of sync. The code emitted for Development
-        //   also does not contain any data members but functions which use the "Property Table"
-        //   to obtain the value.
         // - Endian
-        // - Replace all data members with accessors (get....)
         // - Warning: Data member alignment!
         // - Duplicate data (strings, arrays)
-        // - Database of written references, objects, arrays, strings (For emitting an object once as well as terminating circular references)
+        // - Database of written references, objects, arrays, strings
+        //   - For emitting an object once as well as terminating circular references
 
         // Need to define
-        // - String data representation (class String)
-        // - LString data representation (class LString)
-        // - FileId data representation (class FileId)
-        // - Array data representation (template<> class?)
+        // - String data representation (struct string_t, member is a pointer)
+        //   - string_t { u32 const mLength; const char* const mStr; }
+        // - LString data representation (lstring_t = uint64_t)
+        // - FileId data representation (fileid_t = uint64_t)
+        // - Array data representation (template<T> array_t { u32 const mSize; T const* const mArray; })
         // - Array of Array of Array of String ?
-        // - Data inheritance structure
+        // - Data inheritance ?
+        // - Embedding a struct or class will result in a pointer to that struct/class
 
-        // Defined, big/little endian
-        // fx32  -> 4 byte
-        // fx16  -> 2 byte
-        // int   -> 4 byte
-        // short -> 2 byte
-        // byte  -> 1 byte
+        // - Enum; Would like to be able to directly have it's C++ version written out if an enum is used
+
+        // Defined: (big/little endian)
+        // double       -> 8 byte
+        // float        -> 4 byte
+        // fx32         -> 4 byte
+        // fx16         -> 2 byte
+        // ulong/long   -> 8 byte
+        // uint/int     -> 4 byte
+        // ushort/short -> 2 byte
+        // byte         -> 1 byte
 
         // We will use a ResourceDataWriter for writing the resource data as binary data
-        // Exporting every class as a class in C/C++ using a ClassWriter providing enough
+        // Exporting every class as a struct in C/C++ using a ClassWriter providing enough
         // functionality to write any kind of class, function and member.
         private void generateCppCodeAndData(object data, string dataFilename, string codeFilename, string relocFilename)
         {
@@ -427,7 +398,7 @@ namespace DataBuildSystem
             book.HandoutReferences();
 
             // Sort the members on every 'Code.Class' so that alignment of data is solved.
-            foreach (ObjectMember c in book.classes)
+            foreach (ClassObject c in book.classes)
                 c.sortMembers(new MemberSizeComparer());
 
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
@@ -439,7 +410,7 @@ namespace DataBuildSystem
             CppCodeStream.DataStreamWriter dataStreamWriter = new(stringTable, fileIdTable, dataStream);
             dataStreamWriter.open();
             {
-                ObjectMember root = book.classes[0];
+                ClassObject root = book.classes[0];
                 root.Write(dataStreamWriter);
             }
             dataStreamWriter.close();

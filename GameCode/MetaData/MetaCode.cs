@@ -118,6 +118,15 @@ namespace GameData
         }
 
         #endregion
+        #region DoubleType
+
+        public class DoubleType : IMetaType
+        {
+            public Type type { get; set; }
+            public string typeName => "double";
+        }
+
+        #endregion
         #region StringType
 
         public class StringType : IMetaType
@@ -140,9 +149,9 @@ namespace GameData
 
         public class ArrayType : IMetaType
         {
-            private Member Element { get; set; }
+            private ClassMember Element { get; set; }
 
-            public ArrayType(Type arrayObjectType, Member elementMember)
+            public ArrayType(Type arrayObjectType, ClassMember elementMember)
             {
                 Element = elementMember;
                 type = arrayObjectType;
@@ -212,6 +221,7 @@ namespace GameData
             bool isInt64(Type t);
             bool isUInt64(Type t);
             bool isFloat(Type t);
+            bool isDouble(Type t);
             bool isString(Type t);
             bool isEnum(Type t);
             bool isArray(Type t);
@@ -219,25 +229,25 @@ namespace GameData
             bool isAtom(Type t);
             bool isFileId(Type t);
             bool isCompound(Type t);
-            bool isDynamicMember(Type t);
 
-            Member newNullMember(string memberName);
-            Member newBoolMember(bool content, string memberName);
-            Member newInt8Member(SByte content, string memberName);
-            Member newUInt8Member(Byte content, string memberName);
-            Member newInt16Member(Int16 content, string memberName);
-            Member newUInt16Member(UInt16 content, string memberName);
-            Member newInt32Member(Int32 content, string memberName);
-            Member newUInt32Member(UInt32 content, string memberName);
-            Member newInt64Member(Int64 content, string memberName);
-            Member newUInt64Member(UInt64 content, string memberName);
-            Member newFloatMember(float content, string memberName);
-            Member newStringMember(string content, string memberName);
-            Member newFileIdMember(Int64 content, string memberName);
-            Member newEnumMember(object content, string memberName);
-            ObjectMember newObjectMember(Type objectType, object content, string memberName);
-            ArrayMember newArrayMember(Type arrayType, object content, Member elementMember, string memberName);
-            AtomMember newAtomMember(Type atomType, Member atomContentMember, string memberName);
+            ClassMember newNullMember(string memberName);
+            ClassMember newBoolMember(bool content, string memberName);
+            ClassMember newInt8Member(SByte content, string memberName);
+            ClassMember newUInt8Member(Byte content, string memberName);
+            ClassMember newInt16Member(Int16 content, string memberName);
+            ClassMember newUInt16Member(UInt16 content, string memberName);
+            ClassMember newInt32Member(Int32 content, string memberName);
+            ClassMember newUInt32Member(UInt32 content, string memberName);
+            ClassMember newInt64Member(Int64 content, string memberName);
+            ClassMember newUInt64Member(UInt64 content, string memberName);
+            ClassMember newFloatMember(float content, string memberName);
+            ClassMember newDoubleMember(double content, string memberName);
+            ClassMember newStringMember(string content, string memberName);
+            ClassMember newFileIdMember(Int64 content, string memberName);
+            ClassMember newEnumMember(object content, string memberName);
+            ClassObject newObjectMember(Type objectType, object content, string memberName);
+            ArrayMember newArrayMember(Type arrayType, object content, ClassMember elementMember, string memberName);
+            AtomMember newAtomMember(Type atomType, ClassMember atomContentMember, string memberName);
             FileIdMember newFileIdMember(Type atomType, Int64 content, string memberName);
             CompoundMember newCompoundMember(Type compoundType, object content, string memberName);
         }
@@ -261,10 +271,12 @@ namespace GameData
             bool writeUInt32Member(UInt32Member c);
             bool writeUInt64Member(UInt64Member c);
             bool writeFloatMember(FloatMember c);
+            bool writeDoubleMember(DoubleMember c);
+
             bool writeStringMember(StringMember c);
             bool writeFileIdMember(FileIdMember c);
             bool writeArrayMember(ArrayMember c);
-            bool writeObjectMember(ObjectMember c);
+            bool writeObjectMember(ClassObject c);
             bool writeAtomMember(AtomMember c);
             bool writeCompoundMember(CompoundMember c);
         }
@@ -273,7 +285,7 @@ namespace GameData
 
         #region MemberComparer (size and hash-of-name)
 
-        public class MemberSizeComparer : IComparer<Member>
+        public class MemberSizeComparer : IComparer<ClassMember>
         {
             // Summary:
             //     Compares two objects and returns a offset indicating whether one is less than,
@@ -293,7 +305,7 @@ namespace GameData
             // Exceptions:
             //   None
             //
-            public int Compare(Member x, Member y)
+            public int Compare(ClassMember x, ClassMember y)
             {
                 if (x.Alignment == y.Alignment) return 0;
                 else if (x.Alignment < y.Alignment) return 1;
@@ -301,7 +313,7 @@ namespace GameData
             }
         }
 
-        public class MemberNameHashComparer : IComparer<Member>
+        public class MemberNameHashComparer : IComparer<ClassMember>
         {
             // Summary:
             //     Compares two objects and returns a offset indicating whether one is less than,
@@ -328,7 +340,7 @@ namespace GameData
                 mStringTable = strTable;
             }
 
-            public int Compare(Member x, Member y)
+            public int Compare(ClassMember x, ClassMember y)
             {
                 uint hx = mStringTable.HashOf(x.Name);
                 uint hy = mStringTable.HashOf(y.Name);
@@ -342,7 +354,7 @@ namespace GameData
 
         #region Member
 
-        public abstract class Member
+        public abstract class ClassMember
         {
             private readonly string mName = string.Empty;
             private readonly IMetaType mType = null;
@@ -356,9 +368,9 @@ namespace GameData
             public abstract object Value { get; }
 
             public abstract bool IsDefault { get; }
-            public abstract Member Default();
+            public abstract ClassMember Default();
 
-            public Member(IMetaType type, string name, int dataSize)
+            public ClassMember(IMetaType type, string name, int dataSize)
             {
                 mType = type;
                 mName = name;
@@ -371,7 +383,7 @@ namespace GameData
         #endregion
         #region NullMember
 
-        public sealed class NullMember : Member
+        public sealed class NullMember : ClassMember
         {
             public static readonly IMetaType sNullType = new NullType();
             
@@ -397,7 +409,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new NullMember(Name);
             }
@@ -412,7 +424,7 @@ namespace GameData
         #endregion
         #region BoolMember
 
-        public sealed class BoolMember : Member
+        public sealed class BoolMember : ClassMember
         {
             public static readonly BoolType sType = new() { type = typeof(bool) };
 
@@ -450,7 +462,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new BoolMember(Name, false);
             }
@@ -465,14 +477,14 @@ namespace GameData
         #endregion
         #region Int8Member
 
-        public sealed class Int8Member : Member
+        public sealed class Int8Member : ClassMember
         {
             public static readonly Int8Type sType = new() { type = typeof(sbyte) };
 
             private readonly Int8 mValue;
 
             public Int8Member(string name, Int8 value)
-                : base(sType, name, 1)
+                : base(sType, name, sizeof(UInt8))
             {
                 mValue = value;
                 mAlignment = sizeof(UInt8);
@@ -502,7 +514,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new Int8Member(Name, 0);
             }
@@ -517,14 +529,14 @@ namespace GameData
         #endregion
         #region Int16Member
 
-        public sealed class Int16Member : Member
+        public sealed class Int16Member : ClassMember
         {
             public static readonly Int16Type sType = new () { type=typeof(short) };
 
             private readonly Int16 mValue;
 
             public Int16Member(string name, Int16 value)
-                : base(sType, name, 2)
+                : base(sType, name, sizeof(Int16))
             {
                 mValue = value;
                 mAlignment = sizeof(Int16);
@@ -554,7 +566,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new Int16Member(Name, 0);
             }
@@ -569,14 +581,14 @@ namespace GameData
         #endregion
         #region Int32Member
 
-        public sealed class Int32Member : Member
+        public sealed class Int32Member : ClassMember
         {
             public static readonly Int32Type sType = new() { type = typeof(int) };
 
             private readonly Int32 mValue;
 
             public Int32Member(string name, Int32 value)
-                : base(sType, name, 4)
+                : base(sType, name, sizeof(Int32))
             {
                 mValue = value;
                 mAlignment = sizeof(Int32);
@@ -606,7 +618,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new Int32Member(Name, 0);
             }
@@ -621,30 +633,17 @@ namespace GameData
         #endregion
         #region Int64Member
 
-        public sealed class Int64Member : Member
+        public sealed class Int64Member : ClassMember
         {
             public static readonly Int64Type sType = new() { type = typeof(Int64) };
 
-            private StreamReference mReference = StreamReference.Empty; 
             private readonly Int64 mValue;
 
             public Int64Member(string name, Int64 value)
-                : base(sType, name, 8)
+                : base(sType, name, sizeof(Int64))
             {
                 mValue = value;
                 mAlignment = sizeof(Int64);
-            }
-
-            public StreamReference Reference
-            {
-                get
-                {
-                    return mReference;
-                }
-                set
-                {
-                    mReference = value;
-                }
             }
 
             public override object Value
@@ -671,7 +670,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new Int64Member(Name, 0);
             }
@@ -686,14 +685,14 @@ namespace GameData
         #endregion
         #region UInt8Member
 
-        public sealed class UInt8Member : Member
+        public sealed class UInt8Member : ClassMember
         {
             public static readonly UInt8Type sType = new() { type = typeof(byte) };
 
             private readonly UInt8 mValue;
 
             public UInt8Member(string name, UInt8 value)
-                : base(sType, name, 1)
+                : base(sType, name, sizeof(UInt8))
             {
                 mValue = value;
                 mAlignment = sizeof(UInt8);
@@ -723,7 +722,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new UInt8Member(Name, 0);
             }
@@ -738,14 +737,14 @@ namespace GameData
         #endregion
         #region UInt16Member
 
-        public sealed class UInt16Member : Member
+        public sealed class UInt16Member : ClassMember
         {
             public static readonly UInt16Type sType = new() { type = typeof(ushort) };
 
             private readonly UInt16 mValue;
 
             public UInt16Member(string name, UInt16 value)
-                : base(sType, name, 2)
+                : base(sType, name, sizeof(Int16))
             {
                 mValue = value;
                 mAlignment = sizeof(Int16);
@@ -775,7 +774,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new UInt16Member(Name, 0);
             }
@@ -790,14 +789,14 @@ namespace GameData
         #endregion
         #region UInt32Member
 
-        public sealed class UInt32Member : Member
+        public sealed class UInt32Member : ClassMember
         {
             public static readonly UInt32Type sType = new() { type = typeof(uint) };
 
             private readonly UInt32 mValue;
 
             public UInt32Member(string name, UInt32 value)
-                : base(sType, name, 4)
+                : base(sType, name, sizeof(Int32))
             {
                 mValue = value;
                 mAlignment = sizeof(Int32);
@@ -827,7 +826,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new UInt32Member(Name, 0);
             }
@@ -842,23 +841,22 @@ namespace GameData
         #endregion
         #region UInt64Member
 
-        public sealed class UInt64Member : Member
+        public sealed class UInt64Member : ClassMember
         {
             public static readonly UInt64Type sType = new() { type = typeof(UInt64) };
 
             public UInt64Member(string name, UInt64 value)
-                : base(sType, name, 8)
+                : base(sType, name, sizeof(Int64))
             {
                 uint64 = value;
                 mAlignment = sizeof(Int64);
             }
 
-            public StreamReference Reference { get; set; } = StreamReference.Empty;
             public override object Value { get { return uint64; } }
             public UInt64 uint64 { get; }
             public override bool IsDefault{ get { return uint64 == 0; } }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new UInt64Member(Name, 0);
             }
@@ -873,15 +871,15 @@ namespace GameData
         #endregion
         #region FloatMember
 
-        public sealed class FloatMember : Member
+        public sealed class FloatMember : ClassMember
         {
             public static readonly FloatType sType = new() { type = typeof(float) };
 
             public FloatMember(string name, float value)
-                : base(sType, name, 4)
+                : base(sType, name, sizeof(float))
             {
                 real = value;
-                mAlignment = sizeof(Int32);
+                mAlignment = sizeof(float);
             }
 
             public override object Value
@@ -902,7 +900,7 @@ namespace GameData
 
             public float real { get; }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new FloatMember(Name, 0.0f);
             }
@@ -915,19 +913,63 @@ namespace GameData
         }
 
         #endregion
+        #region DoubleMember
+
+        public sealed class DoubleMember : ClassMember
+        {
+            public static readonly DoubleType sType = new() { type = typeof(double) };
+
+            public DoubleMember(string name, double value)
+                : base(sType, name, sizeof(double))
+            {
+                real = value;
+                mAlignment = sizeof(double);
+            }
+
+            public override object Value
+            {
+                get
+                {
+                    return real;
+                }
+            }
+
+            public override bool IsDefault
+            {
+                get
+                {
+                    return real == 0.0;
+                }
+            }
+
+            public double real { get; }
+
+            public override ClassMember Default()
+            {
+                return new DoubleMember(Name, 0.0);
+            }
+
+            public override bool Write(IMemberWriter writer)
+            {
+                writer.writeDoubleMember(this);
+                return true;
+            }
+        }
+
+        #endregion
         #region StringMember
 
-        public sealed class StringMember : Member
+        public sealed class StringMember : ClassMember
         {
-            public static readonly StringType sType = new() { type = typeof(string), typeName = "const char*" };
+            public static readonly StringType sType = new() { type = typeof(string), typeName = "string_t" };
 
             private readonly string mValue;
 
             public StringMember(string name, string value)
-                : base(sType, name, 4)
+                : base(sType, name, (sizeof(Int32) + sizeof(Int32)))
             {
                 mValue = value;
-                mAlignment = sizeof(Int32);
+                mAlignment = sizeof(Int32) + sizeof(Int32);
             }
 
             public override object Value
@@ -954,7 +996,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new StringMember(Name, string.Empty);
             }
@@ -969,11 +1011,10 @@ namespace GameData
         #endregion
         #region FileIdMember
 
-        public sealed class FileIdMember : Member
+        public sealed class FileIdMember : ClassMember
         {
             public static readonly FileIdType sType = new() { type = typeof(GameData.FileId), typeName = "fileid_t" };
 
-            private StreamReference mStreamReference = StreamReference.Empty;
             private readonly Int64 mValue;
 
             public FileIdMember(string name, Int64 value)
@@ -1013,7 +1054,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new FileIdMember(Name, -1);
             }
@@ -1029,11 +1070,11 @@ namespace GameData
 
         #region AtomMember
 
-        public sealed class AtomMember : Member
+        public sealed class AtomMember : ClassMember
         {
-            private readonly Member mValue;
+            private readonly ClassMember mValue;
 
-            public AtomMember(string name, IMetaType type, Member member)
+            public AtomMember(string name, IMetaType type, ClassMember member)
                 : base(type, name, member.Size)
             {
                 mValue = member;
@@ -1048,7 +1089,7 @@ namespace GameData
                 }
             }
 
-            public Member member
+            public ClassMember member
             {
                 get
                 {
@@ -1064,7 +1105,7 @@ namespace GameData
                 }
             }
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return mValue.Default();
             }
@@ -1079,7 +1120,7 @@ namespace GameData
 
         #region ReferenceableMember
 
-        public abstract class ReferenceableMember : Member
+        public abstract class ReferenceableMember : ClassMember
         {
             #region Fields
 
@@ -1125,7 +1166,7 @@ namespace GameData
             #endregion
             #region Public Methods
 
-            public abstract void AddMember(Member m);
+            public abstract void AddMember(ClassMember m);
 
             #endregion
         }
@@ -1139,17 +1180,17 @@ namespace GameData
             #region Fields
 
             private readonly object mValue;
-            private readonly List<Member> mMembers;
+            private readonly List<ClassMember> mMembers;
 
             #endregion
             #region Constructor
 
-            public ArrayMember(Type arrayObjectType, object value, Member elementMember, string memberName)
+            public ArrayMember(Type arrayObjectType, object value, ClassMember elementMember, string memberName)
                 : base(new ArrayType(arrayObjectType, elementMember), memberName, 4)
             {
                 mValue = value;
                 mAlignment = sizeof(Int32);
-                mMembers = new List<Member>();
+                mMembers = new List<ClassMember>();
             }
 
             public ArrayMember(IMetaType arrayType, object value, string memberName)
@@ -1157,7 +1198,7 @@ namespace GameData
             {
                 mValue = value;
                 mAlignment = sizeof(Int32);
-                mMembers = new List<Member>();
+                mMembers = new List<ClassMember>();
             }
 
             #endregion
@@ -1179,7 +1220,7 @@ namespace GameData
                 }
             }
 
-            public List<Member> Members
+            public List<ClassMember> Members
             {
                 get
                 {
@@ -1190,12 +1231,12 @@ namespace GameData
             #endregion  
             #region Member methods
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 return new ArrayMember(Type, null, Name);
             }
 
-            public override void AddMember(Member m)
+            public override void AddMember(ClassMember m)
             {
                 mMembers.Add(m);
             }
@@ -1212,32 +1253,32 @@ namespace GameData
         #endregion
         #region ObjectMember
 
-        public sealed class ObjectMember : CompoundMemberBase
+        public sealed class ClassObject : CompoundMemberBase
         {
             #region Fields
 
             private readonly object mValue;
-            private readonly List<Member> mMembers;
+            private readonly List<ClassMember> mMembers;
 
-            private ObjectMember mBaseClass;
+            private ClassObject mBaseClass;
 
             #endregion
             #region Constructors
 
-            public ObjectMember(object value, string className, string memberName)
+            public ClassObject(object value, string className, string memberName)
                 : base(new ObjectType(value.GetType(), className), memberName, 4)
             {
                 mValue = value;
                 mAlignment = sizeof(Int32);
-                mMembers = new List<Member>();
+                mMembers = new List<ClassMember>();
             }
 
-            public ObjectMember(object value, IMetaType type, string memberName)
+            public ClassObject(object value, IMetaType type, string memberName)
                 : base(type, memberName, 4)
             {
                 mValue = value;
                 mAlignment = sizeof(Int32);
-                mMembers = new List<Member>();
+                mMembers = new List<ClassMember>();
             }
 
             #endregion
@@ -1259,7 +1300,7 @@ namespace GameData
                 }
             }
 
-            public List<Member> Members
+            public List<ClassMember> Members
             {
                 get
                 {
@@ -1267,7 +1308,7 @@ namespace GameData
                 }
             }
 
-            public ObjectMember BaseClass
+            public ClassObject BaseClass
             {
                 get
                 {
@@ -1282,13 +1323,13 @@ namespace GameData
             #endregion            
             #region Methods
 
-            public override Member Default()
+            public override ClassMember Default()
             {
-                ObjectMember c = new ObjectMember(null, Type, Name);
+                ClassObject c = new ClassObject(null, Type, Name);
                 return c;
             }
 
-            public override void AddMember(Member m)
+            public override void AddMember(ClassMember m)
             {
                 if (m.Alignment > mAlignment)
                     mAlignment = m.Alignment;
@@ -1355,7 +1396,7 @@ namespace GameData
                 }
             }
 
-            public void sortMembers(IComparer<Member> c)
+            public void sortMembers(IComparer<ClassMember> c)
             {
                 // Sort the members on their data size, from big to small
                 mMembers.Sort(c);
@@ -1384,7 +1425,7 @@ namespace GameData
 
             private bool mIsNullType = false;
             private readonly object mValue;
-            private readonly List<Member> mMembers;
+            private readonly List<ClassMember> mMembers;
 
             #endregion
             #region Constructor
@@ -1393,14 +1434,14 @@ namespace GameData
                 : base(new CompoundType(value.GetType(), typeName), memberName, 0)
             {
                 mValue = value;
-                mMembers = new List<Member>();
+                mMembers = new List<ClassMember>();
             }
 
             public CompoundMember(object value, IMetaType type, string name)
                 : base(type, name, 0)
             {
                 mValue = value;
-                mMembers = new List<Member>();
+                mMembers = new List<ClassMember>();
             }
 
             #endregion
@@ -1434,7 +1475,7 @@ namespace GameData
                 }
             }
 
-            public List<Member> members
+            public List<ClassMember> members
             {
                 get
                 {
@@ -1445,15 +1486,15 @@ namespace GameData
             #endregion
             #region Member Methods
 
-            public override Member Default()
+            public override ClassMember Default()
             {
                 CompoundMember cm = new CompoundMember(null, Type, Name);
-                foreach (Member m in mMembers)
+                foreach (ClassMember m in mMembers)
                     cm.AddMember(m.Default());
                 return cm;
             }
 
-            public override void AddMember(Member m)
+            public override void AddMember(ClassMember m)
             {
                 if (m.Alignment > mAlignment)
                     mAlignment = m.Alignment;
