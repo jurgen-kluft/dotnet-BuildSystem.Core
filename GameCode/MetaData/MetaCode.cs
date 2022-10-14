@@ -149,9 +149,9 @@ namespace GameData
 
         public class ArrayType : IMetaType
         {
-            private ClassMember Element { get; set; }
+            private IClassMember Element { get; set; }
 
-            public ArrayType(Type arrayObjectType, ClassMember elementMember)
+            public ArrayType(Type arrayObjectType, IClassMember elementMember)
             {
                 Element = elementMember;
                 type = arrayObjectType;
@@ -230,24 +230,24 @@ namespace GameData
             bool isFileId(Type t);
             bool isCompound(Type t);
 
-            ClassMember newNullMember(string memberName);
-            ClassMember newBoolMember(bool content, string memberName);
-            ClassMember newInt8Member(SByte content, string memberName);
-            ClassMember newUInt8Member(Byte content, string memberName);
-            ClassMember newInt16Member(Int16 content, string memberName);
-            ClassMember newUInt16Member(UInt16 content, string memberName);
-            ClassMember newInt32Member(Int32 content, string memberName);
-            ClassMember newUInt32Member(UInt32 content, string memberName);
-            ClassMember newInt64Member(Int64 content, string memberName);
-            ClassMember newUInt64Member(UInt64 content, string memberName);
-            ClassMember newFloatMember(float content, string memberName);
-            ClassMember newDoubleMember(double content, string memberName);
-            ClassMember newStringMember(string content, string memberName);
-            ClassMember newFileIdMember(Int64 content, string memberName);
-            ClassMember newEnumMember(object content, string memberName);
+            IClassMember newNullMember(string memberName);
+            IClassMember newBoolMember(bool content, string memberName);
+            IClassMember newInt8Member(SByte content, string memberName);
+            IClassMember newUInt8Member(Byte content, string memberName);
+            IClassMember newInt16Member(Int16 content, string memberName);
+            IClassMember newUInt16Member(UInt16 content, string memberName);
+            IClassMember newInt32Member(Int32 content, string memberName);
+            IClassMember newUInt32Member(UInt32 content, string memberName);
+            IClassMember newInt64Member(Int64 content, string memberName);
+            IClassMember newUInt64Member(UInt64 content, string memberName);
+            IClassMember newFloatMember(float content, string memberName);
+            IClassMember newDoubleMember(double content, string memberName);
+            IClassMember newStringMember(string content, string memberName);
+            IClassMember newFileIdMember(Int64 content, string memberName);
+            IClassMember newEnumMember(object content, string memberName);
             ClassObject newObjectMember(Type objectType, object content, string memberName);
-            ArrayMember newArrayMember(Type arrayType, object content, ClassMember elementMember, string memberName);
-            AtomMember newAtomMember(Type atomType, ClassMember atomContentMember, string memberName);
+            ArrayMember newArrayMember(Type arrayType, object content, IClassMember elementMember, string memberName);
+            AtomMember newAtomMember(Type atomType, IClassMember atomContentMember, string memberName);
             FileIdMember newFileIdMember(Type atomType, Int64 content, string memberName);
             CompoundMember newCompoundMember(Type compoundType, object content, string memberName);
         }
@@ -285,27 +285,9 @@ namespace GameData
 
         #region MemberComparer (size and hash-of-name)
 
-        public class MemberSizeComparer : IComparer<ClassMember>
+        public class SortByMemberAlignment : IComparer<IClassMember>
         {
-            // Summary:
-            //     Compares two objects and returns a offset indicating whether one is less than,
-            //     equal to, or greater than the other.
-            //
-            // Parameters:
-            //   x:
-            //     The first object to compare.
-            //
-            //   y:
-            //     The second object to compare.
-            //
-            // Returns:
-            //     Value Condition Less than zero x is less than y. Zero x equals y. Greater
-            //     than zero x is greater than y.
-            //
-            // Exceptions:
-            //   None
-            //
-            public int Compare(ClassMember x, ClassMember y)
+            public int Compare(IClassMember x, IClassMember y)
             {
                 if (x.Alignment == y.Alignment) return 0;
                 else if (x.Alignment < y.Alignment) return 1;
@@ -313,7 +295,7 @@ namespace GameData
             }
         }
 
-        public class MemberNameHashComparer : IComparer<ClassMember>
+        public class MemberNameHashComparer : IComparer<IClassMember>
         {
             // Summary:
             //     Compares two objects and returns a offset indicating whether one is less than,
@@ -340,7 +322,7 @@ namespace GameData
                 mStringTable = strTable;
             }
 
-            public int Compare(ClassMember x, ClassMember y)
+            public int Compare(IClassMember x, IClassMember y)
             {
                 uint hx = mStringTable.HashOf(x.Name);
                 uint hy = mStringTable.HashOf(y.Name);
@@ -352,69 +334,51 @@ namespace GameData
 
         #endregion
 
-        #region Member
+        #region IClassMember
 
-        public abstract class ClassMember
-        {
-            private readonly string mName = string.Empty;
-            private readonly IMetaType mType = null;
-            private readonly int mDataSize = 0;
-            protected Int64 mAlignment = sizeof(UInt8);
-            
-            public string Name { get { return mName; } }
-            public IMetaType Type { get { return mType; } }
-            public int Size { get { return mDataSize; } }
-            public Int64 Alignment { get { return mAlignment; } }
-            public abstract object Value { get; }
+        public interface IClassMember
+        {            
+            string Name { get;  }
+            IMetaType Type { get;  }
+            int Size { get; }
+            Int64 Alignment { get; }
+            object Value { get; }
 
-            public abstract bool IsDefault { get; }
-            public abstract ClassMember Default();
+            bool IsDefault { get; }
+            IClassMember Default();
 
-            public ClassMember(IMetaType type, string name, int dataSize)
-            {
-                mType = type;
-                mName = name;
-                mDataSize = dataSize;
-            }
-
-            public abstract bool Write(IMemberWriter writer);
+            bool Write(IMemberWriter writer);
         }
 
         #endregion
+
         #region NullMember
 
-        public sealed class NullMember : ClassMember
+        public sealed class NullMember : IClassMember
         {
             public static readonly IMetaType sNullType = new NullType();
             
             public NullMember(string name)
-                : base(sNullType, name, 4)
             {
-                mAlignment = sizeof(Int32);
+               Name = name;
+               Type = sNullType;
+               Alignment = sizeof(Int32);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get { return null; } }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            public bool IsDefault => true;
 
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new NullMember(Name);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeNullMember(this);
                 return true;
@@ -424,50 +388,36 @@ namespace GameData
         #endregion
         #region BoolMember
 
-        public sealed class BoolMember : ClassMember
+        public sealed class BoolMember : IClassMember
         {
             public static readonly BoolType sType = new() { type = typeof(bool) };
 
             private readonly bool mValue;
 
             public BoolMember(string name, bool value)
-                : base(sType, name, 4)
             {
-                mValue = value;
-                mAlignment = sizeof(Int32);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(Int32);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue ? Byte.MaxValue : Byte.MinValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public bool InternalValue { get; private set; }
 
+            public bool IsDefault { get { return InternalValue == false; } }
 
-            public byte boolean
-            {
-                get
-                {
-                    return mValue ? Byte.MaxValue : Byte.MinValue;
-                }
-            }
-
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == false;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new BoolMember(Name, false);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeBool8Member(this);
                 return true;
@@ -477,49 +427,34 @@ namespace GameData
         #endregion
         #region Int8Member
 
-        public sealed class Int8Member : ClassMember
+        public sealed class Int8Member : IClassMember
         {
-            public static readonly Int8Type sType = new() { type = typeof(sbyte) };
-
-            private readonly Int8 mValue;
+            public static readonly Int8Type sType = new() { type = typeof(Int8) };
 
             public Int8Member(string name, Int8 value)
-                : base(sType, name, sizeof(UInt8))
             {
-                mValue = value;
-                mAlignment = sizeof(UInt8);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(Int8);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int8 InternalValue { get; private set; }
 
-            public Int8 int8
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public bool IsDefault => InternalValue == 0;
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new Int8Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeInt8Member(this);
                 return true;
@@ -529,49 +464,34 @@ namespace GameData
         #endregion
         #region Int16Member
 
-        public sealed class Int16Member : ClassMember
+        public sealed class Int16Member : IClassMember
         {
-            public static readonly Int16Type sType = new () { type=typeof(short) };
-
-            private readonly Int16 mValue;
+            public static readonly Int16Type sType = new() { type = typeof(Int16) };
 
             public Int16Member(string name, Int16 value)
-                : base(sType, name, sizeof(Int16))
             {
-                mValue = value;
-                mAlignment = sizeof(Int16);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(Int16);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int16 InternalValue { get; private set; }
 
-            public Int16 int16
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public bool IsDefault => InternalValue == 0;
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new Int16Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeInt16Member(this);
                 return true;
@@ -581,49 +501,34 @@ namespace GameData
         #endregion
         #region Int32Member
 
-        public sealed class Int32Member : ClassMember
+        public sealed class Int32Member : IClassMember
         {
-            public static readonly Int32Type sType = new() { type = typeof(int) };
-
-            private readonly Int32 mValue;
+            public static readonly Int32Type sType = new() { type = typeof(Int32) };
 
             public Int32Member(string name, Int32 value)
-                : base(sType, name, sizeof(Int32))
             {
-                mValue = value;
-                mAlignment = sizeof(Int32);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(Int32);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int32 InternalValue { get; private set; }
 
-            public Int32 int32
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public bool IsDefault => InternalValue == 0;
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new Int32Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeInt32Member(this);
                 return true;
@@ -633,49 +538,34 @@ namespace GameData
         #endregion
         #region Int64Member
 
-        public sealed class Int64Member : ClassMember
+        public sealed class Int64Member : IClassMember
         {
             public static readonly Int64Type sType = new() { type = typeof(Int64) };
 
-            private readonly Int64 mValue;
-
             public Int64Member(string name, Int64 value)
-                : base(sType, name, sizeof(Int64))
             {
-                mValue = value;
-                mAlignment = sizeof(Int64);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(Int64);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int64 InternalValue { get; private set; }
 
-            public Int64 int64
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public bool IsDefault => InternalValue == 0;
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new Int64Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeInt64Member(this);
                 return true;
@@ -685,49 +575,34 @@ namespace GameData
         #endregion
         #region UInt8Member
 
-        public sealed class UInt8Member : ClassMember
+        public sealed class UInt8Member : IClassMember
         {
-            public static readonly UInt8Type sType = new() { type = typeof(byte) };
-
-            private readonly UInt8 mValue;
+            public static readonly UInt8Type sType = new() { type = typeof(UInt8) };
 
             public UInt8Member(string name, UInt8 value)
-                : base(sType, name, sizeof(UInt8))
             {
-                mValue = value;
-                mAlignment = sizeof(UInt8);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(UInt8);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public UInt8 InternalValue { get; private set; }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
+            public bool IsDefault => InternalValue == 0;
 
-            public UInt8 uint8
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new UInt8Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeUInt8Member(this);
                 return true;
@@ -737,49 +612,34 @@ namespace GameData
         #endregion
         #region UInt16Member
 
-        public sealed class UInt16Member : ClassMember
+        public sealed class UInt16Member : IClassMember
         {
-            public static readonly UInt16Type sType = new() { type = typeof(ushort) };
-
-            private readonly UInt16 mValue;
+            public static readonly UInt16Type sType = new() { type = typeof(UInt16) };
 
             public UInt16Member(string name, UInt16 value)
-                : base(sType, name, sizeof(Int16))
             {
-                mValue = value;
-                mAlignment = sizeof(Int16);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(UInt16);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public UInt16 InternalValue { get; private set; }
 
-            public UInt16 uint16
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public bool IsDefault => InternalValue == 0;
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new UInt16Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeUInt16Member(this);
                 return true;
@@ -789,49 +649,34 @@ namespace GameData
         #endregion
         #region UInt32Member
 
-        public sealed class UInt32Member : ClassMember
+        public sealed class UInt32Member : IClassMember
         {
-            public static readonly UInt32Type sType = new() { type = typeof(uint) };
-
-            private readonly UInt32 mValue;
+            public static readonly UInt32Type sType = new() { type = typeof(UInt32) };
 
             public UInt32Member(string name, UInt32 value)
-                : base(sType, name, sizeof(Int32))
             {
-                mValue = value;
-                mAlignment = sizeof(Int32);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(UInt32);
             }
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public UInt32 InternalValue { get; private set; }
 
-            public UInt32 uint32
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public bool IsDefault => InternalValue == 0;
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == 0;
-                }
-            }
-
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 return new UInt32Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeUInt32Member(this);
                 return true;
@@ -841,27 +686,34 @@ namespace GameData
         #endregion
         #region UInt64Member
 
-        public sealed class UInt64Member : ClassMember
+        public sealed class UInt64Member : IClassMember
         {
             public static readonly UInt64Type sType = new() { type = typeof(UInt64) };
 
             public UInt64Member(string name, UInt64 value)
-                : base(sType, name, sizeof(Int64))
             {
-                uint64 = value;
-                mAlignment = sizeof(Int64);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(UInt64);
             }
 
-            public override object Value { get { return uint64; } }
-            public UInt64 uint64 { get; }
-            public override bool IsDefault{ get { return uint64 == 0; } }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public UInt64 InternalValue { get; private set; }
 
-            public override ClassMember Default()
+            public bool IsDefault => InternalValue == 0;
+
+            public IClassMember Default()
             {
                 return new UInt64Member(Name, 0);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeUInt64Member(this);
                 return true;
@@ -871,41 +723,34 @@ namespace GameData
         #endregion
         #region FloatMember
 
-        public sealed class FloatMember : ClassMember
+        public sealed class FloatMember : IClassMember
         {
             public static readonly FloatType sType = new() { type = typeof(float) };
 
             public FloatMember(string name, float value)
-                : base(sType, name, sizeof(float))
             {
-                real = value;
-                mAlignment = sizeof(float);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(float);
             }
 
-            public override object Value
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public float InternalValue { get; private set; }
+
+            public bool IsDefault => InternalValue == 0.0f;
+
+            public IClassMember Default()
             {
-                get
-                {
-                    return real;
-                }
+                return new FloatMember(Name, 0);
             }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return real == 0.0f;
-                }
-            }
-
-            public float real { get; }
-
-            public override ClassMember Default()
-            {
-                return new FloatMember(Name, 0.0f);
-            }
-
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeFloatMember(this);
                 return true;
@@ -915,41 +760,34 @@ namespace GameData
         #endregion
         #region DoubleMember
 
-        public sealed class DoubleMember : ClassMember
+        public sealed class DoubleMember : IClassMember
         {
             public static readonly DoubleType sType = new() { type = typeof(double) };
 
             public DoubleMember(string name, double value)
-                : base(sType, name, sizeof(double))
             {
-                real = value;
-                mAlignment = sizeof(double);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(double);
             }
 
-            public override object Value
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public double InternalValue { get; private set; }
+
+            public bool IsDefault => InternalValue == 0.0;
+
+            public IClassMember Default()
             {
-                get
-                {
-                    return real;
-                }
+                return new DoubleMember(Name, 0);
             }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return real == 0.0;
-                }
-            }
-
-            public double real { get; }
-
-            public override ClassMember Default()
-            {
-                return new DoubleMember(Name, 0.0);
-            }
-
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeDoubleMember(this);
                 return true;
@@ -959,49 +797,35 @@ namespace GameData
         #endregion
         #region StringMember
 
-        public sealed class StringMember : ClassMember
+        public sealed class StringMember : IClassMember
         {
-            public static readonly StringType sType = new() { type = typeof(string), typeName = "string_t" };
-
-            private readonly string mValue;
+            public static readonly StringType sType = new() { type = typeof(string) };
 
             public StringMember(string name, string value)
-                : base(sType, name, (sizeof(Int32) + sizeof(Int32)))
             {
-                mValue = value;
-                mAlignment = sizeof(Int32) + sizeof(Int32);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Size = sizeof(Int32) + sizeof(Int32);
+                Alignment = sizeof(Int32) + sizeof(Int32);
             }
 
-            public override object Value
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public string InternalValue { get; private set; }
+
+            public bool IsDefault => InternalValue == String.Empty;
+
+            public IClassMember Default()
             {
-                get
-                {
-                    return mValue;
-                }
+                return new StringMember(Name, String.Empty);
             }
 
-            public string StringValue
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
-
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue.Length == 0;
-                }
-            }
-
-            public override ClassMember Default()
-            {
-                return new StringMember(Name, string.Empty);
-            }
-
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeStringMember(this);
                 return true;
@@ -1011,55 +835,34 @@ namespace GameData
         #endregion
         #region FileIdMember
 
-        public sealed class FileIdMember : ClassMember
+        public sealed class FileIdMember : IClassMember
         {
-            public static readonly FileIdType sType = new() { type = typeof(GameData.FileId), typeName = "fileid_t" };
-
-            private readonly Int64 mValue;
+            public static readonly FileIdType sType = new() { type = typeof(Int64) };
 
             public FileIdMember(string name, Int64 value)
-                : base(sType, name, 8)
             {
-                mValue = value;
-                mAlignment = sizeof(Int64);
+                Name = name;
+                Type = sType;
+                Value = value;
+                InternalValue = value;
+                Alignment = sizeof(Int64);
             }
 
-            public Int64 ID { get { return mValue; } }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int64 InternalValue { get; private set; }
 
-            public override object Value
+            public bool IsDefault => InternalValue == -1;
+
+            public IClassMember Default()
             {
-                get
-                {
-                    return mValue;
-                }
+                return new FileIdMember(Name, 0);
             }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == -1;
-                }
-            }
-
-            public StreamReference Reference
-            {
-                get
-                {
-                    return mStreamReference;
-                }
-                set
-                {
-                    mStreamReference = value;
-                }
-            }
-
-            public override ClassMember Default()
-            {
-                return new FileIdMember(Name, -1);
-            }
-
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 writer.writeFileIdMember(this);
                 return true;
@@ -1070,47 +873,31 @@ namespace GameData
 
         #region AtomMember
 
-        public sealed class AtomMember : ClassMember
+        public sealed class AtomMember : IClassMember
         {
-            private readonly ClassMember mValue;
-
-            public AtomMember(string name, IMetaType type, ClassMember member)
-                : base(type, name, member.Size)
+            public AtomMember(string name, IMetaType type, IClassMember member)
             {
-                mValue = member;
-                mAlignment = member.Alignment;
+                Name = name;
+                Value = member;
+                Alignment = member.Alignment;
             }
 
-            public override object Value
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public IClassMember InternalValue { get; private set; }
+            public IClassMember Member { get; private set; }
+
+            public bool IsDefault => InternalValue.IsDefault;
+
+            public  IClassMember Default()
             {
-                get
-                {
-                    return mValue;
-                }
+                return InternalValue.Default();
             }
 
-            public ClassMember member
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
-
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue.IsDefault;
-                }
-            }
-
-            public override ClassMember Default()
-            {
-                return mValue.Default();
-            }
-
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 return writer.writeAtomMember(this);
             }
@@ -1120,128 +907,74 @@ namespace GameData
 
         #region ReferenceableMember
 
-        public abstract class ReferenceableMember : ClassMember
+        public interface IReferenceableMember
         {
-            #region Fields
-
-            private StreamReference mReference = StreamReference.Empty;
-
-            #endregion
-            #region Constructor
-
-            public ReferenceableMember(IMetaType type, string name, int size)
-                : base(type, name, size)
-            {
-            }
-
-            #endregion
-            #region Properties
-
-            public StreamReference Reference
-            {
-                get
-                {
-                    return mReference;
-                }
-                set
-                {
-                    mReference = value;
-                }
-            }
-            #endregion
+            StreamReference Reference { get; }
         }
 
         #endregion
         #region CompoundMemberBase
 
-        public abstract class CompoundMemberBase : ReferenceableMember
+        public interface ICompoundMemberBase
         {
-            #region Constructor
-
-            public CompoundMemberBase(IMetaType type, string name, int size)
-                : base(type, name, size)
-            {
-            }
-
-            #endregion
-            #region Public Methods
-
-            public abstract void AddMember(ClassMember m);
-
-            #endregion
-        }
+            void AddMember(IClassMember m);
+}
 
         #endregion
 
         #region ArrayMember
 
-        public class ArrayMember : CompoundMemberBase
+        public class ArrayMember : ICompoundMemberBase, IReferenceableMember, IClassMember
         {
-            #region Fields
-
-            private readonly object mValue;
-            private readonly List<ClassMember> mMembers;
-
-            #endregion
             #region Constructor
 
-            public ArrayMember(Type arrayObjectType, object value, ClassMember elementMember, string memberName)
-                : base(new ArrayType(arrayObjectType, elementMember), memberName, 4)
+            public ArrayMember(Type arrayObjectType, object value, IClassMember elementMember, string memberName)
             {
-                mValue = value;
-                mAlignment = sizeof(Int32);
-                mMembers = new List<ClassMember>();
+                Type = new ArrayType(arrayObjectType, elementMember);
+                Value = value;
+                Alignment = sizeof(Int32) + sizeof(Int32);
+                Size = sizeof(Int32) + sizeof(Int32);
+                Members = new List<IClassMember>();
             }
 
             public ArrayMember(IMetaType arrayType, object value, string memberName)
-                : base(arrayType, memberName, 4)
             {
-                mValue = value;
-                mAlignment = sizeof(Int32);
-                mMembers = new List<ClassMember>();
+                Type = arrayType;
+                Value = value;
+                Alignment = sizeof(Int32);
+                Members = new List<IClassMember>();
             }
 
             #endregion
             #region Properties
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public StreamReference Reference { get; set; }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == null;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int64 InternalValue { get; private set; }
 
-            public List<ClassMember> Members
-            {
-                get
-                {
-                    return mMembers;
-                }
-            }
+            public bool IsDefault => Value == null;
+
+            public List<IClassMember> Members { get; set; }
 
             #endregion  
             #region Member methods
 
-            public override ClassMember Default()
+            public  IClassMember Default()
             {
                 return new ArrayMember(Type, null, Name);
             }
 
-            public override void AddMember(ClassMember m)
+            public  void AddMember(IClassMember m)
             {
-                mMembers.Add(m);
+                Members.Add(m);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public  bool Write(IMemberWriter writer)
             {
                 writer.writeArrayMember(this);
                 return true;
@@ -1251,93 +984,61 @@ namespace GameData
         }
 
         #endregion
-        #region ObjectMember
+        #region ClassObject
 
-        public sealed class ClassObject : CompoundMemberBase
+        public sealed class ClassObject : ICompoundMemberBase, IReferenceableMember, IClassMember
         {
-            #region Fields
-
-            private readonly object mValue;
-            private readonly List<ClassMember> mMembers;
-
-            private ClassObject mBaseClass;
-
-            #endregion
             #region Constructors
 
             public ClassObject(object value, string className, string memberName)
-                : base(new ObjectType(value.GetType(), className), memberName, 4)
             {
-                mValue = value;
-                mAlignment = sizeof(Int32);
-                mMembers = new List<ClassMember>();
+                Value = value;
+                Alignment = sizeof(Int32);
+                Members = new ();
             }
 
             public ClassObject(object value, IMetaType type, string memberName)
-                : base(type, memberName, 4)
             {
-                mValue = value;
-                mAlignment = sizeof(Int32);
-                mMembers = new List<ClassMember>();
+                Value = value;
+                Alignment = sizeof(Int32);
+                Members = new ();
             }
 
             #endregion
             #region Properties
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int64 InternalValue { get; private set; }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == null;
-                }
-            }
+            public bool IsDefault => Value == null;
+            public StreamReference Reference { get; set; }
 
-            public List<ClassMember> Members
-            {
-                get
-                {
-                    return mMembers;
-                }
-            }
+            public List<IClassMember> Members { get; private set; }
 
-            public ClassObject BaseClass
-            {
-                get
-                {
-                    return mBaseClass;
-                }
-                set
-                {
-                    mBaseClass = value;
-                }
-            }
+            public ClassObject BaseClass { get; set; }
 
             #endregion            
             #region Methods
 
-            public override ClassMember Default()
+            public IClassMember Default()
             {
-                ClassObject c = new ClassObject(null, Type, Name);
+                ClassObject c = new (null, Type, Name);
                 return c;
             }
 
-            public override void AddMember(ClassMember m)
+            public  void AddMember(IClassMember m)
             {
-                if (m.Alignment > mAlignment)
-                    mAlignment = m.Alignment;
+                if (m.Alignment > Alignment)
+                    Alignment = m.Alignment;
 
                 bool mitigate = true;
                 if (BaseClass == null)
                 {
-                    mMembers.Add(m);
+                    Members.Add(m);
                 }
                 else if (!mitigate)
                 {
@@ -1347,7 +1048,7 @@ namespace GameData
                     {
                         if (fi.Name == m.Name)
                         {
-                            mMembers.Add(m);
+                            Members.Add(m);
                             return;
                         }
                     }
@@ -1358,7 +1059,7 @@ namespace GameData
                 {
                     Type classType = Type.type;
                     FieldInfo[] fields = classType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-                    
+
                     bool isThisMember = false;
                     foreach (FieldInfo fi in fields)
                     {
@@ -1372,7 +1073,7 @@ namespace GameData
                     if (!m.IsDefault)
                     {
                         // A non default member is always added to This
-                        mMembers.Add(m);
+                        Members.Add(m);
 
                         // Create member with default value to add to the base class if this member does not belong to This
                         if (!isThisMember && BaseClass != null)
@@ -1385,7 +1086,7 @@ namespace GameData
                     {
                         if (isThisMember)
                         {
-                            mMembers.Add(m);
+                            Members.Add(m);
                         }
                         else
                         {
@@ -1396,19 +1097,24 @@ namespace GameData
                 }
             }
 
-            public void sortMembers(IComparer<ClassMember> c)
+            public void SortMembers(IComparer<IClassMember> c)
             {
                 // Sort the members on their data size, from big to small
-                mMembers.Sort(c);
+                Members.Sort(c);
 
                 if (BaseClass != null)
-                    BaseClass.sortMembers(c);
+                    BaseClass.SortMembers(c);
             }
+
+            public void FixMemberAlignment()
+			{
+
+			}
 
             #endregion
             #region Member methods
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 return (writer.writeObjectMember(this));
             }
@@ -1419,90 +1125,68 @@ namespace GameData
         #endregion
         #region CompoundMember
 
-        public sealed class CompoundMember : CompoundMemberBase
+        public sealed class CompoundMember : ICompoundMemberBase, IReferenceableMember, IClassMember
         {
             #region Fields
 
             private bool mIsNullType = false;
-            private readonly object mValue;
-            private readonly List<ClassMember> mMembers;
 
             #endregion
             #region Constructor
 
             public CompoundMember(object value, string typeName, string memberName)
-                : base(new CompoundType(value.GetType(), typeName), memberName, 0)
             {
-                mValue = value;
-                mMembers = new List<ClassMember>();
+                Type = new CompoundType(value.GetType(), typeName);
+                Value = value;
+                Members = new List<IClassMember>();
             }
 
             public CompoundMember(object value, IMetaType type, string name)
-                : base(type, name, 0)
             {
-                mValue = value;
-                mMembers = new List<ClassMember>();
+                Type = type;
+                Value = value;
+                Members = new List<IClassMember>();
             }
 
             #endregion
             #region Properties
 
-            public override object Value
-            {
-                get
-                {
-                    return mValue;
-                }
-            }
+            public StreamReference Reference { get; set; }
 
-            public bool isNullType
-            {
-                get
-                {
-                    return mIsNullType;
-                }
-                set
-                {
-                    mIsNullType = value;
-                }
-            }
 
-            public override bool IsDefault
-            {
-                get
-                {
-                    return mValue == null;
-                }
-            }
+            public string Name { get; private set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int64 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public Int64 InternalValue { get; private set; }
 
-            public List<ClassMember> members
-            {
-                get
-                {
-                    return mMembers;
-                }
-            }
+            public bool IsNullType { get; set; }
+
+            public bool IsDefault => Value == null;
+
+            public List<IClassMember> Members { get; set; }
 
             #endregion
             #region Member Methods
 
-            public override ClassMember Default()
+            public IClassMember Default()
             {
                 CompoundMember cm = new CompoundMember(null, Type, Name);
-                foreach (ClassMember m in mMembers)
+                foreach (IClassMember m in Members)
                     cm.AddMember(m.Default());
                 return cm;
             }
 
-            public override void AddMember(ClassMember m)
+            public void AddMember(IClassMember m)
             {
-                if (m.Alignment > mAlignment)
-                    mAlignment = m.Alignment;
+                if (m.Alignment > Alignment)
+                    Alignment = m.Alignment;
 
-                mMembers.Add(m);
+                Members.Add(m);
             }
 
-            public override bool Write(IMemberWriter writer)
+            public bool Write(IMemberWriter writer)
             {
                 return writer.writeCompoundMember(this);
             }

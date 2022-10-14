@@ -98,9 +98,9 @@ namespace GameData
 
         #region addMember
 
-        private MetaCode.ClassMember createMember(object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
+        private MetaCode.IClassMember createMember(object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
         {
-            MetaCode.ClassMember member = null;
+            MetaCode.IClassMember member = null;
 
             string memberName = dataObjectFieldName;
 
@@ -115,7 +115,7 @@ namespace GameData
                 // An Atom is holding a primitive type like Int, Float etc.. we treat this as a MetaCode.Member
                 PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
                 object atomContentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
-                MetaCode.ClassMember atomContentMember = createMember(atomContentObject, atomContentObject.GetType(), string.Empty);
+                MetaCode.IClassMember atomContentMember = createMember(atomContentObject, atomContentObject.GetType(), string.Empty);
 
                 MetaCode.AtomMember atomMember = mMemberGenerator.newAtomMember(dataObjectFieldValue.GetType(), atomContentMember, memberName);
                 member = atomMember;
@@ -153,7 +153,7 @@ namespace GameData
                     arrayType = dataObjectFieldType;
 
                 // Recursively create the element member
-                MetaCode.ClassMember elementMember = createMember(null, arrayElementType, string.Empty);
+                MetaCode.IClassMember elementMember = createMember(null, arrayElementType, string.Empty);
 
                 MetaCode.ArrayMember arrayMember = mMemberGenerator.newArrayMember(arrayType, dataObjectFieldValue, elementMember, memberName);
                 member = arrayMember;
@@ -294,9 +294,9 @@ namespace GameData
             return member;
         }
 
-        private MetaCode.ClassMember addMember(MetaCode.CompoundMemberBase inCompound, object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
+        private MetaCode.IClassMember addMember(MetaCode.ICompoundMemberBase inCompound, object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
         {
-            MetaCode.ClassMember member = createMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName);
+            MetaCode.IClassMember member = createMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName);
             if (member == null)
                 return null;
 
@@ -316,8 +316,8 @@ namespace GameData
             {
                 MetaCode.CompoundMember compoundMember = member as MetaCode.CompoundMember;
                 // Is ICompound a struct or class, which means to say is it a value or ref type?
-                compoundMember.isNullType = (dataObjectFieldValue == null) || (dataObjectFieldValue.GetType().IsClass);
-                if (!compoundMember.isNullType || dataObjectFieldValue != null)
+                compoundMember.IsNullType = (dataObjectFieldValue == null) || (dataObjectFieldValue.GetType().IsClass);
+                if (!compoundMember.IsNullType || dataObjectFieldValue != null)
                 {
                     PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Values");
                     Array objectArray = valuePropertyInfo.GetValue(dataObjectFieldValue, null) as Array;
@@ -386,7 +386,7 @@ namespace GameData
                     string fieldName = dataObjectFieldInfo.Name;
                     Type fieldType = dataObjectFieldInfo.FieldType;
                     object fieldValue = dataObjectFieldInfo.GetValue(inClassObject);
-                    MetaCode.ClassMember member = addMember(inClass, fieldValue, fieldType, fieldName);
+                    MetaCode.IClassMember member = addMember(inClass, fieldValue, fieldType, fieldName);
                 }
             }
         }

@@ -399,7 +399,10 @@ namespace DataBuildSystem
 
             // Sort the members on every 'Code.Class' so that alignment of data is solved.
             foreach (ClassObject c in book.classes)
-                c.sortMembers(new MemberSizeComparer());
+                c.SortMembers(new SortByMemberAlignment());
+            // Insert padding members to be correctly aligning members
+            foreach (ClassObject c in book.classes)
+                c.FixMemberAlignment();
 
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new();
