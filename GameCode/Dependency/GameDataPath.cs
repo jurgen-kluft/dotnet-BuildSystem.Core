@@ -38,10 +38,10 @@ namespace GameData
 			};
 		}
 
-		private static EGameDataPath[] sGameDataUnitToEPath = { EGameDataPath.Gdd, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub };
+		private static EGameDataPath[] _sGameDataUnitToEPath = { EGameDataPath.Gdd, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub };
 		public static EGameDataPath GetPathFor(EGameData unit)
 		{
-			return sGameDataUnitToEPath[(int)unit];
+			return _sGameDataUnitToEPath[(int)unit];
 		}
 		public static string GetExtFor(EGameData unit)
 		{

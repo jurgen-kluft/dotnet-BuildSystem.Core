@@ -14,8 +14,8 @@ namespace GameData
 
         public interface IMetaType
         {
-            Type type { get; set; }
-            string typeName { get; }
+            Type SystemType { get; }
+            string TypeName { get; }
         }
 
         #endregion
@@ -23,8 +23,9 @@ namespace GameData
 
         public class NullType : IMetaType
         {
-            public Type type { get { return null; } set { } }
-            public string typeName => "null";
+            public static readonly NullType Instance = new();
+            public Type SystemType => null;
+            public string TypeName => "null";
         }
 
         #endregion
@@ -32,8 +33,9 @@ namespace GameData
 
         public class BoolType : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "bool";
+            public static readonly BoolType Instance = new();
+            public Type SystemType => typeof(bool);
+            public string TypeName => "bool";
         }
 
         #endregion
@@ -41,8 +43,9 @@ namespace GameData
 
         public class Int8Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "int8";
+            public static readonly Int8Type Instance = new();
+            public Type SystemType => typeof(Int8);
+            public string TypeName => "s8";
         }
 
         #endregion
@@ -50,8 +53,9 @@ namespace GameData
 
         public class Int16Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "int16";
+            public static readonly Int16Type Instance = new();
+            public Type SystemType => typeof(Int16);
+            public string TypeName => "s16";
         }
 
         #endregion
@@ -59,8 +63,9 @@ namespace GameData
 
         public class Int32Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "int32";
+            public static readonly Int32Type Instance = new();
+            public Type SystemType => typeof(Int32);
+            public string TypeName => "s32";
         }
 
         #endregion
@@ -68,8 +73,9 @@ namespace GameData
 
         public class Int64Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "int64";
+            public static readonly Int64Type Instance = new();
+            public Type SystemType => typeof(Int64);
+            public string TypeName => "s64";
         }
 
         #endregion
@@ -77,8 +83,9 @@ namespace GameData
 
         public class UInt8Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "uint8";
+            public static readonly UInt8Type Instance = new();
+            public Type SystemType => typeof(UInt8);
+            public string TypeName => "u8";
         }
 
         #endregion
@@ -86,8 +93,9 @@ namespace GameData
 
         public class UInt16Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "uint16";
+            public static readonly UInt16Type Instance = new();
+            public Type SystemType => typeof(UInt16);
+            public string TypeName => "u16";
         }
 
         #endregion
@@ -95,8 +103,9 @@ namespace GameData
 
         public class UInt32Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "uint32";
+            public static readonly UInt32Type Instance = new();
+            public Type SystemType => typeof(UInt32);
+            public string TypeName => "u32";
         }
 
         #endregion
@@ -104,8 +113,9 @@ namespace GameData
 
         public class UInt64Type : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "uint64";
+            public static readonly UInt64Type Instance = new();
+            public Type SystemType => typeof(UInt64);
+            public string TypeName => "u64";
         }
 
         #endregion
@@ -113,8 +123,9 @@ namespace GameData
 
         public class FloatType : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "float";
+            public static readonly FloatType Instance = new();
+            public Type SystemType => typeof(float);
+            public string TypeName => "f32";
         }
 
         #endregion
@@ -122,8 +133,9 @@ namespace GameData
 
         public class DoubleType : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName => "double";
+            public static readonly DoubleType Instance = new();
+            public Type SystemType => typeof(double);
+            public string TypeName => "f64";
         }
 
         #endregion
@@ -131,8 +143,9 @@ namespace GameData
 
         public class StringType : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName { get; set; }
+            public static readonly StringType Instance = new();
+            public Type SystemType => typeof(string);
+            public string TypeName => "string_t";
         }
 
         #endregion
@@ -140,8 +153,9 @@ namespace GameData
 
         public class FileIdType : IMetaType
         {
-            public Type type { get; set; }
-            public string typeName { get; set; }
+            public static readonly FileIdType Instance = new();
+            public Type SystemType => typeof(Int64);
+            public string TypeName => "fileid_t";
         }
 
         #endregion
@@ -154,11 +168,10 @@ namespace GameData
             public ArrayType(Type arrayObjectType, IClassMember elementMember)
             {
                 Element = elementMember;
-                type = arrayObjectType;
-                typeName = elementMember.Type.typeName + "[]";
+                SystemType = arrayObjectType;
             }
-            public Type type { get; set; }
-            public string typeName { get; set; }
+            public Type SystemType { get; }
+            public string TypeName => "array_t<" + Element.Type.TypeName + ">";
 
         }
 
@@ -169,11 +182,11 @@ namespace GameData
         {
             public ObjectType(Type classType, string className)
             {
-                type = classType;
-                typeName = className;
+                SystemType = classType;
+                TypeName = className;
             }
-            public Type type { get; set; }
-            public string typeName { get; set; }
+            public Type SystemType { get; set; }
+            public string TypeName { get; set; }
         }
 
         #endregion
@@ -181,13 +194,13 @@ namespace GameData
 
         public class AtomType : IMetaType
         {
-            public AtomType(Type _type, string _typeName)
+            public AtomType(Type type, string typeName)
             {
-                type = _type;
-                typeName = _typeName;
+                this.SystemType = type;
+                this.TypeName = typeName;
             }
-            public Type type { get; set; }
-            public string typeName { get; set; }
+            public Type SystemType { get; set; }
+            public string TypeName { get; set; }
         }
 
         #endregion
@@ -195,13 +208,13 @@ namespace GameData
 
         public class CompoundType : IMetaType
         {
-            public CompoundType(Type _type, string _typeName)
+            public CompoundType(Type type, string typeName)
             {
-                type = _type;
-                typeName = _typeName;
+                this.SystemType = type;
+                this.TypeName = typeName;
             }
-            public Type type { get; set; }
-            public string typeName { get; set; }
+            public Type SystemType { get; set; }
+            public string TypeName { get; set; }
         }
 
         #endregion
@@ -210,46 +223,46 @@ namespace GameData
 
         public interface IMemberGenerator
         {
-            bool isNull(Type t);
-            bool isBool(Type t);
-            bool isInt8(Type t);
-            bool isUInt8(Type t);
-            bool isInt16(Type t);
-            bool isUInt16(Type t);
-            bool isInt32(Type t);
-            bool isUInt32(Type t);
-            bool isInt64(Type t);
-            bool isUInt64(Type t);
-            bool isFloat(Type t);
-            bool isDouble(Type t);
-            bool isString(Type t);
-            bool isEnum(Type t);
-            bool isArray(Type t);
-            bool isObject(Type t);
-            bool isAtom(Type t);
-            bool isFileId(Type t);
-            bool isCompound(Type t);
+            bool IsNull(Type t);
+            bool IsBool(Type t);
+            bool IsInt8(Type t);
+            bool IsUInt8(Type t);
+            bool IsInt16(Type t);
+            bool IsUInt16(Type t);
+            bool IsInt32(Type t);
+            bool IsUInt32(Type t);
+            bool IsInt64(Type t);
+            bool IsUInt64(Type t);
+            bool IsFloat(Type t);
+            bool IsDouble(Type t);
+            bool IsString(Type t);
+            bool IsEnum(Type t);
+            bool IsArray(Type t);
+            bool IsObject(Type t);
+            bool IsAtom(Type t);
+            bool IsFileId(Type t);
+            bool IsCompound(Type t);
 
-            IClassMember newNullMember(string memberName);
-            IClassMember newBoolMember(bool content, string memberName);
-            IClassMember newInt8Member(SByte content, string memberName);
-            IClassMember newUInt8Member(Byte content, string memberName);
-            IClassMember newInt16Member(Int16 content, string memberName);
-            IClassMember newUInt16Member(UInt16 content, string memberName);
-            IClassMember newInt32Member(Int32 content, string memberName);
-            IClassMember newUInt32Member(UInt32 content, string memberName);
-            IClassMember newInt64Member(Int64 content, string memberName);
-            IClassMember newUInt64Member(UInt64 content, string memberName);
-            IClassMember newFloatMember(float content, string memberName);
-            IClassMember newDoubleMember(double content, string memberName);
-            IClassMember newStringMember(string content, string memberName);
-            IClassMember newFileIdMember(Int64 content, string memberName);
-            IClassMember newEnumMember(object content, string memberName);
-            ClassObject newObjectMember(Type objectType, object content, string memberName);
-            ArrayMember newArrayMember(Type arrayType, object content, IClassMember elementMember, string memberName);
-            AtomMember newAtomMember(Type atomType, IClassMember atomContentMember, string memberName);
-            FileIdMember newFileIdMember(Type atomType, Int64 content, string memberName);
-            CompoundMember newCompoundMember(Type compoundType, object content, string memberName);
+            IClassMember NewNullMember(string memberName);
+            IClassMember NewBoolMember(bool content, string memberName);
+            IClassMember NewInt8Member(SByte content, string memberName);
+            IClassMember NewUInt8Member(Byte content, string memberName);
+            IClassMember NewInt16Member(Int16 content, string memberName);
+            IClassMember NewUInt16Member(UInt16 content, string memberName);
+            IClassMember NewInt32Member(Int32 content, string memberName);
+            IClassMember NewUInt32Member(UInt32 content, string memberName);
+            IClassMember NewInt64Member(Int64 content, string memberName);
+            IClassMember NewUInt64Member(UInt64 content, string memberName);
+            IClassMember NewFloatMember(float content, string memberName);
+            IClassMember NewDoubleMember(double content, string memberName);
+            IClassMember NewStringMember(string content, string memberName);
+            IClassMember NewFileIdMember(Int64 content, string memberName);
+            IClassMember NewEnumMember(object content, string memberName);
+            ClassObject NewObjectMember(Type objectType, object content, string memberName);
+            ArrayMember NewArrayMember(Type arrayType, object content, IClassMember elementMember, string memberName);
+            AtomMember NewAtomMember(Type atomType, IClassMember atomContentMember, string memberName);
+            FileIdMember NewFileIdMember(Type atomType, Int64 content, string memberName);
+            CompoundMember NewCompoundMember(Type compoundType, object content, string memberName);
         }
 
         #endregion
@@ -257,28 +270,28 @@ namespace GameData
 
         public interface IMemberWriter
         {
-            bool open();
-            bool close();
+            bool Open();
+            bool Close();
 
-            bool writeNullMember(NullMember c);
-            bool writeBool8Member(BoolMember c);
-            bool writeInt8Member(Int8Member c);
-            bool writeInt16Member(Int16Member c);
-            bool writeInt32Member(Int32Member c);
-            bool writeInt64Member(Int64Member c);
-            bool writeUInt8Member(UInt8Member c);
-            bool writeUInt16Member(UInt16Member c);
-            bool writeUInt32Member(UInt32Member c);
-            bool writeUInt64Member(UInt64Member c);
-            bool writeFloatMember(FloatMember c);
-            bool writeDoubleMember(DoubleMember c);
+            bool WriteNullMember(NullMember c);
+            bool WriteBool8Member(BoolMember c);
+            bool WriteInt8Member(Int8Member c);
+            bool WriteInt16Member(Int16Member c);
+            bool WriteInt32Member(Int32Member c);
+            bool WriteInt64Member(Int64Member c);
+            bool WriteUInt8Member(UInt8Member c);
+            bool WriteUInt16Member(UInt16Member c);
+            bool WriteUInt32Member(UInt32Member c);
+            bool WriteUInt64Member(UInt64Member c);
+            bool WriteFloatMember(FloatMember c);
+            bool WriteDoubleMember(DoubleMember c);
 
-            bool writeStringMember(StringMember c);
-            bool writeFileIdMember(FileIdMember c);
-            bool writeArrayMember(ArrayMember c);
-            bool writeObjectMember(ClassObject c);
-            bool writeAtomMember(AtomMember c);
-            bool writeCompoundMember(CompoundMember c);
+            bool WriteStringMember(StringMember c);
+            bool WriteFileIdMember(FileIdMember c);
+            bool WriteArrayMember(ArrayMember c);
+            bool WriteObjectMember(ClassObject c);
+            bool WriteAtomMember(AtomMember c);
+            bool WriteCompoundMember(CompoundMember c);
         }
 
         #endregion
@@ -337,7 +350,7 @@ namespace GameData
         #region IClassMember
 
         public interface IClassMember
-        {            
+        {
             string Name { get;  }
             IMetaType Type { get;  }
             int Size { get; }
@@ -356,12 +369,12 @@ namespace GameData
 
         public sealed class NullMember : IClassMember
         {
-            public static readonly IMetaType sNullType = new NullType();
-            
+            public static readonly IMetaType SNullType = new NullType();
+
             public NullMember(string name)
             {
                Name = name;
-               Type = sNullType;
+               Type = SNullType;
                Alignment = sizeof(Int32);
             }
 
@@ -369,7 +382,7 @@ namespace GameData
             public IMetaType Type { get; private set; }
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
-            public object Value { get { return null; } }
+            public object Value => null;
 
             public bool IsDefault => true;
 
@@ -380,7 +393,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeNullMember(this);
+                writer.WriteNullMember(this);
                 return true;
             }
         }
@@ -390,27 +403,23 @@ namespace GameData
 
         public sealed class BoolMember : IClassMember
         {
-            public static readonly BoolType sType = new() { type = typeof(bool) };
-
-            private readonly bool mValue;
-
             public BoolMember(string name, bool value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(Int32);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(Int32);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => BoolType.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
             public bool InternalValue { get; private set; }
 
-            public bool IsDefault { get { return InternalValue == false; } }
+            public bool IsDefault => InternalValue == false;
 
             public IClassMember Default()
             {
@@ -419,7 +428,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeBool8Member(this);
+                writer.WriteBool8Member(this);
                 return true;
             }
         }
@@ -429,19 +438,17 @@ namespace GameData
 
         public sealed class Int8Member : IClassMember
         {
-            public static readonly Int8Type sType = new() { type = typeof(Int8) };
-
             public Int8Member(string name, Int8 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(Int8);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(Int8);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => Int8Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -456,7 +463,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeInt8Member(this);
+                writer.WriteInt8Member(this);
                 return true;
             }
         }
@@ -466,19 +473,17 @@ namespace GameData
 
         public sealed class Int16Member : IClassMember
         {
-            public static readonly Int16Type sType = new() { type = typeof(Int16) };
-
             public Int16Member(string name, Int16 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(Int16);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(Int16);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => Int16Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -493,7 +498,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeInt16Member(this);
+                writer.WriteInt16Member(this);
                 return true;
             }
         }
@@ -503,19 +508,17 @@ namespace GameData
 
         public sealed class Int32Member : IClassMember
         {
-            public static readonly Int32Type sType = new() { type = typeof(Int32) };
-
             public Int32Member(string name, Int32 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(Int32);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(Int32);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => Int32Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -530,7 +533,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeInt32Member(this);
+                writer.WriteInt32Member(this);
                 return true;
             }
         }
@@ -540,19 +543,17 @@ namespace GameData
 
         public sealed class Int64Member : IClassMember
         {
-            public static readonly Int64Type sType = new() { type = typeof(Int64) };
-
             public Int64Member(string name, Int64 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(Int64);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(Int64);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => Int64Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -567,7 +568,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeInt64Member(this);
+                writer.WriteInt64Member(this);
                 return true;
             }
         }
@@ -577,19 +578,17 @@ namespace GameData
 
         public sealed class UInt8Member : IClassMember
         {
-            public static readonly UInt8Type sType = new() { type = typeof(UInt8) };
-
             public UInt8Member(string name, UInt8 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(UInt8);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(UInt8);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => UInt8Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -604,7 +603,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeUInt8Member(this);
+                writer.WriteUInt8Member(this);
                 return true;
             }
         }
@@ -614,19 +613,17 @@ namespace GameData
 
         public sealed class UInt16Member : IClassMember
         {
-            public static readonly UInt16Type sType = new() { type = typeof(UInt16) };
-
             public UInt16Member(string name, UInt16 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(UInt16);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(UInt16);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => UInt16Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -641,7 +638,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeUInt16Member(this);
+                writer.WriteUInt16Member(this);
                 return true;
             }
         }
@@ -651,19 +648,17 @@ namespace GameData
 
         public sealed class UInt32Member : IClassMember
         {
-            public static readonly UInt32Type sType = new() { type = typeof(UInt32) };
-
             public UInt32Member(string name, UInt32 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(UInt32);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(UInt32);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => UInt32Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -678,7 +673,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeUInt32Member(this);
+                writer.WriteUInt32Member(this);
                 return true;
             }
         }
@@ -688,19 +683,17 @@ namespace GameData
 
         public sealed class UInt64Member : IClassMember
         {
-            public static readonly UInt64Type sType = new() { type = typeof(UInt64) };
-
             public UInt64Member(string name, UInt64 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(UInt64);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(UInt64);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => UInt64Type.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -715,7 +708,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeUInt64Member(this);
+                writer.WriteUInt64Member(this);
                 return true;
             }
         }
@@ -725,19 +718,17 @@ namespace GameData
 
         public sealed class FloatMember : IClassMember
         {
-            public static readonly FloatType sType = new() { type = typeof(float) };
-
             public FloatMember(string name, float value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(float);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(float);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => FloatType.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -752,7 +743,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeFloatMember(this);
+                writer.WriteFloatMember(this);
                 return true;
             }
         }
@@ -762,19 +753,17 @@ namespace GameData
 
         public sealed class DoubleMember : IClassMember
         {
-            public static readonly DoubleType sType = new() { type = typeof(double) };
-
             public DoubleMember(string name, double value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(double);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(double);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => DoubleType.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -789,7 +778,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeDoubleMember(this);
+                writer.WriteDoubleMember(this);
                 return true;
             }
         }
@@ -799,20 +788,17 @@ namespace GameData
 
         public sealed class StringMember : IClassMember
         {
-            public static readonly StringType sType = new() { type = typeof(string) };
-
             public StringMember(string name, string value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(Int32) + sizeof(Int32);
                 Value = value;
                 InternalValue = value;
-                Size = sizeof(Int32) + sizeof(Int32);
                 Alignment = sizeof(Int32) + sizeof(Int32);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
+            public IMetaType Type => StringType.Instance;
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
@@ -827,7 +813,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeStringMember(this);
+                writer.WriteStringMember(this);
                 return true;
             }
         }
@@ -837,20 +823,18 @@ namespace GameData
 
         public sealed class FileIdMember : IClassMember
         {
-            public static readonly FileIdType sType = new() { type = typeof(Int64) };
-
             public FileIdMember(string name, Int64 value)
             {
                 Name = name;
-                Type = sType;
+                Size = sizeof(Int64);
                 Value = value;
                 InternalValue = value;
                 Alignment = sizeof(Int64);
             }
 
             public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
-            public int Size { get; private set; }
+            public IMetaType Type => FileIdType.Instance;
+            public int Size { get; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
             public Int64 InternalValue { get; private set; }
@@ -864,7 +848,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                writer.writeFileIdMember(this);
+                writer.WriteFileIdMember(this);
                 return true;
             }
         }
@@ -879,6 +863,8 @@ namespace GameData
             {
                 Name = name;
                 Value = member;
+                Type = type;
+                Size = member.Size;
                 Alignment = member.Alignment;
             }
 
@@ -899,7 +885,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                return writer.writeAtomMember(this);
+                return writer.WriteAtomMember(this);
             }
         }
 
@@ -930,6 +916,7 @@ namespace GameData
 
             public ArrayMember(Type arrayObjectType, object value, IClassMember elementMember, string memberName)
             {
+                Name = memberName;
                 Type = new ArrayType(arrayObjectType, elementMember);
                 Value = value;
                 Alignment = sizeof(Int32) + sizeof(Int32);
@@ -939,8 +926,10 @@ namespace GameData
 
             public ArrayMember(IMetaType arrayType, object value, string memberName)
             {
+                Name = memberName;
                 Type = arrayType;
                 Value = value;
+                InternalValue = value;
                 Alignment = sizeof(Int32);
                 Members = new List<IClassMember>();
             }
@@ -955,13 +944,13 @@ namespace GameData
             public int Size { get; private set; }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
-            public Int64 InternalValue { get; private set; }
+            public object InternalValue { get; private set; }
 
             public bool IsDefault => Value == null;
 
             public List<IClassMember> Members { get; set; }
 
-            #endregion  
+            #endregion
             #region Member methods
 
             public  IClassMember Default()
@@ -976,7 +965,7 @@ namespace GameData
 
             public  bool Write(IMemberWriter writer)
             {
-                writer.writeArrayMember(this);
+                writer.WriteArrayMember(this);
                 return true;
             }
 
@@ -990,43 +979,36 @@ namespace GameData
         {
             #region Constructors
 
-            public ClassObject(object value, string className, string memberName)
+            public ClassObject(ObjectType type, object value, string className, string memberName)
             {
+                Name = className;
+                Type = type;
+                Size = 0;
+                Alignment = sizeof(Int32); // Will be adjust if we have a member with a larger alignment
                 Value = value;
-                Alignment = sizeof(Int32);
-                Members = new ();
-            }
-
-            public ClassObject(object value, IMetaType type, string memberName)
-            {
-                Value = value;
-                Alignment = sizeof(Int32);
                 Members = new ();
             }
 
             #endregion
             #region Properties
 
-            public string Name { get; private set; }
-            public IMetaType Type { get; private set; }
-            public int Size { get; private set; }
+            public string Name { get;  }
+            public IMetaType Type { get;}
+            public int Size { get; }
             public Int64 Alignment { get; private set; }
-            public object Value { get; private set; }
-            public Int64 InternalValue { get; private set; }
+            public object Value { get;  }
 
             public bool IsDefault => Value == null;
             public StreamReference Reference { get; set; }
 
             public List<IClassMember> Members { get; private set; }
 
-            public ClassObject BaseClass { get; set; }
-
-            #endregion            
+            #endregion
             #region Methods
 
             public IClassMember Default()
             {
-                ClassObject c = new (null, Type, Name);
+                ClassObject c = new (null, null, "none", "none");
                 return c;
             }
 
@@ -1035,75 +1017,13 @@ namespace GameData
                 if (m.Alignment > Alignment)
                     Alignment = m.Alignment;
 
-                bool mitigate = true;
-                if (BaseClass == null)
-                {
-                    Members.Add(m);
-                }
-                else if (!mitigate)
-                {
-                    Type classType = Type.type;
-                    FieldInfo[] fields = classType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-                    foreach (FieldInfo fi in fields)
-                    {
-                        if (fi.Name == m.Name)
-                        {
-                            Members.Add(m);
-                            return;
-                        }
-                    }
-
-                    BaseClass.AddMember(m);
-                }
-                else if (mitigate)
-                {
-                    Type classType = Type.type;
-                    FieldInfo[] fields = classType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-
-                    bool isThisMember = false;
-                    foreach (FieldInfo fi in fields)
-                    {
-                        if (fi.Name == m.Name)
-                        {
-                            isThisMember = true;
-                            break;
-                        }
-                    }
-
-                    if (!m.IsDefault)
-                    {
-                        // A non default member is always added to This
-                        Members.Add(m);
-
-                        // Create member with default value to add to the base class if this member does not belong to This
-                        if (!isThisMember && BaseClass != null)
-                        {
-                            m = m.Default();
-                            BaseClass.AddMember(m);
-                        }
-                    }
-                    else
-                    {
-                        if (isThisMember)
-                        {
-                            Members.Add(m);
-                        }
-                        else
-                        {
-                            if (BaseClass != null)
-                                BaseClass.AddMember(m);
-                        }
-                    }
-                }
+                Members.Add(m);
             }
 
             public void SortMembers(IComparer<IClassMember> c)
             {
                 // Sort the members on their data size, from big to small
                 Members.Sort(c);
-
-                if (BaseClass != null)
-                    BaseClass.SortMembers(c);
             }
 
             public void FixMemberAlignment()
@@ -1116,7 +1036,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                return (writer.writeObjectMember(this));
+                return (writer.WriteObjectMember(this));
             }
 
             #endregion
@@ -1127,22 +1047,20 @@ namespace GameData
 
         public sealed class CompoundMember : ICompoundMemberBase, IReferenceableMember, IClassMember
         {
-            #region Fields
-
-            private bool mIsNullType = false;
-
-            #endregion
             #region Constructor
 
             public CompoundMember(object value, string typeName, string memberName)
             {
+                Name = memberName;
                 Type = new CompoundType(value.GetType(), typeName);
+                Size = 0;
                 Value = value;
                 Members = new List<IClassMember>();
             }
 
             public CompoundMember(object value, IMetaType type, string name)
             {
+                Name = name;
                 Type = type;
                 Value = value;
                 Members = new List<IClassMember>();
@@ -1154,12 +1072,11 @@ namespace GameData
             public StreamReference Reference { get; set; }
 
 
-            public string Name { get; private set; }
+            public string Name { get;  }
             public IMetaType Type { get; private set; }
-            public int Size { get; private set; }
+            public int Size { get;  }
             public Int64 Alignment { get; private set; }
             public object Value { get; private set; }
-            public Int64 InternalValue { get; private set; }
 
             public bool IsNullType { get; set; }
 
@@ -1188,7 +1105,7 @@ namespace GameData
 
             public bool Write(IMemberWriter writer)
             {
-                return writer.writeCompoundMember(this);
+                return writer.WriteCompoundMember(this);
             }
 
             #endregion

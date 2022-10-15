@@ -7,9 +7,10 @@ namespace GameData
 {
     public sealed class DataUnit : IDataUnit
     {
-        public string mMemberName;
-        public string mDataUnitPath;
-        public EDataUnit mDataUnit;
+        public string MemberName { get; set; }
+        public string DataUnitPath { get; set; }
+
+        public EDataUnit Mode { get; set; }
 
         public DataUnit(string membername, string unitpath) : this(membername, unitpath, EDataUnit.External)
         {
@@ -17,8 +18,8 @@ namespace GameData
 
         public DataUnit(string membername, string unitpath, EDataUnit dataUnit)
         {
-            mMemberName = membername;
-            mDataUnitPath = unitpath;
+            MemberName = membername;
+            DataUnitPath = unitpath;
             UnitType = dataUnit;
         }
 
@@ -32,7 +33,7 @@ namespace GameData
             }
         }
 
-        public string name { get { return mMemberName; } }
+        public string name { get { return MemberName; } }
         public object value { get; set; }
     }
 }

@@ -4,7 +4,7 @@ namespace GameData
 {
     public struct FSize : ICompound
     {
-        public static readonly FSize sEmpty = new FSize();
+        public static readonly FSize SEmpty = new FSize();
 
         public float Width;													    ///< Size:Width
         public float Height;													    ///< Size:Height

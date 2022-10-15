@@ -41,7 +41,7 @@ namespace GameData
             return true;
         }
 
-        public static bool copyFromTo(string srcPath, string srcFilename, string dstPath, string dstFilename)
+        public static bool CopyFromTo(string srcPath, string srcFilename, string dstPath, string dstFilename)
         {
             try
             {
@@ -70,11 +70,11 @@ namespace GameData
             }
         }
 
-        public static bool copy(string srcPath, string dstPath, List<string> dstFilenames)
+        public static bool Copy(string srcPath, string dstPath, List<string> dstFilenames)
         {
             bool result = true;
             foreach(string filename in dstFilenames)
-                if (!copyFromTo(srcPath, filename, dstPath, filename))
+                if (!CopyFromTo(srcPath, filename, dstPath, filename))
                     result = false;
             return result;
         }

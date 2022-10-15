@@ -15,7 +15,7 @@ namespace GameData
     {
         #region Fields
 
-        private readonly Int64 mStringID;
+        private readonly Int64 mStringId;
 
         #endregion
         #region Constructor
@@ -23,7 +23,7 @@ namespace GameData
         public LString(string s)
         {
             Text = s;
-            mStringID = -1;
+            mStringId = -1;
         }
 
         public string Text { get; private set; }
@@ -31,12 +31,12 @@ namespace GameData
         #endregion
         #region Properties
 
-        public object Value { get { return mStringID; } }
+        public object Value { get { return mStringId; } }
 
         #endregion
         #region Methods
 
-        static public LString[] sArray(params string[] values)
+        static public LString[] SArray(params string[] values)
         {
             LString[] array = new LString[values.Length];
             int i = 0;

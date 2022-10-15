@@ -13,7 +13,7 @@ namespace GameData
     {
         private readonly IFileIdProvider mProvider;
 
-        public static readonly FileId sEmpty = new ();
+        public static readonly FileId SEmpty = new ();
 
         public FileId() : this (null)
         {

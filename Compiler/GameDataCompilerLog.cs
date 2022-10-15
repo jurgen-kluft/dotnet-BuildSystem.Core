@@ -221,8 +221,7 @@ namespace DataBuildSystem
 					// the name of the compiler has been changed. When this is the case we need to
 					// inform the user of this class that the log is out-of-date!
 
-					Type type;
-					if (mCompilerTypeSet.TryGetValue(compilerTypeSignature, out type))
+                    if (mCompilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
 					{
 						IDataCompiler compiler = Activator.CreateInstance(type) as IDataCompiler;
 						if (!mCompilerSignatureSet.Contains(compilerSignature))

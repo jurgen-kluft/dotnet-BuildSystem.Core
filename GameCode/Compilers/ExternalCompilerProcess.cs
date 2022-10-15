@@ -22,7 +22,7 @@ namespace GameData
         public ExternalCompilerProcess(string binarizer, string workDir, int timeOutInMinutes)
         {
             mBinarizerName = binarizer;
-            constructProcess(new Filename(binarizer), new Dirname(workDir), timeOutInMinutes);
+            ConstructProcess(new Filename(binarizer), new Dirname(workDir), timeOutInMinutes);
         }
 
         #endregion
@@ -55,7 +55,7 @@ namespace GameData
         #endregion
         #region Construct Process
 
-        private void constructProcess(Filename binarizer, Dirname workDir, int timeOutInMinutes)
+        private void ConstructProcess(Filename binarizer, Dirname workDir, int timeOutInMinutes)
         {
             mProcess = new Process(BuildSystemCompilerConfig.ToolPath+binarizer, workDir, timeOutInMinutes);
 
@@ -69,14 +69,14 @@ namespace GameData
         #endregion
         #region Arguments
 
-        public string arguments(string filename)
+        public string Arguments(string filename)
         {
             return String.Format("-srcpath \"{0}\" -dstpath \"{1}\" -srcfile \"{2}\"", BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath, filename, BuildSystemCompilerConfig.PlatformName);
         }
 
-        public string arguments(string filename, string appendToCmdLine)
+        public string Arguments(string filename, string appendToCmdLine)
         {
-            string a = arguments(filename);
+            string a = Arguments(filename);
             a += " " + appendToCmdLine;
             return a;
         }

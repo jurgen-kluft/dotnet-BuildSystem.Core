@@ -73,24 +73,24 @@ namespace DataBuildSystem
     {
         public enum EState : byte
         {
-            UNINITIALIZED,
+            Uninitialized,
 
             /// Not initialized
-            NOT_FOUND,
+            NotFound,
 
             /// File doesn't exist
-            CHANGED,
+            Changed,
 
             /// File state has changed since previous check
-            UNCHANGED,
+            Unchanged,
             /// File state is identical to previous check
         }
 
         public enum EMethod : byte
         {
-            TIMESTAMP_HASH,
-            CONTENT_HASH,
-            TIMESTAMP_AND_CONTENT_HASH,
+            TimestampHash,
+            ContentHash,
+            TimestampAndContentHash,
         }
 
         private int Count
@@ -121,7 +121,7 @@ namespace DataBuildSystem
             Paths.Add((byte)p);
             FilePaths.Add(filepath);
             Ids.Add(id);
-            Methods.Add(EMethod.TIMESTAMP_HASH);
+            Methods.Add(EMethod.TimestampHash);
             Hashes.Add(Hash160.Empty);
         }
 
@@ -139,14 +139,14 @@ namespace DataBuildSystem
                 string filepath = Path.Join(GameDataPath.GetPath((EGameDataPath)Paths[i]), FilePaths[i]);
                 switch (method)
                 {
-                    case EMethod.CONTENT_HASH:
+                    case EMethod.ContentHash:
                         {
                             FileInfo fileInfo = new(filepath);
                             if (fileInfo.Exists)
                                 newHash = HashUtility.compute(fileInfo);
                         }
                         break;
-                    case EMethod.TIMESTAMP_HASH:
+                    case EMethod.TimestampHash:
                         {
                             FileInfo fileInfo = new(filepath);
                             if (fileInfo.Exists)

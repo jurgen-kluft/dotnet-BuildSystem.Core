@@ -44,12 +44,12 @@ namespace GameData
                 mUnresolvedReferences = unresolvedReferences;
             }
 
-            public bool open()
+            public bool Open()
             {
                 return true;
             }
 
-            public bool close()
+            public bool Close()
             {
                 return true;
             }
@@ -59,88 +59,88 @@ namespace GameData
                 string parentStr = string.Empty;
 
                 foreach (IClassMember m in mHierarchy)
-                    parentStr += m.Type.typeName + "{" + m.Name + "}.";
+                    parentStr += m.Type.TypeName + "{" + m.Name + "}.";
 
                 Console.WriteLine(parentStr + typeName + "{" + memberName + "} which was not resolved");
             }
 
-            public bool writeNullMember(NullMember c)
+            public bool WriteNullMember(NullMember c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeBool8Member(BoolMember c)
+            public bool WriteBool8Member(BoolMember c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeInt8Member(Int8Member c)
+            public bool WriteInt8Member(Int8Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeInt16Member(Int16Member c)
+            public bool WriteInt16Member(Int16Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeInt32Member(Int32Member c)
+            public bool WriteInt32Member(Int32Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeInt64Member(Int64Member c)
+            public bool WriteInt64Member(Int64Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeUInt8Member(UInt8Member c)
+            public bool WriteUInt8Member(UInt8Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeUInt16Member(UInt16Member c)
+            public bool WriteUInt16Member(UInt16Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeUInt32Member(UInt32Member c)
+            public bool WriteUInt32Member(UInt32Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeUInt64Member(UInt64Member c)
+            public bool WriteUInt64Member(UInt64Member c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeFloatMember(FloatMember c)
+            public bool WriteFloatMember(FloatMember c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeDoubleMember(DoubleMember c)
+            public bool WriteDoubleMember(DoubleMember c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeStringMember(StringMember c)
+            public bool WriteStringMember(StringMember c)
             {
                 StreamContext ctx;
                 if (mUnresolvedReferences.TryGetValue(mStringTable.ReferenceOf(c.InternalValue), out ctx))
-                    Log(c.Name, c.Type.typeName);
+                    Log(c.Name, c.Type.TypeName);
                 return true;
             }
-            public bool writeFileIdMember(FileIdMember c)
+            public bool WriteFileIdMember(FileIdMember c)
             {
                 // Has no reference
                 return true;
             }
-            public bool writeArrayMember(ArrayMember c)
+            public bool WriteArrayMember(ArrayMember c)
             {
                 StreamContext ctx;
                 if (mUnresolvedReferences.TryGetValue(c.Reference, out ctx))
-                    Log(c.Name, c.Type.typeName);
+                    Log(c.Name, c.Type.TypeName);
 
                 mHierarchy.Add(c);
                 foreach (IClassMember m in c.Members)
@@ -149,33 +149,30 @@ namespace GameData
 
                 return true;
             }
-            public bool writeObjectMember(ClassObject c)
+            public bool WriteObjectMember(ClassObject c)
             {
                 StreamContext ctx;
                 if (mUnresolvedReferences.TryGetValue(c.Reference, out ctx))
-                    Log(c.Name, c.Type.typeName);
+                    Log(c.Name, c.Type.TypeName);
 
                 mHierarchy.Add(c);
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
                 mHierarchy.RemoveAt(mHierarchy.Count - 1);
 
-                if (c.BaseClass != null)
-                    writeObjectMember(c.BaseClass);
-
                 return true;
             }
-            public bool writeAtomMember(AtomMember c)
+            public bool WriteAtomMember(AtomMember c)
             {
                 // Has no reference, is a system type (bool, int, float)
                 c.Member.Write(this);
                 return true;
             }
-            public bool writeCompoundMember(CompoundMember c)
+            public bool WriteCompoundMember(CompoundMember c)
             {
                 StreamContext ctx;
                 if (mUnresolvedReferences.TryGetValue(c.Reference, out ctx))
-                    Log(c.Name, c.Type.typeName);
+                    Log(c.Name, c.Type.TypeName);
 
                 mHierarchy.Add(c);
                 foreach (IClassMember m in c.Members)
@@ -193,12 +190,12 @@ namespace GameData
         {
             private readonly List<IClassMember> mHierarchy = new List<IClassMember>();
 
-            public bool open()
+            public bool Open()
             {
                 return true;
             }
 
-            public bool close()
+            public bool Close()
             {
                 return true;
             }
@@ -213,93 +210,93 @@ namespace GameData
                 return false;
             }
 
-            public bool writeNullMember(NullMember c)
+            public bool WriteNullMember(NullMember c)
             {
                 return true;
             }
-            public bool writeBool8Member(BoolMember c)
+            public bool WriteBool8Member(BoolMember c)
             {
                 return true;
             }
-            public bool writeInt8Member(Int8Member c)
+            public bool WriteInt8Member(Int8Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.int8, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeInt16Member(Int16Member c)
+            public bool WriteInt16Member(Int16Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.int16, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeInt32Member(Int32Member c)
+            public bool WriteInt32Member(Int32Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.int32, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeInt64Member(Int64Member c)
+            public bool WriteInt64Member(Int64Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.int64, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeUInt8Member(UInt8Member c)
+            public bool WriteUInt8Member(UInt8Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.uint8, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeUInt16Member(UInt16Member c)
+            public bool WriteUInt16Member(UInt16Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.uint16, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeUInt32Member(UInt32Member c)
+            public bool WriteUInt32Member(UInt32Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.uint32, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeUInt64Member(UInt64Member c)
+            public bool WriteUInt64Member(UInt64Member c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.uint64, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeFloatMember(FloatMember c)
+            public bool WriteFloatMember(FloatMember c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.real, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeDoubleMember(DoubleMember c)
+            public bool WriteDoubleMember(DoubleMember c)
             {
                 //                string errorStr;
                 //                if (c.range != null && !c.range.check(c.real, out errorStr))
                 //                    return logOutOfRange(c.name, c.value, errorStr);
                 return true;
             }
-            public bool writeStringMember(StringMember c)
+            public bool WriteStringMember(StringMember c)
             {
                 return true;
             }
-            public bool writeFileIdMember(FileIdMember c)
+            public bool WriteFileIdMember(FileIdMember c)
             {
                 return true;
             }
-            public bool writeArrayMember(ArrayMember c)
+            public bool WriteArrayMember(ArrayMember c)
             {
                 mHierarchy.Add(c);
                 foreach (IClassMember m in c.Members)
@@ -311,25 +308,22 @@ namespace GameData
 
                 return true;
             }
-            public bool writeObjectMember(ClassObject c)
+            public bool WriteObjectMember(ClassObject c)
             {
                 mHierarchy.Add(c);
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
                 mHierarchy.RemoveAt(mHierarchy.Count - 1);
 
-                if (c.BaseClass != null)
-                    writeObjectMember(c.BaseClass);
-
                 return true;
             }
-            public bool writeAtomMember(AtomMember c)
+            public bool WriteAtomMember(AtomMember c)
             {
                 //c.member.range = c.range;
                 c.Member.Write(this);
                 return true;
             }
-            public bool writeCompoundMember(CompoundMember c)
+            public bool WriteCompoundMember(CompoundMember c)
             {
                 mHierarchy.Add(c);
                 foreach (IClassMember m in c.Members)
@@ -383,17 +377,17 @@ namespace GameData
                 mStringTable = strTable;
             }
 
-            public bool open()
+            public bool Open()
             {
                 return true;
             }
 
-            public bool close()
+            public bool Close()
             {
                 return true;
             }
 
-            public bool writeNullMember(NullMember c)
+            public bool WriteNullMember(NullMember c)
             {
                 if (!HasFlag(EDone.NullMemberDone))
                 {
@@ -404,168 +398,165 @@ namespace GameData
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeBool8Member(BoolMember c)
+            public bool WriteBool8Member(BoolMember c)
             {
                 if (!HasFlag(EDone.Bool8MemberDone))
                 {
                     SetFlag(EDone.Bool8MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeInt8Member(Int8Member c)
+            public bool WriteInt8Member(Int8Member c)
             {
                 if (!HasFlag(EDone.Int8MemberDone))
                 {
                     SetFlag(EDone.Int8MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeInt16Member(Int16Member c)
+            public bool WriteInt16Member(Int16Member c)
             {
                 if (!HasFlag(EDone.Int16MemberDone))
                 {
                     SetFlag(EDone.Int16MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeInt32Member(Int32Member c)
+            public bool WriteInt32Member(Int32Member c)
             {
                 if (!HasFlag(EDone.Int32MemberDone))
                 {
                     SetFlag(EDone.Int32MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeInt64Member(Int64Member c)
+            public bool WriteInt64Member(Int64Member c)
             {
                 if (!HasFlag(EDone.Int64MemberDone))
                 {
                     SetFlag(EDone.Int64MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeUInt8Member(UInt8Member c)
+            public bool WriteUInt8Member(UInt8Member c)
             {
                 if (!HasFlag(EDone.UInt8MemberDone))
                 {
                     SetFlag(EDone.UInt8MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeUInt16Member(UInt16Member c)
+            public bool WriteUInt16Member(UInt16Member c)
             {
                 if (!HasFlag(EDone.UInt16MemberDone))
                 {
                     SetFlag(EDone.UInt16MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeUInt32Member(UInt32Member c)
+            public bool WriteUInt32Member(UInt32Member c)
             {
                 if (!HasFlag(EDone.UInt32MemberDone))
                 {
                     SetFlag(EDone.UInt32MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeUInt64Member(UInt64Member c)
+            public bool WriteUInt64Member(UInt64Member c)
             {
                 if (!HasFlag(EDone.UInt64MemberDone))
                 {
                     SetFlag(EDone.UInt64MemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeFloatMember(FloatMember c)
+            public bool WriteFloatMember(FloatMember c)
             {
                 if (!HasFlag(EDone.FloatMemberDone))
                 {
                     SetFlag(EDone.FloatMemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeDoubleMember(DoubleMember c)
+            public bool WriteDoubleMember(DoubleMember c)
             {
                 if (!HasFlag(EDone.DoubleMemberDone))
                 {
                     SetFlag(EDone.DoubleMemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeStringMember(StringMember c)
+            public bool WriteStringMember(StringMember c)
             {
                 if (!HasFlag(EDone.StringMemberDone))
                 {
                     SetFlag(EDone.StringMemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 mStringTable.Add(c.InternalValue);
                 return true;
             }
-            public bool writeFileIdMember(FileIdMember c)
+            public bool WriteFileIdMember(FileIdMember c)
             {
                 if (!HasFlag(EDone.FileIdMemberDone))
                 {
                     SetFlag(EDone.FileIdMemberDone);
-                    mStringTable.Add(c.Type.typeName);
+                    mStringTable.Add(c.Type.TypeName);
                 }
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeArrayMember(ArrayMember c)
+            public bool WriteArrayMember(ArrayMember c)
             {
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
-                mStringTable.Add(c.Type.typeName);
+                mStringTable.Add(c.Type.TypeName);
                 mStringTable.Add(c.Name.ToLower());
                 return true;
             }
-            public bool writeObjectMember(ClassObject c)
+            public bool WriteObjectMember(ClassObject c)
             {
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
 
-                mStringTable.Add(c.Type.typeName);
+                mStringTable.Add(c.Type.TypeName);
                 mStringTable.Add(c.Name.ToLower());
-
-                if (c.BaseClass != null)
-                    writeObjectMember(c.BaseClass);
 
                 return true;
             }
-            public bool writeAtomMember(AtomMember c)
+            public bool WriteAtomMember(AtomMember c)
             {
-                mStringTable.Add(c.Type.typeName);
+                mStringTable.Add(c.Type.TypeName);
                 mStringTable.Add(c.Name.ToLower());
                 c.Member.Write(this);
                 return true;
             }
-            public bool writeCompoundMember(CompoundMember c)
+            public bool WriteCompoundMember(CompoundMember c)
             {
-                mStringTable.Add(c.Type.typeName);
+                mStringTable.Add(c.Type.TypeName);
                 mStringTable.Add(c.Name.ToLower());
 
                 foreach (IClassMember m in c.Members)
@@ -595,22 +586,16 @@ namespace GameData
 
             public bool alignMembers
             {
-                get
-                {
-                    return mAlignMembers;
-                }
-                set
-                {
-                    mAlignMembers = value;
-                }
+                get => mAlignMembers;
+                set => mAlignMembers = value;
             }
 
-            public bool open()
+            public bool Open()
             {
                 return mStringTable != null && mWriter != null;
             }
 
-            public bool close()
+            public bool Close()
             {
                 mStringTable = null;
                 mWriter = null;
@@ -628,107 +613,107 @@ namespace GameData
                 StreamUtils.Align(mWriter, alignment);
             }
 
-            public bool writeNullMember(NullMember c)
+            public bool WriteNullMember(NullMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write((int)0);
                 return true;
             }
-            public bool writeBool8Member(BoolMember c)
+            public bool WriteBool8Member(BoolMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write((int)(c.InternalValue ? 1 : 0));
                 return true;
             }
-            public bool writeInt8Member(Int8Member c)
+            public bool WriteInt8Member(Int8Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeInt16Member(Int16Member c)
+            public bool WriteInt16Member(Int16Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeInt32Member(Int32Member c)
+            public bool WriteInt32Member(Int32Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeInt64Member(Int64Member c)
+            public bool WriteInt64Member(Int64Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeUInt8Member(UInt8Member c)
+            public bool WriteUInt8Member(UInt8Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeUInt16Member(UInt16Member c)
+            public bool WriteUInt16Member(UInt16Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeUInt32Member(UInt32Member c)
+            public bool WriteUInt32Member(UInt32Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeUInt64Member(UInt64Member c)
+            public bool WriteUInt64Member(UInt64Member c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeFloatMember(FloatMember c)
+            public bool WriteFloatMember(FloatMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeDoubleMember(DoubleMember c)
+            public bool WriteDoubleMember(DoubleMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeStringMember(StringMember c)
+            public bool WriteStringMember(StringMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 WriteReference(mStringTable.ReferenceOf(c.InternalValue));
                 return true;
             }
-            public bool writeFileIdMember(FileIdMember c)
+            public bool WriteFileIdMember(FileIdMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeArrayMember(ArrayMember c)
+            public bool WriteArrayMember(ArrayMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.Members.Count);
                 mWriter.Write(c.Reference);
                 return true;
             }
-            public bool writeObjectMember(ClassObject c)
+            public bool WriteObjectMember(ClassObject c)
             {
                 WriteReference(c.Reference);
                 return true;
             }
-            public bool writeAtomMember(AtomMember c)
+            public bool WriteAtomMember(AtomMember c)
             {
                 return c.Member.Write(this);
             }
-            public bool writeCompoundMember(CompoundMember c)
+            public bool WriteCompoundMember(CompoundMember c)
             {
                 if (c.IsNullType)
                 {
@@ -775,87 +760,87 @@ namespace GameData
                 };
             }
 
-            public bool open()
+            public bool Open()
             {
                 return mStringTable != null && mWriter != null;
             }
 
-            public bool close()
+            public bool Close()
             {
                 return true;
             }
 
-            public bool writeNullMember(NullMember c)
+            public bool WriteNullMember(NullMember c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeBool8Member(BoolMember c)
+            public bool WriteBool8Member(BoolMember c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeInt8Member(Int8Member c)
+            public bool WriteInt8Member(Int8Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeInt16Member(Int16Member c)
+            public bool WriteInt16Member(Int16Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeInt32Member(Int32Member c)
+            public bool WriteInt32Member(Int32Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeInt64Member(Int64Member c)
+            public bool WriteInt64Member(Int64Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeUInt8Member(UInt8Member c)
+            public bool WriteUInt8Member(UInt8Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeUInt16Member(UInt16Member c)
+            public bool WriteUInt16Member(UInt16Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeUInt32Member(UInt32Member c)
+            public bool WriteUInt32Member(UInt32Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeUInt64Member(UInt64Member c)
+            public bool WriteUInt64Member(UInt64Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeFloatMember(FloatMember c)
+            public bool WriteFloatMember(FloatMember c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeDoubleMember(DoubleMember c)
+            public bool WriteDoubleMember(DoubleMember c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeStringMember(StringMember c)
+            public bool WriteStringMember(StringMember c)
             {
                 // Written by the StringTable
                 return true;
             }
-            public bool writeFileIdMember(FileIdMember c)
+            public bool WriteFileIdMember(FileIdMember c)
             {
                 // Embedded in the Member.OffsetOrValue as value
                 return true;
             }
-            public bool writeArrayMember(ArrayMember c)
+            public bool WriteArrayMember(ArrayMember c)
             {
                 // The reference of this member can be null!
                 if (c.Reference != StreamReference.Empty && mWriter.BeginBlock(c.Reference, c.Alignment))
@@ -873,21 +858,18 @@ namespace GameData
 
                 return true;
             }
-            public bool writeObjectMember(ClassObject c)
+            public bool WriteObjectMember(ClassObject c)
             {
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
 
-                if (c.BaseClass != null)
-                    writeObjectMember(c.BaseClass);
-
                 return true;
             }
-            public bool writeAtomMember(AtomMember c)
+            public bool WriteAtomMember(AtomMember c)
             {
                 return c.Member.Write(this);
             }
-            public bool writeCompoundMember(CompoundMember c)
+            public bool WriteCompoundMember(CompoundMember c)
             {
                 if (c.Reference != StreamReference.Empty && mWriter.BeginBlock(c.Reference, sizeof(UInt32)))
                 {
@@ -921,12 +903,12 @@ namespace GameData
                 mWriter = writer;
             }
 
-            public bool open()
+            public bool Open()
             {
                 return mStringTable != null && mWriter != null;
             }
 
-            public bool close()
+            public bool Close()
             {
                 mStringTable = null;
                 mWriter = null;
@@ -950,82 +932,82 @@ namespace GameData
                 return true;
             }
 
-            public bool writeNullMember(NullMember c)
+            public bool WriteNullMember(NullMember c)
             {
                 return WriteInt32(0);
             }
-            public bool writeBool8Member(BoolMember c)
+            public bool WriteBool8Member(BoolMember c)
             {
                 return WriteInt32(c.InternalValue ? 0 : 1);
             }
-            public bool writeInt8Member(Int8Member c)
+            public bool WriteInt8Member(Int8Member c)
             {
                 return WriteInt32(c.InternalValue);
             }
-            public bool writeInt16Member(Int16Member c)
+            public bool WriteInt16Member(Int16Member c)
             {
                 return WriteInt32(c.InternalValue);
             }
-            public bool writeInt32Member(Int32Member c)
+            public bool WriteInt32Member(Int32Member c)
             {
                 return WriteInt32(c.InternalValue);
             }
-            public bool writeInt64Member(Int64Member c)
+            public bool WriteInt64Member(Int64Member c)
             {
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeUInt8Member(UInt8Member c)
+            public bool WriteUInt8Member(UInt8Member c)
             {
                 return WriteInt32(c.InternalValue);
             }
-            public bool writeUInt16Member(UInt16Member c)
+            public bool WriteUInt16Member(UInt16Member c)
             {
                 return WriteInt32(c.InternalValue);
             }
-            public bool writeUInt32Member(UInt32Member c)
+            public bool WriteUInt32Member(UInt32Member c)
             {
                 return WriteInt32((int)c.InternalValue);
             }
-            public bool writeUInt64Member(UInt64Member c)
+            public bool WriteUInt64Member(UInt64Member c)
             {
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeFloatMember(FloatMember c)
+            public bool WriteFloatMember(FloatMember c)
             {
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeDoubleMember(DoubleMember c)
+            public bool WriteDoubleMember(DoubleMember c)
             {
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeStringMember(StringMember c)
+            public bool WriteStringMember(StringMember c)
             {
                 return WriteReferenceMember(mStringTable.ReferenceOf(c.InternalValue));
             }
-            public bool writeFileIdMember(FileIdMember c)
+            public bool WriteFileIdMember(FileIdMember c)
             {
                 mWriter.Write(c.InternalValue);
                 return true;
             }
-            public bool writeArrayMember(ArrayMember c)
+            public bool WriteArrayMember(ArrayMember c)
             {
                 mWriter.Write(c.Members.Count);
                 mWriter.Write(c.Reference);
                 return true;
             }
-            public bool writeObjectMember(ClassObject c)
+            public bool WriteObjectMember(ClassObject c)
             {
                 return WriteReferenceMember(c.Reference);
             }
-            public bool writeAtomMember(AtomMember c)
+            public bool WriteAtomMember(AtomMember c)
             {
                 return c.Member.Write(this);
             }
-            public bool writeCompoundMember(CompoundMember c)
+            public bool WriteCompoundMember(CompoundMember c)
             {
                 return WriteReferenceMember(c.Reference);
             }
@@ -1048,12 +1030,12 @@ namespace GameData
                 mOffsetOrValueWriter = new ObjectMemberOffsetOrValueWriter(stringTable, fileIdTable, writer);
             }
 
-            public bool open()
+            public bool Open()
             {
                 return mStringTable != null && mWriter != null;
             }
 
-            public bool close()
+            public bool Close()
             {
                 return true;
             }
@@ -1078,77 +1060,77 @@ namespace GameData
                 return m.Write(mOffsetOrValueWriter);
             }
 
-            public bool writeNullMember(NullMember c)
+            public bool WriteNullMember(NullMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeBool8Member(BoolMember c)
+            public bool WriteBool8Member(BoolMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeInt8Member(Int8Member c)
+            public bool WriteInt8Member(Int8Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeInt16Member(Int16Member c)
+            public bool WriteInt16Member(Int16Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeInt32Member(Int32Member c)
+            public bool WriteInt32Member(Int32Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeInt64Member(Int64Member c)
+            public bool WriteInt64Member(Int64Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeUInt8Member(UInt8Member c)
+            public bool WriteUInt8Member(UInt8Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeUInt16Member(UInt16Member c)
+            public bool WriteUInt16Member(UInt16Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeUInt32Member(UInt32Member c)
+            public bool WriteUInt32Member(UInt32Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeUInt64Member(UInt64Member c)
+            public bool WriteUInt64Member(UInt64Member c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeFloatMember(FloatMember c)
+            public bool WriteFloatMember(FloatMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeDoubleMember(DoubleMember c)
+            public bool WriteDoubleMember(DoubleMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeStringMember(StringMember c)
+            public bool WriteStringMember(StringMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeFileIdMember(FileIdMember c)
+            public bool WriteFileIdMember(FileIdMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeArrayMember(ArrayMember c)
+            public bool WriteArrayMember(ArrayMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeObjectMember(ClassObject c)
+            public bool WriteObjectMember(ClassObject c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeAtomMember(AtomMember c)
+            public bool WriteAtomMember(AtomMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
-            public bool writeCompoundMember(CompoundMember c)
+            public bool WriteCompoundMember(CompoundMember c)
             {
-                return WriteMember(c.Type.typeName, c.Name, c);
+                return WriteMember(c.Type.TypeName, c.Name, c);
             }
         }
 
@@ -1157,15 +1139,13 @@ namespace GameData
 
         private sealed class ObjectWriter
         {
-            private readonly EGenericFormat mDataFormat;
             private readonly StringTable mStringTable;
             private readonly IDataWriter mWriter;
 
             private readonly ObjectMemberWriter mObjectMemberWriter;
 
-            public ObjectWriter(EGenericFormat inDataFormat, StringTable inStringTable, FileIdTable inFileIdTable, IDataWriter inWriter)
+            public ObjectWriter(StringTable inStringTable, FileIdTable inFileIdTable, IDataWriter inWriter)
             {
-                mDataFormat = inDataFormat;
                 mStringTable = inStringTable;
                 mWriter = inWriter;
                 mObjectMemberWriter = new ObjectMemberWriter(mStringTable, inFileIdTable, mWriter);
@@ -1183,14 +1163,6 @@ namespace GameData
                 // duplicate classes can be collapsed.
                 if (c.Reference != StreamReference.Empty && mWriter.BeginBlock(c.Reference, c.Alignment))
                 {
-                    if (mDataFormat != EGenericFormat.STD_FLAT)
-                    {
-                        if (c.BaseClass != null)
-                            mWriter.Write(c.BaseClass.Reference);
-                        else
-                            mWriter.Write(StreamReference.Empty);
-                    }
-
                     // Here: Sort members by hash of their name, so that in C++ we can do a
                     //       binary search to find the member by name/hash.
                     c.SortMembers(new MemberNameHashComparer(mStringTable));
@@ -1224,9 +1196,6 @@ namespace GameData
                     mWriter.EndBlock();
                 }
 
-                if (c.BaseClass != null)
-                    Write(c.BaseClass);
-
                 return true;
             }
 
@@ -1244,20 +1213,13 @@ namespace GameData
                 // Note: Strings are a bit of a special case since we also will collect the names of members and classes.
 
                 Dictionary<object, ClassObject> referencesForClassesDict = new ();
-                foreach (ClassObject c in classes)
+                foreach (ClassObject c in Classes)
                 {
                     ClassObject i = c;
 
                     if (i.IsDefault || i.Value == null)
                     {
                         i.Reference = StreamReference.Empty;
-
-                        i = i.BaseClass;
-                        while (i != null)
-                        {
-                            i.Reference = StreamReference.Empty;
-                            i = i.BaseClass;
-                        }
                     }
                     else
                     {
@@ -1270,20 +1232,11 @@ namespace GameData
                             i.Reference = StreamReference.Instance;
                             referencesForClassesDict.Add(i.Value, c);
                         }
-                        // Do base classes
-                        r = r?.BaseClass ?? null;
-                        i = i.BaseClass;
-                        while (i != null)
-                        {
-                            i.Reference = r?.Reference ?? StreamReference.Instance;
-                            i = i.BaseClass;
-                            r = r?.BaseClass ?? null;
-                        }
                     }
                 }
 
                 Dictionary<object, StreamReference> referencesForCompoundsDict = new Dictionary<object, StreamReference>();
-                foreach (CompoundMember c in compounds)
+                foreach (CompoundMember c in Compounds)
                 {
                     if (c.IsNullType)
                     {
@@ -1310,7 +1263,7 @@ namespace GameData
                     }
                 }
 
-                foreach (AtomMember c in atoms)
+                foreach (AtomMember c in Atoms)
                 {
                 }
 
@@ -1330,7 +1283,7 @@ namespace GameData
                 //}
 
                 Dictionary<object, StreamReference> referencesForArraysDict = new ();
-                foreach (ArrayMember a in arrays)
+                foreach (ArrayMember a in Arrays)
                 {
                     if (a.IsDefault || a.Value == null)
                     {
@@ -1356,31 +1309,39 @@ namespace GameData
 
         #region Generic writer
 
-        public bool Write(EGenericFormat inDataFormat, object inData, IBinaryWriter resourceDataWriter, IBinaryWriter resourceDataReallocTableWriter)
+        public bool Write(EEndian endian, object inData, string dataFilename, string relocFilename)
         {
+            FileInfo dataFileInfo = new(dataFilename);
+            FileStream dataStream = new(dataFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024);
+            IBinaryWriter resourceDataWriter = EndianUtils.CreateBinaryWriter(dataStream, endian);
+
+            FileInfo reallocTableFileInfo = new(relocFilename);
+            FileStream reallocTableStream = new(reallocTableFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 2 * 1024 * 1024);
+            IBinaryWriter resourceDataReallocTableWriter = EndianUtils.CreateBinaryWriter(reallocTableStream, endian);
+
             try
             {
-                IMemberGenerator genericMemberGenerator = new GenericMemberGenerator(inDataFormat);
+                IMemberGenerator genericMemberGenerator = new GenericMemberGenerator();
 
                 // Analyze Root and generate a list of 'Code.Class' objects from this.
-                Reflector reflector = new (genericMemberGenerator);
+                Reflector reflector = new(genericMemberGenerator);
 
-                MyMemberBook book = new ();
+                MyMemberBook book = new();
                 reflector.Analyze(inData, book);
                 book.HandoutReferences();
 
                 // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
-                StringTable stringTable = new ();
+                StringTable stringTable = new();
                 stringTable.Reference = StreamReference.Instance;
 
                 // The FileIdTable to collect (and collapse duplicate) all FileIds
-                FileIdTable fileIdTable = new ();
+                FileIdTable fileIdTable = new();
                 fileIdTable.Reference = StreamReference.Instance;
 
                 // Database of offsets of references written in the stream as well as the offsets of references to those references
                 IDataWriter dataWriter = EndianUtils.CreateDataWriter(mEndian);
 
-                ClassObject rootClass = book.classes[0];
+                ClassObject rootClass = book.Classes[0];
 
                 dataWriter.Begin();
                 {
@@ -1391,18 +1352,18 @@ namespace GameData
 
                     dataWriter.Write(fileIdTable.Reference);
                     dataWriter.Write(stringTable.Reference);
-                    dataWriter.Write(rootClass.Reference);      // The root class
+                    dataWriter.Write(rootClass.Reference); // The root class
 
                     // Collect all strings (class names + member names)
                     // Collect all strings from member content
-                    StringTableWriter strTableWriter = new (stringTable);
+                    StringTableWriter strTableWriter = new(stringTable);
                     rootClass.Write(strTableWriter);
                     stringTable.SortByHash();
 
                     // Write 'SResource' array
-                    ObjectWriter genericObjectTreeWriter = new (inDataFormat, stringTable, fileIdTable, dataWriter);
-                    for (int i = 0; i < book.classes.Count; i++)
-                        genericObjectTreeWriter.Write(book.classes[i]);
+                    ObjectWriter genericObjectTreeWriter = new(stringTable, fileIdTable, dataWriter);
+                    for (int i = 0; i < book.Classes.Count; i++)
+                        genericObjectTreeWriter.Write(book.Classes[i]);
 
                     // Write 'SResource' member data
                     ObjectMemberReferenceDataWriter objectMemberDataWriter = new ObjectMemberReferenceDataWriter(stringTable, fileIdTable, dataWriter);
@@ -1415,7 +1376,7 @@ namespace GameData
                 dataWriter.End();
 
                 // Validate member data
-                MemberDataValidator memberDataValidator = new ();
+                MemberDataValidator memberDataValidator = new();
                 rootClass.Write(memberDataValidator);
 
                 // Finalize the dataWriter, this will write the data to @name resourceDataWriter and the
@@ -1448,14 +1409,24 @@ namespace GameData
 
                 if (unresolvedReferences.Count > 0)
                 {
-                    UnresolvedReferencesLogger logger = new (stringTable, unresolvedReferences);
-                    foreach (ClassObject c in book.classes)
+                    UnresolvedReferencesLogger logger = new(stringTable, unresolvedReferences);
+                    foreach (ClassObject c in book.Classes)
                         c.Write(logger);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("[GenericDataStream:EXCEPTION] {0}", e.Message);
+            }
+            finally
+            {
+                reallocTableStream.Flush();
+                resourceDataReallocTableWriter.Close();
+                reallocTableStream.Close();
+
+                dataStream.Flush();
+                resourceDataWriter.Close();
+                dataStream.Close();
             }
 
             return true;
@@ -1464,107 +1435,102 @@ namespace GameData
         #endregion
     }
 
-
-
     #region Generic MemberGenerator
 
     public sealed class GenericMemberGenerator : IMemberGenerator
     {
         #region Fields
 
-        private readonly EGenericFormat mDataFormat;
 
         #endregion
         #region Constructor
 
-        public GenericMemberGenerator(EGenericFormat inDataFormat)
+        public GenericMemberGenerator()
         {
-            mDataFormat = inDataFormat;
         }
 
         #endregion
         #region Private Methods
 
-        public bool isNull(Type t) { return (t == null); }
-        public bool isBool(Type t) { return t == typeof(bool); }
-        public bool isInt8(Type t) { return t == typeof(SByte); }
-        public bool isUInt8(Type t) { return t == typeof(Byte); }
-        public bool isInt16(Type t) { return t == typeof(Int16); }
-        public bool isUInt16(Type t) { return t == typeof(UInt16); }
-        public bool isInt32(Type t) { return t == typeof(Int32); }
-        public bool isUInt32(Type t) { return t == typeof(UInt32); }
-        public bool isInt64(Type t) { return t == typeof(Int64); }
-        public bool isUInt64(Type t) { return t == typeof(UInt64); }
-        public bool isFloat(Type t) { return t == typeof(float); }
-        public bool isDouble(Type t) { return t == typeof(double); }
-        public bool isString(Type t) { return t == typeof(string); }
-        public bool isEnum(Type t) { return t.IsEnum; }
-        public bool isArray(Type t) { return !t.IsPrimitive && t.IsArray; }
-        public bool isObject(Type t) { return t.IsClass && !t.IsArray && !isString(t); }
-        public bool isAtom(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IAtom)); }
-        public bool isFileId(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IFileId)); }
-        public bool isCompound(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.ICompound)); }
+        public bool IsNull(Type t) { return (t == null); }
+        public bool IsBool(Type t) { return t == typeof(bool); }
+        public bool IsInt8(Type t) { return t == typeof(SByte); }
+        public bool IsUInt8(Type t) { return t == typeof(Byte); }
+        public bool IsInt16(Type t) { return t == typeof(Int16); }
+        public bool IsUInt16(Type t) { return t == typeof(UInt16); }
+        public bool IsInt32(Type t) { return t == typeof(Int32); }
+        public bool IsUInt32(Type t) { return t == typeof(UInt32); }
+        public bool IsInt64(Type t) { return t == typeof(Int64); }
+        public bool IsUInt64(Type t) { return t == typeof(UInt64); }
+        public bool IsFloat(Type t) { return t == typeof(float); }
+        public bool IsDouble(Type t) { return t == typeof(double); }
+        public bool IsString(Type t) { return t == typeof(string); }
+        public bool IsEnum(Type t) { return t.IsEnum; }
+        public bool IsArray(Type t) { return !t.IsPrimitive && t.IsArray; }
+        public bool IsObject(Type t) { return t.IsClass && !t.IsArray && !IsString(t); }
+        public bool IsAtom(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IAtom)); }
+        public bool IsFileId(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IFileId)); }
+        public bool IsCompound(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.ICompound)); }
 
-        public IClassMember newNullMember(string memberName) { return new NullMember(memberName); }
-        public IClassMember newBoolMember(bool o, string memberName) { return new BoolMember(memberName, o); }
-        public IClassMember newInt8Member(SByte o, string memberName) { return new Int8Member(memberName, o); }
-        public IClassMember newUInt8Member(Byte o, string memberName) { return new UInt8Member(memberName, o); }
-        public IClassMember newInt16Member(Int16 o, string memberName) { return new Int16Member(memberName, o); }
-        public IClassMember newUInt16Member(UInt16 o, string memberName) { return new UInt16Member(memberName, o); }
-        public IClassMember newInt32Member(Int32 o, string memberName) { return new Int32Member(memberName, o); }
-        public IClassMember newUInt32Member(UInt32 o, string memberName) { return new UInt32Member(memberName, o); }
-        public IClassMember newInt64Member(Int64 o, string memberName) { return new Int64Member(memberName, o); }
-        public IClassMember newUInt64Member(UInt64 o, string memberName) { return new UInt64Member(memberName, o); }
-        public IClassMember newFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
-        public IClassMember newDoubleMember(double o, string memberName) { return new DoubleMember(memberName, o); }
-        public IClassMember newStringMember(string o, string memberName) { return new StringMember(memberName, o); }
-        public IClassMember newFileIdMember(Int64 o, string memberName) { return new FileIdMember(memberName, o); }
-        public IClassMember newEnumMember(object o, string memberName) { return new Int32Member(memberName, (Int32)o); }
+        public IClassMember NewNullMember(string memberName) { return new NullMember(memberName); }
+        public IClassMember NewBoolMember(bool o, string memberName) { return new BoolMember(memberName, o); }
+        public IClassMember NewInt8Member(SByte o, string memberName) { return new Int8Member(memberName, o); }
+        public IClassMember NewUInt8Member(Byte o, string memberName) { return new UInt8Member(memberName, o); }
+        public IClassMember NewInt16Member(Int16 o, string memberName) { return new Int16Member(memberName, o); }
+        public IClassMember NewUInt16Member(UInt16 o, string memberName) { return new UInt16Member(memberName, o); }
+        public IClassMember NewInt32Member(Int32 o, string memberName) { return new Int32Member(memberName, o); }
+        public IClassMember NewUInt32Member(UInt32 o, string memberName) { return new UInt32Member(memberName, o); }
+        public IClassMember NewInt64Member(Int64 o, string memberName) { return new Int64Member(memberName, o); }
+        public IClassMember NewUInt64Member(UInt64 o, string memberName) { return new UInt64Member(memberName, o); }
+        public IClassMember NewFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
+        public IClassMember NewDoubleMember(double o, string memberName) { return new DoubleMember(memberName, o); }
+        public IClassMember NewStringMember(string o, string memberName) { return new StringMember(memberName, o); }
+        public IClassMember NewFileIdMember(Int64 o, string memberName) { return new FileIdMember(memberName, o); }
+        public IClassMember NewEnumMember(object o, string memberName) { return new Int32Member(memberName, (Int32)o); }
 
         #endregion
         #region IMemberGenerator methods
 
         public IMetaType NewMemberType(Type type)
         {
-            if (isNull(type))
+            if (IsNull(type))
             {
-                return new NullType();
+                return NullType.Instance;
             }
 
-            if (isAtom(type))
+            if (IsAtom(type))
             {
                 return new AtomType(type, type.Name);
             }
 
-            if (isFileId(type))
+            if (IsFileId(type))
             {
-                return new FileIdType { type = type, typeName = type.Name };
+                return FileIdType.Instance;
             }
 
-            if (isCompound(type))
+            if (IsCompound(type))
             {
                 return new CompoundType(type, type.Name);
             }
 
-            if (isBool(type)) return BoolMember.sType;
-            if (isInt8(type)) return Int8Member.sType;
-            if (isUInt8(type)) return UInt8Member.sType;
-            if (isInt16(type)) return Int16Member.sType;
-            if (isUInt16(type)) return UInt16Member.sType;
-            if (isInt32(type)) return Int32Member.sType;
-            if (isUInt32(type)) return UInt32Member.sType;
-            if (isInt64(type)) return Int64Member.sType;
-            if (isUInt64(type)) return UInt64Member.sType;
-            if (isFloat(type)) return FloatMember.sType;
-            if (isDouble(type)) return DoubleMember.sType;
-            if (isString(type)) return StringMember.sType;
-            if (isEnum(type)) 
-                return Int32Member.sType;
-            if (isObject(type)) return NewObjectType(type);
+            if (IsBool(type)) return BoolType.Instance;
+            if (IsInt8(type)) return Int8Type.Instance;
+            if (IsUInt8(type)) return UInt8Type.Instance;
+            if (IsInt16(type)) return Int16Type.Instance;
+            if (IsUInt16(type)) return UInt16Type.Instance;
+            if (IsInt32(type)) return Int32Type.Instance;
+            if (IsUInt32(type)) return UInt32Type.Instance;
+            if (IsInt64(type)) return Int64Type.Instance;
+            if (IsUInt64(type)) return UInt64Type.Instance;
+            if (IsFloat(type)) return FloatType.Instance;
+            if (IsDouble(type)) return DoubleType.Instance;
+            if (IsString(type)) return StringType.Instance;
+            if (IsEnum(type))  return Int32Type.Instance;
+            if (IsObject(type)) return NewObjectType(type);
             throw new NotImplementedException();
         }
 
-        public IMetaType NewObjectType(Type type)
+        public ObjectType NewObjectType(Type type)
         {
             return new ObjectType(type, type.Name);
         }
@@ -1574,58 +1540,35 @@ namespace GameData
             return new AtomType(type, type.Name);
         }
 
-        public IMetaType NewFileIdType(Type type)
-        {
-            return new FileIdType { type = type, typeName = type.Name };
-        }
-
         public IMetaType NewCompoundType(Type type)
         {
             return new CompoundType(type, type.Name);
         }
 
-        public ClassObject newObjectMember(Type classType, object content, string memberName)
+        public ClassObject NewObjectMember(Type classType, object content, string memberName)
         {
-            ClassObject classMember;
-            if (mDataFormat == EGenericFormat.STD_FLAT)
-            {
-                classMember = new ClassObject(content, NewObjectType(classType), memberName);
-            }
-            else
-            {
-                classMember = new ClassObject(content, NewObjectType(classType), memberName);
-
-                ClassObject c = classMember;
-                Type baseType = classType.BaseType;
-                while (baseType != null && baseType != typeof(object))
-                {
-                    c.BaseClass = new ClassObject(content, NewObjectType(baseType), "");
-                    c = c.BaseClass;
-
-                    // Next base class
-                    baseType = baseType.BaseType;
-                }
-            }
+            string className = classType.Name;
+            ClassObject classMember = new (NewObjectType(classType), content, className, memberName);
             return classMember;
         }
 
-        public ArrayMember newArrayMember(Type arrayType, object content, IClassMember elementMember, string memberName)
+        public ArrayMember NewArrayMember(Type arrayType, object content, IClassMember elementMember, string memberName)
         {
             ArrayMember arrayMember = new(arrayType, content, elementMember, memberName);
             return arrayMember;
         }
 
-        public AtomMember newAtomMember(Type atomType, IClassMember atomContentMember, string memberName)
+        public AtomMember NewAtomMember(Type atomType, IClassMember atomContentMember, string memberName)
         {
             AtomMember atom = new(memberName, NewAtomType(atomType), atomContentMember);
             return atom;
         }
-        public FileIdMember newFileIdMember(Type fileidType, Int64 content, string memberName)
+        public FileIdMember NewFileIdMember(Type fileidType, Int64 content, string memberName)
         {
             FileIdMember fileid = new(memberName, content);
             return fileid;
         }
-        public CompoundMember newCompoundMember(Type compoundType, object compoundObject, string memberName)
+        public CompoundMember NewCompoundMember(Type compoundType, object compoundObject, string memberName)
         {
             CompoundMember compoundMember = new(compoundObject, NewCompoundType(compoundType), memberName);
             return compoundMember;

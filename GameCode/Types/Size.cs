@@ -4,7 +4,7 @@ namespace GameData
 {
     public struct Size : ICompound
     {
-        public static readonly Size sEmpty = new Size();
+        public static readonly Size SEmpty = new Size();
 
         public int Width;													    ///< Size:Width
         public int Height;													    ///< Size:Height

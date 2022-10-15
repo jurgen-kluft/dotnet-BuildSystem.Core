@@ -4,7 +4,7 @@ namespace GameData
 {
     public struct FRect : ICompound
     {
-        public static readonly FRect sEmpty = new FRect();
+        public static readonly FRect SEmpty = new FRect();
 
         public float Left;													    ///< Left point of rectangle
         public float Top;													    ///< Top point of rectangle

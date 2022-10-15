@@ -12,48 +12,12 @@ namespace GameData
 
     public class MemberBook
     {
-        protected List<MetaCode.ClassObject> mClasses;
-        protected List<MetaCode.CompoundMember> mCompounds;
-        protected List<MetaCode.AtomMember> mAtoms;
-        protected List<MetaCode.FileIdMember> mFileIds;
-        protected List<MetaCode.ArrayMember> mArrays;
-        protected List<MetaCode.StringMember> mStrings;
-
-        public List<MetaCode.ClassObject> classes
-        {
-            get { return mClasses; }
-            set { mClasses = value; }
-        }
-
-        public List<MetaCode.CompoundMember> compounds
-        {
-            get { return mCompounds; }
-            set { mCompounds = value; }
-        }
-
-        public List<MetaCode.AtomMember> atoms
-        {
-            get { return mAtoms; }
-            set { mAtoms = value; }
-        }
-
-        public List<MetaCode.FileIdMember> fileids
-        {
-            get { return mFileIds; }
-            set { mFileIds = value; }
-        }
-
-        public List<MetaCode.ArrayMember> arrays
-        {
-            get { return mArrays; }
-            set { mArrays = value; }
-        }
-
-        public List<MetaCode.StringMember> strings
-        {
-            get { return mStrings; }
-            set { mStrings = value; }
-        }
+        public List<MetaCode.ClassObject> Classes { get; set; }
+        public List<MetaCode.CompoundMember> Compounds { get; set; }
+        public List<MetaCode.AtomMember> Atoms{ get; set; }
+        public List<MetaCode.FileIdMember> FileIds{ get; set; }
+        public List<MetaCode.ArrayMember> Arrays{ get; set; }
+        public List<MetaCode.StringMember> Strings{ get; set; }
     }
 
     #endregion
@@ -63,8 +27,6 @@ namespace GameData
         #region Fields
 
         private readonly MetaCode.IMemberGenerator mMemberGenerator;
-        private readonly List<MetaCode.Int64Member> mInt64Database;
-        private readonly List<MetaCode.UInt64Member> mUInt64Database;
         private readonly List<MetaCode.ClassObject> mClassDatabase;
         private readonly List<MetaCode.StringMember> mStringDatabase;
         private readonly List<MetaCode.ArrayMember> mArrayDatabase;
@@ -81,8 +43,6 @@ namespace GameData
         {
             mMemberGenerator = memberGenerator;
 
-            mInt64Database = new List<MetaCode.Int64Member>();
-            mUInt64Database = new List<MetaCode.UInt64Member>();
             mClassDatabase = new List<MetaCode.ClassObject>();
             mStringDatabase = new List<MetaCode.StringMember>();
             mArrayDatabase = new List<MetaCode.ArrayMember>();
@@ -98,7 +58,7 @@ namespace GameData
 
         #region addMember
 
-        private MetaCode.IClassMember createMember(object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
+        private MetaCode.IClassMember CreateMember(object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
         {
             MetaCode.IClassMember member = null;
 
@@ -107,7 +67,7 @@ namespace GameData
             // Check if the object implements the IAtom, ICompound or IObject interface
             // If not then check if it's an Array, Class or other reference type objects
             // Lastly handle all system type objects.
-            if (mMemberGenerator.isAtom(dataObjectFieldType))
+            if (mMemberGenerator.IsAtom(dataObjectFieldType))
             {
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
@@ -115,12 +75,12 @@ namespace GameData
                 // An Atom is holding a primitive type like Int, Float etc.. we treat this as a MetaCode.Member
                 PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
                 object atomContentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
-                MetaCode.IClassMember atomContentMember = createMember(atomContentObject, atomContentObject.GetType(), string.Empty);
+                MetaCode.IClassMember atomContentMember = CreateMember(atomContentObject, atomContentObject.GetType(), string.Empty);
 
-                MetaCode.AtomMember atomMember = mMemberGenerator.newAtomMember(dataObjectFieldValue.GetType(), atomContentMember, memberName);
+                MetaCode.AtomMember atomMember = mMemberGenerator.NewAtomMember(dataObjectFieldValue.GetType(), atomContentMember, memberName);
                 member = atomMember;
             }
-            else if (mMemberGenerator.isFileId(dataObjectFieldType))
+            else if (mMemberGenerator.IsFileId(dataObjectFieldType))
             {
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
@@ -130,19 +90,19 @@ namespace GameData
                 object contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
                 Int64 id = (Int64)contentObject;
 
-                MetaCode.FileIdMember fileIdMember = mMemberGenerator.newFileIdMember(dataObjectFieldValue.GetType(), id, memberName);
+                MetaCode.FileIdMember fileIdMember = mMemberGenerator.NewFileIdMember(dataObjectFieldValue.GetType(), id, memberName);
                 member = fileIdMember;
             }
-            else if (mMemberGenerator.isCompound(dataObjectFieldType))
+            else if (mMemberGenerator.IsCompound(dataObjectFieldType))
             {
                 // Create default compound of the given type
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
-                MetaCode.CompoundMember compoundMember = mMemberGenerator.newCompoundMember(dataObjectFieldValue.GetType(), dataObjectFieldValue, memberName);
+                MetaCode.CompoundMember compoundMember = mMemberGenerator.NewCompoundMember(dataObjectFieldValue.GetType(), dataObjectFieldValue, memberName);
                 member = compoundMember;
             }
-            else if (mMemberGenerator.isArray(dataObjectFieldType))
+            else if (mMemberGenerator.IsArray(dataObjectFieldType))
             {
                 Type arrayElementType = dataObjectFieldType.GetElementType();
 
@@ -153,21 +113,21 @@ namespace GameData
                     arrayType = dataObjectFieldType;
 
                 // Recursively create the element member
-                MetaCode.IClassMember elementMember = createMember(null, arrayElementType, string.Empty);
+                MetaCode.IClassMember elementMember = CreateMember(null, arrayElementType, string.Empty);
 
-                MetaCode.ArrayMember arrayMember = mMemberGenerator.newArrayMember(arrayType, dataObjectFieldValue, elementMember, memberName);
+                MetaCode.ArrayMember arrayMember = mMemberGenerator.NewArrayMember(arrayType, dataObjectFieldValue, elementMember, memberName);
                 member = arrayMember;
             }
-            else if (mMemberGenerator.isString(dataObjectFieldType))
+            else if (mMemberGenerator.IsString(dataObjectFieldType))
             {
                 // Create default empty string
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = string.Empty;
 
-                MetaCode.StringMember m = mMemberGenerator.newStringMember((string)dataObjectFieldValue, memberName) as MetaCode.StringMember;
+                MetaCode.StringMember m = mMemberGenerator.NewStringMember((string)dataObjectFieldValue, memberName) as MetaCode.StringMember;
                 member = m;
             }
-            else if (mMemberGenerator.isObject(dataObjectFieldType))
+            else if (mMemberGenerator.IsObject(dataObjectFieldType))
             {
                 Type classType;
                 if (dataObjectFieldValue!=null)
@@ -175,115 +135,115 @@ namespace GameData
                 else
                     classType = dataObjectFieldType;
 
-                MetaCode.ClassObject m = mMemberGenerator.newObjectMember(classType, dataObjectFieldValue, memberName);
+                MetaCode.ClassObject m = mMemberGenerator.NewObjectMember(classType, dataObjectFieldValue, memberName);
                 member = m;
             }
-            else if (mMemberGenerator.isBool(dataObjectFieldType))
+            else if (mMemberGenerator.IsBool(dataObjectFieldType))
             {
                 // Create default bool
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new bool();
 
-                MetaCode.BoolMember m = mMemberGenerator.newBoolMember((bool)dataObjectFieldValue, memberName) as MetaCode.BoolMember;
+                MetaCode.BoolMember m = mMemberGenerator.NewBoolMember((bool)dataObjectFieldValue, memberName) as MetaCode.BoolMember;
                 member = m;
             }
-            else if (mMemberGenerator.isInt8(dataObjectFieldType))
+            else if (mMemberGenerator.IsInt8(dataObjectFieldType))
             {
                 // Create default Int8
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new SByte();
 
-                MetaCode.Int8Member m = mMemberGenerator.newInt8Member((Int8)dataObjectFieldValue, memberName) as MetaCode.Int8Member;
+                MetaCode.Int8Member m = mMemberGenerator.NewInt8Member((Int8)dataObjectFieldValue, memberName) as MetaCode.Int8Member;
                 member = m;
             }
-            else if (mMemberGenerator.isUInt8(dataObjectFieldType))
+            else if (mMemberGenerator.IsUInt8(dataObjectFieldType))
             {
                 // Create default UInt8
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt8();
 
-                MetaCode.UInt8Member m = mMemberGenerator.newUInt8Member((UInt8)dataObjectFieldValue, memberName) as MetaCode.UInt8Member;
+                MetaCode.UInt8Member m = mMemberGenerator.NewUInt8Member((UInt8)dataObjectFieldValue, memberName) as MetaCode.UInt8Member;
                 member = m;
             }
-            else if (mMemberGenerator.isInt16(dataObjectFieldType))
+            else if (mMemberGenerator.IsInt16(dataObjectFieldType))
             {
                 // Create default Int16
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new Int16();
 
-                MetaCode.Int16Member m = mMemberGenerator.newInt16Member((Int16)dataObjectFieldValue, memberName) as MetaCode.Int16Member;
+                MetaCode.Int16Member m = mMemberGenerator.NewInt16Member((Int16)dataObjectFieldValue, memberName) as MetaCode.Int16Member;
                 member = m;
             }
-            else if (mMemberGenerator.isUInt16(dataObjectFieldType))
+            else if (mMemberGenerator.IsUInt16(dataObjectFieldType))
             {
                 // Create default UInt16
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt16();
 
-                MetaCode.UInt16Member m = mMemberGenerator.newUInt16Member((UInt16)dataObjectFieldValue, memberName) as MetaCode.UInt16Member;
+                MetaCode.UInt16Member m = mMemberGenerator.NewUInt16Member((UInt16)dataObjectFieldValue, memberName) as MetaCode.UInt16Member;
                 member = m;
             }
-            else if (mMemberGenerator.isInt32(dataObjectFieldType))
+            else if (mMemberGenerator.IsInt32(dataObjectFieldType))
             {
                 // Create default Int32
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new Int32();
 
-                MetaCode.Int32Member m = mMemberGenerator.newInt32Member((Int32)dataObjectFieldValue, memberName) as MetaCode.Int32Member;
+                MetaCode.Int32Member m = mMemberGenerator.NewInt32Member((Int32)dataObjectFieldValue, memberName) as MetaCode.Int32Member;
                 member = m;
             }
-            else if (mMemberGenerator.isUInt32(dataObjectFieldType))
+            else if (mMemberGenerator.IsUInt32(dataObjectFieldType))
             {
                 // Create default UInt32
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt32();
 
-                MetaCode.UInt32Member m = mMemberGenerator.newUInt32Member((UInt32)dataObjectFieldValue, memberName) as MetaCode.UInt32Member;
+                MetaCode.UInt32Member m = mMemberGenerator.NewUInt32Member((UInt32)dataObjectFieldValue, memberName) as MetaCode.UInt32Member;
                 member = m;
             }
-            else if (mMemberGenerator.isInt64(dataObjectFieldType))
+            else if (mMemberGenerator.IsInt64(dataObjectFieldType))
             {
                 // Create default Int64
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new Int64();
 
-                MetaCode.Int64Member m = mMemberGenerator.newInt64Member((Int64)dataObjectFieldValue, memberName) as MetaCode.Int64Member;
+                MetaCode.Int64Member m = mMemberGenerator.NewInt64Member((Int64)dataObjectFieldValue, memberName) as MetaCode.Int64Member;
                 member = m;
             }
-            else if (mMemberGenerator.isUInt64(dataObjectFieldType))
+            else if (mMemberGenerator.IsUInt64(dataObjectFieldType))
             {
                 // Create default UInt64
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt64();
 
-                MetaCode.UInt64Member m = mMemberGenerator.newUInt64Member((UInt64)dataObjectFieldValue, memberName) as MetaCode.UInt64Member;
+                MetaCode.UInt64Member m = mMemberGenerator.NewUInt64Member((UInt64)dataObjectFieldValue, memberName) as MetaCode.UInt64Member;
                 member = m;
             }
-            else if (mMemberGenerator.isFloat(dataObjectFieldType))
+            else if (mMemberGenerator.IsFloat(dataObjectFieldType))
             {
                 // Create default Float
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new float();
 
-                MetaCode.FloatMember m = mMemberGenerator.newFloatMember((float)dataObjectFieldValue, memberName) as MetaCode.FloatMember;
+                MetaCode.FloatMember m = mMemberGenerator.NewFloatMember((float)dataObjectFieldValue, memberName) as MetaCode.FloatMember;
                 member = m;
             }
-            else if (mMemberGenerator.isDouble(dataObjectFieldType))
+            else if (mMemberGenerator.IsDouble(dataObjectFieldType))
             {
                 // Create default Double
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new float();
 
-                MetaCode.DoubleMember m = mMemberGenerator.newDoubleMember((double)dataObjectFieldValue, memberName) as MetaCode.DoubleMember;
+                MetaCode.DoubleMember m = mMemberGenerator.NewDoubleMember((double)dataObjectFieldValue, memberName) as MetaCode.DoubleMember;
                 member = m;
             }
-            else if (mMemberGenerator.isEnum(dataObjectFieldType))
+            else if (mMemberGenerator.IsEnum(dataObjectFieldType))
             {
                 // Create default enum
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
-                MetaCode.Int32Member m = mMemberGenerator.newInt32Member((Int32)dataObjectFieldValue, memberName) as MetaCode.Int32Member;
+                MetaCode.Int32Member m = mMemberGenerator.NewInt32Member((Int32)dataObjectFieldValue, memberName) as MetaCode.Int32Member;
                 member = m;
             }
             else
@@ -294,25 +254,25 @@ namespace GameData
             return member;
         }
 
-        private MetaCode.IClassMember addMember(MetaCode.ICompoundMemberBase inCompound, object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
+        private MetaCode.IClassMember AddMember(MetaCode.ICompoundMemberBase inCompound, object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
         {
-            MetaCode.IClassMember member = createMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName);
+            MetaCode.IClassMember member = CreateMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName);
             if (member == null)
                 return null;
 
             inCompound.AddMember(member);
 
-            if (mMemberGenerator.isAtom(dataObjectFieldType))
+            if (mMemberGenerator.IsAtom(dataObjectFieldType))
             {
                 MetaCode.AtomMember atomMember = member as MetaCode.AtomMember;
                 mAtomDatabase.Add(atomMember);
             }
-            else if (mMemberGenerator.isFileId(dataObjectFieldType))
+            else if (mMemberGenerator.IsFileId(dataObjectFieldType))
             {
                 MetaCode.FileIdMember fileIdMember = member as MetaCode.FileIdMember;
                 mFileIdDatabase.Add(fileIdMember);
             }
-            else if (mMemberGenerator.isCompound(dataObjectFieldType))
+            else if (mMemberGenerator.IsCompound(dataObjectFieldType))
             {
                 MetaCode.CompoundMember compoundMember = member as MetaCode.CompoundMember;
                 // Is ICompound a struct or class, which means to say is it a value or ref type?
@@ -320,54 +280,42 @@ namespace GameData
                 if (!compoundMember.IsNullType || dataObjectFieldValue != null)
                 {
                     PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Values");
-                    Array objectArray = valuePropertyInfo.GetValue(dataObjectFieldValue, null) as Array;
-                    if (objectArray != null)
+                    if (valuePropertyInfo.GetValue(dataObjectFieldValue, null) is Array objectArray)
                     {
                         foreach (object o in objectArray)
                         {
                             if (o != null)
-                                addMember(compoundMember, o, o.GetType(), string.Empty);
+                                AddMember(compoundMember, o, o.GetType(), string.Empty);
                             else
-                                addMember(compoundMember, null, typeof(object), string.Empty);
+                                AddMember(compoundMember, null, typeof(object), string.Empty);
                         }
                     }
                 }
                 mCompoundDatabase.Add(compoundMember);
             }
-            else if (mMemberGenerator.isArray(dataObjectFieldType))
+            else if (mMemberGenerator.IsArray(dataObjectFieldType))
             {
                 MetaCode.ArrayMember arrayMember = member as MetaCode.ArrayMember;
                 Type fieldElementType = dataObjectFieldType.GetElementType();
-                Array array = dataObjectFieldValue as Array;
-                if (array != null)
+                if (dataObjectFieldValue is Array array)
                 {
                     foreach (object b in array)
                     {
                         if (b != null)
-                            addMember(arrayMember, b, b.GetType(), string.Empty);
+                            AddMember(arrayMember, b, b.GetType(), string.Empty);
                         else
-                            addMember(arrayMember, null, fieldElementType, string.Empty);
+                            AddMember(arrayMember, null, fieldElementType, string.Empty);
                     }
                 }
                 mArrayDatabase.Add(arrayMember);
             }
-            else if (mMemberGenerator.isObject(dataObjectFieldType))
+            else if (mMemberGenerator.IsObject(dataObjectFieldType))
             {
                 MetaCode.ClassObject classMember = member as MetaCode.ClassObject;
                 mClassDatabase.Add(classMember);
                 mStack.Push(new KeyValuePair<object, MetaCode.ClassObject>(dataObjectFieldValue, classMember));
             }
-            else if (mMemberGenerator.isInt64(dataObjectFieldType))
-            {
-                MetaCode.Int64Member m = member as MetaCode.Int64Member;
-                mInt64Database.Add(m);
-            }
-            else if (mMemberGenerator.isUInt64(dataObjectFieldType))
-            {
-                MetaCode.UInt64Member m = member as MetaCode.UInt64Member;
-                mUInt64Database.Add(m);
-            }
-            else if (mMemberGenerator.isString(dataObjectFieldType))
+            else if (mMemberGenerator.IsString(dataObjectFieldType))
             {
                 MetaCode.StringMember stringMember = member as MetaCode.StringMember;
                 mStringDatabase.Add(stringMember);
@@ -376,17 +324,17 @@ namespace GameData
             return member;
         }
 
-        public void addMembers(MetaCode.ClassObject inClass, object inClassObject)
+        public void AddMembers(MetaCode.ClassObject inClass, object inClassObject)
         {
             if (inClassObject != null)
             {
-                List<FieldInfo> dataObjectFields = getFieldInfoList(inClassObject);
+                List<FieldInfo> dataObjectFields = GetFieldInfoList(inClassObject);
                 foreach (FieldInfo dataObjectFieldInfo in dataObjectFields)
                 {
                     string fieldName = dataObjectFieldInfo.Name;
                     Type fieldType = dataObjectFieldInfo.FieldType;
                     object fieldValue = dataObjectFieldInfo.GetValue(inClassObject);
-                    MetaCode.IClassMember member = addMember(inClass, fieldValue, fieldType, fieldName);
+                    MetaCode.IClassMember member = AddMember(inClass, fieldValue, fieldType, fieldName);
                 }
             }
         }
@@ -400,7 +348,7 @@ namespace GameData
 		/// sorted from base-class down to derived classes, members also appear in the
 		/// list in the order of how they are defined.
 		/// </summary>
-        public List<FieldInfo> getFieldInfoList(object o)
+        public List<FieldInfo> GetFieldInfoList(object o)
         {
             FieldInfo[] fields = o.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
             List<FieldInfo> sortedFields = new List<FieldInfo>();
@@ -428,57 +376,57 @@ namespace GameData
         {
             // Ok, so every class has fields and we can reflect on the type of the field.
             // When the field is a normal primitive we know what to do and when it is a
-            // class it's also easy. 
+            // class it's also easy.
             // But when the class is derived from another class than it's a different story.
             //
             // Solution #1:
             //
-            //    We treat all data, including those from the base classes, as if it was only  
+            //    We treat all data, including those from the base classes, as if it was only
             //    the derived class. This will result in predictable serialization and generated
             //    code classes are not derived in anyway, making it impossible to 'cast'.
             //
             //
             // Solution #2:
             //
-            //    The way we save data is such that it becomes very difficult to 'derive' data. 
+            //    The way we save data is such that it becomes very difficult to 'derive' data.
             //    We can of course use pointers to data, but then again we cannot use virtual
             //    functions, since that would add a 'vfptr'.
-            // 
+            //
 
             Type dataObjectType = data.GetType();
-            MetaCode.ClassObject dataClass = mMemberGenerator.newObjectMember(dataObjectType, data, dataObjectType.Name);
+            MetaCode.ClassObject dataClass = mMemberGenerator.NewObjectMember(dataObjectType, data, dataObjectType.Name);
             mClassDatabase.Add(dataClass);
             mStack.Push(new KeyValuePair<object, MetaCode.ClassObject>(data, dataClass));
 
             while (mStack.Count > 0)
             {
                 KeyValuePair<object, MetaCode.ClassObject> p = mStack.Pop();
-                addMembers(p.Value, p.Key);
+                AddMembers(p.Value, p.Key);
             }
 
-            book.classes = new List<MetaCode.ClassObject>();
+            book.Classes = new List<MetaCode.ClassObject>();
             foreach (MetaCode.ClassObject c in mClassDatabase)
-                book.classes.Add(c);
+                book.Classes.Add(c);
 
-            book.compounds = new List<MetaCode.CompoundMember>();
+            book.Compounds = new List<MetaCode.CompoundMember>();
             foreach (MetaCode.CompoundMember c in mCompoundDatabase)
-                book.compounds.Add(c);
+                book.Compounds.Add(c);
 
-            book.atoms = new List<MetaCode.AtomMember>();
+            book.Atoms = new List<MetaCode.AtomMember>();
             foreach (MetaCode.AtomMember c in mAtomDatabase)
-                book.atoms.Add(c);
+                book.Atoms.Add(c);
 
-            book.fileids = new List<MetaCode.FileIdMember>();
+            book.FileIds = new List<MetaCode.FileIdMember>();
             foreach (MetaCode.FileIdMember c in mFileIdDatabase)
-                book.fileids.Add(c);
+                book.FileIds.Add(c);
 
-            book.arrays = new List<MetaCode.ArrayMember>();
+            book.Arrays = new List<MetaCode.ArrayMember>();
             foreach (MetaCode.ArrayMember a in mArrayDatabase)
-                book.arrays.Add(a);
+                book.Arrays.Add(a);
 
-            book.strings = new List<MetaCode.StringMember>();
+            book.Strings = new List<MetaCode.StringMember>();
             foreach (MetaCode.StringMember s in mStringDatabase)
-                book.strings.Add(s);
+                book.Strings.Add(s);
 
             mClassDatabase.Clear();
             mCompoundDatabase.Clear();
