@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCore", "GameCore\GameCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigfileBuilder", "BigfileBuilder\BigfileBuilder.csproj", "{4CE76D7B-0315-40A8-9911-2243A57D0F92}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetaTest", "MetaTest\MetaTest.csproj", "{77EB7182-DEB8-47B7-975B-143164A59252}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,5 +33,9 @@ Global
 		{4CE76D7B-0315-40A8-9911-2243A57D0F92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CE76D7B-0315-40A8-9911-2243A57D0F92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CE76D7B-0315-40A8-9911-2243A57D0F92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77EB7182-DEB8-47B7-975B-143164A59252}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77EB7182-DEB8-47B7-975B-143164A59252}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77EB7182-DEB8-47B7-975B-143164A59252}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77EB7182-DEB8-47B7-975B-143164A59252}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

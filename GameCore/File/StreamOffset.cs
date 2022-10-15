@@ -27,6 +27,7 @@ namespace GameCore
         #region Properties
 
         public Int64 Offset { get; set; }
+        public Int32 Offset32 => (Int32)Offset;
 
         #endregion
         #region Operators

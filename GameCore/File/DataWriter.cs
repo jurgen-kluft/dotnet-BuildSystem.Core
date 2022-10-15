@@ -408,7 +408,7 @@ namespace GameCore
 
         public DataWriter(EEndian endian)
         {
-            mMainReference = StreamReference.Instance;
+            mMainReference = StreamReference.NewReference;
             mEndian = endian;
         }
 

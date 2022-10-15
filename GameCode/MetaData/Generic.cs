@@ -1229,7 +1229,7 @@ namespace GameData
                         }
                         else
                         {
-                            i.Reference = StreamReference.Instance;
+                            i.Reference = StreamReference.NewReference;
                             referencesForClassesDict.Add(i.Value, c);
                         }
                     }
@@ -1248,7 +1248,7 @@ namespace GameData
                             }
                             else
                             {
-                                c.Reference = StreamReference.Instance;
+                                c.Reference = StreamReference.NewReference;
                                 referencesForCompoundsDict.Add(c.Value, c.Reference);
                             }
                         }
@@ -1259,7 +1259,7 @@ namespace GameData
                     }
                     else
                     {
-                        c.Reference = StreamReference.Instance;
+                        c.Reference = StreamReference.NewReference;
                     }
                 }
 
@@ -1297,7 +1297,7 @@ namespace GameData
                         }
                         else
                         {
-                            a.Reference = StreamReference.Instance;
+                            a.Reference = StreamReference.NewReference;
                             referencesForArraysDict.Add(a.Value, a.Reference);
                         }
                     }
@@ -1332,11 +1332,11 @@ namespace GameData
 
                 // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
                 StringTable stringTable = new();
-                stringTable.Reference = StreamReference.Instance;
+                stringTable.Reference = StreamReference.NewReference;
 
                 // The FileIdTable to collect (and collapse duplicate) all FileIds
                 FileIdTable fileIdTable = new();
-                fileIdTable.Reference = StreamReference.Instance;
+                fileIdTable.Reference = StreamReference.NewReference;
 
                 // Database of offsets of references written in the stream as well as the offsets of references to those references
                 IDataWriter dataWriter = EndianUtils.CreateDataWriter(mEndian);

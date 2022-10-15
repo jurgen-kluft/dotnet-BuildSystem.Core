@@ -101,7 +101,7 @@ namespace GameCore
         {
             writer.BeginBlock(Reference, sizeof(Int32));
             {
-                StreamReference idReference = StreamReference.Instance;
+                StreamReference idReference = StreamReference.NewReference;
 
                 writer.Write(Count);
                 writer.Write(idReference);

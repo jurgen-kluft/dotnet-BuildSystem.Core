@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace GameCore
 {
@@ -9,58 +10,52 @@ namespace GameCore
 
         private readonly Dictionary<string, int> mDictionary = new ();
         private readonly List<uint> mHashes = new();
+        private readonly List<int> mLengths = new();
         private readonly List<StreamReference> mReferences = new ();
+        private readonly List<string> mStrings = new ();
 
         #endregion
         #region Properties
 
         public StreamReference Reference { get; set; }
 
-        public List<string> All { get; } = new List<string>();
-        public string this[int index]
-        {
-            get
-            {
-                return All[index];
-            }
-        }
-        public int Count
-        {
-            get
-            {
-                return All.Count;
-            }
-        }
+        public string this[int index] => mStrings[index];
+
+        private int Count => mStrings.Count;
 
         #endregion
         #region Public Methods
 
-        public void Add(string inString)
+        public int Add(string inString)
         {
-            string str = inString;
-            int index;
-            if (!mDictionary.TryGetValue(str, out index))
+            if (!mDictionary.TryGetValue(inString, out int index))
             {
-                mDictionary.Add(str, All.Count);
-                mReferences.Add(StreamReference.Instance);
-                All.Add(str);
-                uint hash = ComputeHashOf(str);
+                index = mStrings.Count;
+
+                mDictionary.Add(inString, index);
+                mReferences.Add(StreamReference.NewReference);
+                mStrings.Add(inString);
+
+                byte[] utf8 = UTF8Encoding.UTF8.GetBytes(inString);
+                mLengths.Add(utf8.Length + 1);
+
+                uint hash = ComputeHashOf(inString);
                 mHashes.Add(hash);
             }
+
+            return mLengths[index];
         }
 
         private int InternalIndexOf(string inString)
         {
-            int index;
-            if (!mDictionary.TryGetValue(inString, out index))
+            if (!mDictionary.TryGetValue(inString, out int index))
                 index = -1;
             return index;
         }
 
         private int IndexOf(string inString)
         {
-            string str = inString;
-            return InternalIndexOf(str);
+            return InternalIndexOf(inString);
         }
 
         private uint ComputeHashOf(string inString)
@@ -97,7 +92,7 @@ namespace GameCore
             mHashes.Clear();
             Dictionary<uint, string> hashToString = new ();
             Dictionary<uint, StreamReference> hashToReference = new ();
-            foreach (string s in All)
+            foreach (string s in mStrings)
             {
                 uint hash = ComputeHashOf(s);
                 mHashes.Add(hash);
@@ -107,13 +102,13 @@ namespace GameCore
 
             mHashes.Sort();
 
-            All.Clear();
+            mStrings.Clear();
             mReferences.Clear();
             foreach (uint hash in mHashes)
             {
                 string s;
                 hashToString.TryGetValue(hash, out s);
-                All.Add(s);
+                mStrings.Add(s);
                 StreamReference r;
                 hashToReference.TryGetValue(hash, out r);
                 mReferences.Add(r);
@@ -121,7 +116,7 @@ namespace GameCore
 
             int index = 0;
             mDictionary.Clear();
-            foreach (string s in All)
+            foreach (string s in mStrings)
             {
                 mDictionary.Add(s, index);
                 ++index;
@@ -135,9 +130,9 @@ namespace GameCore
             // Write StringTable
             writer.BeginBlock(Reference, sizeof(Int32));
             {
-                StreamReference hashesReference = StreamReference.Instance;
-                StreamReference referencesReference = StreamReference.Instance;
-                StreamReference stringsReference = StreamReference.Instance;
+                StreamReference hashesReference = StreamReference.NewReference;
+                StreamReference referencesReference = StreamReference.NewReference;
+                StreamReference stringsReference = StreamReference.NewReference;
 
                 writer.Write(Count);
                 writer.Write(hashesReference);
@@ -154,7 +149,7 @@ namespace GameCore
                 // String References
                 writer.BeginBlock(referencesReference, sizeof(Int32));
                 {
-                    foreach (string s in All)
+                    foreach (string s in mStrings)
                     {
                         StreamReference r = InternalReferenceOf(s);
                         writer.Write(r);
@@ -164,7 +159,7 @@ namespace GameCore
                 // String Data
                 writer.BeginBlock(stringsReference, sizeof(Int32));
                 {
-                    foreach (string s in All)
+                    foreach (string s in mStrings)
                     {
                         StreamReference r = InternalReferenceOf(s);
                         if (writer.BeginBlock(r, sizeof(Int32)))

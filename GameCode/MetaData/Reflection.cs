@@ -343,27 +343,21 @@ namespace GameData
         #region getFieldInfoList
 
         /// <summary>
-		/// Return a List<FieldInfo> of the incoming object that contains the info of
-		/// all fields of that object, including base classes. The returned list is
-		/// sorted from base-class down to derived classes, members also appear in the
-		/// list in the order of how they are defined.
-		/// </summary>
+        /// Return a List<FieldInfo> of the incoming object that contains the info of
+        /// all fields of that object, including base classes. The returned list is
+        /// sorted from base-class down to derived classes, members also appear in the
+        /// list in the order of how they are defined.
+        /// </summary>
+        ///
+        private static int CompareFieldInfo(FieldInfo x, FieldInfo y)
+        {
+            return String.CompareOrdinal(x.GetType().Name, y.GetType().Name);
+        }
         public List<FieldInfo> GetFieldInfoList(object o)
         {
             FieldInfo[] fields = o.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-            List<FieldInfo> sortedFields = new List<FieldInfo>();
-            int insertPos = 0;
-            Type declaringType = null;
-            foreach (FieldInfo f in fields)
-            {
-                if (f.DeclaringType != declaringType)
-                {
-                    insertPos = 0;
-                    declaringType = f.DeclaringType;
-                }
-                sortedFields.Insert(insertPos, f);
-                insertPos++;
-            }
+            List<FieldInfo> sortedFields = new List<FieldInfo>(fields);
+            sortedFields.Sort(CompareFieldInfo);
             return sortedFields;
         }
 

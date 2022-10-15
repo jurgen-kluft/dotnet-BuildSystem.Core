@@ -9,7 +9,7 @@ namespace GameCore
 
         public static readonly StreamReference Empty = new StreamReference(0);
         private static UInt32 sID = 1;
-        
+
         private readonly UInt32 mID;
 
         #endregion
@@ -64,7 +64,7 @@ namespace GameCore
         #endregion
         #region Methods
 
-        public static StreamReference Instance
+        public static StreamReference NewReference
         {
             get
             {

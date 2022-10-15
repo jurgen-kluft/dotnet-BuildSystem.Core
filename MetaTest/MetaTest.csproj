@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BigfileBuilder\BigfileBuilder.csproj" />
     <ProjectReference Include="..\GameCode\GameCode.csproj" />
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
   </ItemGroup>
