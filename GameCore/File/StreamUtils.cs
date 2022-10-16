@@ -3,7 +3,7 @@ using System.IO;
 
 namespace GameCore
 {
-    public static class Alignment
+    public static partial class  CMath
     {
         public static Int64 Align(Int64 position, Int64 alignment)
         {
@@ -167,13 +167,13 @@ namespace GameCore
 
         public static bool Aligned(IBinaryWriter writer, Int64 alignment)
         {
-            Int64 p = Alignment.Align(writer.Position, alignment);
+            Int64 p = CMath.Align(writer.Position, alignment);
             return (p == writer.Position);
         }
 
         public static void Align(IBinaryWriter writer, Int64 alignment)
         {
-            writer.Position = Alignment.Align(writer.Position, alignment);
+            writer.Position = CMath.Align(writer.Position, alignment);
         }
     }
 }

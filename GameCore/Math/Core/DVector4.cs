@@ -141,7 +141,7 @@ namespace GameCore
 		{
 			get { return mW; }
 			set { mW = value;}
-		}		
+		}
 		#endregion
 
 		#region ICloneable Members
@@ -460,7 +460,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEqual(DVector4 v, DVector4 u)
 		{
-            return ApproxEqual(v, u, Math.EpsilonD);
+            return ApproxEqual(v, u, CMath.Constants.EpsilonD);
 		}
 		/// <summary>
 		/// Tests whether two vectors are approximately equal given a tolerance value.
@@ -550,7 +550,7 @@ namespace GameCore
 			return string.Format("({0}, {1}, {2}, {3})", mX, mY, mZ, mW);
 		}
 		#endregion
-		
+
 		#region Comparison Operators
 		/// <summary>
 		/// Tests whether two specified vectors are equal.
@@ -602,9 +602,9 @@ namespace GameCore
 		public static bool operator>(DVector4 u, DVector4 v)
 		{
 			return (
-				(u.mX > v.mX) && 
-				(u.mY > v.mY) && 
-				(u.mZ > v.mZ) && 
+				(u.mX > v.mX) &&
+				(u.mY > v.mY) &&
+				(u.mZ > v.mZ) &&
 				(u.mW > v.mW));
 		}
 		/// <summary>
@@ -616,9 +616,9 @@ namespace GameCore
 		public static bool operator<(DVector4 u, DVector4 v)
 		{
 			return (
-				(u.mX < v.mX) && 
-				(u.mY < v.mY) && 
-				(u.mZ < v.mZ) && 
+				(u.mX < v.mX) &&
+				(u.mY < v.mY) &&
+				(u.mZ < v.mZ) &&
 				(u.mW < v.mW));
 		}
 		/// <summary>
@@ -630,9 +630,9 @@ namespace GameCore
 		public static bool operator>=(DVector4 u, DVector4 v)
 		{
 			return (
-				(u.mX >= v.mX) && 
-				(u.mY >= v.mY) && 
-				(u.mZ >= v.mZ) && 
+				(u.mX >= v.mX) &&
+				(u.mY >= v.mY) &&
+				(u.mZ >= v.mZ) &&
 				(u.mW >= v.mW));
 		}
 		/// <summary>
@@ -644,9 +644,9 @@ namespace GameCore
 		public static bool operator<=(DVector4 u, DVector4 v)
 		{
 			return (
-				(u.mX <= v.mX) && 
-				(u.mY <= v.mY) && 
-				(u.mZ <= v.mZ) && 
+				(u.mX <= v.mX) &&
+				(u.mY <= v.mY) &&
+				(u.mZ <= v.mZ) &&
 				(u.mW <= v.mW));
 		}
 		#endregion
@@ -788,9 +788,9 @@ namespace GameCore
 		/// </summary>
 		public double this[int index]
 		{
-			get	
+			get
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						return mX;
@@ -804,9 +804,9 @@ namespace GameCore
 						throw new IndexOutOfRangeException();
 				}
 			}
-			set 
+			set
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						mX = value;

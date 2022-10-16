@@ -152,7 +152,7 @@ namespace GameCore
 		{
 			get { return mW; }
 			set { mW = value;}
-		}		
+		}
 		#endregion
 
 		#region ICloneable Members
@@ -481,7 +481,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEqual(FVector4 v, FVector4 u)
 		{
-			return ApproxEqual(v,u, Math.Epsilon);
+			return ApproxEqual(v,u, CMath.Constants.Epsilon);
 		}
 		/// <summary>
 		/// Tests whether two vectors are approximately equal given a tolerance value.
@@ -549,7 +549,7 @@ namespace GameCore
 		public bool IsNormalized(float inEpsilon)
 		{
 			float l = Length();
-			return Math.IsNear(l, 1.0f, inEpsilon);
+			return CMath.IsNear(l, 1.0f, inEpsilon);
 		}
 		/// <summary>
 		/// Returns the length of the vector.
@@ -611,7 +611,7 @@ namespace GameCore
 			return string.Format("({0}, {1}, {2}, {3})", mX, mY, mZ, mW);
 		}
 		#endregion
-		
+
 		#region Comparison Operators
 		/// <summary>
 		/// Tests whether two specified vectors are equal.
@@ -663,9 +663,9 @@ namespace GameCore
 		public static bool operator>(FVector4 u, FVector4 v)
 		{
 			return (
-				(u.mX > v.mX) && 
-				(u.mY > v.mY) && 
-				(u.mZ > v.mZ) && 
+				(u.mX > v.mX) &&
+				(u.mY > v.mY) &&
+				(u.mZ > v.mZ) &&
 				(u.mW > v.mW));
 		}
 		/// <summary>
@@ -677,9 +677,9 @@ namespace GameCore
 		public static bool operator<(FVector4 u, FVector4 v)
 		{
 			return (
-				(u.mX < v.mX) && 
-				(u.mY < v.mY) && 
-				(u.mZ < v.mZ) && 
+				(u.mX < v.mX) &&
+				(u.mY < v.mY) &&
+				(u.mZ < v.mZ) &&
 				(u.mW < v.mW));
 		}
 		/// <summary>
@@ -691,9 +691,9 @@ namespace GameCore
 		public static bool operator>=(FVector4 u, FVector4 v)
 		{
 			return (
-				(u.mX >= v.mX) && 
-				(u.mY >= v.mY) && 
-				(u.mZ >= v.mZ) && 
+				(u.mX >= v.mX) &&
+				(u.mY >= v.mY) &&
+				(u.mZ >= v.mZ) &&
 				(u.mW >= v.mW));
 		}
 		/// <summary>
@@ -705,9 +705,9 @@ namespace GameCore
 		public static bool operator<=(FVector4 u, FVector4 v)
 		{
 			return (
-				(u.mX <= v.mX) && 
-				(u.mY <= v.mY) && 
-				(u.mZ <= v.mZ) && 
+				(u.mX <= v.mX) &&
+				(u.mY <= v.mY) &&
+				(u.mZ <= v.mZ) &&
 				(u.mW <= v.mW));
 		}
 		#endregion
@@ -849,9 +849,9 @@ namespace GameCore
 		/// </summary>
 		public float this[int index]
 		{
-			get	
+			get
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						return mX;
@@ -865,9 +865,9 @@ namespace GameCore
 						throw new IndexOutOfRangeException();
 				}
 			}
-			set 
+			set
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						mX = value;

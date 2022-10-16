@@ -402,7 +402,7 @@ namespace DataBuildSystem
                         }
                         else
                         {
-                            reader.Position = Alignment.Align(reader.Position, 4);
+                            reader.Position = CMath.Align(reader.Position, 4);
                             string filename = reader.ReadString();
 
                             int sectionIndex = (block / 2);
@@ -667,7 +667,7 @@ namespace DataBuildSystem
                     {
                         FilenameOffsets.Add(offset);
                         offset += sizeof(Int32) + e.Filename.Length + 1;
-                        offset = Alignment.Align32(offset, 4);
+                        offset = CMath.Align32(offset, 4);
                     }
                 }
             }

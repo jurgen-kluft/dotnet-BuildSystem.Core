@@ -69,7 +69,7 @@ namespace DataBuildSystem
         private Int64 Write(Stream readStream, Int64 fileSize)
         {
             // Align the file on the calculated additionalLength
-            FileStream.Position = Alignment.Align(FileStream.Position, BigfileConfig.FileAlignment);
+            FileStream.Position = CMath.Align(FileStream.Position, BigfileConfig.FileAlignment);
             Int64 position = FileStream.Position;
 
             Debug.Assert(fileSize < Int32.MaxValue);
@@ -158,7 +158,7 @@ namespace DataBuildSystem
             foreach(var bff in Files)
             {
                 additionalLength += bff.FileSize;
-                additionalLength = Alignment.Align(additionalLength, BigfileConfig.FileAlignment);
+                additionalLength = CMath.Align(additionalLength, BigfileConfig.FileAlignment);
             }
             writer.SetLength(writer.Position + additionalLength);
 

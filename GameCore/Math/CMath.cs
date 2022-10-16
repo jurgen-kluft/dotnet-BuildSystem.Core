@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace GameCore
 {
 	/// Provides standard mathematical functions for the library types.
-     public static partial class Math
+     public static partial class CMath
     {
         #region Delegates
 
@@ -229,12 +229,12 @@ namespace GameCore
             /// <summary>
             /// Absolute value function for double-precision floating point numbers.
             /// </summary>
-            public static readonly DoubleUnaryFunction DoubleAbsFunction = new DoubleUnaryFunction(Math.Abs);
+            public static readonly DoubleUnaryFunction DoubleAbsFunction = new DoubleUnaryFunction(CMath.Abs);
 
             /// <summary>
             /// Absolute value function for integers.
             /// </summary>
-            public static readonly IntUnaryFunction IntAbsFunction = new IntUnaryFunction(Math.Abs);
+            public static readonly IntUnaryFunction IntAbsFunction = new IntUnaryFunction(CMath.Abs);
         }
 
         #endregion
@@ -300,7 +300,7 @@ namespace GameCore
 		/// <returns>The absolute value of <paramref name="x"/>.</returns>
 		public static double Abs(double x)
 		{
-			return Math.Abs(x);
+			return CMath.Abs(x);
 		}
 		/// <summary>
         /// Creates a new <see cref="List<int>"/> whose element values are the
@@ -670,7 +670,7 @@ namespace GameCore
 		/// <returns>The square root of a specified number.</returns>
 		public static double Sqrt(double value)
 		{
-			return Math.Sqrt(value);
+			return CMath.Sqrt(value);
 		}
 		/// <summary>
 		/// Returns the square root of a specified number.
@@ -679,7 +679,7 @@ namespace GameCore
 		/// <returns>The square root of a specified number.</returns>
 		public static float Sqrt(float value)
 		{
-			return (float)Math.Sqrt(value);
+			return (float)CMath.Sqrt(value);
 		}
 		/// <summary>
 		/// Returns the square root of a specified number.
@@ -1658,12 +1658,12 @@ namespace GameCore
 
 		public static bool IsNear(float a, float b, float inEpsilon)
 		{
-			return (Math.Abs(a - b) <= inEpsilon);
+			return (CMath.Abs(a - b) <= inEpsilon);
 		}
 
 		public static bool IsNear(double a, double b, double inEpsilon)
 		{
-			return (Math.Abs(a - b) <= inEpsilon);
+			return (CMath.Abs(a - b) <= inEpsilon);
 		}
 
 		public static bool IsGreaterPositive(float a, float b)
@@ -1693,7 +1693,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEquals(float a, float b)
 		{
-			return (Math.Abs(a-b) <= Constants.Epsilon);
+			return (CMath.Abs(a-b) <= Constants.Epsilon);
 		}
 		/// <summary>
 		/// Tests whether two single-precision floating point numbers are approximately equal given a tolerance value.
@@ -1704,7 +1704,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEquals(float a, float b, float tolerance)
 		{
-			return (Math.Abs(a-b) <= tolerance);
+			return (CMath.Abs(a-b) <= tolerance);
 		}
 		/// <summary>
 		/// Tests whether two double-precision floating point numbers are approximately equal using default tolerance value.
@@ -1714,7 +1714,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEquals(double a, double b)
 		{
-			return (Math.Abs(a-b) <= Constants.EpsilonD);
+			return (CMath.Abs(a-b) <= Constants.EpsilonD);
 		}
 		/// <summary>
 		/// Tests whether two double-precision floating point numbers are approximately equal given a tolerance value.
@@ -1725,7 +1725,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEquals(double a, double b, double tolerance)
 		{
-			return (Math.Abs(a-b) <= tolerance);
+			return (CMath.Abs(a-b) <= tolerance);
 		}
 		#endregion
 		#region Range
@@ -2182,7 +2182,7 @@ namespace GameCore
 
         public static double Sin(double inRadian) { return System.Math.Sin(inRadian); }
         public static double Cos(double inRadian) { return System.Math.Cos(inRadian); }
-        public static void SinCos(float inRadian, out double outSin, out double outCos) { outSin = System.Math.Sin(inRadian); outCos = Math.Cos(inRadian); }
+        public static void SinCos(float inRadian, out double outSin, out double outCos) { outSin = System.Math.Sin(inRadian); outCos = CMath.Cos(inRadian); }
         public static double Tan(double inRadian) { return System.Math.Tan(inRadian); }
         public static double ArcSin(double inRadian) { return System.Math.Asin(inRadian); }
         public static double ArcCos(double inRadian) { return System.Math.Acos(inRadian); }
@@ -2191,7 +2191,7 @@ namespace GameCore
 
         public static float Sin(float inRadian) { return (float)System.Math.Sin((float)inRadian); }
         public static float Cos(float inRadian) { return (float)System.Math.Cos((float)inRadian); }
-        public static void SinCos(float inRadian, out float outSin, out float outCos) { outSin = (float)System.Math.Sin(inRadian); outCos = (float)Math.Cos(inRadian); }
+        public static void SinCos(float inRadian, out float outSin, out float outCos) { outSin = (float)System.Math.Sin(inRadian); outCos = (float)CMath.Cos(inRadian); }
         public static float Tan(float inRadian) { return (float)System.Math.Tan((float)inRadian); }
         public static float ArcSin(float inRadian) { return (float)System.Math.Asin((float)inRadian); }
         public static float ArcCos(float inRadian) { return (float)System.Math.Acos((float)inRadian); }
@@ -2238,7 +2238,7 @@ namespace GameCore
 		public static double CosineInterpolation(double a, double b, double x)
 		{
 			double ft = (double)(x * Constants.DOnePI);
-			double f = (1 - Math.Cos(ft)) * 0.5;
+			double f = (1 - CMath.Cos(ft)) * 0.5;
 			return a*(1-f) + b*f;
 		}
 		/// <summary>
@@ -2265,8 +2265,8 @@ namespace GameCore
 		/// <returns></returns>
 		public static double CubicInterpolation(double a, double b, double x)
 		{
-			double fac1 = 3*Math.Pow(1-x, 2) - 2*Math.Pow(1-x,3);
-			double fac2 = 3*Math.Pow(x, 2) - 2*Math.Pow(x, 3);
+			double fac1 = 3*CMath.Pow(1-x, 2) - 2*CMath.Pow(1-x,3);
+			double fac2 = 3*CMath.Pow(x, 2) - 2*CMath.Pow(x, 3);
 
 			return a*fac1 + b*fac2; //add the weighted factors
 		}
@@ -2279,8 +2279,8 @@ namespace GameCore
 		/// <returns></returns>
 		public static float CubicInterpolation(float a, float b, float x)
 		{
-			float fac1 = 3*(float)Math.Pow(1-x, 2) - 2*(float)Math.Pow(1-x,3);
-			float fac2 = 3*(float)Math.Pow(x, 2) - 2*(float)Math.Pow(x, 3);
+			float fac1 = 3*(float)CMath.Pow(1-x, 2) - 2*(float)CMath.Pow(1-x,3);
+			float fac2 = 3*(float)CMath.Pow(x, 2) - 2*(float)CMath.Pow(x, 3);
 
 			return a*fac1 + b*fac2; //add the weighted factors
 		}
@@ -2293,7 +2293,7 @@ namespace GameCore
 		/// <returns><c>True</c> if the number is a prime; otherwise, <c>False</c>.</returns>
 		public static bool IsPrime(long value)
 		{
-			int sqrtValue = (int)Math.Sqrt(value);
+			int sqrtValue = (int)CMath.Sqrt(value);
 
 			for (int i = 2; i <= sqrtValue; i++)
 			{

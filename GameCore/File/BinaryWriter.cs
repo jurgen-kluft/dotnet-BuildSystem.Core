@@ -128,7 +128,7 @@ namespace GameCore
         public Int64 Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
-            Debug.Assert(Alignment.IsAligned(mWriter.BaseStream.Position, 4));
+            Debug.Assert(CMath.IsAligned(mWriter.BaseStream.Position, 4));
             Write(data.Length);
             Write(data);
             Write((byte)0);
@@ -266,7 +266,7 @@ namespace GameCore
         public Int64 Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
-            Debug.Assert(Alignment.IsAligned(mWriter.BaseStream.Position, 4));
+            Debug.Assert(CMath.IsAligned(mWriter.BaseStream.Position, 4));
             Write(data.Length);
             Write(data);
             Write((byte)0);

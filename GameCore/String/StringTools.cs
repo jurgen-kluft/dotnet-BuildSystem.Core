@@ -566,8 +566,8 @@ namespace GameCore
         /// <returns>The subpart of the string</returns>
         public static string Mid(string inString, int inLeftPos, int inRightPos)
         {
-            inLeftPos = Math.Clamp(inLeftPos, 0, inString.Length);
-            inRightPos = Math.Clamp(inRightPos, 0, inString.Length);
+            inLeftPos = CMath.Clamp(inLeftPos, 0, inString.Length);
+            inRightPos = CMath.Clamp(inRightPos, 0, inString.Length);
             if (inLeftPos >= inRightPos)
                 return string.Empty;
 

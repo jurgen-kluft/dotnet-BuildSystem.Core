@@ -89,7 +89,7 @@ namespace GameCore
 		/// </summary>
 		public static readonly ComplexD I	= new ComplexD(0,1);
 		#endregion
-	
+
 		#region ICloneable Members
 		/// <summary>
 		/// Creates an exact copy of this <see cref="ComplexD"/> object.
@@ -108,7 +108,7 @@ namespace GameCore
 			return new ComplexD(this);
 		}
 		#endregion
-	
+
 		#region Public Static Parse Methods
 		/// <summary>
 		/// Converts the specified string to its <see cref="ComplexD"/> equivalent.
@@ -228,7 +228,7 @@ namespace GameCore
 		{
 			result.Real = a.Real - s;
 			result.Imaginary = a.Imaginary;
-		}		
+		}
 		/// <summary>
 		/// Subtracts a complex from a scalar and put the result into another complex.
 		/// </summary>
@@ -239,7 +239,7 @@ namespace GameCore
 		{
 			result.Real = s - a.Real;
 			result.Imaginary = a.Imaginary;
-		}		
+		}
 		/// <summary>
 		/// Multiplies two complex numbers.
 		/// </summary>
@@ -248,10 +248,10 @@ namespace GameCore
 		/// <returns>A new <see cref="ComplexD"/> instance containing the result.</returns>
 		public static ComplexD Multiply(ComplexD a, ComplexD b)
 		{
-			// (x + yi)(u + vi) = (xu � yv) + (xv + yu)i. 
+			// (x + yi)(u + vi) = (xu � yv) + (xv + yu)i.
 			double x = a.Real, y = a.Imaginary;
 			double u = b.Real, v = b.Imaginary;
-			
+
 			return new ComplexD(x*u - y*v, x*v + y*u);
 		}
 		/// <summary>
@@ -282,10 +282,10 @@ namespace GameCore
 		/// <param name="result">A <see cref="ComplexD"/> instance to hold the result.</param>
 		public static void Multiply(ComplexD a, ComplexD b, ComplexD result)
 		{
-			// (x + yi)(u + vi) = (xu � yv) + (xv + yu)i. 
+			// (x + yi)(u + vi) = (xu � yv) + (xv + yu)i.
 			double x = a.Real, y = a.Imaginary;
 			double u = b.Real, v = b.Imaginary;
-			
+
 			result.Real = x*u - y*v;
 			result.Imaginary = x*v + y*u;
 		}
@@ -324,7 +324,7 @@ namespace GameCore
 			double	u = b.Real,	v = b.Imaginary;
 			double	modulusSquared = u*u + v*v;
 
-			if( modulusSquared == 0 ) 
+			if( modulusSquared == 0 )
 			{
 				throw new DivideByZeroException();
 			}
@@ -343,7 +343,7 @@ namespace GameCore
 		/// <returns>A new <see cref="ComplexD"/> instance containing the result.</returns>
 		public static ComplexD Divide(ComplexD a, double s)
 		{
-			if( s == 0 ) 
+			if( s == 0 )
 			{
 				throw new DivideByZeroException();
 			}
@@ -379,7 +379,7 @@ namespace GameCore
 			double	u = b.Real,	v = b.Imaginary;
 			double	modulusSquared = u*u + v*v;
 
-			if( modulusSquared == 0 ) 
+			if( modulusSquared == 0 )
 			{
 				throw new DivideByZeroException();
 			}
@@ -388,7 +388,7 @@ namespace GameCore
 
 			result.Real = ( x*u + y*v ) * invModulusSquared;
 			result.Imaginary = ( y*u - x*v ) * invModulusSquared;
-		}		
+		}
 		/// <summary>
 		/// Divides a complex by a scalar and put the result into another complex number.
 		/// </summary>
@@ -397,11 +397,11 @@ namespace GameCore
 		/// <param name="result">A <see cref="ComplexD"/> instance to hold the result.</param>
 		public static void Divide(ComplexD a, double s, ComplexD result)
 		{
-			if( s == 0 ) 
+			if( s == 0 )
 			{
 				throw new DivideByZeroException();
 			}
-			
+
 			result.Real = a.Real / s;
 			result.Imaginary = a.Imaginary / s;
 		}
@@ -438,7 +438,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEqual(ComplexD a, ComplexD b)
 		{
-            return ApproxEqual(a, b, Math.EpsilonD);
+            return ApproxEqual(a, b, CMath.Constants.EpsilonD);
 		}
 		/// <summary>
 		/// Tests whether two complex numbers are approximately equal given a tolerance value.
@@ -497,12 +497,12 @@ namespace GameCore
 				if (a.Imaginary > 0.0)
 				{
 					result.Real = System.Math.Log(a.Imaginary);
-                    result.Imaginary = Math.HalfPI;
+                    result.Imaginary = CMath.Constants.HalfPI;
 				}
 				else
 				{
 					result.Real = System.Math.Log(-(a.Imaginary));
-                    result.Imaginary = -Math.HalfPI;
+                    result.Imaginary = -CMath.Constants.HalfPI;
 				}
 			}
 			else
@@ -619,7 +619,7 @@ namespace GameCore
 		public void Normalize()
 		{
 			double modulus = this.GetModulus();
-			if(modulus == 0) 
+			if(modulus == 0)
 			{
 				throw new DivideByZeroException( "Can not normalize a complex number that is zero." );
 			}
@@ -646,7 +646,7 @@ namespace GameCore
 		/// <returns>True if <paramref name="obj"/> is a <see cref="ComplexD"/> and has the same values as this instance; otherwise, False.</returns>
 		public override bool Equals(object obj)
 		{
-			if(obj is ComplexD) 
+			if(obj is ComplexD)
 			{
 				ComplexD c = (ComplexD)obj;
 				return (this.Real == c.Real) && (this.Imaginary == c.Imaginary);
@@ -846,7 +846,7 @@ namespace GameCore
 
 		#region Conversion Operators
 		/// <summary>
-		/// Converts from a single-precision real number to a complex number. 
+		/// Converts from a single-precision real number to a complex number.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
@@ -855,7 +855,7 @@ namespace GameCore
 			return new ComplexD((double)value, 0);
 		}
 		/// <summary>
-		/// Converts from a double-precision real number to a complex number. 
+		/// Converts from a double-precision real number to a complex number.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>

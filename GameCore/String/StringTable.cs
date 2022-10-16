@@ -8,6 +8,7 @@ namespace GameCore
     {
         #region Fields
 
+        private readonly UTF8Encoding mEncoding = new UTF8Encoding();
         private readonly Dictionary<string, int> mDictionary = new ();
         private readonly List<uint> mHashes = new();
         private readonly List<int> mLengths = new();
@@ -36,10 +37,10 @@ namespace GameCore
                 mReferences.Add(StreamReference.NewReference);
                 mStrings.Add(inString);
 
-                byte[] utf8 = UTF8Encoding.UTF8.GetBytes(inString);
+                byte[] utf8 = mEncoding.GetBytes(inString);
                 mLengths.Add(utf8.Length + 1);
 
-                uint hash = ComputeHashOf(inString);
+                uint hash = Hashing.Compute(utf8);
                 mHashes.Add(hash);
             }
 
@@ -56,11 +57,6 @@ namespace GameCore
         private int IndexOf(string inString)
         {
             return InternalIndexOf(inString);
-        }
-
-        private uint ComputeHashOf(string inString)
-        {
-            return Hashing.Compute_ASCII(inString);
         }
 
         public uint HashOf(string inString)
@@ -89,38 +85,62 @@ namespace GameCore
 
         public void SortByHash()
         {
-            mHashes.Clear();
             Dictionary<uint, string> hashToString = new ();
+            Dictionary<uint, int> hashToLength = new ();
             Dictionary<uint, StreamReference> hashToReference = new ();
-            foreach (string s in mStrings)
+            for (int i=0; i<mStrings.Count; ++i)
             {
-                uint hash = ComputeHashOf(s);
-                mHashes.Add(hash);
-                hashToString.Add(hash, s);
-                hashToReference.Add(hash, InternalReferenceOf(s));
+                uint hash = mHashes[i];
+                string str = mStrings[i];
+                hashToString.Add(hash, str);
+                hashToLength.Add(hash, mLengths[i]);
+                hashToReference.Add(hash, InternalReferenceOf(str));
             }
 
             mHashes.Sort();
 
             mStrings.Clear();
             mReferences.Clear();
+            mLengths.Clear();
             foreach (uint hash in mHashes)
             {
-                string s;
-                hashToString.TryGetValue(hash, out s);
+                hashToString.TryGetValue(hash, out string s);
                 mStrings.Add(s);
-                StreamReference r;
-                hashToReference.TryGetValue(hash, out r);
+                hashToReference.TryGetValue(hash, out StreamReference r);
                 mReferences.Add(r);
+                hashToLength.TryGetValue(hash, out int l);
+                mLengths.Add(l);
             }
 
-            int index = 0;
             mDictionary.Clear();
+            for (int i=0; i<mStrings.Count; ++i)
+            {
+                mDictionary.Add(mStrings[i], i);
+            }
+        }
+
+        public void Write(IBinaryWriter writer, Dictionary<StreamReference, StreamOffset> dataOffsetDataBase)
+        {
+            SortByHash();
+
+            StreamOffset offset = new(writer.Position);
+
+            // Need to determine some good size
+            byte[] utf8 = new byte[8192];
+
+            // Write strings and assign them a StreamReference and StreamOffset
             foreach (string s in mStrings)
             {
-                mDictionary.Add(s, index);
-                ++index;
+                StreamReference r = InternalReferenceOf(s);
+                dataOffsetDataBase.Add(r, offset);
+
+                int utf8Len = mEncoding.GetBytes(s, 0, s.Length, utf8, 0);
+                utf8[utf8Len] = 0; // Do include a terminating zero
+                writer.Write(utf8, 0, utf8Len + 1);
+
+                offset += utf8Len + 1;
             }
+
         }
 
         public void Write(IDataWriter writer)

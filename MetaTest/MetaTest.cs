@@ -31,11 +31,20 @@ namespace MetaTest
             public Int64 FileId { get; set; }
         }
 
+        public enum ETestEnum
+        {
+            EnumerationA,
+            EnumerationB,
+            EnumerationC,
+            EnumerationD,
+        }
+
         public class TestRoot
         {
             public Int32 mInt32 = 1;
             public SByte mInt8 = 2;
             public float mFloat = 3.14f;
+            public ETestEnum mEnum = ETestEnum.EnumerationC;
 
             public TestData mData = new();
         }
@@ -44,6 +53,9 @@ namespace MetaTest
         {
             public string Name = "A test string";
             public FileId File = new FileId(new TestFileIdProvider { FileId = 1 });
+
+            public float[] Floats = new float[8];
+            public List<Int64> IntegerList = new() { 0,1,2,3,4 };
         }
 
 

@@ -119,6 +119,15 @@ namespace GameData
         }
 
         #endregion
+        #region EnumType
+
+        public class EnumType : IMetaType
+        {
+            public Type SystemType { get; set; }
+            public string TypeName => "enum";
+        }
+
+        #endregion
         #region FloatType
 
         public class FloatType : IMetaType
@@ -163,15 +172,14 @@ namespace GameData
 
         public class ArrayType : IMetaType
         {
-            private IClassMember Element { get; set; }
-
-            public ArrayType(Type arrayObjectType, IClassMember elementMember)
+            public ArrayType(Type arrayType, Type elementType)
             {
-                Element = elementMember;
-                SystemType = arrayObjectType;
+                SystemType = arrayType;
+                ElementType = elementType;
             }
             public Type SystemType { get; }
-            public string TypeName => "array_t<" + Element.Type.TypeName + ">";
+            public Type ElementType { get; }
+            public string TypeName => "array";
 
         }
 
@@ -238,6 +246,7 @@ namespace GameData
             bool IsString(Type t);
             bool IsEnum(Type t);
             bool IsArray(Type t);
+            bool IsGenericList(Type t);
             bool IsObject(Type t);
             bool IsAtom(Type t);
             bool IsFileId(Type t);
@@ -253,13 +262,13 @@ namespace GameData
             IClassMember NewUInt32Member(UInt32 content, string memberName);
             IClassMember NewInt64Member(Int64 content, string memberName);
             IClassMember NewUInt64Member(UInt64 content, string memberName);
+            IClassMember NewEnumMember(object content, string memberName);
             IClassMember NewFloatMember(float content, string memberName);
             IClassMember NewDoubleMember(double content, string memberName);
             IClassMember NewStringMember(string content, string memberName);
             IClassMember NewFileIdMember(Int64 content, string memberName);
-            IClassMember NewEnumMember(object content, string memberName);
             ClassObject NewObjectMember(Type objectType, object content, string memberName);
-            ArrayMember NewArrayMember(Type arrayType, object content, IClassMember elementMember, string memberName);
+            ArrayMember NewArrayMember(Type arrayType, Type elementType, object content, string memberName);
             AtomMember NewAtomMember(Type atomType, IClassMember atomContentMember, string memberName);
             FileIdMember NewFileIdMember(Type atomType, Int64 content, string memberName);
             CompoundMember NewCompoundMember(Type compoundType, object content, string memberName);
@@ -273,25 +282,26 @@ namespace GameData
             bool Open();
             bool Close();
 
-            bool WriteNullMember(NullMember c);
-            bool WriteBool8Member(BoolMember c);
-            bool WriteInt8Member(Int8Member c);
-            bool WriteInt16Member(Int16Member c);
-            bool WriteInt32Member(Int32Member c);
-            bool WriteInt64Member(Int64Member c);
-            bool WriteUInt8Member(UInt8Member c);
-            bool WriteUInt16Member(UInt16Member c);
-            bool WriteUInt32Member(UInt32Member c);
-            bool WriteUInt64Member(UInt64Member c);
-            bool WriteFloatMember(FloatMember c);
-            bool WriteDoubleMember(DoubleMember c);
+            void WriteNullMember(NullMember c);
+            void WriteBool8Member(BoolMember c);
+            void WriteInt8Member(Int8Member c);
+            void WriteInt16Member(Int16Member c);
+            void WriteInt32Member(Int32Member c);
+            void WriteInt64Member(Int64Member c);
+            void WriteUInt8Member(UInt8Member c);
+            void WriteUInt16Member(UInt16Member c);
+            void WriteUInt32Member(UInt32Member c);
+            void WriteUInt64Member(UInt64Member c);
+            void WriteEnumMember(EnumMember c);
+            void WriteFloatMember(FloatMember c);
+            void WriteDoubleMember(DoubleMember c);
 
-            bool WriteStringMember(StringMember c);
-            bool WriteFileIdMember(FileIdMember c);
-            bool WriteArrayMember(ArrayMember c);
-            bool WriteObjectMember(ClassObject c);
-            bool WriteAtomMember(AtomMember c);
-            bool WriteCompoundMember(CompoundMember c);
+            void WriteStringMember(StringMember c);
+            void WriteFileIdMember(FileIdMember c);
+            void WriteArrayMember(ArrayMember c);
+            void WriteObjectMember(ClassObject c);
+            void WriteAtomMember(AtomMember c);
+            void WriteCompoundMember(CompoundMember c);
         }
 
         #endregion
@@ -354,13 +364,13 @@ namespace GameData
             string Name { get;  }
             IMetaType Type { get;  }
             int Size { get; }
-            Int64 Alignment { get; }
+            int Alignment { get; }
             object Value { get; }
 
             bool IsDefault { get; }
             IClassMember Default();
 
-            bool Write(IMemberWriter writer);
+            void Write(IMemberWriter writer);
         }
 
         #endregion
@@ -381,7 +391,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type { get; private set; }
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value => null;
 
             public bool IsDefault => true;
@@ -391,10 +401,9 @@ namespace GameData
                 return new NullMember(Name);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteNullMember(this);
-                return true;
             }
         }
 
@@ -415,7 +424,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => BoolType.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public bool InternalValue { get; private set; }
 
@@ -426,10 +435,9 @@ namespace GameData
                 return new BoolMember(Name, false);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteBool8Member(this);
-                return true;
             }
         }
 
@@ -450,7 +458,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => Int8Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public Int8 InternalValue { get; private set; }
 
@@ -461,10 +469,9 @@ namespace GameData
                 return new Int8Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteInt8Member(this);
-                return true;
             }
         }
 
@@ -485,7 +492,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => Int16Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public Int16 InternalValue { get; private set; }
 
@@ -496,10 +503,9 @@ namespace GameData
                 return new Int16Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteInt16Member(this);
-                return true;
             }
         }
 
@@ -520,7 +526,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => Int32Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public Int32 InternalValue { get; private set; }
 
@@ -531,10 +537,9 @@ namespace GameData
                 return new Int32Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteInt32Member(this);
-                return true;
             }
         }
 
@@ -555,7 +560,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => Int64Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public Int64 InternalValue { get; private set; }
 
@@ -566,10 +571,9 @@ namespace GameData
                 return new Int64Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteInt64Member(this);
-                return true;
             }
         }
 
@@ -590,7 +594,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => UInt8Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public UInt8 InternalValue { get; private set; }
 
@@ -601,10 +605,9 @@ namespace GameData
                 return new UInt8Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteUInt8Member(this);
-                return true;
             }
         }
 
@@ -625,7 +628,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => UInt16Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public UInt16 InternalValue { get; private set; }
 
@@ -636,10 +639,9 @@ namespace GameData
                 return new UInt16Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteUInt16Member(this);
-                return true;
             }
         }
 
@@ -660,7 +662,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => UInt32Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public UInt32 InternalValue { get; private set; }
 
@@ -671,10 +673,9 @@ namespace GameData
                 return new UInt32Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteUInt32Member(this);
-                return true;
             }
         }
 
@@ -695,7 +696,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => UInt64Type.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public UInt64 InternalValue { get; private set; }
 
@@ -706,10 +707,70 @@ namespace GameData
                 return new UInt64Member(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteUInt64Member(this);
-                return true;
+            }
+        }
+
+        #endregion
+        #region EnumMember
+
+        public sealed class EnumMember : IClassMember
+        {
+            public EnumMember(string name, Type enumType, UInt64 value)
+            {
+                Name = name;
+                EnumType = enumType;
+                Type = new EnumType() { SystemType = enumType };
+
+                // Determine minimum size of the Enum
+                EnumValueType = Enum.GetUnderlyingType(enumType);
+                Size = 2;
+                if (EnumValueType == typeof(int) || EnumValueType == typeof(uint))
+                {
+                    Size = 4;
+                    Alignment = 4;
+                }
+                else if (EnumValueType == typeof(long) || EnumValueType == typeof(ulong))
+                {
+                    Size = 8;
+                    Alignment = 8;
+                }
+                else if (EnumValueType == typeof(short) || EnumValueType == typeof(ushort))
+                {
+                    Size = 2;
+                    Alignment = 2;
+                }
+                else if (EnumValueType == typeof(sbyte) || EnumValueType == typeof(byte))
+                {
+                    Size = 1;
+                    Alignment = 1;
+                }
+
+                Value = value;
+                InternalValue = value;
+            }
+
+            public string Name { get; private set; }
+            public Type EnumType { get; private set; }
+            public Type EnumValueType { get; set; }
+            public IMetaType Type { get; private set; }
+            public int Size { get; private set; }
+            public Int32 Alignment { get; private set; }
+            public object Value { get; set; }
+            public UInt64 InternalValue { get; private set; }
+
+            public bool IsDefault => false;
+
+            public IClassMember Default()
+            {
+                return new EnumMember(Name, null, default);
+            }
+
+            public void Write(IMemberWriter writer)
+            {
+                writer.WriteEnumMember(this);
             }
         }
 
@@ -730,7 +791,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => FloatType.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public float InternalValue { get; private set; }
 
@@ -741,10 +802,9 @@ namespace GameData
                 return new FloatMember(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteFloatMember(this);
-                return true;
             }
         }
 
@@ -765,7 +825,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => DoubleType.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public double InternalValue { get; private set; }
 
@@ -776,10 +836,9 @@ namespace GameData
                 return new DoubleMember(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteDoubleMember(this);
-                return true;
             }
         }
 
@@ -800,7 +859,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => StringType.Instance;
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public string InternalValue { get; private set; }
 
@@ -811,10 +870,9 @@ namespace GameData
                 return new StringMember(Name, String.Empty);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteStringMember(this);
-                return true;
             }
         }
 
@@ -835,7 +893,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type => FileIdType.Instance;
             public int Size { get; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public Int64 InternalValue { get; private set; }
 
@@ -846,10 +904,9 @@ namespace GameData
                 return new FileIdMember(Name, 0);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteFileIdMember(this);
-                return true;
             }
         }
 
@@ -871,7 +928,7 @@ namespace GameData
             public string Name { get; private set; }
             public IMetaType Type { get; private set; }
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
             public IClassMember InternalValue { get; private set; }
             public IClassMember Member { get; private set; }
@@ -883,9 +940,9 @@ namespace GameData
                 return InternalValue.Default();
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
-                return writer.WriteAtomMember(this);
+                writer.WriteAtomMember(this);
             }
         }
 
@@ -914,24 +971,15 @@ namespace GameData
         {
             #region Constructor
 
-            public ArrayMember(Type arrayObjectType, object value, IClassMember elementMember, string memberName)
+            public ArrayMember(Type arrayType, Type elementType, object value, string memberName)
             {
                 Name = memberName;
-                Type = new ArrayType(arrayObjectType, elementMember);
+                Type = new ArrayType(arrayType, elementType);
+                ElementType = elementType;
                 Value = value;
                 Alignment = sizeof(Int32) + sizeof(Int32);
                 Size = sizeof(Int32) + sizeof(Int32);
-                Members = new List<IClassMember>();
-            }
-
-            public ArrayMember(IMetaType arrayType, object value, string memberName)
-            {
-                Name = memberName;
-                Type = arrayType;
-                Value = value;
-                InternalValue = value;
-                Alignment = sizeof(Int32);
-                Members = new List<IClassMember>();
+                Members = new ();
             }
 
             #endregion
@@ -941,10 +989,10 @@ namespace GameData
 
             public string Name { get; private set; }
             public IMetaType Type { get; private set; }
+            public Type ElementType { get;  }
             public int Size { get; private set; }
-            public Int64 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
-            public object InternalValue { get; private set; }
 
             public bool IsDefault => Value == null;
 
@@ -955,7 +1003,7 @@ namespace GameData
 
             public  IClassMember Default()
             {
-                return new ArrayMember(Type, null, Name);
+                return new ArrayMember(null, null, null, String.Empty);
             }
 
             public  void AddMember(IClassMember m)
@@ -963,10 +1011,9 @@ namespace GameData
                 Members.Add(m);
             }
 
-            public  bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
                 writer.WriteArrayMember(this);
-                return true;
             }
 
             #endregion
@@ -995,7 +1042,7 @@ namespace GameData
             public string Name { get;  }
             public IMetaType Type { get;}
             public int Size { get; }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get;  }
 
             public bool IsDefault => Value == null;
@@ -1034,9 +1081,9 @@ namespace GameData
             #endregion
             #region Member methods
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
-                return (writer.WriteObjectMember(this));
+                writer.WriteObjectMember(this);
             }
 
             #endregion
@@ -1075,7 +1122,7 @@ namespace GameData
             public string Name { get;  }
             public IMetaType Type { get; private set; }
             public int Size { get;  }
-            public Int64 Alignment { get; private set; }
+            public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
 
             public bool IsNullType { get; set; }
@@ -1103,9 +1150,9 @@ namespace GameData
                 Members.Add(m);
             }
 
-            public bool Write(IMemberWriter writer)
+            public void Write(IMemberWriter writer)
             {
-                return writer.WriteCompoundMember(this);
+                writer.WriteCompoundMember(this);
             }
 
             #endregion

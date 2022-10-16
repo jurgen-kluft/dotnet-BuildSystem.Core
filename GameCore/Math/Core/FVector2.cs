@@ -421,7 +421,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEqual(FVector2 v, FVector2 u)
 		{
-            return ApproxEqual(v, u, Math.Epsilon);
+            return ApproxEqual(v, u, CMath.Constants.Epsilon);
 		}
 		/// <summary>
 		/// Tests whether two vectors are approximately equal given a tolerance value.
@@ -520,7 +520,7 @@ namespace GameCore
 			return string.Format("({0}, {1})", mX, mY);
 		}
 		#endregion
-		
+
 		#region Comparison Operators
 		/// <summary>
 		/// Tests whether two specified vectors are equal.
@@ -572,7 +572,7 @@ namespace GameCore
 		public static bool operator>(FVector2 u, FVector2 v)
 		{
 			return (
-				(u.mX > v.mX) && 
+				(u.mX > v.mX) &&
 				(u.mY > v.mY));
 		}
 		/// <summary>
@@ -584,7 +584,7 @@ namespace GameCore
 		public static bool operator<(FVector2 u, FVector2 v)
 		{
 			return (
-				(u.mX < v.mX) && 
+				(u.mX < v.mX) &&
 				(u.mY < v.mY));
 		}
 		/// <summary>
@@ -596,7 +596,7 @@ namespace GameCore
 		public static bool operator>=(FVector2 u, FVector2 v)
 		{
 			return (
-				(u.mX >= v.mX) && 
+				(u.mX >= v.mX) &&
 				(u.mY >= v.mY));
 		}
 		/// <summary>
@@ -608,7 +608,7 @@ namespace GameCore
 		public static bool operator<=(FVector2 u, FVector2 v)
 		{
 			return (
-				(u.mX <= v.mX) && 
+				(u.mX <= v.mX) &&
 				(u.mY <= v.mY));
 		}
 		#endregion
@@ -759,9 +759,9 @@ namespace GameCore
 		/// </summary>
 		public float this[int index]
 		{
-			get	
+			get
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						return mX;
@@ -771,9 +771,9 @@ namespace GameCore
 						throw new IndexOutOfRangeException();
 				}
 			}
-			set 
+			set
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						mX = value;

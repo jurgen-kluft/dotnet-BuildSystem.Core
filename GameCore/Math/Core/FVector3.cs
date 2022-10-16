@@ -501,7 +501,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEqual(FVector3 v, FVector3 u)
 		{
-            return ApproxEqual(v, u, Math.Epsilon);
+            return ApproxEqual(v, u, CMath.Constants.Epsilon);
 		}
 		/// <summary>
 		/// Tests whether two vectors are approximately equal given a tolerance value.
@@ -526,22 +526,22 @@ namespace GameCore
 		/// </summary>
 		/// <returns></returns>
 		public EAxis GetLeastSignificantAxis()
-		{ 
-			int s = 0; 
+		{
+			int s = 0;
 			for (int c=1; c<3; c++)
-				if (Math.Abs(this[c]) < Math.Abs(this[s]))
-					s = c; 
-			return (EAxis)s; 
+				if (CMath.Abs(this[c]) < CMath.Abs(this[s]))
+					s = c;
+			return (EAxis)s;
 		}
 		/// <summary>
 		/// Returns least significant axis
 		/// </summary>
 		/// <returns></returns>
 		public EAxis GetMostSignificantAxis()
-		{ 
-			int s = 0; 
+		{
+			int s = 0;
 			for (int c=1; c<3; c++)
-				if (Math.Abs(this[c]) > Math.Abs(this[s])) 
+				if (CMath.Abs(this[c]) > CMath.Abs(this[s]))
 					s = c;
 			return (EAxis)s;
 		}
@@ -576,12 +576,12 @@ namespace GameCore
 			return vector;
 		}
 		/// <summary>
-		/// Get vector that is perpendicular to this one (a random one in the plane) 
+		/// Get vector that is perpendicular to this one (a random one in the plane)
 		/// </summary>
 		/// <returns></returns>
 		public FVector3 GetNormalizedPerpendicular()
 		{
-			return Math.Abs(mZ) > Math.Abs(mY) ? new FVector3(-mZ, 0.0f, mX).Normalized() : new FVector3(-mY, mX, 0.0f).Normalized();
+			return CMath.Abs(mZ) > CMath.Abs(mY) ? new FVector3(-mZ, 0.0f, mX).Normalized() : new FVector3(-mY, mX, 0.0f).Normalized();
 		}
 		/// <summary>
 		/// Returns the length of the vector.
@@ -606,7 +606,7 @@ namespace GameCore
 		/// <returns>True/False, True if the vectors are almost the same</returns>
 		public bool IsClose(FVector3 inVector)
 		{
-            return Math.IsNear(mX, inVector.mX, 1e-05f) && Math.IsNear(mY, inVector.mY, 1e-05f) && Math.IsNear(mZ, inVector.mZ, 1e-05f);
+            return CMath.IsNear(mX, inVector.mX, 1e-05f) && CMath.IsNear(mY, inVector.mY, 1e-05f) && CMath.IsNear(mZ, inVector.mZ, 1e-05f);
 		}
 
 		#endregion
@@ -694,8 +694,8 @@ namespace GameCore
 		public static bool operator>(FVector3 u, FVector3 v)
 		{
 			return (
-				(u.mX > v.mX) && 
-				(u.mY > v.mY) && 
+				(u.mX > v.mX) &&
+				(u.mY > v.mY) &&
 				(u.mZ > v.mZ));
 		}
 		/// <summary>
@@ -707,8 +707,8 @@ namespace GameCore
 		public static bool operator<(FVector3 u, FVector3 v)
 		{
 			return (
-				(u.mX < v.mX) && 
-				(u.mY < v.mY) && 
+				(u.mX < v.mX) &&
+				(u.mY < v.mY) &&
 				(u.mZ < v.mZ));
 		}
 		/// <summary>
@@ -720,8 +720,8 @@ namespace GameCore
 		public static bool operator>=(FVector3 u, FVector3 v)
 		{
 			return (
-				(u.mX >= v.mX) && 
-				(u.mY >= v.mY) && 
+				(u.mX >= v.mX) &&
+				(u.mY >= v.mY) &&
 				(u.mZ >= v.mZ));
 		}
 		/// <summary>
@@ -733,8 +733,8 @@ namespace GameCore
 		public static bool operator<=(FVector3 u, FVector3 v)
 		{
 			return (
-				(u.mX <= v.mX) && 
-				(u.mY <= v.mY) && 
+				(u.mX <= v.mX) &&
+				(u.mY <= v.mY) &&
 				(u.mZ <= v.mZ));
 		}
 		#endregion
@@ -873,9 +873,9 @@ namespace GameCore
 		/// </summary>
 		public float this[int index]
 		{
-			get	
+			get
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						return mX;
@@ -887,9 +887,9 @@ namespace GameCore
 						throw new IndexOutOfRangeException();
 				}
 			}
-			set 
+			set
 			{
-				switch( index ) 
+				switch( index )
 				{
 					case 0:
 						mX = value;

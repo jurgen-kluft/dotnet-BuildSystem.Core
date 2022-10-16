@@ -27,13 +27,10 @@
 
   <Target Name="CopyGameDataDLL" AfterTargets="Build">
     <ItemGroup>
-      <DataFiles Include="$(OutputPath)\$(AssemblyName).dll"/>
+      <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />
     </ItemGroup>
 
-    <Copy
-      SourceFiles="@(DataFiles)"
-      DestinationFolder="$(SolutionDir)\GameData.Compiled"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\GameData.Compiled" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
