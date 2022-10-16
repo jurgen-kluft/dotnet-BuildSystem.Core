@@ -4,211 +4,276 @@ using System.Diagnostics;
 
 namespace GameCore
 {
-	/// <summary>
 	/// Provides standard mathematical functions for the library types.
-	/// </summary>
-	public static class Math
-	{
-		#region Delegates
-		#region Delegates - Boolean Functions
-		/// <summary>
-		/// Functor that takes no arguments and returns a boolean.
-		/// </summary>
-		public delegate bool BooleanFunction();
-		/// <summary>
-		/// Functor that takes one booleans and returns a boolean. 
-		/// </summary>
-		public delegate bool BooleanUnaryFunction(bool b);
-		/// <summary>
-		/// Functor that takes two booleans and returns a boolean. 
-		/// </summary>
-		public delegate bool BooleanBinaryFunction(bool b1, bool b2);
-		#endregion
+     public static partial class Math
+    {
+        #region Delegates
 
-		#region Delegates - Double Functions
-		/// <summary>
-		/// Functor that takes no arguments and returns a double.
-		/// </summary>
-		public delegate double DoubleFunction();
-		/// <summary>
-		/// Functor that takes one double and returns a double. 
-		/// </summary>
-		public delegate double DoubleUnaryFunction(double x);
-		/// <summary>
-		/// Functor that takes two doubles and returns a double. 
-		/// </summary>
-		public delegate double DoubleBinaryFunction(double x, double y);
-		/// <summary>
-		/// Functor that takes three doubles and returns a double. 
-		/// </summary>
-		public delegate double DoubleTernaryFunction(double x, double y, double z);
-		#endregion
+        #region Delegates - Boolean Functions
 
-		#region Delegates - Float Functions
-		/// <summary>
-		/// Functor that takes no arguments and returns a float.
-		/// </summary>
-		public delegate float FloatFunction();
-		/// <summary>
-		/// Functor that takes one float and returns a float. 
-		/// </summary>
-		public delegate float FloatUnaryFunction(float x);
-		/// <summary>
-		/// Functor that takes two floats and returns a float. 
-		/// </summary>
-		public delegate float FloatBinaryFunction(float x, float y);
-		/// <summary>
-		/// Functor that takes three floats and returns a float. 
-		/// </summary>
-		public delegate float FloatTernaryFunction(float x, float y, float z);
-		#endregion
+        /// <summary>
+        /// Functor that takes no arguments and returns a boolean.
+        /// </summary>
+        public delegate bool BooleanFunction();
 
-		#region Delegates - Integet Functions
-		/// <summary>
-		/// Functor that takes no arguments and returns an integer.
-		/// </summary>
-		public delegate int IntFunction();
-		/// <summary>
-		/// Functor that takes one integer and returns an integer.
-		/// </summary>
-		public delegate int IntUnaryFunction(int x);
-		/// <summary>
-		/// Functor that takes two integers and returns an integer.
-		/// </summary>
-		public delegate int IntBinaryFunction(int x, int y);
-		/// <summary>
-		/// Functor that takes three integers and returns an integer.
-		/// </summary>
-		public delegate int IntTernaryFunction(int x, int y, int z);
-		#endregion
+        /// <summary>
+        /// Functor that takes one booleans and returns a boolean.
+        /// </summary>
+        public delegate bool BooleanUnaryFunction(bool b);
 
-		#region Delegates - Object Functions
-		/// <summary>
-		/// Functor that takes no arguments and returns an object.
-		/// </summary>
-		public delegate object ObjectFunction();
-		/// <summary>
-		/// Functor that takes one object and returns an object.
-		/// </summary>
-		public delegate object ObjectUnaryFunction(object obj);
-		/// <summary>
-		/// Functor that takes one objects and returns an object.
-		/// </summary>
-		public delegate object ObjectBinaryFunction(object obj1, object obj2);
-		/// <summary>
-		/// Functor that takes three objects and returns an object.
-		/// </summary>
-		public delegate object ObjectTernaryFunction(object obj1, object obj2, object obj3);
-		#endregion
+        /// <summary>
+        /// Functor that takes two booleans and returns a boolean.
+        /// </summary>
+        public delegate bool BooleanBinaryFunction(bool b1, bool b2);
 
-		#region Delegates - String Functions
-		/// <summary>
-		/// Functor that takes no arguments and returns a string.
-		/// </summary>
-		public delegate string StringFunction();
-		/// <summary>
-		/// Functor that takes one object and returns a string.
-		/// </summary>
-		public delegate string StringUnaryFunction(string s);
-		/// <summary>
-		/// Functor that takes two objects and returns a string.
-		/// </summary>
-		public delegate string StringBinaryFunction(string s1, string s2);
-		/// <summary>
-		/// Functor that takes three objects and returns a string.
-		/// </summary>
-		public delegate string StringTernaryFunction(string s1, string s2, string s3);
-		#endregion
-		#endregion
-		#region Enums
-		public enum Sign
-		{
-			/// <summary>
-			/// Negative sign
-			/// </summary>
-			Negative = -1,
-			/// <summary>
-			/// Zero
-			/// </summary>
-			Zero = 0,
-			/// <summary>
-			/// Positive sign
-			/// </summary>
-			Positive = 1
-		}
-		#endregion
-		#region Constants
+        #endregion
 
-		/// <summary>
-		/// The value of PI.
-		/// </summary>
-        public readonly static double DOnePI = System.Math.PI;
-        public readonly static float OnePI = (float)System.Math.PI;
-		/// <summary>
-		/// The value of (2 * PI).
-		/// </summary>
-        public readonly static double DTwoPI = 2.0 * System.Math.PI;
-        public readonly static float TwoPI = 2.0f * (float)System.Math.PI;
-		/// <summary>
-		/// The value of (PI*PI).
-		/// </summary>
-        public readonly static double DSquaredPI = System.Math.PI * System.Math.PI;
-        public readonly static float SquaredPI = (float)System.Math.PI * (float)System.Math.PI;
-		/// <summary>
-		/// The value of PI/2.
-		/// </summary>
-        public readonly static double DHalfPI = System.Math.PI / 2.0;
-        public readonly static float HalfPI = (float)System.Math.PI / 2.0f;
+        #region Delegates - Double Functions
 
-		/// <summary>
-		/// Epsilon, a fairly small value for a single precision floating point
-		/// </summary>
-		public readonly static float Epsilon = 4.76837158203125E-7f;
-		/// <summary>
-		/// Epsilon, a fairly small value for a double precision floating point
-		/// </summary>
-		public readonly static double EpsilonD = 8.8817841970012523233891E-16;
-		#endregion
-		#region Abs Functions
-		/// <summary>
-		/// Absolute value function for single-precision floating point numbers.
-		/// </summary>
-		public static readonly FloatUnaryFunction	FloatAbsFunction	= new FloatUnaryFunction(Math.Abs);
-		/// <summary>
-		/// Absolute value function for double-precision floating point numbers.
-		/// </summary>
-		public static readonly DoubleUnaryFunction	DoubleAbsFunction	= new DoubleUnaryFunction(Math.Abs);
-		/// <summary>
-		/// Absolute value function for integers.
-		/// </summary>
-		public static readonly IntUnaryFunction		IntAbsFunction		= new IntUnaryFunction(Math.Abs);
-		#endregion
+        /// <summary>
+        /// Functor that takes no arguments and returns a double.
+        /// </summary>
+        public delegate double DoubleFunction();
+
+        /// <summary>
+        /// Functor that takes one double and returns a double.
+        /// </summary>
+        public delegate double DoubleUnaryFunction(double x);
+
+        /// <summary>
+        /// Functor that takes two doubles and returns a double.
+        /// </summary>
+        public delegate double DoubleBinaryFunction(double x, double y);
+
+        /// <summary>
+        /// Functor that takes three doubles and returns a double.
+        /// </summary>
+        public delegate double DoubleTernaryFunction(double x, double y, double z);
+
+        #endregion
+
+        #region Delegates - Float Functions
+
+        /// <summary>
+        /// Functor that takes no arguments and returns a float.
+        /// </summary>
+        public delegate float FloatFunction();
+
+        /// <summary>
+        /// Functor that takes one float and returns a float.
+        /// </summary>
+        public delegate float FloatUnaryFunction(float x);
+
+        /// <summary>
+        /// Functor that takes two floats and returns a float.
+        /// </summary>
+        public delegate float FloatBinaryFunction(float x, float y);
+
+        /// <summary>
+        /// Functor that takes three floats and returns a float.
+        /// </summary>
+        public delegate float FloatTernaryFunction(float x, float y, float z);
+
+        #endregion
+
+        #region Delegates - Integet Functions
+
+        /// <summary>
+        /// Functor that takes no arguments and returns an integer.
+        /// </summary>
+        public delegate int IntFunction();
+
+        /// <summary>
+        /// Functor that takes one integer and returns an integer.
+        /// </summary>
+        public delegate int IntUnaryFunction(int x);
+
+        /// <summary>
+        /// Functor that takes two integers and returns an integer.
+        /// </summary>
+        public delegate int IntBinaryFunction(int x, int y);
+
+        /// <summary>
+        /// Functor that takes three integers and returns an integer.
+        /// </summary>
+        public delegate int IntTernaryFunction(int x, int y, int z);
+
+        #endregion
+
+        #region Delegates - Object Functions
+
+        /// <summary>
+        /// Functor that takes no arguments and returns an object.
+        /// </summary>
+        public delegate object ObjectFunction();
+
+        /// <summary>
+        /// Functor that takes one object and returns an object.
+        /// </summary>
+        public delegate object ObjectUnaryFunction(object obj);
+
+        /// <summary>
+        /// Functor that takes one objects and returns an object.
+        /// </summary>
+        public delegate object ObjectBinaryFunction(object obj1, object obj2);
+
+        /// <summary>
+        /// Functor that takes three objects and returns an object.
+        /// </summary>
+        public delegate object ObjectTernaryFunction(object obj1, object obj2, object obj3);
+
+        #endregion
+
+        #region Delegates - String Functions
+
+        /// <summary>
+        /// Functor that takes no arguments and returns a string.
+        /// </summary>
+        public delegate string StringFunction();
+
+        /// <summary>
+        /// Functor that takes one object and returns a string.
+        /// </summary>
+        public delegate string StringUnaryFunction(string s);
+
+        /// <summary>
+        /// Functor that takes two objects and returns a string.
+        /// </summary>
+        public delegate string StringBinaryFunction(string s1, string s2);
+
+        /// <summary>
+        /// Functor that takes three objects and returns a string.
+        /// </summary>
+        public delegate string StringTernaryFunction(string s1, string s2, string s3);
+
+        #endregion
+
+        #endregion
+
+        #region Enums
+
+        public enum Sign
+        {
+            /// <summary>
+            /// Negative sign
+            /// </summary>
+            Negative = -1,
+
+            /// <summary>
+            /// Zero
+            /// </summary>
+            Zero = 0,
+
+            /// <summary>
+            /// Positive sign
+            /// </summary>
+            Positive = 1
+        }
+
+        #endregion
+
+        #region Constants
+
+        public static class Constants
+        {
+            /// <summary>
+            /// The value of PI.
+            /// </summary>
+            public readonly static double DOnePI = System.Math.PI;
+
+            public readonly static float OnePI = (float)System.Math.PI;
+
+            /// <summary>
+            /// The value of (2 * PI).
+            /// </summary>
+            public readonly static double DTwoPI = 2.0 * System.Math.PI;
+
+            public readonly static float TwoPI = 2.0f * (float)System.Math.PI;
+
+            /// <summary>
+            /// The value of (PI*PI).
+            /// </summary>
+            public readonly static double DSquaredPI = System.Math.PI * System.Math.PI;
+
+            public readonly static float SquaredPI = (float)System.Math.PI * (float)System.Math.PI;
+
+            /// <summary>
+            /// The value of PI/2.
+            /// </summary>
+            public readonly static double DHalfPI = System.Math.PI / 2.0;
+
+            public readonly static float HalfPI = (float)System.Math.PI / 2.0f;
+
+            /// <summary>
+            /// Epsilon, a fairly small value for a single precision floating point
+            /// </summary>
+            public readonly static float Epsilon = 4.76837158203125E-7f;
+
+            /// <summary>
+            /// Epsilon, a fairly small value for a double precision floating point
+            /// </summary>
+            public readonly static double EpsilonD = 8.8817841970012523233891E-16;
+        }
+
+        #endregion
+
+        #region Abs Functions
+
+        public static class Absolute
+        {
+            /// <summary>
+            /// Absolute value function for single-precision floating point numbers.
+            /// </summary>
+            public static readonly FloatUnaryFunction FloatAbsFunction = new FloatUnaryFunction(Abs);
+
+            /// <summary>
+            /// Absolute value function for double-precision floating point numbers.
+            /// </summary>
+            public static readonly DoubleUnaryFunction DoubleAbsFunction = new DoubleUnaryFunction(Math.Abs);
+
+            /// <summary>
+            /// Absolute value function for integers.
+            /// </summary>
+            public static readonly IntUnaryFunction IntAbsFunction = new IntUnaryFunction(Math.Abs);
+        }
+
+        #endregion
 		#region Interpolation Functions
-		/// <summary>
-		/// Linear interpolation function  for double-precision floating point numbers.
-		/// </summary>
-		public static readonly DoubleTernaryFunction DoubleLinearInterpolationFunction = new DoubleTernaryFunction(LinearInterpolation);
-		/// <summary>
-		/// Linear interpolation function  for single-precision floating point numbers.
-		/// </summary>
-		public static readonly FloatTernaryFunction  FloatLinearInterpolationFunction  = new FloatTernaryFunction(LinearInterpolation);
-		/// <summary>
-		/// Cosine interpolation function  for double-precision floating point numbers.
-		/// </summary>
-		public static readonly DoubleTernaryFunction DoubleCosineInterpolationFunction = new DoubleTernaryFunction(CosineInterpolation);
-		/// <summary>
-		/// Cosine interpolation function  for double-precision floating point numbers.
-		/// </summary>
-		public static readonly FloatTernaryFunction  FloatCosineInterpolationFunction  = new FloatTernaryFunction(CosineInterpolation);
-		/// <summary>
-		/// Cubic interpolation function  for double-precision floating point numbers.
-		/// </summary>
-		public static readonly DoubleTernaryFunction DoubleCubicInterpolationFunction = new DoubleTernaryFunction(CubicInterpolation);
-		/// <summary>
-		/// Cubic interpolation function  for double-precision floating point numbers.
-		/// </summary>
-		public static readonly FloatTernaryFunction  FloatCubicInterpolationFunction  = new FloatTernaryFunction(CubicInterpolation);
-		#endregion
+
+        public static class Interpolation
+        {
+            /// <summary>
+            /// Linear interpolation function  for double-precision floating point numbers.
+            /// </summary>
+            public static readonly DoubleTernaryFunction DoubleLinearInterpolationFunction = new DoubleTernaryFunction(LinearInterpolation);
+
+            /// <summary>
+            /// Linear interpolation function  for single-precision floating point numbers.
+            /// </summary>
+            public static readonly FloatTernaryFunction FloatLinearInterpolationFunction = new FloatTernaryFunction(LinearInterpolation);
+
+            /// <summary>
+            /// Cosine interpolation function  for double-precision floating point numbers.
+            /// </summary>
+            public static readonly DoubleTernaryFunction DoubleCosineInterpolationFunction = new DoubleTernaryFunction(CosineInterpolation);
+
+            /// <summary>
+            /// Cosine interpolation function  for double-precision floating point numbers.
+            /// </summary>
+            public static readonly FloatTernaryFunction FloatCosineInterpolationFunction = new FloatTernaryFunction(CosineInterpolation);
+
+            /// <summary>
+            /// Cubic interpolation function  for double-precision floating point numbers.
+            /// </summary>
+            public static readonly DoubleTernaryFunction DoubleCubicInterpolationFunction = new DoubleTernaryFunction(CubicInterpolation);
+
+            /// <summary>
+            /// Cubic interpolation function  for double-precision floating point numbers.
+            /// </summary>
+            public static readonly FloatTernaryFunction FloatCubicInterpolationFunction = new FloatTernaryFunction(CubicInterpolation);
+        }
+
+        #endregion
 		#region Abs
 		/// <summary>
 		/// Calculates the absolute value of an integer.
@@ -217,7 +282,7 @@ namespace GameCore
 		/// <returns>The absolute value of <paramref name="x"/>.</returns>
 		public static int Abs(int x)
 		{
-			return Math.Abs(x);
+			return System.Math.Abs(x);
 		}
 		/// <summary>
 		/// Calculates the absolute value of a single-precision floating point number.
@@ -226,7 +291,7 @@ namespace GameCore
 		/// <returns>The absolute value of <paramref name="x"/>.</returns>
 		public static float Abs(float x)
 		{
-			return Math.Abs(x);
+			return System.Math.Abs(x);
 		}
 		/// <summary>
 		/// Calculates the absolute value of a double-precision floating point number.
@@ -507,7 +572,7 @@ namespace GameCore
 		}
 		#endregion
 		#region Square and SumOfSquares
-		
+
 		public static int Squared(int inValue) { return inValue * inValue; }
 		public static float Squared(float inValue) { return inValue * inValue; }
 		public static double Squared(double inValue) { return inValue * inValue; }
@@ -1556,11 +1621,11 @@ namespace GameCore
 		}
 		public static Sign GetSign(float f, float tolerance)
 		{
-			if( f > tolerance )	
-			{					
+			if( f > tolerance )
+			{
 				return	Sign.Positive;
 			}
-			if( f < -tolerance )	
+			if( f < -tolerance )
 			{
 				return	Sign.Negative;
 			}
@@ -1568,11 +1633,11 @@ namespace GameCore
 		}
 		public static Sign GetSign(double d, double tolerance)
 		{
-			if( d > tolerance )	
-			{					
+			if( d > tolerance )
+			{
 				return	Sign.Positive;
 			}
-			if( d < -tolerance )	
+			if( d < -tolerance )
 			{
 				return	Sign.Negative;
 			}
@@ -1628,7 +1693,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEquals(float a, float b)
 		{
-			return (Math.Abs(a-b) <= Epsilon);
+			return (Math.Abs(a-b) <= Constants.Epsilon);
 		}
 		/// <summary>
 		/// Tests whether two single-precision floating point numbers are approximately equal given a tolerance value.
@@ -1649,7 +1714,7 @@ namespace GameCore
 		/// <returns>True if the two vectors are approximately equal; otherwise, False.</returns>
 		public static bool ApproxEquals(double a, double b)
 		{
-			return (Math.Abs(a-b) <= EpsilonD);
+			return (Math.Abs(a-b) <= Constants.EpsilonD);
 		}
 		/// <summary>
 		/// Tests whether two double-precision floating point numbers are approximately equal given a tolerance value.
@@ -1687,7 +1752,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A double-precision floating point number.</param>
 		/// <param name="b">A double-precision floating point number.</param>
-		public static void Swap(ref double a, ref double b) 
+		public static void Swap(ref double a, ref double b)
 		{
 			double c = a;
 			a = b;
@@ -1698,7 +1763,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A single-precision floating point number.</param>
 		/// <param name="b">A single-precision floating point number.</param>
-		public static void Swap(ref float a, ref float b) 
+		public static void Swap(ref float a, ref float b)
 		{
 			float c = a;
 			a = b;
@@ -1709,7 +1774,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="decimal"/> value.</param>
 		/// <param name="b">A <see cref="decimal"/> value.</param>
-		public static void Swap(ref decimal a, ref decimal b) 
+		public static void Swap(ref decimal a, ref decimal b)
 		{
 			decimal c = a;
 			a = b;
@@ -1720,7 +1785,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="sbyte"/> value.</param>
 		/// <param name="b">A <see cref="sbyte"/> value.</param>
-		public static void Swap(ref sbyte a, ref sbyte b) 
+		public static void Swap(ref sbyte a, ref sbyte b)
 		{
 			sbyte c = a;
 			a = b;
@@ -1731,7 +1796,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="byte"/> value.</param>
 		/// <param name="b">A <see cref="byte"/> value.</param>
-		public static void Swap(ref byte a, ref byte b) 
+		public static void Swap(ref byte a, ref byte b)
 		{
 			byte c = a;
 			a = b;
@@ -1742,7 +1807,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="char"/> value.</param>
 		/// <param name="b">A <see cref="char"/> value.</param>
-		public static void Swap(ref char a, ref char b) 
+		public static void Swap(ref char a, ref char b)
 		{
 			char c = a;
 			a = b;
@@ -1753,7 +1818,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="short"/> value.</param>
 		/// <param name="b">A <see cref="short"/> value.</param>
-		public static void Swap(ref short a, ref short b) 
+		public static void Swap(ref short a, ref short b)
 		{
 			short c = a;
 			a = b;
@@ -1764,7 +1829,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="ushort"/> value.</param>
 		/// <param name="b">A <see cref="ushort"/> value.</param>
-		public static void Swap(ref ushort a, ref ushort b) 
+		public static void Swap(ref ushort a, ref ushort b)
 		{
 			ushort c = a;
 			a = b;
@@ -1775,7 +1840,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="int"/> value.</param>
 		/// <param name="b">A <see cref="int"/> value.</param>
-		public static void Swap(ref int a, ref int b) 
+		public static void Swap(ref int a, ref int b)
 		{
 			int c = a;
 			a = b;
@@ -1786,7 +1851,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="uint"/> value.</param>
 		/// <param name="b">A <see cref="uint"/> value.</param>
-		public static void Swap(ref uint a, ref uint b) 
+		public static void Swap(ref uint a, ref uint b)
 		{
 			uint c = a;
 			a = b;
@@ -1798,7 +1863,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="long"/> value.</param>
 		/// <param name="b">A <see cref="long"/> value.</param>
-		public static void Swap(ref long a, ref long b) 
+		public static void Swap(ref long a, ref long b)
 		{
 			long c = a;
 			a = b;
@@ -1809,7 +1874,7 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A <see cref="ulong"/> value.</param>
 		/// <param name="b">A <see cref="ulong"/> value.</param>
-		public static void Swap(ref ulong a, ref ulong b) 
+		public static void Swap(ref ulong a, ref ulong b)
 		{
 			ulong c = a;
 			a = b;
@@ -2091,11 +2156,11 @@ namespace GameCore
         #endregion
         #region Angle conversion
 
-        public static float DegreesToRadians(float inDegree) { return (inDegree * OnePI) / 180.0f; }
-		public static double DegreesToRadians(double inDegree) { return (inDegree * OnePI) / 180.0; }
+        public static float DegreesToRadians(float inDegree) { return (inDegree * Constants.OnePI) / 180.0f; }
+		public static double DegreesToRadians(double inDegree) { return (inDegree * Constants.OnePI) / 180.0; }
 
-		public static float RadiansToDegrees(float inRadian) { return (inRadian * 180.0f) / OnePI; }
-		public static double RadiansToDegrees(double inRadian) { return (inRadian * DOnePI) / DOnePI; }
+		public static float RadiansToDegrees(float inRadian) { return (inRadian * 180.0f) / Constants.OnePI; }
+		public static double RadiansToDegrees(double inRadian) { return (inRadian * Constants.DOnePI) / Constants.DOnePI; }
 
 		#endregion
 		#region Math functions
@@ -2172,7 +2237,7 @@ namespace GameCore
 		/// <returns></returns>
 		public static double CosineInterpolation(double a, double b, double x)
 		{
-			double ft = (double)(x * DOnePI);
+			double ft = (double)(x * Constants.DOnePI);
 			double f = (1 - Math.Cos(ft)) * 0.5;
 			return a*(1-f) + b*f;
 		}
@@ -2185,8 +2250,8 @@ namespace GameCore
 		/// <returns></returns>
 		public static float CosineInterpolation(float a, float b, float x)
 		{
-			float ft = (float)(x * (float)OnePI);
-			float f = (1.0f - (float)Math.Cos(ft)) * 0.5f;
+			float ft = (x * Constants.OnePI);
+			float f = (1.0f - Cos(ft)) * 0.5f;
 			return a*(1-f) + b*f;
 		}
 		#endregion
@@ -2196,9 +2261,9 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A double-precision floating point number representing the first point.</param>
 		/// <param name="b">A double-precision floating point number representing the second point.</param>
-		/// <param name="v">A double-precision floating point number between 0 and 1 ( [0,1] ).</param>
+		/// <param name="x">A double-precision floating point number between 0 and 1 ( [0,1] ).</param>
 		/// <returns></returns>
-		public static double CubicInterpolation(double a, double b, double x) 
+		public static double CubicInterpolation(double a, double b, double x)
 		{
 			double fac1 = 3*Math.Pow(1-x, 2) - 2*Math.Pow(1-x,3);
 			double fac2 = 3*Math.Pow(x, 2) - 2*Math.Pow(x, 3);
@@ -2210,9 +2275,9 @@ namespace GameCore
 		/// </summary>
 		/// <param name="a">A single-precision floating point number representing the first point.</param>
 		/// <param name="b">A single-precision floating point number representing the second point.</param>
-		/// <param name="v">A single-precision floating point number between 0 and 1 ( [0,1] ).</param>
+		/// <param name="x">A single-precision floating point number between 0 and 1 ( [0,1] ).</param>
 		/// <returns></returns>
-		public static float CubicInterpolation(float a, float b, float x) 
+		public static float CubicInterpolation(float a, float b, float x)
 		{
 			float fac1 = 3*(float)Math.Pow(1-x, 2) - 2*(float)Math.Pow(1-x,3);
 			float fac2 = 3*(float)Math.Pow(x, 2) - 2*(float)Math.Pow(x, 3);
