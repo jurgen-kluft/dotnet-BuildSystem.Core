@@ -31,22 +31,23 @@ namespace MetaTest
             public Int64 FileId { get; set; }
         }
 
-        public enum ETestEnum
+        public enum ETestEnum : uint
         {
-            EnumerationA,
-            EnumerationB,
-            EnumerationC,
-            EnumerationD,
+            EnumerationA = 0xFFFF0000,
+            EnumerationB = 0xFFFF0001,
+            EnumerationC = 0xFFFF0002,
+            EnumerationD = 0xFFFF0003,
         }
 
         public class TestRoot
         {
-            public Int32 mInt32 = 1;
-            public SByte mInt8 = 2;
-            public float mFloat = 3.14f;
-            public ETestEnum mEnum = ETestEnum.EnumerationC;
+            public bool m_Bool = false;
+            public Int32 m_Int32 = 1;
+            public SByte m_Int8 = 2;
+            public float m_Float = 3.14f;
+            public ETestEnum m_Enum = ETestEnum.EnumerationC;
 
-            public TestData mData = new();
+            public TestData m_Data = new();
         }
 
         public class TestData

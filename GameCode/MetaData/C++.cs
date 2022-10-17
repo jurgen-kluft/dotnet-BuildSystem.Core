@@ -3,9 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Collections.Generic;
-
-using Int8 = System.SByte;
-using UInt8 = System.Byte;
 using GameCore;
 
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
@@ -199,87 +196,87 @@ namespace GameData
 
             public void WriteNullMember(NullMember c)
             {
-                string line = "\tvoid*\tget" + c.Name + "() const { return 0; }";
+                string line = "\tvoid*\tget" + c.MemberName + "() const { return 0; }";
                 mWriter.WriteLine(line);
             }
             public void WriteBool8Member(BoolMember c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteInt8Member(Int8Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteInt16Member(Int16Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteInt32Member(Int32Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteInt64Member(Int64Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteUInt8Member(UInt8Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteUInt16Member(UInt16Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteUInt32Member(UInt32Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteUInt64Member(UInt64Member c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteEnumMember(EnumMember c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const {" + c.Name + " e; m_" + c.Name + ".get(e); return e; }";
+                string line = "\t" + c.EnumType.Name + "\tget" + c.MemberName + "() const {" + c.EnumType.Name + " e; m_" + c.MemberName + ".get(e); return e; }";
                 mWriter.WriteLine(line);
             }
             public void WriteFloatMember(FloatMember c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteDoubleMember(DoubleMember c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteStringMember(StringMember c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + ".str(); }";
+                string line = "\tstring_t" + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + ".str(); }";
                 mWriter.WriteLine(line);
             }
             public void WriteFileIdMember(FileIdMember c)
             {
-                string line = "\t" + c.Type.TypeName + "\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
             public void WriteArrayMember(ArrayMember c)
             {
-                string line = $"\tarray_t<{c.Type.TypeName}>\tget" + c.Name + "() const { return m_" + c.Name + ".array(); }";
+                string line = $"\tarray_t<{c.Element.TypeName}>\tget" + c.MemberName + "() const { return m_" + c.MemberName + ".array(); }";
                 mWriter.WriteLine(line);
             }
             public void WriteObjectMember(ClassObject c)
             {
-                string line = $"\tconst {c.Type.TypeName}*\tget{c.Name}() const {{ return m_{c.Name}.ptr(); }}";
+                string line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return m_{c.MemberName}.ptr(); }}";
                 mWriter.WriteLine(line);
             }
             public void WriteAtomMember(AtomMember c)
@@ -288,7 +285,7 @@ namespace GameData
             }
             public void WriteCompoundMember(CompoundMember c)
             {
-                string line = "\tconst " + c.Type.TypeName + "*\tget" + c.Name + "() const { return m_" + c.Name + "; }";
+                string line = "\tconst " + c.TypeName + "*\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
         }
@@ -333,88 +330,79 @@ namespace GameData
 
 			public void WriteNullMember(NullMember c)
 			{
-				Write("u32", c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteBool8Member(BoolMember c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteInt8Member(Int8Member c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteInt16Member(Int16Member c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteInt32Member(Int32Member c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteInt64Member(Int64Member c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteUInt8Member(UInt8Member c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteUInt16Member(UInt16Member c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteUInt32Member(UInt32Member c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
             public void WriteUInt64Member(UInt64Member c)
             {
-                Write(c.Type.TypeName, c.Name, mWriter);
+                Write(c.TypeName, c.MemberName, mWriter);
             }
             public void WriteEnumMember(EnumMember c)
             {
-                string etype = String.Empty;
-                switch (c.Alignment)
-                {
-                    case 1: etype = "u8" ; break;
-                    case 2: etype = "u16" ; break;
-                    case 4: etype = "u32" ; break;
-                    case 8: etype = "u64" ; break;
-                }
-
-                Write($"rawenum_t<{c.Name}, {etype}>", c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
             }
 			public void WriteFloatMember(FloatMember c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteDoubleMember(DoubleMember c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteStringMember(StringMember c)
 			{
-				Write("rawstr_t", c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteFileIdMember(FileIdMember c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteArrayMember(ArrayMember c)
 			{
-				Write($"rawarr_t<{c.Type.TypeName}>", c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteObjectMember(ClassObject c)
 			{
-				Write($"rawobj_t<{c.Type.TypeName}>", c.Name, mWriter);
+				Write($"rawobj_t<{c.TypeName}>", c.MemberName, mWriter);
 			}
 			public void WriteAtomMember(AtomMember c)
 			{
-				Write(c.Type.TypeName, c.Name, mWriter);
+				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteCompoundMember(CompoundMember c)
 			{
-                Write(c.Type.TypeName, c.Name, mWriter);
+                Write(c.TypeName, c.MemberName, mWriter);
 			}
 		}
 
@@ -431,11 +419,12 @@ namespace GameData
 
             public void WriteEnum(EnumMember e, StreamWriter writer)
             {
-                writer.WriteLine($"enum {e.Name}");
+                writer.WriteLine($"enum {e.EnumType.Name}");
                 writer.WriteLine("{");
                 foreach (var en in Enum.GetValues(e.EnumType))
                 {
-                    writer.WriteLine($"\t{Enum.GetName(e.EnumType, en)} = {(ulong)en},");
+					object val = System.Convert.ChangeType(en, System.Enum.GetUnderlyingType(e.EnumType));
+					writer.WriteLine($"\t{Enum.GetName(e.EnumType, en)} = {val},");
                 }
                 writer.WriteLine("};");
                 writer.WriteLine();
@@ -446,17 +435,18 @@ namespace GameData
                 HashSet<string> writtenEnums = new();
                 foreach (EnumMember c in enums)
                 {
-                    if (!writtenEnums.Contains(c.Type.TypeName))
+                    if (!writtenEnums.Contains(c.EnumType.Name))
                     {
                         WriteEnum(c, writer);
-                        writtenEnums.Add(c.Type.TypeName);
+                        writtenEnums.Add(c.EnumType.Name);
                     }
                 }
-            }
+				writer.WriteLine();
+			}
 
 			public bool Write(ClassObject c, StreamWriter writer)
 			{
-				writer.WriteLine($"class {c.Name}");
+				writer.WriteLine($"class {c.TypeName}");
                 writer.WriteLine("{");
                 writer.WriteLine("public:");
 
@@ -477,20 +467,21 @@ namespace GameData
 				}
 
                 writer.WriteLine("};");
-
                 writer.WriteLine();
 				return true;
 			}
 
 			public void Write(List<ClassObject> classes, StreamWriter writer)
 			{
-                HashSet<string> writtenClasses = new();
+				classes.Reverse();
+
+				HashSet<string> writtenClasses = new();
 				foreach (ClassObject c in classes)
 				{
-					if (!writtenClasses.Contains(c.Type.TypeName))
+					if (!writtenClasses.Contains(c.TypeName))
 					{
 						Write(c, writer);
-						writtenClasses.Add(c.Type.TypeName);
+						writtenClasses.Add(c.TypeName);
 					}
 				}
 			}
@@ -626,6 +617,12 @@ namespace GameData
             foreach (ClassObject c in book.Classes)
                 c.FixMemberAlignment();
 
+			// TODO
+			// All bool members of a class should be combined to fall under one or more bitset_t member(s)
+			// So basically C# bool members should just take one bit of space.
+			// Hmmm, what about an array of bools?
+
+
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new();
 
@@ -658,7 +655,8 @@ namespace GameData
             FileStream codeFileStream = codeFileInfo.Create();
             StreamWriter codeFileStreamWriter = new(codeFileStream);
             CppCodeWriter codeWriter = new ();
-            codeWriter.Write(book.Classes, codeFileStreamWriter);
+			codeWriter.Write(book.Enums, codeFileStreamWriter);
+			codeWriter.Write(book.Classes, codeFileStreamWriter);
             codeFileStreamWriter.Close();
             codeFileStream.Close();
 

@@ -16,6 +16,7 @@ namespace GameData
     public class MemberBook
     {
         public List<MetaCode.ClassObject> Classes { get; set; }
+        public List<MetaCode.EnumMember> Enums { get; set; }
         public List<MetaCode.CompoundMember> Compounds { get; set; }
         public List<MetaCode.AtomMember> Atoms{ get; set; }
         public List<MetaCode.FileIdMember> FileIds{ get; set; }
@@ -31,13 +32,12 @@ namespace GameData
 
         private readonly MetaCode.IMemberGenerator mMemberGenerator;
         private readonly List<MetaCode.ClassObject> mClassDatabase;
+        private readonly List<MetaCode.EnumMember> mEnumDatabase;
         private readonly List<MetaCode.StringMember> mStringDatabase;
         private readonly List<MetaCode.ArrayMember> mArrayDatabase;
         private readonly List<MetaCode.AtomMember> mAtomDatabase;
         private readonly List<MetaCode.FileIdMember> mFileIdDatabase;
         private readonly List<MetaCode.CompoundMember> mCompoundDatabase;
-
-        private readonly HashSet<Type> mEnumDatabase;
 
         private readonly Stack<KeyValuePair<object, MetaCode.ClassObject>> mStack;
 
@@ -70,6 +70,8 @@ namespace GameData
             MetaCode.IClassMember member = null;
 
             string memberName = dataObjectFieldName;
+            if (memberName.StartsWith("m_"))
+                memberName = memberName.Substring(2);
 
             // Check if the object implements the IAtom, ICompound or IObject interface
             // If not then check if it's an Array, Class or other reference type objects
@@ -111,18 +113,14 @@ namespace GameData
             }
             else if (mMemberGenerator.IsArray(dataObjectFieldType))
             {
-                Type elementType = dataObjectFieldType.GetElementType();
                 Type arrayType = typeof(Array);
-
-                MetaCode.ArrayMember arrayMember = mMemberGenerator.NewArrayMember(arrayType, elementType, dataObjectFieldValue, memberName);
+                MetaCode.ArrayMember arrayMember = mMemberGenerator.NewArrayMember(arrayType, dataObjectFieldValue, memberName);
                 member = arrayMember;
             }
             else if (mMemberGenerator.IsGenericList(dataObjectFieldType))
             {
-                Type elementType = dataObjectFieldType.GetGenericArguments()[0];
                 Type arrayType = dataObjectFieldType.GetGenericTypeDefinition();
-
-                MetaCode.ArrayMember arrayMember = mMemberGenerator.NewArrayMember(arrayType, elementType, dataObjectFieldValue, memberName);
+                MetaCode.ArrayMember arrayMember = mMemberGenerator.NewArrayMember(arrayType, dataObjectFieldValue, memberName);
                 member = arrayMember;
             }
             else if (mMemberGenerator.IsString(dataObjectFieldType))
@@ -250,8 +248,6 @@ namespace GameData
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
-                this.mEnumDatabase.Add(dataObjectFieldType);
-
                 MetaCode.EnumMember m = mMemberGenerator.NewEnumMember(dataObjectFieldValue, memberName) as MetaCode.EnumMember;
                 member = m;
             }
@@ -273,13 +269,18 @@ namespace GameData
 
             if (mMemberGenerator.IsAtom(dataObjectFieldType))
             {
-                MetaCode.AtomMember atomMember = member as MetaCode.AtomMember;
-                mAtomDatabase.Add(atomMember);
+                MetaCode.AtomMember m= member as MetaCode.AtomMember;
+                mAtomDatabase.Add(m);
             }
             else if (mMemberGenerator.IsFileId(dataObjectFieldType))
             {
-                MetaCode.FileIdMember fileIdMember = member as MetaCode.FileIdMember;
-                mFileIdDatabase.Add(fileIdMember);
+                MetaCode.FileIdMember m= member as MetaCode.FileIdMember;
+                mFileIdDatabase.Add(m);
+            }
+            else if (mMemberGenerator.IsEnum(dataObjectFieldType))
+			{
+                MetaCode.EnumMember m = member as MetaCode.EnumMember;
+                mEnumDatabase.Add(m);
             }
             else if (mMemberGenerator.IsCompound(dataObjectFieldType))
             {
@@ -323,19 +324,18 @@ namespace GameData
                 MetaCode.ArrayMember arrayMember = member as MetaCode.ArrayMember;
                 if (dataObjectFieldValue is IEnumerable array)
                 {
-                    Type elementType = arrayMember.ElementType;
                     foreach (object b in array)
                     {
-                        AddMember(arrayMember, b, elementType, string.Empty);
+                        AddMember(arrayMember, b, b.GetType(), string.Empty);
                     }
                 }
                 mArrayDatabase.Add(arrayMember);
             }
             else if (mMemberGenerator.IsObject(dataObjectFieldType))
             {
-                MetaCode.ClassObject classMember = member as MetaCode.ClassObject;
-                mClassDatabase.Add(classMember);
-                mStack.Push(new KeyValuePair<object, MetaCode.ClassObject>(dataObjectFieldValue, classMember));
+                MetaCode.ClassObject c= member as MetaCode.ClassObject;
+                mClassDatabase.Add(c);
+                mStack.Push(new KeyValuePair<object, MetaCode.ClassObject>(dataObjectFieldValue, c));
             }
             else if (mMemberGenerator.IsString(dataObjectFieldType))
             {
@@ -420,9 +420,13 @@ namespace GameData
                 AddMembers(p.Value, p.Key);
             }
 
-            book.Classes = new ();
+            book.Classes = new();
             foreach (MetaCode.ClassObject c in mClassDatabase)
                 book.Classes.Add(c);
+
+            book.Enums= new();
+            foreach (MetaCode.EnumMember c in mEnumDatabase)
+                book.Enums.Add(c);
 
             book.Compounds = new ();
             foreach (MetaCode.CompoundMember c in mCompoundDatabase)
