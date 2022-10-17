@@ -8,30 +8,33 @@ namespace GameData
     /// <summary>
     /// Localization String
     /// 
-    /// The string will be converted to an Int64 with looking up the textual string in the Location DB.
+    /// The string will be converted to an Int64 with looking up the textual string in the Localization DB.
     /// 
     /// </summary>
-    public struct LString : IAtom
+    public struct LString : IStruct, ILStringProvider
     {
-        #region Fields
-
-        private readonly Int64 mStringId;
-
-        #endregion
         #region Constructor
 
         public LString(string s)
         {
-            Text = s;
-            mStringId = -1;
+            LStringText = s;
+            LStringId = -1;
         }
 
-        public string Text { get; private set; }
+        public string LStringText { get; private set; }
+        public Int64 LStringId { get; set; }
 
         #endregion
         #region Properties
 
-        public object Value { get { return mStringId; } }
+        public int StructSize => sizeof(Int64);
+        public int StructAlign => 8;
+        public string StructName => "lstring_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(mStringId);
+        }
+
 
         #endregion
         #region Methods

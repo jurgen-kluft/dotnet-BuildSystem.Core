@@ -135,30 +135,9 @@ namespace GameData
 				}
                 mDataStream.Write(c.Reference);
 			}
-			public void  WriteAtomMember(AtomMember c)
+			public void  WriteStructMember(StructMember c)
 			{
 				 c.Member.Write(this);
-			}
-			public void WriteCompoundMember(CompoundMember c)
-			{
-				if (c.IsNullType)
-				{
-					if (c.Reference == StreamReference.Empty)
-					{
-						c.Reference = mDataStream.BeginBlock(c.Alignment);
-						{
-							foreach (IClassMember m in c.Members)
-								m.Write(this);
-						}
-						mDataStream.EndBlock();
-					}
-                    mDataStream.Write(c.Reference);
-				}
-				else
-				{
-					foreach (IClassMember m in c.Members)
-						m.Write(this);
-				}
 			}
 		}
 
@@ -279,14 +258,9 @@ namespace GameData
                 string line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return m_{c.MemberName}.ptr(); }}";
                 mWriter.WriteLine(line);
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriteStructMember(StructMember c)
             {
                 c.Member.Write(this);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                string line = "\tconst " + c.TypeName + "*\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
-                mWriter.WriteLine(line);
             }
         }
 
@@ -396,13 +370,9 @@ namespace GameData
 			{
 				Write($"rawobj_t<{c.TypeName}>", c.MemberName, mWriter);
 			}
-			public void WriteAtomMember(AtomMember c)
+            public void WriteStructMember(StructMember c)
 			{
 				Write(c.TypeName, c.MemberName, mWriter);
-			}
-			public void WriteCompoundMember(CompoundMember c)
-			{
-                Write(c.TypeName, c.MemberName, mWriter);
 			}
 		}
 

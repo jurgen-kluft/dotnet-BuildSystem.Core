@@ -2,7 +2,7 @@ using System;
 
 namespace GameData
 {
-    public struct Rect : ICompound
+    public struct Rect : IStruct
     {
         public static readonly Rect SEmpty = new Rect();
 
@@ -19,6 +19,15 @@ namespace GameData
             Bottom = bottom;
         }
 
-        public Array Values { get { int[] a = new int[] { Left, Top, Right, Bottom }; return a; } }
+        public int StructSize => 4 * sizeof(int);
+        public int StructAlign => 4;
+        public string StructName => "rect_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(Left);
+            writer.Write(Top);
+            writer.Write(Right);
+            writer.Write(Bottom);
+        }
     }
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace GameData
 {
-    public struct Fx32 : IAtom
+    public struct Fx32 : IStruct
     {
         private Int32 mValue;
 
@@ -53,6 +53,12 @@ namespace GameData
             return array;
         }
 
-        public object Value { get { return mValue; } }
+        public int StructSize => sizeof(Int32);
+        public int StructAlign => 4;
+        public string StructName => "fx32_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(mValue);
+        }
     }
 }

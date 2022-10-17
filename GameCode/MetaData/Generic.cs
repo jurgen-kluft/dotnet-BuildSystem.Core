@@ -148,22 +148,10 @@ namespace GameData
                     m.Write(this);
                 mHierarchy.RemoveAt(mHierarchy.Count - 1);
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriteStructMember(StructMember c)
             {
-                // Has no reference, is a system type (bool, int, float)
-                c.Member.Write(this);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                StreamContext ctx;
-                if (mUnresolvedReferences.TryGetValue(c.Reference, out ctx))
-                    Log(c.MemberName, c.TypeName);
-
-                mHierarchy.Add(c);
-                foreach (IClassMember m in c.Members)
-                    m.Write(this);
-                mHierarchy.RemoveAt(mHierarchy.Count - 1);
-            }
+                // Has no reference
+            }            
         }
 
         #endregion
@@ -288,18 +276,11 @@ namespace GameData
                     m.Write(this);
                 mHierarchy.RemoveAt(mHierarchy.Count - 1);
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriteStructMember(StructMember c)
             {
                 //c.member.range = c.range;
                 c.Member.Write(this);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                mHierarchy.Add(c);
-                foreach (IClassMember m in c.Members)
-                    m.Write(this);
-                mHierarchy.RemoveAt(mHierarchy.Count - 1);
-            }
+            }            
         }
 
         #endregion
@@ -509,21 +490,11 @@ namespace GameData
                 mStringTable.Add(c.MemberName.ToLower());
 
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriteStructMember(StructMember c)
             {
                 mStringTable.Add(c.TypeName);
-                mStringTable.Add(c.MemberName.ToLower());
                 c.Member.Write(this);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                mStringTable.Add(c.TypeName);
-                mStringTable.Add(c.MemberName.ToLower());
-
-                foreach (IClassMember m in c.Members)
-                    m.Write(this);
-
-            }
+            }            
         }
 
         #endregion
@@ -665,24 +636,10 @@ namespace GameData
             {
                 WriteReference(c.Reference);
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriteStructMember(StructMember c)
             {
                 c.Member.Write(this);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                if (c.IsNullType)
-                {
-                    WriteReference(c.Reference);
-                }
-                else
-                {
-                    if (mAlignMembers) Align(c.Alignment);
-                    foreach (IClassMember m in c.Members)
-                        m.Write(this);
-                }
-
-            }
+            }            
         }
 
         #endregion
@@ -807,23 +764,10 @@ namespace GameData
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriterStructMember(StructMember c)
             {
                 c.Member.Write(this);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                if (c.Reference != StreamReference.Empty && mWriter.BeginBlock(c.Reference, sizeof(UInt32)))
-                {
-                    foreach (IClassMember m in c.Members)
-                        m.Write(mObjectMemberDataWriter);
-                    mWriter.EndBlock();
-                }
-
-                // Let the 'Reference' types write them selfs
-                foreach (IClassMember m in c.Members)
-                    m.Write(this);
-            }
+            }            
         }
 
         #endregion
@@ -948,13 +892,9 @@ namespace GameData
             {
                 WriteReferenceMember(c.Reference);
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriterStructMember(StructMember c)
             {
-                c.Member.Write(this);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                WriteReferenceMember(c.Reference);
+                c.Internal.StructWrite(mWriter);
             }
         }
 
@@ -1073,14 +1013,10 @@ namespace GameData
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
-            public void WriteAtomMember(AtomMember c)
+            public void WriterStructMember(StructMember c)
             {
                 WriteMember(c.TypeName, c.MemberName, c);
-            }
-            public void WriteCompoundMember(CompoundMember c)
-            {
-                WriteMember(c.TypeName, c.MemberName, c);
-            }
+            }            
         }
 
         #endregion
@@ -1211,25 +1147,6 @@ namespace GameData
                         c.Reference = StreamReference.NewReference;
                     }
                 }
-
-                foreach (AtomMember c in Atoms)
-                {
-                }
-
-                //Dictionary<Int64, StreamReference> referencesForFileIdDict = new ();
-                //foreach (FileIdMember c in fileids)
-                //{
-                //    StreamReference reference;
-                //    if (referencesForFileIdDict.TryGetValue(c.ID, out reference))
-                //    {
-                //        c.Reference = reference;
-                //    }
-                //    else
-                //    {
-                //        c.Reference = StreamReference.Instance;
-                //        referencesForFileIdDict.Add(c.ID, c.Reference);
-                //    }
-                //}
 
                 Dictionary<object, StreamReference> referencesForArraysDict = new ();
                 foreach (ArrayMember a in Arrays)
@@ -1424,9 +1341,8 @@ namespace GameData
             return (t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(List<>)));
         }
         public bool IsObject(Type t) { return t.IsClass && !t.IsArray && !IsString(t); }
-        public bool IsAtom(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IAtom)); }
         public bool IsFileId(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IFileId)); }
-        public bool IsCompound(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.ICompound)); }
+        public bool IsIStruct(Type t) { return Reflector.HasGenericInterface(t, typeof(GameData.IStruct)); }
 
         public IClassMember NewNullMember(string memberName) { return new NullMember(memberName); }
         public IClassMember NewBoolMember(bool o, string memberName) { return new BoolMember(memberName, o); }
@@ -1460,20 +1376,15 @@ namespace GameData
             return arrayMember;
         }
 
-        public AtomMember NewAtomMember(Type atomType, IClassMember atomContentMember, string memberName)
+        public StructMember NewStructMember(IStruct content, string memberName)
         {
-            AtomMember atom = new(memberName, atomType, atomContentMember);
+            StructMember atom = new(content, memberName);
             return atom;
         }
-        public FileIdMember NewFileIdMember(Type fileidType, Int64 content, string memberName)
+        public FileIdMember NewFileIdMember( Int64 content, string memberName)
         {
             FileIdMember fileid = new(memberName, content);
             return fileid;
-        }
-        public CompoundMember NewCompoundMember(Type compoundType, object compoundObject, string memberName)
-        {
-            CompoundMember compoundMember = new(compoundObject, compoundType, memberName);
-            return compoundMember;
         }
 
         #endregion

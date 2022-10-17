@@ -2,7 +2,7 @@ using System;
 
 namespace GameData
 {
-    public struct FVec2 : ICompound
+    public struct FVec2 : IStruct
     {
         public float X;
         public float Y;
@@ -23,6 +23,13 @@ namespace GameData
             Y = (float)y;
         }
 
-        public Array Values { get { float[] a = new float[] { X, Y }; return a; } }
+        public int StructSize => 2 * sizeof(float);
+        public int StructAlign => 4;
+        public string StructName => "fvec2_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(X);
+            writer.Write(Y);
+        }
     }
 }

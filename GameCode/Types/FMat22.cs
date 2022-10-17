@@ -2,7 +2,7 @@ using System;
 
 namespace GameData
 {
-    public struct FMat22 : ICompound
+    public struct FMat22 : IStruct
     {
         public readonly FVec2[] Mat;
 
@@ -29,6 +29,16 @@ namespace GameData
             Mat[1] = y;
         }
 
-        public Array Values { get { float[] a = new float[] { Mat[0].X, Mat[0].Y, Mat[1].X, Mat[1].Y }; return a; } }
+        public int StructSize => 4 * sizeof(float);
+        public int StructAlign => 4;
+        public string StructName => "fmat22_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(Mat[0].X);
+            writer.Write(Mat[0].Y);
+            writer.Write(Mat[1].X);
+            writer.Write(Mat[1].Y);
+        }
+
     }
 }

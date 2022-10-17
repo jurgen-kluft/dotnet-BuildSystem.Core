@@ -2,7 +2,7 @@ using System;
 
 namespace GameData
 {
-    public struct Size : ICompound
+    public struct Size : IStruct
     {
         public static readonly Size SEmpty = new Size();
 
@@ -15,6 +15,13 @@ namespace GameData
             Height = height;
         }
 
-        public Array Values { get { int[] a = new int[] { Width, Height }; return a; } }
+        public int StructSize => 2 * sizeof(int);
+        public int StructAlign => 4;
+        public string StructName => "size_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(Width);
+            writer.Write(Height);
+        }
     }
 }

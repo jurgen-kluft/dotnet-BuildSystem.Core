@@ -2,7 +2,7 @@ using System;
 
 namespace GameData
 {
-    public struct FRect : ICompound
+    public struct FRect : IStruct
     {
         public static readonly FRect SEmpty = new FRect();
 
@@ -26,6 +26,15 @@ namespace GameData
             Bottom = (float)bottom;
         }
 
-        public Array Values { get { float[] a = new float[] { Left, Top, Right, Bottom }; return a; } }
+        public int StructSize => 4 * sizeof(float);
+        public int StructAlign => 4;
+        public string StructName => "frect_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(Left);
+            writer.Write(Top);
+            writer.Write(Right);
+            writer.Write(Bottom);
+        }
     }
 }

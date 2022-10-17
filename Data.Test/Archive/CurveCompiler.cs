@@ -4,7 +4,7 @@ using System.IO;
 
 namespace GameData
 {
-    public class Curves : Resource, ICompound
+    public class Curves : Resource 
     {
         private readonly CurveCompiler[] mCompilers;
         private FileId[] fileIds;
@@ -28,7 +28,7 @@ namespace GameData
         public Array Values { get { return fileIds; } }
     }
 
-    public class Curve : Resource, IAtom
+    public class Curve : Resource
     {
         private readonly CurveCompiler mCompiler;
     	private FileId fileId;

@@ -17,8 +17,7 @@ namespace GameData
     {
         public List<MetaCode.ClassObject> Classes { get; set; }
         public List<MetaCode.EnumMember> Enums { get; set; }
-        public List<MetaCode.CompoundMember> Compounds { get; set; }
-        public List<MetaCode.AtomMember> Atoms{ get; set; }
+        public List<MetaCode.StructMember> Structs { get; set; }
         public List<MetaCode.FileIdMember> FileIds{ get; set; }
         public List<MetaCode.ArrayMember> Arrays{ get; set; }
         public List<MetaCode.StringMember> Strings{ get; set; }
@@ -35,9 +34,8 @@ namespace GameData
         private readonly List<MetaCode.EnumMember> mEnumDatabase;
         private readonly List<MetaCode.StringMember> mStringDatabase;
         private readonly List<MetaCode.ArrayMember> mArrayDatabase;
-        private readonly List<MetaCode.AtomMember> mAtomDatabase;
+        private readonly List<MetaCode.StructMember> mStructDatabase;
         private readonly List<MetaCode.FileIdMember> mFileIdDatabase;
-        private readonly List<MetaCode.CompoundMember> mCompoundDatabase;
 
         private readonly Stack<KeyValuePair<object, MetaCode.ClassObject>> mStack;
 
@@ -51,9 +49,8 @@ namespace GameData
             mClassDatabase = new ();
             mStringDatabase = new ();
             mArrayDatabase = new ();
-            mAtomDatabase = new ();
+            mStructDatabase = new ();
             mFileIdDatabase = new ();
-            mCompoundDatabase = new ();
 
             mEnumDatabase = new();
 
@@ -73,21 +70,14 @@ namespace GameData
             if (memberName.StartsWith("m_"))
                 memberName = memberName.Substring(2);
 
-            // Check if the object implements the IAtom, ICompound or IObject interface
-            // If not then check if it's an Array, Class or other reference type objects
-            // Lastly handle all system type objects.
-            if (mMemberGenerator.IsAtom(dataObjectFieldType))
+            if (mMemberGenerator.IsIStruct(dataObjectFieldType))
             {
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
-                // An Atom is holding a primitive type like Int, Float etc.. we treat this as a MetaCode.Member
-                PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
-                object atomContentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
-                MetaCode.IClassMember atomContentMember = CreateMember(atomContentObject, atomContentObject.GetType(), string.Empty);
-
-                MetaCode.AtomMember atomMember = mMemberGenerator.NewAtomMember(dataObjectFieldValue.GetType(), atomContentMember, memberName);
-                member = atomMember;
+                object contentObject = dataObjectFieldValue;
+                MetaCode.StructMember structMember = mMemberGenerator.NewStructMember(dataObjectFieldValue.GetType(), contentMember as IStruct, memberName);
+                member = structMember;
             }
             else if (mMemberGenerator.IsFileId(dataObjectFieldType))
             {
@@ -99,17 +89,8 @@ namespace GameData
                 object contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
                 Int64 id = (Int64)contentObject;
 
-                MetaCode.FileIdMember fileIdMember = mMemberGenerator.NewFileIdMember(dataObjectFieldValue.GetType(), id, memberName);
+                MetaCode.FileIdMember fileIdMember = mMemberGenerator.NewFileIdMember(id, memberName);
                 member = fileIdMember;
-            }
-            else if (mMemberGenerator.IsCompound(dataObjectFieldType))
-            {
-                // Create default compound of the given type
-                if (dataObjectFieldValue == null)
-                    dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
-
-                MetaCode.CompoundMember compoundMember = mMemberGenerator.NewCompoundMember(dataObjectFieldValue.GetType(), dataObjectFieldValue, memberName);
-                member = compoundMember;
             }
             else if (mMemberGenerator.IsArray(dataObjectFieldType))
             {
@@ -267,10 +248,10 @@ namespace GameData
 
             inCompound.AddMember(member);
 
-            if (mMemberGenerator.IsAtom(dataObjectFieldType))
+            if (mMemberGenerator.IsIStruct(dataObjectFieldType))
             {
-                MetaCode.AtomMember m= member as MetaCode.AtomMember;
-                mAtomDatabase.Add(m);
+                MetaCode.StructMember m= member as MetaCode.StructMember;
+                mStructDatabase.Add(m);
             }
             else if (mMemberGenerator.IsFileId(dataObjectFieldType))
             {
@@ -281,27 +262,6 @@ namespace GameData
 			{
                 MetaCode.EnumMember m = member as MetaCode.EnumMember;
                 mEnumDatabase.Add(m);
-            }
-            else if (mMemberGenerator.IsCompound(dataObjectFieldType))
-            {
-                MetaCode.CompoundMember compoundMember = member as MetaCode.CompoundMember;
-                // Is ICompound a struct or class, which means to say is it a value or ref type?
-                compoundMember.IsNullType = (dataObjectFieldValue == null) || (dataObjectFieldValue.GetType().IsClass);
-                if (!compoundMember.IsNullType || dataObjectFieldValue != null)
-                {
-                    PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Values");
-                    if (valuePropertyInfo.GetValue(dataObjectFieldValue, null) is Array objectArray)
-                    {
-                        foreach (object o in objectArray)
-                        {
-                            if (o != null)
-                                AddMember(compoundMember, o, o.GetType(), string.Empty);
-                            else
-                                AddMember(compoundMember, null, typeof(object), string.Empty);
-                        }
-                    }
-                }
-                mCompoundDatabase.Add(compoundMember);
             }
             else if (mMemberGenerator.IsArray(dataObjectFieldType))
             {
@@ -428,13 +388,9 @@ namespace GameData
             foreach (MetaCode.EnumMember c in mEnumDatabase)
                 book.Enums.Add(c);
 
-            book.Compounds = new ();
-            foreach (MetaCode.CompoundMember c in mCompoundDatabase)
-                book.Compounds.Add(c);
-
-            book.Atoms = new ();
-            foreach (MetaCode.AtomMember c in mAtomDatabase)
-                book.Atoms.Add(c);
+            book.Structs = new ();
+            foreach (MetaCode.StructMember c in mStructDatabase)
+                book.Structs.Add(c);
 
             book.FileIds = new ();
             foreach (MetaCode.FileIdMember c in mFileIdDatabase)
@@ -449,8 +405,7 @@ namespace GameData
                 book.Strings.Add(s);
 
             mClassDatabase.Clear();
-            mCompoundDatabase.Clear();
-            mAtomDatabase.Clear();
+            mStructDatabase.Clear();
             mFileIdDatabase.Clear();
             mArrayDatabase.Clear();
             mStringDatabase.Clear();

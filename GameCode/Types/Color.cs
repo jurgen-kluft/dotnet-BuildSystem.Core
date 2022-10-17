@@ -154,7 +154,7 @@ namespace GameData
         public static readonly Color Yellowgreen = new Color(154, 205, 50);
     }
 
-	public struct Color : IAtom
+	public struct Color : IStruct
 	{
         private uint mColor;
 
@@ -167,6 +167,12 @@ namespace GameData
         {
         }
 
-        public object Value { get { return mColor; } }
+        public int StructSize => sizeof(uint);
+        public int StructAlign => 4;
+        public string StructName => "color_t";
+        public void StructWrite(IBinaryWriter writer)
+        {
+            writer.Write(mColor);
+        }
     }
 }

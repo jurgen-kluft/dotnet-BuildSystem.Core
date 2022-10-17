@@ -20,8 +20,6 @@ following things will be done by the BuildSystem:
   - ``FMat22``/``FMat33``/``FMat44``;
   - ``Color``; 32-bit RGBA color
   - ``LString``; Localized string
- - Anything derived from ``IAtom`` (system types s8/s16/..., see above)
- - Anything derived from ``ICompound`` (mapped to a struct or class in C++)
  - Anything derived from ``IDataCompiler``:
    - ```MeshCompiler("objects/rock.ply")```
    - ```TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)```

@@ -6,11 +6,8 @@ namespace GameData
     /// The purpose of ICompound is to provide a way for the of user to define a type that 
     /// can be casted to a mirroring structure in C/C++.
     /// 
-    /// An ICompound is treated as a value-type and not as an object type, and object type
-    /// is referencable (a pointer in C++).
-    /// 
-    /// So if you have a class that you want to cast to a struct/class in C/C++ then you 
-    /// need to define it like this:
+    /// An ICompound is treated as an object type, and an object type is referencable 
+    /// (a pointer in C++).
     /// 
     ///         class YourClass : ICompound
 	///         {

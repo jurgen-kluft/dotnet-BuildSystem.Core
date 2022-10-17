@@ -9,7 +9,7 @@ namespace GameData
         Int64 Value { get; }
     }
 
-    public sealed class FileId : IFileId
+    public sealed class FileId : IFileId, IStruct
     {
         private readonly IFileIdProvider mProvider;
 
@@ -23,12 +23,12 @@ namespace GameData
             mProvider = provider;
         }
 
-        public Int64 Value
+        public int StructSize => sizeof(Int64);
+        public int StructAlign => 8;
+        public string StructName => "fileid_t";
+        public void StructWrite(IBinaryWriter writer)
         {
-            get
-            {
-                return mProvider.FileId;
-            }
+            writer.Write(mProvider.FileId);
         }
     }
 }
