@@ -23,10 +23,15 @@ namespace GameData
             mProvider = provider;
         }
 
+        public Int64 Value
+        {
+            get { return mProvider.FileId; }
+        }
+
         public int StructSize => sizeof(Int64);
         public int StructAlign => 8;
         public string StructName => "fileid_t";
-        public void StructWrite(IBinaryWriter writer)
+        public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(mProvider.FileId);
         }

@@ -198,13 +198,6 @@ namespace DataBuildSystem
 
         public void PrepareFilesProviders(List<IDataCompiler> compilers)
         {
-            // TODO
-            // Build SignatureList List<KeyValuePair<Signature, IDataCompiler>>
-            // Sort the SignatureList by Signature (there can be duplicates)
-            // PrevSignature = SignatureList[0].Key
-            // Foreach KeyValuePair<Signature, IDataCompiler> in SignatureList
-            //    Assign 'Index' to the IDataCompiler.FilesProviderId
-            //    When Signature != PrevSignature -> increment 'Index'
             //    PrevSignature = Signature
             if (compilers.Count == 0)
                 return;

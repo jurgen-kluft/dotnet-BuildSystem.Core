@@ -29,7 +29,7 @@ namespace GameData
         public int StructSize => 4 * sizeof(float);
         public int StructAlign => 4;
         public string StructName => "frect_t";
-        public void StructWrite(IBinaryWriter writer)
+        public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(Left);
             writer.Write(Top);

@@ -47,7 +47,7 @@ namespace GameCore
             return EEndian.LITTLE;
         }
 
-        public static IBinaryWriter CreateBinaryWriter(Stream s, EEndian endian)
+        public static IBinaryStream CreateBinaryStream(Stream s, EEndian endian)
         {
             BinaryWriter bw = new BinaryWriter(s);
             if (endian == EEndian.LITTLE)

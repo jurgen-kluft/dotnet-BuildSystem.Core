@@ -10,6 +10,6 @@ namespace GameData
         /// string that exists in the Localization Database.
         /// </summary>
         string LStringText { get; }
-        Int32 LStringId { set; }
+        Int64 LStringId { set; }
     }
 }

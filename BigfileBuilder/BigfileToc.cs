@@ -802,7 +802,7 @@ namespace DataBuildSystem
 
         public static void CopyFilesOrder(BigfileToc currentToc, BigfileToc sourceToc)
         {
-            // TODO
+            // TODO Missing implementation
         }
 
         private static void ReadTable(IReadContext context, FileStream stream, EEndian endian)
@@ -836,7 +836,7 @@ namespace DataBuildSystem
 
         private static void WriteTable(IWriteContext context, FileStream stream, EEndian endian)
         {
-            IBinaryWriter binaryWriter = EndianUtils.CreateBinaryWriter(stream, endian);
+            IBinaryStream binaryWriter = EndianUtils.CreateBinaryStream(stream, endian);
             {
                 int block = -1;
                 do

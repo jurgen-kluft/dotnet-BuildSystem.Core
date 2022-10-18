@@ -56,7 +56,7 @@ namespace GameData
         public int StructSize => sizeof(Int32);
         public int StructAlign => 4;
         public string StructName => "fx32_t";
-        public void StructWrite(IBinaryWriter writer)
+        public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(mValue);
         }

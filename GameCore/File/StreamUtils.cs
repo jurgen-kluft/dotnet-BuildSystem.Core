@@ -112,7 +112,7 @@ namespace GameCore
 
         private string Filename { get; }
         private EEndian Endian { get; }
-        private IBinaryWriter Writer { get; set; }
+        private IBinaryStream Writer { get; set; }
         private IBinaryReader Reader { get; set; }
 
         public bool Open(EMode mode)
@@ -122,7 +122,7 @@ namespace GameCore
             try
             {
                 stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
-                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryWriter(stream, Endian);
+                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryStream(stream, Endian);
                 else if (mode == EMode.Read) Reader = EndianUtils.CreateBinaryReader(stream, Endian);
             }
             catch (Exception)
@@ -159,19 +159,19 @@ namespace GameCore
 
     public static class StreamUtils
     {
-        private static Int64 Position(IBinaryWriter writer)
+        private static Int64 Position(IBinaryStream writer)
         {
             Int64 p = writer.Position;
             return p;
         }
 
-        public static bool Aligned(IBinaryWriter writer, Int64 alignment)
+        public static bool Aligned(IBinaryStream writer, Int64 alignment)
         {
             Int64 p = CMath.Align(writer.Position, alignment);
             return (p == writer.Position);
         }
 
-        public static void Align(IBinaryWriter writer, Int64 alignment)
+        public static void Align(IBinaryStream writer, Int64 alignment)
         {
             writer.Position = CMath.Align(writer.Position, alignment);
         }

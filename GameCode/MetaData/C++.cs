@@ -385,9 +385,6 @@ namespace GameData
             private readonly MemberGetterWriter mGetterWriter = new();
 			private readonly MemberWriter mMemberWriter = new();
 
-            // TODO
-            // Write out also any used Enums
-
             public void WriteEnum(EnumMember e, StreamWriter writer)
             {
                 writer.WriteLine($"enum {e.EnumType.Name}");
@@ -544,6 +541,7 @@ namespace GameData
         // uint/int     -> 4 byte
         // ushort/short -> 2 byte
         // byte         -> 1 byte
+        // bool         -> 4 byte (although many booleans are packed into 32 bits)
 
         // We will use a ResourceDataWriter for writing the resource data as binary data
         // Exporting every class as a struct in C/C++ using a ClassWriter providing enough
@@ -567,11 +565,10 @@ namespace GameData
             foreach (ClassObject c in book.Classes)
                 c.FixMemberAlignment();
 
-			// TODO
+			// TODO Booleans into bitset_t
 			// All bool members of a class should be combined to fall under one or more bitset_t member(s)
 			// So basically C# bool members should just take one bit of space.
-			// Hmmm, what about an array of bools?
-
+			// Hmmm, what about an array of bools, should that be converted into a bitarray_t
 
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new();
@@ -590,10 +587,10 @@ namespace GameData
             // IReferenceableMember objects in the DataStream.
             FileInfo dataFileInfo = new(dataFilename);
             FileStream dataFileStream = new(dataFileInfo.FullName, FileMode.Create);
-            IBinaryWriter dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, endian);
+            IBinaryStream dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, endian);
             FileInfo relocFileInfo = new(relocFilename);
             FileStream relocFileStream = new(relocFileInfo.FullName, FileMode.Create);
-            IBinaryWriter relocFileStreamWriter = EndianUtils.CreateBinaryWriter(relocFileStream, endian);
+            IBinaryStream relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, endian);
             dataStream.Finalize(dataFileStreamWriter, stringTable);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
@@ -622,39 +619,26 @@ namespace GameData
     ///
     /// </summary>
     ///
-    public interface IBinaryData
-    {
-        void Write(sbyte v);
-        void Write(byte v);
-        void Write(Int16 v);
-        void Write(UInt16 v);
-        void Write(Int32 v);
-        void Write(UInt32 v);
-        void Write(Int64 v);
-        void Write(UInt64 v);
-        void Write(float v);
-        void Write(double v);
-    }
 
-	public class CppDataStream : IBinaryData
+	public class CppDataStream : IBinaryWriter
 	{
 		#region DataBlock
 
 		private class DataBlock
 		{
 			private readonly MemoryStream mDataStream = new();
-			private readonly IBinaryWriter mDataWriter;
+			private readonly IBinaryStream mDataWriter;
 
 			private readonly Dictionary<StreamReference, List<StreamOffset>> mPointers = new();
 
 			internal DataBlock(EEndian inEndian, int alignment)
             {
                 Alignment = alignment;
-                // TODO
+                // TODO Optimization
                 // Using MemoryStream with many DataBlock instances is not optimal, this could be
                 // seriously optimized
 				Reference = StreamReference.NewReference;
-				mDataWriter = EndianUtils.CreateBinaryWriter(mDataStream, inEndian);
+				mDataWriter = EndianUtils.CreateBinaryStream(mDataStream, inEndian);
 			}
 
             internal StreamReference Reference { get; set; }
@@ -732,6 +716,15 @@ namespace GameData
 				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
 				mDataWriter.Write(v);
 			}
+			internal void Write(byte[] data, int index, int count)
+			{
+				mDataWriter.Write(data, index, count);
+			}
+			internal void Write(string str)
+			{
+				mDataWriter.Write(str);
+			}
+			
 			internal void Write(StreamReference v)
 			{
 				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt32)));
@@ -788,7 +781,7 @@ namespace GameData
 				}
 			}
 
-			internal void WriteTo(IBinaryWriter outData, IDictionary<StreamReference, StreamOffset> dataOffsetDataBase)
+			internal void WriteTo(IBinaryStream outData, IDictionary<StreamReference, StreamOffset> dataOffsetDataBase)
 			{
                 StreamUtils.Align(outData, Alignment);
 
@@ -799,12 +792,13 @@ namespace GameData
 					{
 						foreach (StreamOffset o in k.Value)
 						{
-							mDataWriter.Seek(o); // Seek to the position that has a 'StreamReference'
+							// Seek to the position that has the 'StreamReference'
+							mDataWriter.Seek(o); 
 
-                            // TODO
-                            // Assert when the offset is out of bounds (-2GB < offset < 2GB)
-
-                            mDataWriter.Write(outDataOffset.Offset32); // This needs to be a relative (signed) offset to the class/array/string
+                            // Write the relative (signed) offset
+                            int offset = (int)(outDataOffset.Offset - o.Offset);
+                            // TODO: Assert when the offset is out of bounds (-2GB < offset < 2GB)
+                            mDataWriter.Write(offset); 
 						}
 					}
 				}
@@ -816,7 +810,6 @@ namespace GameData
 		}
 
 		#endregion
-
 		#region Fields
 
 		private readonly List<DataBlock> mData = new();
@@ -895,12 +888,24 @@ namespace GameData
 		{
 			Current.Write(v);
 		}
+		public void Write(byte[] data)
+		{
+			Current.Write(data, 0, data.Length);
+		}
+		public void Write(byte[] data, int index, int count)
+		{
+			Current.Write(data, index, count);
+		}
+		public void Write(string str)
+		{
+			Current.Write(str);
+		}
 		public void Write(StreamReference v)
 		{
 			Current.Write(v);
 		}
 
-		public void Finalize(IBinaryWriter dataWriter, StringTable stringTable)
+		public void Finalize(IBinaryStream dataWriter, StringTable stringTable)
 		{
 			// Dictionary for mapping a Reference object to a Data object
             Dictionary<StreamReference, DataBlock> finalDataDataBase = new();

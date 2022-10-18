@@ -46,6 +46,7 @@ namespace MetaTest
             public SByte m_Int8 = 2;
             public float m_Float = 3.14f;
             public ETestEnum m_Enum = ETestEnum.EnumerationC;
+            public Color m_Color = Colors.Aliceblue;
 
             public TestData m_Data = new();
         }

@@ -119,7 +119,7 @@ namespace GameCore
             }
         }
 
-        public void Write(IBinaryWriter writer, Dictionary<StreamReference, StreamOffset> dataOffsetDataBase)
+        public void Write(IBinaryStream writer, Dictionary<StreamReference, StreamOffset> dataOffsetDataBase)
         {
             SortByHash();
 

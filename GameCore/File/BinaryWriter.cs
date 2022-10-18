@@ -4,16 +4,8 @@ using System.IO;
 
 namespace GameCore
 {
-    #region IBinaryWriter
-
     public interface IBinaryWriter
     {
-        Int64 Position { get; set; }
-        Int64 Length { get; }
-
-        void Write(byte[] data);
-        void Write(byte[] data, int index, int count);
-
         void Write(sbyte v);
         void Write(byte v);
         void Write(Int16 v);
@@ -24,7 +16,17 @@ namespace GameCore
         void Write(UInt64 v);
         void Write(float v);
         void Write(double v);
+        void Write(byte[] data);
+        void Write(byte[] data, int index, int count);
         void Write(string v);
+    }
+    
+    #region IBinaryStream
+
+    public interface IBinaryStream : IBinaryWriter
+    {
+        Int64 Position { get; set; }
+        Int64 Length { get; }
 
         bool Seek(StreamOffset offset);
         void Close();
@@ -34,11 +36,11 @@ namespace GameCore
 
     #region BinaryWriter (Big Endian)
 
-    public sealed class BinaryWriterBigEndian : IBinaryWriter
+    public sealed class BinaryWriterBigEndian : IBinaryStream
     {
         #region Fields
 
-        private readonly static BigEndian mEndian = new();
+        private static readonly BigEndian sEndian = new();
         private readonly BinaryWriter mWriter;
 
         #endregion
@@ -75,42 +77,42 @@ namespace GameCore
 
         public void Write(short v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(ushort v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(int v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(uint v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(long v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(ulong v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(float v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(double v)
         {
-            mWriter.Write(mEndian.Convert(v));
+            mWriter.Write(sEndian.Convert(v));
         }
 
         public void Write(string s)
@@ -144,8 +146,7 @@ namespace GameCore
 
         public bool Seek(StreamOffset offset)
         {
-            // TODO figure out how to seek to a position larger than 32 bit
-            Int64 newPos = mWriter.Seek((int)offset.Offset, SeekOrigin.Begin);
+            Int64 newPos = mWriter.BaseStream.Seek(offset.Offset, SeekOrigin.Begin);
             return offset.Offset == newPos;
         }
 
@@ -160,7 +161,7 @@ namespace GameCore
     #endregion
     #region BinaryWriter (Little Endian)
 
-    public sealed class BinaryWriterLittleEndian : IBinaryWriter
+    public sealed class BinaryWriterLittleEndian : IBinaryStream
     {
         #region Fields
 
@@ -269,8 +270,7 @@ namespace GameCore
 
         public bool Seek(StreamOffset offset)
         {
-            // TODO figure out how to seek to a position larger than 32 bit
-            Int64 newPos = mWriter.Seek((int)offset.Offset, SeekOrigin.Begin);
+            Int64 newPos = mWriter.BaseStream.Seek(offset.Offset, SeekOrigin.Begin);
             return offset.Offset == newPos;
         }
 
@@ -282,7 +282,7 @@ namespace GameCore
         #endregion
     }
 
-    public sealed class BinaryFileWriter : IBinaryWriter
+    public sealed class BinaryFileWriter : IBinaryStream
     {
         private BinaryWriterLittleEndian mBinaryWriter;
         private BinaryWriter mBinaryStreamWriter;
@@ -401,7 +401,7 @@ namespace GameCore
         #endregion
     }
 
-    public class BinaryMemoryWriter : IBinaryWriter
+    public class BinaryMemoryWriter : IBinaryStream
     {
         private BinaryWriterLittleEndian mBinaryWriter;
         private BinaryWriter mBinaryStreamWriter;

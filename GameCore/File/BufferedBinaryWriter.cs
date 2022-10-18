@@ -3,14 +3,14 @@ using System.IO;
 
 namespace GameCore
 {
-    public class BufferedBinaryWriter : IBinaryWriter
+    public class BufferedBinaryWriter : IBinaryStream
     {
         #region Fields
 
         private readonly Stream mStream;
         private int mBufferIdx;
         private IAsyncResult mASyncResult;
-        private readonly IBinaryWriter[] mEndianWriter;
+        private readonly IBinaryStream[] mEndianWriter;
         private readonly MemoryStream[] mMemoryStream;
         private Int64 mNumWrittenBytes = 0;
         private readonly Int64 mMaxBufferedBytes = 64 * 1024;
@@ -26,9 +26,9 @@ namespace GameCore
             mMemoryStream[0] = new MemoryStream(bufferSize);
             mMemoryStream[1] = new MemoryStream(bufferSize);
 
-            mEndianWriter = new IBinaryWriter[2];
-            mEndianWriter[0] = EndianUtils.CreateBinaryWriter(mMemoryStream[0], endian);
-            mEndianWriter[1] = EndianUtils.CreateBinaryWriter(mMemoryStream[1], endian);
+            mEndianWriter = new IBinaryStream[2];
+            mEndianWriter[0] = EndianUtils.CreateBinaryStream(mMemoryStream[0], endian);
+            mEndianWriter[1] = EndianUtils.CreateBinaryStream(mMemoryStream[1], endian);
 
             mMaxBufferedBytes = bufferSize;
         }
@@ -97,118 +97,118 @@ namespace GameCore
             if ((mMemoryStream[mBufferIdx].Position + data.Length) > mMaxBufferedBytes)
                 Flush();
 
-            Int64 b = mEndianWriter[mBufferIdx].Write(data, 0, data.Length);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(data, 0, data.Length);
+            mNumWrittenBytes += (Position - pos);
         }
 
-        public Int64 Write(byte[] data, int index, int count)
+        public void Write(byte[] data, int index, int count)
         {
             if ((mMemoryStream[mBufferIdx].Position + count) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(data, index, count);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(data, index, count);
+            mNumWrittenBytes += (Position-pos);
         }
 
 
-        public Int64 Write(sbyte v)
+        public void Write(sbyte v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 1) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(byte v)
+        public void Write(byte v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 1) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(Int16 v)
+        public void Write(Int16 v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 2) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(UInt16 v)
+        public void Write(UInt16 v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 2) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(Int32 v)
+        public void Write(Int32 v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 4) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(UInt32 v)
+        public void Write(UInt32 v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 4) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(Int64 v)
+        public void Write(Int64 v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 8) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(UInt64 v)
+        public void Write(UInt64 v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 8) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(float v)
+        public void Write(float v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 4) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(double v)
+        public void Write(double v)
         {
             if ((mMemoryStream[mBufferIdx].Position + 8) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
-        public Int64 Write(string v)
+        public void Write(string v)
         {
             if ((mMemoryStream[mBufferIdx].Position + v.Length + 1) > mMaxBufferedBytes)
                 Flush();
-            Int64 b = mEndianWriter[mBufferIdx].Write(v);
-            mNumWrittenBytes += b;
-            return b;
+            Int64 pos = Position;
+            mEndianWriter[mBufferIdx].Write(v);
+            mNumWrittenBytes += (Position-pos);
         }
 
 

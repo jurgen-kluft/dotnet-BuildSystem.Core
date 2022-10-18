@@ -231,7 +231,7 @@ namespace GameCore
             return Size;
         }
 
-        public void WriteTo(IBinaryWriter _writer)
+        public void WriteTo(GameCore.IBinaryWriter _writer)
         {
             _writer.Write(hash_, 0, Size);
         }

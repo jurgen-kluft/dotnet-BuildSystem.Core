@@ -11,7 +11,7 @@ namespace GameData
     /// The string will be converted to an Int64 with looking up the textual string in the Localization DB.
     /// 
     /// </summary>
-    public struct LString : IStruct, ILStringProvider
+    public struct LString : IStruct, ILStringIdProvider
     {
         #region Constructor
 
@@ -30,9 +30,9 @@ namespace GameData
         public int StructSize => sizeof(Int64);
         public int StructAlign => 8;
         public string StructName => "lstring_t";
-        public void StructWrite(IBinaryWriter writer)
+        public void StructWrite(GameCore.IBinaryWriter writer)
         {
-            writer.Write(mStringId);
+            writer.Write(LStringId);
         }
 
 

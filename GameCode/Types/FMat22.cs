@@ -32,7 +32,7 @@ namespace GameData
         public int StructSize => 4 * sizeof(float);
         public int StructAlign => 4;
         public string StructName => "fmat22_t";
-        public void StructWrite(IBinaryWriter writer)
+        public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(Mat[0].X);
             writer.Write(Mat[0].Y);

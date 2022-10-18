@@ -18,7 +18,7 @@ namespace GameData
         public int StructSize => 2 * sizeof(int);
         public int StructAlign => 4;
         public string StructName => "size_t";
-        public void StructWrite(IBinaryWriter writer)
+        public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(Width);
             writer.Write(Height);

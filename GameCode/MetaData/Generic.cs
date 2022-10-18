@@ -279,7 +279,6 @@ namespace GameData
             public void WriteStructMember(StructMember c)
             {
                 //c.member.range = c.range;
-                c.Member.Write(this);
             }
         }
 
@@ -493,7 +492,6 @@ namespace GameData
             public void WriteStructMember(StructMember c)
             {
                 mStringTable.Add(c.TypeName);
-                c.Member.Write(this);
             }
         }
 
@@ -638,7 +636,7 @@ namespace GameData
             }
             public void WriteStructMember(StructMember c)
             {
-                c.Member.Write(this);
+                c.Internal.StructWrite(mWriter);
             }
         }
 
@@ -764,9 +762,8 @@ namespace GameData
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
             }
-            public void WriterStructMember(StructMember c)
+            public void WriteStructMember(StructMember c)
             {
-                c.Member.Write(this);
             }
         }
 
@@ -892,7 +889,7 @@ namespace GameData
             {
                 WriteReferenceMember(c.Reference);
             }
-            public void WriterStructMember(StructMember c)
+            public void WriteStructMember(StructMember c)
             {
                 c.Internal.StructWrite(mWriter);
             }
@@ -1013,7 +1010,7 @@ namespace GameData
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
-            public void WriterStructMember(StructMember c)
+            public void WriteStructMember(StructMember c)
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
@@ -1102,7 +1099,7 @@ namespace GameData
                 {
                     ClassObject i = c;
 
-                    if (i.IsDefault || i.Value == null)
+                    if (i.Value == null)
                     {
                         i.Reference = StreamReference.Empty;
                     }
@@ -1120,38 +1117,10 @@ namespace GameData
                     }
                 }
 
-                Dictionary<object, StreamReference> referencesForCompoundsDict = new Dictionary<object, StreamReference>();
-                foreach (CompoundMember c in Compounds)
-                {
-                    if (c.IsNullType)
-                    {
-                        if (c.Value != null)
-                        {
-                            if (referencesForCompoundsDict.TryGetValue(c.Value, out StreamReference reference))
-                            {
-                                c.Reference = reference;
-                            }
-                            else
-                            {
-                                c.Reference = StreamReference.NewReference;
-                                referencesForCompoundsDict.Add(c.Value, c.Reference);
-                            }
-                        }
-                        else
-                        {
-                            c.Reference = StreamReference.Empty;
-                        }
-                    }
-                    else
-                    {
-                        c.Reference = StreamReference.NewReference;
-                    }
-                }
-
                 Dictionary<object, StreamReference> referencesForArraysDict = new ();
                 foreach (ArrayMember a in Arrays)
                 {
-                    if (a.IsDefault || a.Value == null)
+                    if (a.Value == null)
                     {
                         a.Reference = StreamReference.Empty;
                     }
@@ -1179,11 +1148,11 @@ namespace GameData
         {
             FileInfo dataFileInfo = new(dataFilename);
             FileStream dataStream = new(dataFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024);
-            IBinaryWriter resourceDataWriter = EndianUtils.CreateBinaryWriter(dataStream, endian);
+            IBinaryStream resourceDataWriter = EndianUtils.CreateBinaryStream(dataStream, endian);
 
             FileInfo reallocTableFileInfo = new(relocFilename);
             FileStream reallocTableStream = new(reallocTableFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 2 * 1024 * 1024);
-            IBinaryWriter resourceDataReallocTableWriter = EndianUtils.CreateBinaryWriter(reallocTableStream, endian);
+            IBinaryStream resourceDataReallocTableWriter = EndianUtils.CreateBinaryStream(reallocTableStream, endian);
 
             try
             {
@@ -1357,7 +1326,6 @@ namespace GameData
         public IClassMember NewFloatMember(float o, string memberName) { return new FloatMember(memberName, o); }
         public IClassMember NewDoubleMember(double o, string memberName) { return new DoubleMember(memberName, o); }
         public IClassMember NewStringMember(string o, string memberName) { return new StringMember(memberName, o); }
-        public IClassMember NewFileIdMember(Int64 o, string memberName) { return new FileIdMember(memberName, o); }
         public IClassMember NewEnumMember(object o, string memberName) { return new EnumMember(memberName, o.GetType(), o); }
 
         #endregion
