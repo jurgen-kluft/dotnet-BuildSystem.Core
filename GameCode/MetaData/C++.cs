@@ -137,7 +137,7 @@ namespace GameData
 			}
 			public void  WriteStructMember(StructMember c)
 			{
-				 c.Member.Write(this);
+				 c.Internal.StructWrite(mDataStream);
 			}
 		}
 
@@ -260,7 +260,8 @@ namespace GameData
             }
             public void WriteStructMember(StructMember c)
             {
-                c.Member.Write(this);
+                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                mWriter.WriteLine(line);
             }
         }
 
@@ -489,27 +490,6 @@ namespace GameData
                     }
                 }
 
-                Dictionary<object, StreamReference> referencesForCompoundsDict = new();
-                foreach (CompoundMember c in Compounds)
-                {
-                    if (c.Value != null)
-                    {
-                        if (referencesForCompoundsDict.TryGetValue(c.Value, out var reference))
-                        {
-                            c.Reference = reference;
-                        }
-                        else
-                        {
-                            c.Reference = StreamReference.NewReference;
-                            referencesForCompoundsDict.Add(c.Value, c.Reference);
-                        }
-                    }
-                    else
-                    {
-                        c.Reference = StreamReference.Empty;
-                    }
-                }
-
                 Dictionary<object, StreamReference> referencesForArraysDict = new();
                 foreach (ArrayMember a in Arrays)
                 {
@@ -633,15 +613,30 @@ namespace GameData
         }
 	}
 
-	/// <summary>
-	/// A CppDataStream is used to write DataBlocks, DataBlocks are stored and when
-	/// the final data is written identical (Hash) DataBlocks are collapsed to one.
-	/// All references (pointers to blocks) are also resolved at the final stage.
-	///
-	/// Output: a database of the offset of every reference (DataBlock)
-	///
-	/// </summary>
-	public class CppDataStream
+    /// <summary>
+    /// A CppDataStream is used to write DataBlocks, DataBlocks are stored and when
+    /// the final data is written identical (Hash) DataBlocks are collapsed to one.
+    /// All references (pointers to blocks) are also resolved at the final stage.
+    ///
+    /// Output: a database of the offset of every reference (DataBlock)
+    ///
+    /// </summary>
+    ///
+    public interface IBinaryData
+    {
+        void Write(sbyte v);
+        void Write(byte v);
+        void Write(Int16 v);
+        void Write(UInt16 v);
+        void Write(Int32 v);
+        void Write(UInt32 v);
+        void Write(Int64 v);
+        void Write(UInt64 v);
+        void Write(float v);
+        void Write(double v);
+    }
+
+	public class CppDataStream : IBinaryData
 	{
 		#region DataBlock
 
@@ -868,7 +863,6 @@ namespace GameData
 		{
 			Current.Write(v);
 		}
-
 		public void Write(sbyte v)
 		{
 			Current.Write(v);

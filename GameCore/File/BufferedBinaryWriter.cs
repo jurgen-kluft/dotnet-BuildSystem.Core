@@ -92,7 +92,7 @@ namespace GameCore
         #endregion
         #region IBinaryWriter Methods
 
-        public Int64 Write(byte[] data)
+        public void Write(byte[] data)
         {
             if ((mMemoryStream[mBufferIdx].Position + data.Length) > mMaxBufferedBytes)
                 Flush();

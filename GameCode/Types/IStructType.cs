@@ -11,6 +11,6 @@ namespace GameData
         int StructSize { get; }
         int StructAlign { get; }
         string StructName { get; }
-        void StructWrite(IBinaryWriter writer);
+        void StructWrite(IBinaryData writer);
     }
 }

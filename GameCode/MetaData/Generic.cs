@@ -151,7 +151,7 @@ namespace GameData
             public void WriteStructMember(StructMember c)
             {
                 // Has no reference
-            }            
+            }
         }
 
         #endregion
@@ -280,7 +280,7 @@ namespace GameData
             {
                 //c.member.range = c.range;
                 c.Member.Write(this);
-            }            
+            }
         }
 
         #endregion
@@ -494,7 +494,7 @@ namespace GameData
             {
                 mStringTable.Add(c.TypeName);
                 c.Member.Write(this);
-            }            
+            }
         }
 
         #endregion
@@ -639,7 +639,7 @@ namespace GameData
             public void WriteStructMember(StructMember c)
             {
                 c.Member.Write(this);
-            }            
+            }
         }
 
         #endregion
@@ -767,7 +767,7 @@ namespace GameData
             public void WriterStructMember(StructMember c)
             {
                 c.Member.Write(this);
-            }            
+            }
         }
 
         #endregion
@@ -1016,7 +1016,7 @@ namespace GameData
             public void WriterStructMember(StructMember c)
             {
                 WriteMember(c.TypeName, c.MemberName, c);
-            }            
+            }
         }
 
         #endregion

@@ -76,7 +76,7 @@ namespace GameData
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
                 object contentObject = dataObjectFieldValue;
-                MetaCode.StructMember structMember = mMemberGenerator.NewStructMember(dataObjectFieldValue.GetType(), contentMember as IStruct, memberName);
+                MetaCode.StructMember structMember = mMemberGenerator.NewStructMember(contentObject as IStruct, memberName);
                 member = structMember;
             }
             else if (mMemberGenerator.IsFileId(dataObjectFieldType))

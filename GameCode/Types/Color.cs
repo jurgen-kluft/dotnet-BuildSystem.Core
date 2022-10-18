@@ -170,7 +170,7 @@ namespace GameData
         public int StructSize => sizeof(uint);
         public int StructAlign => 4;
         public string StructName => "color_t";
-        public void StructWrite(IBinaryWriter writer)
+        public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(mColor);
         }

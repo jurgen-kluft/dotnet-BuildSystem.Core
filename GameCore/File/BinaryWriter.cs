@@ -11,20 +11,20 @@ namespace GameCore
         Int64 Position { get; set; }
         Int64 Length { get; }
 
-        Int64 Write(byte[] data);
-        Int64 Write(byte[] data, int index, int count);
+        void Write(byte[] data);
+        void Write(byte[] data, int index, int count);
 
-        Int64 Write(sbyte v);
-        Int64 Write(byte v);
-        Int64 Write(Int16 v);
-        Int64 Write(UInt16 v);
-        Int64 Write(Int32 v);
-        Int64 Write(UInt32 v);
-        Int64 Write(Int64 v);
-        Int64 Write(UInt64 v);
-        Int64 Write(float v);
-        Int64 Write(double v);
-        Int64 Write(string v);
+        void Write(sbyte v);
+        void Write(byte v);
+        void Write(Int16 v);
+        void Write(UInt16 v);
+        void Write(Int32 v);
+        void Write(UInt32 v);
+        void Write(Int64 v);
+        void Write(UInt64 v);
+        void Write(float v);
+        void Write(double v);
+        void Write(string v);
 
         bool Seek(StreamOffset offset);
         void Close();
@@ -52,87 +52,74 @@ namespace GameCore
         #endregion
         #region IBinaryWriter Members
 
-        public Int64 Write(byte[] data)
+        public void Write(byte[] data)
         {
             mWriter.Write(data, 0, data.Length);
-            return data.Length;
         }
 
-        public Int64 Write(byte[] data, int index, int count)
+        public void Write(byte[] data, int index, int count)
         {
             Debug.Assert((index + count) <= data.Length);
             mWriter.Write(data, index, count);
-            return count;
         }
 
-        public Int64 Write(sbyte v)
+        public void Write(sbyte v)
         {
             mWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(byte v)
+        public void Write(byte v)
         {
             mWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(short v)
+        public void Write(short v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 2;
         }
 
-        public Int64 Write(ushort v)
+        public void Write(ushort v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 2;
         }
 
-        public Int64 Write(int v)
+        public void Write(int v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 4;
         }
 
-        public Int64 Write(uint v)
+        public void Write(uint v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 4;
         }
 
-        public Int64 Write(long v)
+        public void Write(long v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 8;
         }
 
-        public Int64 Write(ulong v)
+        public void Write(ulong v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 8;
         }
 
-        public Int64 Write(float v)
+        public void Write(float v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 4;
         }
 
-        public Int64 Write(double v)
+        public void Write(double v)
         {
             mWriter.Write(mEndian.Convert(v));
-            return 8;
         }
 
-        public Int64 Write(string s)
+        public void Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
             Debug.Assert(CMath.IsAligned(mWriter.BaseStream.Position, 4));
             Write(data.Length);
             Write(data);
             Write((byte)0);
-            return 4 + data.Length + 1;
         }
 
         public Int64 Position
@@ -190,87 +177,74 @@ namespace GameCore
         #endregion
         #region IBinaryWriter Members
 
-        public Int64 Write(byte[] data)
+        public void Write(byte[] data)
         {
             mWriter.Write(data, 0, data.Length);
-            return data.Length;
         }
 
-        public Int64 Write(byte[] data, int index, int count)
+        public void Write(byte[] data, int index, int count)
         {
             Debug.Assert((index + count) <= data.Length);
             mWriter.Write(data, index, count);
-            return count;
         }
 
-        public Int64 Write(sbyte v)
+        public void Write(sbyte v)
         {
             mWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(byte v)
+        public void Write(byte v)
         {
             mWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(short v)
+        public void Write(short v)
         {
             mWriter.Write(v);
-            return 2;
         }
 
-        public Int64 Write(ushort v)
+        public void Write(ushort v)
         {
             mWriter.Write(v);
-            return 2;
         }
 
-        public Int64 Write(int v)
+        public void Write(int v)
         {
             mWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(uint v)
+        public void Write(uint v)
         {
             mWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(long v)
+        public void Write(long v)
         {
             mWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(ulong v)
+        public void Write(ulong v)
         {
             mWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(float v)
+        public void Write(float v)
         {
             mWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(double v)
+        public void Write(double v)
         {
             mWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(string s)
+        public void Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
             Debug.Assert(CMath.IsAligned(mWriter.BaseStream.Position, 4));
             Write(data.Length);
             Write(data);
             Write((byte)0);
-            return 4 + s.Length + 1;
         }
 
         public Int64 Position
@@ -324,86 +298,73 @@ namespace GameCore
 
         #region IBinaryWriter Members
 
-        public Int64 Write(byte[] data)
+        public void Write(byte[] data)
         {
             mBinaryWriter.Write(data, 0, data.Length);
-            return data.Length;
         }
 
-        public Int64 Write(byte[] data, int index, int count)
+        public void Write(byte[] data, int index, int count)
         {
             Debug.Assert((index + count) <= data.Length);
             mBinaryWriter.Write(data, index, count);
-            return count;
         }
 
-        public Int64 Write(sbyte v)
+        public void Write(sbyte v)
         {
             mBinaryWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(byte v)
+        public void Write(byte v)
         {
             mBinaryWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(short v)
+        public void Write(short v)
         {
             mBinaryWriter.Write(v);
-            return 2;
         }
 
-        public Int64 Write(ushort v)
+        public void Write(ushort v)
         {
             mBinaryWriter.Write(v);
-            return 2;
         }
 
-        public Int64 Write(int v)
+        public void Write(int v)
         {
             mBinaryWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(uint v)
+        public void Write(uint v)
         {
             mBinaryWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(long v)
+        public void Write(long v)
         {
             mBinaryWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(ulong v)
+        public void Write(ulong v)
         {
             mBinaryWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(float v)
+        public void Write(float v)
         {
             mBinaryWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(double v)
+        public void Write(double v)
         {
             mBinaryWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(string s)
+        public void Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
             Write((byte)0);
-            return 4 + data.Length + 1;
         }
 
         public Int64 Position
@@ -461,86 +422,73 @@ namespace GameCore
 
         #region IBinaryWriter Members
 
-        public Int64 Write(byte[] data)
+        public void Write(byte[] data)
         {
             mBinaryWriter.Write(data, 0, data.Length);
-            return data.Length;
         }
 
-        public Int64 Write(byte[] data, int index, int count)
+        public void Write(byte[] data, int index, int count)
         {
             Debug.Assert((index + count) <= data.Length);
             mBinaryWriter.Write(data, index, count);
-            return count;
         }
 
-        public Int64 Write(sbyte v)
+        public void Write(sbyte v)
         {
             mBinaryWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(byte v)
+        public void Write(byte v)
         {
             mBinaryWriter.Write(v);
-            return 1;
         }
 
-        public Int64 Write(short v)
+        public void Write(short v)
         {
             mBinaryWriter.Write(v);
-            return 2;
         }
 
-        public Int64 Write(ushort v)
+        public void Write(ushort v)
         {
             mBinaryWriter.Write(v);
-            return 2;
         }
 
-        public Int64 Write(int v)
+        public void Write(int v)
         {
             mBinaryWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(uint v)
+        public void Write(uint v)
         {
             mBinaryWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(long v)
+        public void Write(long v)
         {
             mBinaryWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(ulong v)
+        public void Write(ulong v)
         {
             mBinaryWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(float v)
+        public void Write(float v)
         {
             mBinaryWriter.Write(v);
-            return 4;
         }
 
-        public Int64 Write(double v)
+        public void Write(double v)
         {
             mBinaryWriter.Write(v);
-            return 8;
         }
 
-        public Int64 Write(string s)
+        public void Write(string s)
         {
             byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
             Write((byte)0);
-            return 4 + data.Length + 1;
         }
 
         public Int64 Position

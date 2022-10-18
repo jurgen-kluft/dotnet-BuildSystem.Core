@@ -48,7 +48,7 @@ namespace GameData
             IClassMember NewFloatMember(float content, string memberName);
             IClassMember NewDoubleMember(double content, string memberName);
             IClassMember NewStringMember(string content, string memberName);
-            IClassMember NewFileIdMember(Int64 content, string memberName);
+            FileIdMember NewFileIdMember(Int64 content, string memberName);
             ClassObject NewObjectMember(Type objectType, object content, string memberName);
             ArrayMember NewArrayMember(Type arrayType, object content, string memberName);
             StructMember NewStructMember(IStruct content, string memberName);
@@ -136,10 +136,6 @@ namespace GameData
 
         public static class MetaType
 		{
-            public string Name { get; private set; }
-            public int Alignment { get; private set; }
-            public int Size { get; private set; }
-
             public static bool TypeInfo(Type type, out string name, out int size, out int alignment)
 			{
                 name = type.Name;
@@ -517,7 +513,10 @@ namespace GameData
                 MemberType = enumType;
                 EnumType = enumType;
                 EnumValueType = System.Enum.GetUnderlyingType(enumType);
-                MetaType.TypeInfo(EnumValueType, out EnumValueTypeName, out Size, out Alignment);
+                MetaType.TypeInfo(EnumValueType, out string enumValueTypeName, out int size, out int alignment);
+                EnumValueTypeName = enumValueTypeName;
+                Size = size;
+                Alignment = alignment;
                 Value = System.Convert.ChangeType(value, EnumValueType);
             }
 

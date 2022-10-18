@@ -18,7 +18,7 @@ namespace GameCore
         /// <param name="alignment"></param>
         /// <returns>True if successful, False if the reference was already processed before!</returns>
         bool BeginBlock(StreamReference reference, Int64 alignment);
-        Int64 Write(StreamReference v);
+        void Write(StreamReference v);
         void Mark(StreamReference reference);
         void EndBlock();
 
@@ -448,78 +448,64 @@ namespace GameCore
             mCurrentDataBlock.Mark(reference);
         }
 
-        public Int64 Write(float v)
+        public void Write(float v)
         {
             mCurrentDataBlock.Write(v);
-            return 4;
         }
-        public Int64 Write(double v)
+        public void Write(double v)
         {
             mCurrentDataBlock.Write(v);
-            return 8;
         }
-        public Int64 Write(sbyte v)
+        public void Write(sbyte v)
         {
             mCurrentDataBlock.Write(v);
-            return 1;
         }
-        public Int64 Write(short v)
+        public void Write(short v)
         {
             mCurrentDataBlock.Write(v);
-            return 2;
         }
-        public Int64 Write(int v)
+        public void Write(int v)
         {
             mCurrentDataBlock.Write(v);
-            return 4;
         }
-        public Int64 Write(Int64 v)
+        public void Write(Int64 v)
         {
             mCurrentDataBlock.Write(v);
-            return 8;
         }
-        public Int64 Write(byte v)
+        public void Write(byte v)
         {
             mCurrentDataBlock.Write(v);
-            return 1;
         }
-        public Int64 Write(ushort v)
+        public void Write(ushort v)
         {
             mCurrentDataBlock.Write(v);
-            return 2;
         }
-        public Int64 Write(uint v)
+        public void Write(uint v)
         {
             mCurrentDataBlock.Write(v);
-            return 4;
         }
-        public Int64 Write(UInt64 v)
+        public void Write(UInt64 v)
         {
             mCurrentDataBlock.Write(v);
-            return 8;
         }
-        public Int64 Write(byte[] v)
+        public void Write(byte[] v)
         {
             mCurrentDataBlock.Write(v);
-            return v.Length;
         }
-        public Int64 Write(byte[] v, int index, int count)
+        public void Write(byte[] v, int index, int count)
         {
             Debug.Assert((index + count) <= v.Length);
             mCurrentDataBlock.Write(v, index, count);
-            return count;
         }
-        public Int64 Write(string v)
+        public void Write(string v)
         {
             foreach (Char c in v)
                 mCurrentDataBlock.Write((byte)c);
             mCurrentDataBlock.Write((byte)0);
-            return v.Length + 1;
         }
-        public Int64 Write(StreamReference v)
+        public void Write(StreamReference v)
         {
             mCurrentDataBlock.Write(v);
-            return 4;
         }
 
         public Int64 Position
