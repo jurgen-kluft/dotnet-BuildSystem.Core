@@ -270,7 +270,7 @@ namespace DataBuildSystem
         {
             try
             {
-                CppCodeStream.Write(BuildSystemCompilerConfig.Endian, data, dataFilename, codeFilename, relocFilename);
+                CppCodeStream.Write(BuildSystemCompilerConfig.Platform, data, dataFilename, codeFilename, relocFilename);
             }
             catch (Exception e)
             {
@@ -286,9 +286,9 @@ namespace DataBuildSystem
             // Generate the generic data
             try
             {
-                StdDataStream stdDataStream = new StdDataStream(BuildSystemCompilerConfig.Endian);
+                StdDataStream stdDataStream = new StdDataStream(BuildSystemCompilerConfig.Platform);
                 StdDataStream.SizeOfBool = BuildSystemCompilerConfig.SizeOfBool;
-                stdDataStream.Write(BuildSystemCompilerConfig.Endian, data, dataFilename, relocFilename);
+                stdDataStream.Write(BuildSystemCompilerConfig.Platform, data, dataFilename, relocFilename);
             }
             catch (Exception e)
             {

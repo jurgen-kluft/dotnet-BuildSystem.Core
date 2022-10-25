@@ -13,14 +13,14 @@ namespace GameData
     {
         #region Fields
 
-        private readonly EEndian mEndian = EEndian.LITTLE;
+        private EPlatform Platform { get; set; }
 
         #endregion
         #region Constructor
 
-        public StdDataStream(EEndian endian)
+        public StdDataStream(EPlatform platform)
         {
-            mEndian = endian;
+            Platform = platform;
         }
 
         #endregion
@@ -624,6 +624,10 @@ namespace GameData
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write(c.InternalValue);
             }
+            public void WriteStructMember(StructMember c)
+            {
+                c.Internal.StructWrite(mWriter);
+            }
             public void WriteArrayMember(ArrayMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
@@ -633,10 +637,6 @@ namespace GameData
             public void WriteObjectMember(ClassObject c)
             {
                 WriteReference(c.Reference);
-            }
-            public void WriteStructMember(StructMember c)
-            {
-                c.Internal.StructWrite(mWriter);
             }
         }
 
@@ -740,6 +740,9 @@ namespace GameData
             {
                 // Embedded in the Member.OffsetOrValue as value
             }
+            public void WriteStructMember(StructMember c)
+            {
+            }
             public void WriteArrayMember(ArrayMember c)
             {
                 // The reference of this member can be null!
@@ -761,9 +764,6 @@ namespace GameData
             {
                 foreach (IClassMember m in c.Members)
                     m.Write(this);
-            }
-            public void WriteStructMember(StructMember c)
-            {
             }
         }
 
@@ -880,6 +880,10 @@ namespace GameData
             {
                 mWriter.Write(c.InternalValue);
             }
+            public void WriteStructMember(StructMember c)
+            {
+                c.Internal.StructWrite(mWriter);
+            }
             public void WriteArrayMember(ArrayMember c)
             {
                 mWriter.Write(c.Members.Count);
@@ -888,10 +892,6 @@ namespace GameData
             public void WriteObjectMember(ClassObject c)
             {
                 WriteReferenceMember(c.Reference);
-            }
-            public void WriteStructMember(StructMember c)
-            {
-                c.Internal.StructWrite(mWriter);
             }
         }
 
@@ -1002,15 +1002,15 @@ namespace GameData
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
+            public void WriteStructMember(StructMember c)
+            {
+                WriteMember(c.TypeName, c.MemberName, c);
+            }
             public void WriteArrayMember(ArrayMember c)
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
             public void WriteObjectMember(ClassObject c)
-            {
-                WriteMember(c.TypeName, c.MemberName, c);
-            }
-            public void WriteStructMember(StructMember c)
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
@@ -1144,15 +1144,15 @@ namespace GameData
 
         #region Generic writer
 
-        public bool Write(EEndian endian, object inData, string dataFilename, string relocFilename)
+        public bool Write(EPlatform platform, object inData, string dataFilename, string relocFilename)
         {
             FileInfo dataFileInfo = new(dataFilename);
             FileStream dataStream = new(dataFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024);
-            IBinaryStream resourceDataWriter = EndianUtils.CreateBinaryStream(dataStream, endian);
+            IBinaryStream resourceDataWriter = EndianUtils.CreateBinaryStream(dataStream, platform);
 
             FileInfo reallocTableFileInfo = new(relocFilename);
             FileStream reallocTableStream = new(reallocTableFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 2 * 1024 * 1024);
-            IBinaryStream resourceDataReallocTableWriter = EndianUtils.CreateBinaryStream(reallocTableStream, endian);
+            IBinaryStream resourceDataReallocTableWriter = EndianUtils.CreateBinaryStream(reallocTableStream, platform);
 
             try
             {
@@ -1174,7 +1174,7 @@ namespace GameData
                 fileIdTable.Reference = StreamReference.NewReference;
 
                 // Database of offsets of references written in the stream as well as the offsets of references to those references
-                IDataWriter dataWriter = EndianUtils.CreateDataWriter(mEndian);
+                IDataWriter dataWriter = EndianUtils.CreateDataWriter(platform);
 
                 ClassObject rootClass = book.Classes[0];
 

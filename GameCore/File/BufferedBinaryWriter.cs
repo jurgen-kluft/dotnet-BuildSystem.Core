@@ -18,7 +18,7 @@ namespace GameCore
         #endregion
         #region Constructor
 
-        public BufferedBinaryWriter(EEndian endian, Stream stream, int bufferSize)
+        public BufferedBinaryWriter(EPlatform platform, Stream stream, int bufferSize)
         {
             mStream = stream;
 
@@ -27,8 +27,8 @@ namespace GameCore
             mMemoryStream[1] = new MemoryStream(bufferSize);
 
             mEndianWriter = new IBinaryStream[2];
-            mEndianWriter[0] = EndianUtils.CreateBinaryStream(mMemoryStream[0], endian);
-            mEndianWriter[1] = EndianUtils.CreateBinaryStream(mMemoryStream[1], endian);
+            mEndianWriter[0] = EndianUtils.CreateBinaryStream(mMemoryStream[0], platform);
+            mEndianWriter[1] = EndianUtils.CreateBinaryStream(mMemoryStream[1], platform);
 
             mMaxBufferedBytes = bufferSize;
         }

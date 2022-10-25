@@ -8,11 +8,6 @@ namespace DataBuildSystem
         #region Methods & Properties
 
         /// <summary>
-        /// The platform this configuration is for
-        /// </summary>
-        string Platform { get; }
-
-        /// <summary>
         /// The name of the big file
         /// </summary>
         string BigfileName { get; }
@@ -38,9 +33,9 @@ namespace DataBuildSystem
         string BigFileHdbExtension { get; }
 
         /// <summary>
-        /// The endian of the Toc and Fdb
+        /// The platform for the Toc and Fdb
         /// </summary>
-        bool LittleEndian { get; }
+        EPlatform Platform { get; }
 
         /// <summary>
         /// The alignment of every file in the bigfile
@@ -70,13 +65,12 @@ namespace DataBuildSystem
     {
         #region Methods & Properties
 
-        public string Platform => "Default";
         public string BigfileName => "Game";
         public string BigFileExtension => ".gda";
         public string BigFileTocExtension => ".gdt";
         public string BigFileFdbExtension => ".gdf";
         public string BigFileHdbExtension => ".gdh";
-        public bool LittleEndian => true;
+        public EPlatform Platform => EPlatform.Win64;
         public Int64 FileAlignment => 256;
         public bool AllowDuplicateFiles => false;
         public UInt32 ReadBufferSize => 8 * 1024 * 1024;
@@ -108,8 +102,7 @@ namespace DataBuildSystem
         public static string BigFileTocExtension => _sConfig.BigFileTocExtension;
         public static string BigFileFdbExtension => _sConfig.BigFileFdbExtension;
         public static string BigFileHdbExtension => _sConfig.BigFileHdbExtension;
-        public static bool LittleEndian => _sConfig.LittleEndian;
-        public static EEndian Endian => _sConfig.LittleEndian ? EEndian.LITTLE : EEndian.BIG;
+        public static EPlatform Platform => _sConfig.Platform;
         public static Int64 FileAlignment => _sConfig.FileAlignment;
         public static bool AllowDuplicateFiles => _sConfig.AllowDuplicateFiles;
         public static UInt32 ReadBufferSize => _sConfig.ReadBufferSize;

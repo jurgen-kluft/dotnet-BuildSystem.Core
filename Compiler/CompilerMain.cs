@@ -111,7 +111,7 @@ namespace DataBuildSystem
             {
                 foreach (var config in configsForBigfileBuilder)
                 {
-                    if (config.Platform == BuildSystemCompilerConfig.PlatformName)
+                    if (config.Platform == BuildSystemCompilerConfig.Platform)
                     {
                         BigfileConfig.Init(config);
                         break;

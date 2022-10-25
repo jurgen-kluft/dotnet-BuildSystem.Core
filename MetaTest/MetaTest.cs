@@ -9,16 +9,18 @@ using GameData;
 
 namespace MetaTest
 {
+    using TestHandle = Int64;
+
     class Program
     {
         #region Error & Success
 
-        static int Error()
+        private static int Error()
         {
             return 1;
         }
 
-        static int Success()
+        private static int Success()
         {
             return 0;
         }
@@ -48,7 +50,14 @@ namespace MetaTest
             public ETestEnum m_Enum = ETestEnum.EnumerationC;
             public Color m_Color = Colors.Aliceblue;
 
-            public TestData m_Data = new();
+            public TestHandle? m_Handle = 55; // Pointer
+            public TestData m_Data = new(); // Pointer
+        }
+
+        public class TestArrayElement
+        {
+            public int m_Int = 1;
+            public float m_Float = 2;
         }
 
         public class TestData
@@ -58,13 +67,17 @@ namespace MetaTest
 
             public float[] Floats = new float[8];
             public List<Int64> IntegerList = new() { 0,1,2,3,4 };
+
+            [ArrayElementsInPlace]
+            public TestArrayElement[] ObjectArray = new TestArrayElement[4]; // The classes/structs are serialized in-place (not as a pointer)
+
+            public Int64?[] IntPtrArray = new long?[1];
         }
 
 
         static int Main(string[] args)
         {
-            CppCodeStream.Write(EEndian.LITTLE, new TestRoot(), "metatest.cdd", "metatest.h", "metatest.cdr");
-
+            CppCodeStream.Write(EPlatform.Win64, new TestRoot(), "metatest.cdd", "metatest.h", "metatest.cdr");
             return Success();
         }
 

@@ -31,7 +31,7 @@ namespace DataBuildSystem
 
         public void Save(string filename, List<DataCompilerOutput> gdClOutput)
 		{
-			BigfileBuilder bfb = new BigfileBuilder(BigfileConfig.Endian);
+			BigfileBuilder bfb = new BigfileBuilder(BigfileConfig.Platform);
 
             Bigfile bigfile = new();
             List<BigfileFile> children = new();

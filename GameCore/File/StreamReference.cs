@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace GameCore
 {
+    [DebuggerDisplay("ID: {ID}")]
     public struct StreamReference
     {
         #region Fields
@@ -28,7 +30,7 @@ namespace GameCore
         #endregion
         #region Properties
 
-        public UInt32 id
+        public UInt32 ID
         {
             get { return mID; }
         }
@@ -38,11 +40,11 @@ namespace GameCore
 
         public static bool operator ==(StreamReference a, StreamReference b)
         {
-            return a.id == b.id;
+            return a.ID == b.ID;
         }
         public static bool operator !=(StreamReference a, StreamReference b)
         {
-            return a.id != b.id;
+            return a.ID != b.ID;
         }
 
         #endregion
@@ -52,12 +54,12 @@ namespace GameCore
         {
             public bool Equals(StreamReference lhs, StreamReference rhs)
             {
-                return lhs.id == rhs.id;
+                return lhs.ID == rhs.ID;
             }
 
             public int GetHashCode(StreamReference r)
             {
-                return (int)r.id;
+                return (int)r.ID;
             }
         }
 
@@ -76,12 +78,12 @@ namespace GameCore
 
         public override bool Equals(object obj)
         {
-            return ((StreamReference)obj).id == id;
+            return ((StreamReference)obj).ID == ID;
         }
 
         public override int GetHashCode()
         {
-            return (int)id;
+            return (int)ID;
         }
 
         #endregion

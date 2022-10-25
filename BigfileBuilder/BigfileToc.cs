@@ -805,9 +805,9 @@ namespace DataBuildSystem
             // TODO Missing implementation
         }
 
-        private static void ReadTable(IReadContext context, FileStream stream, EEndian endian)
+        private static void ReadTable(IReadContext context, FileStream stream, EPlatform platform)
         {
-            IBinaryReader binaryReader = EndianUtils.CreateBinaryReader(stream, endian);
+            IBinaryReader binaryReader = EndianUtils.CreateBinaryReader(stream, platform);
             {
                 int block = -1;
                 do
@@ -834,9 +834,9 @@ namespace DataBuildSystem
             return fileStream;
         }
 
-        private static void WriteTable(IWriteContext context, FileStream stream, EEndian endian)
+        private static void WriteTable(IWriteContext context, FileStream stream, EPlatform platform)
         {
-            IBinaryStream binaryWriter = EndianUtils.CreateBinaryStream(stream, endian);
+            IBinaryStream binaryWriter = EndianUtils.CreateBinaryStream(stream, platform);
             {
                 int block = -1;
                 do
@@ -863,7 +863,7 @@ namespace DataBuildSystem
             return fileStream;
         }
 
-        public bool Load(string filename, EEndian endian, List<Bigfile> bigfiles)
+        public bool Load(string filename, EPlatform platform, List<Bigfile> bigfiles)
         {
             List<TocSection> sections = new();
             List<ITocEntry> entries = new();
@@ -876,9 +876,9 @@ namespace DataBuildSystem
                 {
                     try
                     {
-                        ReadTable(Factory.CreateReadTocContext(sections, entries), bigFileTocFileStream, endian);
-                        ReadTable(Factory.CreateReadFdbContext(sections), bigFileFdbFileStream, endian);
-                        ReadTable(Factory.CreateReadHdbContext(sections), bigFileHdbFileStream, endian);
+                        ReadTable(Factory.CreateReadTocContext(sections, entries), bigFileTocFileStream, platform);
+                        ReadTable(Factory.CreateReadFdbContext(sections), bigFileFdbFileStream, platform);
+                        ReadTable(Factory.CreateReadHdbContext(sections), bigFileHdbFileStream, platform);
                     }
                     catch (Exception e)
                     {
@@ -899,7 +899,7 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool Save(string bigfileFilename, EEndian endian, List<Bigfile> bigfiles)
+        public bool Save(string bigfileFilename, EPlatform platform, List<Bigfile> bigfiles)
         {
             // Create all TocEntry items in the same order as the Bigfile files which is important
             // because the FileId is equal to the location(index) in the List/Array.
@@ -951,9 +951,9 @@ namespace DataBuildSystem
                 {
                     try
                     {
-                        WriteTable(Factory.CreateWriteTocContext(sections, entries), bigFileTocFileStream, endian);
-                        WriteTable(Factory.CreateWriteFdbContext(sections, entries), bigFileFdbFileStream, endian);
-                        WriteTable(Factory.CreateWriteHdbContext(sections, entries), bigFileHdbFileStream, endian);
+                        WriteTable(Factory.CreateWriteTocContext(sections, entries), bigFileTocFileStream, platform);
+                        WriteTable(Factory.CreateWriteFdbContext(sections, entries), bigFileFdbFileStream, platform);
+                        WriteTable(Factory.CreateWriteHdbContext(sections, entries), bigFileHdbFileStream, platform);
                     }
                     catch (Exception e)
                     {

@@ -63,7 +63,7 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private static EPlatform _sTarget = EPlatform.PC;
+        private static EPlatform _sTarget = EPlatform.Win64;
         private static ETerritory _sTerritory = ETerritory.USA;
 
         private static IBuildSystemCompilerConfig _sConfig = new BuildSystemCompilerConfigDefault();
@@ -71,21 +71,21 @@ namespace DataBuildSystem
         #endregion
         #region Properties
 
-        public static bool PlatformPc => Platform == EPlatform.PC;
-        public static bool PlatformXboxOne => Platform == EPlatform.XBOX_ONE;
-        public static bool PlatformXboxOneX => Platform == EPlatform.XBOX_ONE_X;
+        public static bool PlatformPc => Platform == EPlatform.Win64;
+        public static bool PlatformXboxOne => Platform == EPlatform.XboxOne;
+        public static bool PlatformXboxOneX => Platform == EPlatform.XboxOneX;
         public static bool PlatformPs4 => Platform == EPlatform.PS4;
-        public static bool PlatformPs4Pro => Platform == EPlatform.PS4_PRO;
+        public static bool PlatformPs4Pro => Platform == EPlatform.PS4Pro;
 
-        public static bool TargetPc => _sTarget == EPlatform.PC;
-        public static bool TargetXboxOne => _sTarget == EPlatform.XBOX_ONE;
-        public static bool TargetXboxOneX => _sTarget == EPlatform.XBOX_ONE_X;
+        public static bool TargetPc => _sTarget == EPlatform.Win64;
+        public static bool TargetXboxOne => _sTarget == EPlatform.XboxOne;
+        public static bool TargetXboxOneX => _sTarget == EPlatform.XboxOneX;
         public static bool TargetPs4 => _sTarget == EPlatform.PS4;
-        public static bool TargetPs4Pro => _sTarget == EPlatform.PS4_PRO;
+        public static bool TargetPs4Pro => _sTarget == EPlatform.PS4Pro;
 
-        public static EEndian Endian => _sConfig.LittleEndian ? EEndian.LITTLE : EEndian.BIG;
+        public static EEndian Endian => _sConfig.LittleEndian ? EEndian.Little : EEndian.Big;
         public static string Name { get; private set; }
-        public static EPlatform Platform { get; private set; } = EPlatform.PC;
+        public static EPlatform Platform { get; private set; } = EPlatform.Win64;
 
         public static string PlatformName => Platform.ToString();
         public static EPlatform Target => _sTarget;
@@ -172,8 +172,8 @@ namespace DataBuildSystem
             GameCore.Environment.addVariable("TERRITORY", territory);
             GameCore.Environment.addVariable("BASEPATH", GameCore.Environment.expandVariables(basePath));
 
-            Platform = FromString(platform, EPlatform.PC);
-            _sTarget = FromString(target, EPlatform.PC);
+            Platform = FromString(platform, EPlatform.Win64);
+            _sTarget = FromString(target, EPlatform.Win64);
             _sTerritory = FromString(territory, ETerritory.USA);
 
             Name = name;

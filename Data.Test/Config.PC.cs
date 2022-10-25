@@ -7,13 +7,12 @@ namespace DataBuildSystem
 
     public class BigfileCustomConfigPC : IBigfileConfig
     {
-        public string Platform { get { return "PC"; } }
+        public EPlatform Platform { get { return EPlatform.Win64; } }
         public string BigfileName { get { return "MJ"; } }
         public string BigFileExtension { get { return ".bfd"; } }
         public string BigFileTocExtension { get { return ".bft"; } }
         public string BigFileFdbExtension { get { return ".bff"; } }
 		public string BigFileHdbExtension { get { return ".bfh"; } }
-        public bool LittleEndian { get { return true; } }
         public Int64 FileAlignment { get { return 1024; } }
         public bool AllowDuplicateFiles { get { return false; } }
         public bool WriteAsync { get { return true; } }
@@ -23,11 +22,10 @@ namespace DataBuildSystem
 	
     public class BuildSystemCompilerCustomConfigPC : IBuildSystemCompilerConfig
     {
-        public string Platform { get { return "PC"; } }
+        public EPlatform Platform { get { return EPlatform.Win64; } }
         public string DataFilename(string name) { return name; }
         public string DataFileExtension { get { return ".gdf"; } }
         public string DataRelocFileExtension { get { return ".gdr"; } }
-		public bool LittleEndian { get { return true; } }
         public EGenericFormat DataFormat { get { return EGenericFormat.STD_FLAT; } }
 		public bool EnumIsInt32 { get { return true; } }
 		public int SizeOfBool { get { return 4; } }
@@ -36,8 +34,7 @@ namespace DataBuildSystem
 	
     public class BuildSystemLocalizerConfigPC : IBuildSystemLocalizerConfig
     {
-        public string Platform { get { return "PC"; } }
-        public bool LittleEndian { get { return true; } }
+        public EPlatform Platform { get { return EPlatform.Win64; } }
         public bool Unicode { get { return false; } }
         public string SubDepFileExtension { get { return ".sdep"; } }
         public string MainDepFileExtension { get { return ".dep"; } }

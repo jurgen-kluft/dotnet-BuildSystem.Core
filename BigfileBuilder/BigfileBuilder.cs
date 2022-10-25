@@ -18,15 +18,15 @@ namespace DataBuildSystem
         #endregion
         #region Constructor
 
-        public BigfileBuilder(EEndian endian)
+        public BigfileBuilder(EPlatform platform)
         {
-            Endian = endian;
+            Platform = platform;
         }
 
         #endregion
         #region Properties
 
-        public EEndian Endian { get; private set; }
+        private EPlatform Platform { get; }
 
         #endregion
         #region Methods
@@ -40,7 +40,7 @@ namespace DataBuildSystem
             for (int i = 0; i < bigFiles.Count; i++)
             {
                 Bigfile bigfile = bigFiles[i];
-                
+
                 s64 fileId = 0;
                 for (int j = 0; j < bigfile.Files.Count; j++)
                 {
@@ -121,7 +121,7 @@ namespace DataBuildSystem
 
             BigfileToc bft = new ();
             string mainBigfileTocFilename = Path.ChangeExtension(mainBigfileFilename, BigfileConfig.BigFileTocExtension);
-            if (!bft.Save(Path.Join(pubPath, mainBigfileTocFilename), Endian, bigFiles))
+            if (!bft.Save(Path.Join(pubPath, mainBigfileTocFilename), Platform, bigFiles))
             {
                 Console.WriteLine("Error saving BigFileToc: {0}", mainBigfileTocFilename);
                 return false;
@@ -134,9 +134,9 @@ namespace DataBuildSystem
         {
             BigfileReader reader = new();
             reader.Open(Path.Join(pubPath, bigfileFilename));
-            
+
             BigfileToc bigFileToc = new();
-            if (bigFileToc.Load(Path.Join(pubPath, bigfileFilename), Endian, bigfiles))
+            if (bigFileToc.Load(Path.Join(pubPath, bigfileFilename), Platform, bigfiles))
             {
                 foreach(var bf in bigfiles)
                 {
@@ -189,7 +189,7 @@ namespace DataBuildSystem
             // Write the TOC
             BigfileToc bft = new();
             string bftFilePath = Path.Join(pubPath, Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
-            if (!bft.Save(bftFilePath, Endian, bigfiles))
+            if (!bft.Save(bftFilePath, Platform, bigfiles))
             {
                 Console.WriteLine("Error saving {0}", bftFilePath);
                 return false;

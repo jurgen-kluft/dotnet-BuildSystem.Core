@@ -44,8 +44,6 @@ namespace GameCore
         {
             #region Fields
 
-            private Hash160 mHash = Hash160.Empty;
-
             private readonly Int64 mAlignment = 4;
             private readonly MemoryStream mDataStream = new MemoryStream();
             private readonly IBinaryStream mDataWriter;
@@ -74,11 +72,12 @@ namespace GameCore
             #endregion
             #region Constructor
 
-            internal DataBlock(Int64 alignment, EEndian endian)
+            internal DataBlock(Int64 alignment, EPlatform platform)
             {
+                Platform = platform;
                 mAlignment = alignment;
-                mDataWriter = EndianUtils.CreateBinaryStream(mDataStream, endian);
-                mTypeWriter = EndianUtils.CreateBinaryStream(mTypeStream, endian);
+                mDataWriter = EndianUtils.CreateBinaryStream(mDataStream, platform);
+                mTypeWriter = EndianUtils.CreateBinaryStream(mTypeStream, platform);
 
                 mReferenceContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
                 mMarkerContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
@@ -86,6 +85,8 @@ namespace GameCore
 
             #endregion
             #region Properties
+
+            internal EPlatform Platform { get; set; }
 
             internal Int64 Position
             {
@@ -115,7 +116,7 @@ namespace GameCore
                 StreamContext ctx;
                 if (!mMarkerContextDatabase.TryGetValue(reference, out ctx))
                 {
-                    ctx = new StreamContext();
+                    ctx = new StreamContext(Platform);
                     ctx.Offset = new StreamOffset(Position);
                     mMarkerContextDatabase.Add(reference, ctx);
                 }
@@ -127,16 +128,15 @@ namespace GameCore
 
             internal void Write(byte[] v)
             {
-                for (int i = 0; i < v.Length; ++i)
+                for (var i = 0; i < v.Length; ++i)
                     mTypeWriter.Write((byte)EDataType.BYTE);
 
-                mHash = Hash160.Empty;
                 mDataWriter.Write(v);
             }
 
             internal void Write(byte[] v, int index, int count)
             {
-                for (int i = index; i < count; i++)
+                for (var i = index; i < count; i++)
                     mTypeWriter.Write((byte)EDataType.BYTE);
 
                 Debug.Assert((index + count) <= v.Length);
@@ -145,7 +145,6 @@ namespace GameCore
 
             internal void Write(float v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
                 mTypeWriter.Write((int) EDataType.FLOAT);
                 mDataWriter.Write(v);
@@ -153,7 +152,6 @@ namespace GameCore
 
             internal void Write(double v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
                 mTypeWriter.Write((UInt64) EDataType.DOUBLE);
                 mDataWriter.Write(v);
@@ -161,14 +159,12 @@ namespace GameCore
 
             internal void Write(SByte v)
             {
-                mHash = Hash160.Empty;
                 mTypeWriter.Write((byte) EDataType.SBYTE);
                 mDataWriter.Write(v);
             }
 
             internal void Write(Int16 v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
                 mTypeWriter.Write((short) EDataType.INT16);
                 mDataWriter.Write(v);
@@ -176,7 +172,6 @@ namespace GameCore
 
             internal void Write(Int32 v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
                 mTypeWriter.Write((Int32) EDataType.INT32);
                 mDataWriter.Write(v);
@@ -184,7 +179,6 @@ namespace GameCore
 
             internal void Write(Int64 v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
                 mTypeWriter.Write((Int64) EDataType.INT64);
                 mDataWriter.Write(v);
@@ -192,14 +186,12 @@ namespace GameCore
 
             internal void Write(Byte v)
             {
-                mHash = Hash160.Empty;
                 mTypeWriter.Write((byte) EDataType.BYTE);
                 mDataWriter.Write(v);
             }
 
             internal void Write(UInt16 v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
                 mTypeWriter.Write((UInt16) EDataType.UINT16);
                 mDataWriter.Write(v);
@@ -207,7 +199,6 @@ namespace GameCore
 
             internal void Write(UInt32 v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
                 mTypeWriter.Write((UInt32) EDataType.UINT32);
                 mDataWriter.Write(v);
@@ -215,7 +206,6 @@ namespace GameCore
 
             internal void Write(UInt64 v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
                 mTypeWriter.Write((UInt64) EDataType.UINT64);
                 mDataWriter.Write(v);
@@ -223,7 +213,6 @@ namespace GameCore
 
             internal void Write(StreamReference v)
             {
-                mHash = Hash160.Empty;
                 Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
 
                 if (mReferenceContextDatabase.ContainsKey(v))
@@ -232,12 +221,12 @@ namespace GameCore
                 }
                 else
                 {
-                    StreamContext streamContext = new StreamContext();
+                    var streamContext = new StreamContext(Platform);
                     streamContext.Add(new StreamOffset(mDataWriter.Position));
                     mReferenceContextDatabase.Add(v, streamContext);
                 }
                 mTypeWriter.Write((Int32) EDataType.REFERENCE);
-                mDataWriter.Write((Int32) v.id);
+                mDataWriter.Write((Int32) v.ID);
             }
 
             internal bool Seek(StreamOffset pos)
@@ -245,13 +234,9 @@ namespace GameCore
                 return mTypeWriter.Seek(pos) && mDataWriter.Seek(pos);
             }
 
-            internal Hash160 ComputeMD5()
+            internal Hash160 ComputeHash()
             {
-                if (mHash == Hash160.Empty)
-                {
-                    mHash = HashUtility.compute(mDataStream.GetBuffer(), (Int32) mDataStream.Length, mTypeStream.GetBuffer(), (Int32) mTypeStream.Length);
-                }
-                return mHash;
+                return HashUtility.compute(mDataStream.GetBuffer(), (Int32) mDataStream.Length, mTypeStream.GetBuffer(), (Int32) mTypeStream.Length);
             }
 
             #endregion
@@ -259,7 +244,7 @@ namespace GameCore
 
             internal void GetWrittenStreamReferences(ICollection<StreamReference> references)
             {
-                foreach (KeyValuePair<StreamReference, StreamContext> p in mReferenceContextDatabase)
+                foreach (var p in mReferenceContextDatabase)
                     references.Add(p.Key);
             }
 
@@ -272,26 +257,23 @@ namespace GameCore
             {
                 if (HoldsStreamReference(oldRef))
                 {
-                    // Data will be modified, so MD5 will be invalid.
-                    mHash = Hash160.Empty;
-
-                    StreamContext oldContext = mReferenceContextDatabase[oldRef];
+                    var oldContext = mReferenceContextDatabase[oldRef];
                     mReferenceContextDatabase.Remove(oldRef);
 
                     // Modify the data by replacing the oldRef with the newRef
-                    StreamOffset currentPos = new StreamOffset(mDataStream.Position);
-                    for (int i = 0; i < oldContext.Count; i++)
+                    var currentPos = new StreamOffset(mDataStream.Position);
+                    for (var i = 0; i < oldContext.Count; i++)
                     {
                         mDataWriter.Seek(oldContext[i]);
-                        mDataWriter.Write(newRef.id);
+                        mDataWriter.Write(newRef.ID);
                     }
                     mDataWriter.Seek(currentPos);
 
                     // Update reference and offsets
                     if (HoldsStreamReference(newRef))
                     {
-                        StreamContext newContext = mReferenceContextDatabase[newRef];
-                        for (int i = 0; i < oldContext.Count; i++)
+                        var newContext = mReferenceContextDatabase[newRef];
+                        for (var i = 0; i < oldContext.Count; i++)
                             newContext.Add(oldContext[i]);
                     }
                     else
@@ -309,18 +291,18 @@ namespace GameCore
                 // (The order of handling markers and references is not important)
                 // Handle markers (addresses)
                 {
-                    foreach (KeyValuePair<StreamReference, StreamContext> k in mMarkerContextDatabase)
+                    foreach (var k in mMarkerContextDatabase)
                     {
                         StreamContext context;
-                        bool exists = referenceDataBase.TryGetValue(k.Key, out context);
+                        var exists = referenceDataBase.TryGetValue(k.Key, out context);
                         if (!exists)
-                            context = new StreamContext();
+                            context = new StreamContext(Platform);
 
                         // Every marker needs to get the offset that it has in the final stream
                         Debug.Assert(context.Offset == StreamOffset.Empty);
                         context.Offset = new StreamOffset(currentContext.Offset + k.Value.Offset);
 
-                        for (int i = 0; i < k.Value.Count; i++)
+                        for (var i = 0; i < k.Value.Count; i++)
                         {
                             Debug.Assert(k.Value[i].Offset != -1);
                             context.Add(new StreamOffset(currentContext.Offset + k.Value[i]));
@@ -335,14 +317,14 @@ namespace GameCore
 
                 // Handle references (pointers)
                 {
-                    foreach (KeyValuePair<StreamReference, StreamContext> k in mReferenceContextDatabase)
+                    foreach (var k in mReferenceContextDatabase)
                     {
                         StreamContext context;
-                        bool exists = referenceDataBase.TryGetValue(k.Key, out context);
+                        var exists = referenceDataBase.TryGetValue(k.Key, out context);
                         if (!exists)
-                            context = new StreamContext();
+                            context = new StreamContext(Platform);
 
-                        for (int i = 0; i < k.Value.Count; i++)
+                        for (var i = 0; i < k.Value.Count; i++)
                         {
                             Debug.Assert(k.Value[i].Offset != -1);
                             context.Add(new StreamOffset(currentContext.Offset + k.Value[i]));
@@ -392,7 +374,6 @@ namespace GameCore
             }
         }
 
-        private readonly EEndian mEndian;
         private readonly Dictionary<StreamReference, Int32> mStreamReferenceToDataBlockIdxDictionary = new Dictionary<StreamReference, Int32>(new StreamReference.Comparer());
         private readonly List<StreamReferenceDataBlockPair> mDataBlocks = new List<StreamReferenceDataBlockPair>();
 
@@ -402,13 +383,15 @@ namespace GameCore
         private Int32 mCurrentDataBlockIdx;
         private DataBlock mCurrentDataBlock;
 
+        private EPlatform Platform { get; set; }
+
         #endregion
         #region Constructor
 
-        public DataWriter(EEndian endian)
+        public DataWriter(EPlatform platform)
         {
             mMainReference = StreamReference.NewReference;
-            mEndian = endian;
+            Platform = platform;
         }
 
         #endregion
@@ -417,7 +400,7 @@ namespace GameCore
         public void Begin()
         {
             const Int64 alignment = sizeof(Int32);
-            StreamReference reference = mMainReference;
+            var reference = mMainReference;
             BeginBlock(reference, alignment);
         }
 
@@ -435,7 +418,7 @@ namespace GameCore
             mCurrentDataBlockIdx = mDataBlocks.Count;
             mStreamReferenceToDataBlockIdxDictionary.Add(reference, mCurrentDataBlockIdx);
             mStack.Push(mCurrentDataBlockIdx);
-            mCurrentDataBlock = new DataBlock(alignment, mEndian);
+            mCurrentDataBlock = new DataBlock(alignment, Platform);
             mDataBlocks.Add(new StreamReferenceDataBlockPair(reference, mCurrentDataBlock));
             // --------------------------------------------------------------------------------------------------------
 
@@ -498,7 +481,7 @@ namespace GameCore
         }
         public void Write(string v)
         {
-            foreach (Char c in v)
+            foreach (var c in v)
                 mCurrentDataBlock.Write((byte)c);
             mCurrentDataBlock.Write((byte)0);
         }
@@ -555,24 +538,23 @@ namespace GameCore
 
             try
             {
-                Dictionary<StreamReference, DataBlock> finalDataBlockDatabase = new Dictionary<StreamReference, DataBlock>(new StreamReference.Comparer());
-                foreach (StreamReferenceDataBlockPair d in mDataBlocks)
+                var finalDataBlockDatabase = new Dictionary<StreamReference, DataBlock>(new StreamReference.Comparer());
+                foreach (var d in mDataBlocks)
                     finalDataBlockDatabase.Add(d.Reference, d.DataBlock);
 
                 // Build dictionary collecting the DataBlocks for every StreamReference so that we do
                 // not have to iterate over the whole list when replacing references.
-                Dictionary<StreamReference, List<DataBlock>> streamReferenceInWhichDataBlocks = new Dictionary<StreamReference, List<DataBlock>>(new StreamReference.Comparer());
-                foreach (StreamReferenceDataBlockPair d in mDataBlocks)
+                var streamReferenceInWhichDataBlocks = new Dictionary<StreamReference, List<DataBlock>>(new StreamReference.Comparer());
+                foreach (var d in mDataBlocks)
                     streamReferenceInWhichDataBlocks.Add(d.Reference, new List<DataBlock>());
-                List<StreamReference> streamReferencesWrittenInDataBlock = new List<StreamReference>();
-                foreach (StreamReferenceDataBlockPair d in mDataBlocks)
+                var streamReferencesWrittenInDataBlock = new List<StreamReference>();
+                foreach (var d in mDataBlocks)
                 {
                     streamReferencesWrittenInDataBlock.Clear();
                     d.DataBlock.GetWrittenStreamReferences(streamReferencesWrittenInDataBlock);
-                    foreach (StreamReference s in streamReferencesWrittenInDataBlock)
+                    foreach (var s in streamReferencesWrittenInDataBlock)
                     {
-                        List<DataBlock> dataBlocks;
-                        if (streamReferenceInWhichDataBlocks.TryGetValue(s, out dataBlocks))
+                        if (streamReferenceInWhichDataBlocks.TryGetValue(s, out var dataBlocks))
                             dataBlocks.Add(d.DataBlock);
                     }
                 }
@@ -586,31 +568,30 @@ namespace GameCore
                 // to re-iterate again since a collapse changes the MD5 of a block due
                 // to the fact that references get replaced and this in turn can suddenly
                 // mean that some blocks are identical.
-                Dictionary<Hash160, StreamReference> md5ToDataBlockDatabase = new Dictionary<Hash160, StreamReference>(new Hash160.Comparer());
-                Dictionary<StreamReference, List<StreamReference>> duplicateDatabase = new Dictionary<StreamReference, List<StreamReference>>(new StreamReference.Comparer());
+                Dictionary<Hash160, StreamReference> hashToDataBlockDatabase = new (new Hash160.Comparer());
+                Dictionary<StreamReference, List<StreamReference>> duplicateDatabase = new (new StreamReference.Comparer());
 
-                bool collapse = true;
+                var collapse = true;
                 while (collapse)
                 {
                     duplicateDatabase.Clear();
-                    md5ToDataBlockDatabase.Clear();
+                    hashToDataBlockDatabase.Clear();
 
-                    foreach (KeyValuePair<StreamReference, DataBlock> p in finalDataBlockDatabase)
+                    foreach (var p in finalDataBlockDatabase)
                     {
-                        DataBlock block = p.Value;
-                        Hash160 md5 = block.ComputeMD5();
-                        if (md5ToDataBlockDatabase.ContainsKey(md5))
+                        var block = p.Value;
+                        var hash = block.ComputeHash();
+                        if (hashToDataBlockDatabase.ContainsKey(hash))
                         {
                             // Encountering a block of data which has a duplicate.
                             // After the first iteration it might be the case that
                             // they have the same 'Reference' since they are collapsed.
-                            StreamReference newRef = md5ToDataBlockDatabase[md5];
+                            var newRef = hashToDataBlockDatabase[hash];
                             if (p.Key != newRef)
                             {
                                 if (!duplicateDatabase.ContainsKey(newRef))
                                 {
-                                    List<StreamReference> duplicateReferences = new List<StreamReference>();
-                                    duplicateReferences.Add(p.Key);
+                                    List<StreamReference> duplicateReferences = new () { p.Key };
                                     duplicateDatabase.Add(newRef, duplicateReferences);
                                 }
                                 else
@@ -622,32 +603,30 @@ namespace GameCore
                         else
                         {
                             // This block of data is unique
-                            md5ToDataBlockDatabase.Add(md5, p.Key);
+                            hashToDataBlockDatabase.Add(hash, p.Key);
                         }
                     }
 
                     // Remove the old references from the finalDatabase
-                    foreach (KeyValuePair<StreamReference, List<StreamReference>> p in duplicateDatabase)
+                    foreach (var p in duplicateDatabase)
                     {
-                        foreach (StreamReference oldRef in p.Value)
+                        foreach (var oldRef in p.Value)
                             finalDataBlockDatabase.Remove(oldRef);
                     }
 
                     // Did we find any duplicates, if so then we also replaced references and by doing so MD5 hashes have changed.
                     // Some blocks now might have an identical MD5 due to this, so we need to iterate again.
-                    foreach (KeyValuePair<StreamReference, List<StreamReference>> p in duplicateDatabase)
+                    foreach (var p in duplicateDatabase)
                     {
-                        StreamReference newRef = p.Key;
+                        var newRef = p.Key;
 
-                        foreach (StreamReference oldRef in p.Value)
+                        foreach (var oldRef in p.Value)
                         {
-                            List<DataBlock> oldRefDataBlocks;
-                            if (streamReferenceInWhichDataBlocks.TryGetValue(oldRef, out oldRefDataBlocks))
+                            if (streamReferenceInWhichDataBlocks.TryGetValue(oldRef, out var oldRefDataBlocks))
                             {
-                                List<DataBlock> newRefDataBlocks;
-                                streamReferenceInWhichDataBlocks.TryGetValue(newRef, out newRefDataBlocks);
+                                streamReferenceInWhichDataBlocks.TryGetValue(newRef, out var newRefDataBlocks);
 
-                                foreach (DataBlock block in oldRefDataBlocks)
+                                foreach (var block in oldRefDataBlocks)
                                 {
                                     // Is this new StreamReference already associated with this DataBlock?
                                     // If not than we have to remember that this new StreamReference now
@@ -660,19 +639,18 @@ namespace GameCore
                             }
                         }
 
-                        foreach (StreamReference s in p.Value)
+                        foreach (var s in p.Value)
                             streamReferenceInWhichDataBlocks.Remove(s);
                     }
                     collapse = duplicateDatabase.Count > 0;
                 }
 
                 // Finalize the DataBlocks and resolve all references
-                foreach (KeyValuePair<StreamReference, DataBlock> k in finalDataBlockDatabase)
+                foreach (var k in finalDataBlockDatabase)
                 {
-                    StreamContext currentContext;
-                    if (!referenceDatabase.TryGetValue(k.Key, out currentContext))
+                    if (!referenceDatabase.TryGetValue(k.Key, out var currentContext))
                     {
-                        currentContext = new StreamContext();
+                        currentContext = new StreamContext(Platform);
                         referenceDatabase.Add(k.Key, currentContext);
                     }
 
@@ -680,16 +658,16 @@ namespace GameCore
                 }
 
                 // Write all the 'pointer values (relocatable)' 'references'
-                foreach (KeyValuePair<StreamReference, StreamContext> k in referenceDatabase)
+                foreach (var k in referenceDatabase)
                 {
                     // TODO: Pointers (offsets), are forced to 32 bit
                     if (k.Key == StreamReference.Empty)
                     {
-                        k.Value.ResolveToNull32(dataWriter);
+                        k.Value.ResolveToNull(dataWriter);
                     }
                     else
                     {
-                        if (!k.Value.Resolve32(dataWriter))
+                        if (!k.Value.Resolve(dataWriter))
                             unresolvedReferences.Add(k.Key, k.Value);
                     }
                 }

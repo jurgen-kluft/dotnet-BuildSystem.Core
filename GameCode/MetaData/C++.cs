@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Collections.Generic;
+using System.Text;
 using GameCore;
 
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
@@ -38,113 +39,231 @@ namespace GameData
 				return true;
 			}
 
+            private void AlignTo(int alignment)
+            {
+                mDataStream.AlignTo(alignment);
+            }
+
 			public void WriteNullMember(NullMember c)
 			{
 				mDataStream.Write(0);
 			}
-			public void WriteBool8Member(BoolMember c)
-			{
-				mDataStream.Write(c.InternalValue ? 0 : 1);
-			}
-			public void WriteInt8Member(Int8Member c)
-			{
-				mDataStream.Write(c.InternalValue);
-			}
+
+            private void Write(IClassMember c, Action<StreamReference> aSetReference, Func<bool> aWrite)
+            {
+                if (c.IsPointerTo)
+                {
+                    // If as a member we are a pointer to the type then we need to make sure we have
+                    // stream out our value so that we have a reference (pointer) to it.
+                    var streamReference = c.Reference;
+                    if (streamReference == StreamReference.Empty)
+                    {
+                        streamReference = mDataStream.BeginBlock(c.Alignment);
+                        {
+                            aSetReference(streamReference);
+                            aWrite();
+                        }
+                        mDataStream.EndBlock();
+                    }
+
+                    // This is our pointer
+                    mDataStream.Write(streamReference);
+                }
+                else
+                {
+                    aWrite();
+                }
+            }
+
+            public void WriteBool8Member(BoolMember c)
+            {
+                Write(c, streamReference => c.Reference = streamReference, delegate {
+                    mDataStream.Write(c.InternalValue ? 0 : 1);
+                    return true;
+                });
+            }
+
+            public void WriteInt8Member(Int8Member c)
+            {
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
+            }
 			public void WriteInt16Member(Int16Member c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
 			public void WriteInt32Member(Int32Member c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
 			public void WriteInt64Member(Int64Member c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
 			public void WriteUInt8Member(UInt8Member c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
 			public void WriteUInt16Member(UInt16Member c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
 			public void WriteUInt32Member(UInt32Member c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
 			public void WriteUInt64Member(UInt64Member c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
             public void WriteEnumMember(EnumMember c)
             {
-                ulong e = c.InternalValue;
-                switch (c.Alignment)
+                Write(c, streamReference => c.Reference = streamReference, delegate
                 {
-                    case 1:  mDataStream.Write((byte)e); break;
-                    case 2:  mDataStream.Write((ushort)e); break;
-                    case 4:  mDataStream.Write((uint)e); break;
-                    case 8:  mDataStream.Write(e); break;
-                }
+                    var e = c.InternalValue;
+                    switch (c.Alignment)
+                    {
+                        case 1:
+                            mDataStream.Write((byte)e);
+                            break;
+                        case 2:
+                            AlignTo(2);
+                            mDataStream.Write((ushort)e);
+                            break;
+                        case 4:
+                            AlignTo(4);
+                            mDataStream.Write((uint)e);
+                            break;
+                        case 8:
+                            AlignTo(8);
+                            mDataStream.Write(e);
+                            break;
+                    }
+
+                    return true;
+                });
             }
 			public void WriteFloatMember(FloatMember c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
 			public void WriteDoubleMember(DoubleMember c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
-			public void WriteStringMember(StringMember s)
+			public void WriteStringMember(StringMember c)
             {
-                int length = mStringTable.Add(s.InternalValue);
-                var reference = mStringTable.ReferenceOf(s.InternalValue);
-                mDataStream.Write(length);
-                mDataStream.Write(reference);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    var length = mStringTable.Add(c.InternalValue);
+                    var reference = mStringTable.ReferenceOf(c.InternalValue);
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(reference);
+                    mDataStream.Write(length);
+                    return true;
+                });
 			}
 			public void WriteFileIdMember(FileIdMember c)
 			{
-				mDataStream.Write(c.InternalValue);
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.InternalValue);
+                    return true;
+                });
 			}
+            public void  WriteStructMember(StructMember c)
+            {
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    c.Internal.StructWrite(mDataStream);
+                    return true;
+                });
+            }
 			public void WriteArrayMember(ArrayMember c)
 			{
-				if (c.Reference == StreamReference.Empty)
+				if (c.ArrayDataReference == StreamReference.Empty)
 				{
-					c.Reference = mDataStream.BeginBlock(c.Alignment);
+					c.ArrayDataReference = mDataStream.BeginBlock(c.Alignment);
 					{
-						foreach (IClassMember m in c.Members)
+						foreach (var m in c.Members)
 							m.Write(this);
 					}
 					mDataStream.EndBlock();
 				}
-                mDataStream.Write(c.Members.Count);
-                mDataStream.Write(c.Reference);
+
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    AlignTo(c.Alignment);
+                    mDataStream.Write(c.ArrayDataReference);
+                    mDataStream.Write(c.Members.Count);
+                    return true;
+                });
 			}
 			public void WriteObjectMember(ClassObject c)
 			{
-				if (c.Reference == StreamReference.Empty)
-				{
-                    c.Reference = mDataStream.BeginBlock(c.Alignment);
-					{
-						foreach (IClassMember m in c.Members)
-							m.Write(this);
-					}
-					mDataStream.EndBlock();
-				}
-                mDataStream.Write(c.Reference);
-			}
-			public void  WriteStructMember(StructMember c)
-			{
-				 c.Internal.StructWrite(mDataStream);
-			}
+                Write(c, streamReference => c.Reference = streamReference, delegate
+                {
+                    // Actually we need to align the stream to the alignment requested by this class
+                    AlignTo(c.Alignment);
+                    foreach (var m in c.Members)
+                        m.Write(this);
+                    return true;
+                });
+            }
 		}
 
 		#endregion
 		#region C++ Class Member Getter writer
 
-        public class MemberGetterWriter : IMemberWriter
+        private class MemberGetterWriter : IMemberWriter
         {
             private StreamWriter mWriter;
 
@@ -175,93 +294,146 @@ namespace GameData
 
             public void WriteNullMember(NullMember c)
             {
-                string line = "\tvoid*\tget" + c.MemberName + "() const { return 0; }";
+                var line = $"\tvoid*\tget{c.MemberName}() const {{ return 0; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteBool8Member(BoolMember c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteInt8Member(Int8Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteInt16Member(Int16Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteInt32Member(Int32Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteInt64Member(Int64Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteUInt8Member(UInt8Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteUInt16Member(UInt16Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteUInt32Member(UInt32Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteUInt64Member(UInt64Member c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteEnumMember(EnumMember c)
             {
-                string line = "\t" + c.EnumType.Name + "\tget" + c.MemberName + "() const {" + c.EnumType.Name + " e; m_" + c.MemberName + ".get(e); return e; }";
+                var line = $"\t{c.EnumType.Name}\tget{c.MemberName}() const {{ {c.EnumType.Name} e; m_{c.MemberName}.get(e); return e; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteFloatMember(FloatMember c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteDoubleMember(DoubleMember c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
+
             public void WriteStringMember(StringMember c)
             {
-                string line = "\tstring_t" + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + ".str(); }";
-                mWriter.WriteLine(line);
+                if (c.IsPointerTo)
+                {
+                    var line = $"\tstring_t\tget{c.MemberName}() const {{ return m_{c.MemberName}->str(); }}";
+                    mWriter.WriteLine(line);
+                }
+                else
+                {
+                    var line = $"\tstring_t\tget{c.MemberName}() const {{ return m_{c.MemberName}.str(); }}";
+                    mWriter.WriteLine(line);
+                }
             }
+
             public void WriteFileIdMember(FileIdMember c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                var d = c.IsPointerTo ? "*" : "";
+                var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
-            public void WriteArrayMember(ArrayMember c)
-            {
-                string line = $"\tarray_t<{c.Element.TypeName}>\tget" + c.MemberName + "() const { return m_" + c.MemberName + ".array(); }";
-                mWriter.WriteLine(line);
-            }
-            public void WriteObjectMember(ClassObject c)
-            {
-                string line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return m_{c.MemberName}.ptr(); }}";
-                mWriter.WriteLine(line);
-            }
+
             public void WriteStructMember(StructMember c)
             {
-                string line = "\t" + c.TypeName + "\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
+                if (c.IsPointerTo)
+                {
+                    var line = $"\t{c.TypeName} const&\tget{c.MemberName}() const {{ return *m_{c.MemberName}; }}";
+                    mWriter.WriteLine(line);
+                }
+                else
+                {
+                    var line = $"\t{c.TypeName} const&\tget{c.MemberName}() const {{ return m_{c.MemberName}; }}";
+                    mWriter.WriteLine(line);
+                }
+            }
+
+            public void WriteArrayMember(ArrayMember c)
+            {
+                var line = $"\tarray_t<{c.Element.TypeName}>\tget" + c.MemberName + "() const { return m_" + c.MemberName + ".array(); }";
                 mWriter.WriteLine(line);
+            }
+
+            public void WriteObjectMember(ClassObject c)
+            {
+                if (c.IsPointerTo)
+                {
+                    var line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return m_{c.MemberName}.ptr(); }}";
+                    mWriter.WriteLine(line);
+                }
+                else
+                {
+                    var line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return &m_{c.MemberName}; }}";
+                    mWriter.WriteLine(line);
+                }
             }
         }
 
@@ -299,7 +471,12 @@ namespace GameData
 
 			public bool Write(string type, string name, StreamWriter writer)
 			{
-                writer.WriteLine($"\t{type} const m_{name};");
+                //writer.WriteLine($"\t{type} const m_{name};");
+                writer.Write('\t');
+                writer.Write(type);
+                writer.Write(" const m_");
+                writer.Write(name);
+                writer.WriteLine(";");
 				return true;
 			}
 
@@ -363,18 +540,18 @@ namespace GameData
 			{
 				Write(c.TypeName, c.MemberName, mWriter);
 			}
+            public void WriteStructMember(StructMember c)
+            {
+                Write(c.TypeName, c.MemberName, mWriter);
+            }
 			public void WriteArrayMember(ArrayMember c)
 			{
 				Write(c.TypeName, c.MemberName, mWriter);
 			}
 			public void WriteObjectMember(ClassObject c)
 			{
-				Write($"rawobj_t<{c.TypeName}>", c.MemberName, mWriter);
-			}
-            public void WriteStructMember(StructMember c)
-			{
-				Write(c.TypeName, c.MemberName, mWriter);
-			}
+                Write($"rawobj_t<{c.TypeName}>", c.MemberName, mWriter);
+            }
 		}
 
 		#endregion
@@ -547,7 +724,7 @@ namespace GameData
         // Exporting every class as a struct in C/C++ using a ClassWriter providing enough
         // functionality to write any kind of class, function and member.
 
-        public static void Write(EEndian endian, object data, string dataFilename, string codeFilename, string relocFilename)
+        public static void Write(EPlatform platform, object data, string dataFilename, string codeFilename, string relocFilename)
         {
             // Analyze Data.Root and generate a list of 'Code.Class' objects from this.
             IMemberGenerator genericMemberGenerator = new GenericMemberGenerator();
@@ -574,7 +751,7 @@ namespace GameData
             StringTable stringTable = new();
 
             // Compile every 'Code.Class' to the DataStream.
-            CppDataStream dataStream = new(endian);
+            CppDataStream dataStream = new(platform);
             DataStreamWriter dataStreamWriter = new(stringTable, dataStream);
             dataStreamWriter.Open();
             {
@@ -587,10 +764,10 @@ namespace GameData
             // IReferenceableMember objects in the DataStream.
             FileInfo dataFileInfo = new(dataFilename);
             FileStream dataFileStream = new(dataFileInfo.FullName, FileMode.Create);
-            IBinaryStream dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, endian);
+            IBinaryStream dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, platform);
             FileInfo relocFileInfo = new(relocFilename);
             FileStream relocFileStream = new(relocFileInfo.FullName, FileMode.Create);
-            IBinaryStream relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, endian);
+            IBinaryStream relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, platform);
             dataStream.Finalize(dataFileStreamWriter, stringTable);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
@@ -631,17 +808,17 @@ namespace GameData
 
 			private readonly Dictionary<StreamReference, List<StreamOffset>> mPointers = new();
 
-			internal DataBlock(EEndian inEndian, int alignment)
+			internal DataBlock(EPlatform platform, int alignment)
             {
                 Alignment = alignment;
                 // TODO Optimization
                 // Using MemoryStream with many DataBlock instances is not optimal, this could be
                 // seriously optimized
 				Reference = StreamReference.NewReference;
-				mDataWriter = EndianUtils.CreateBinaryStream(mDataStream, inEndian);
+				mDataWriter = EndianUtils.CreateBinaryStream(mDataStream, platform);
 			}
 
-            internal StreamReference Reference { get; set; }
+            internal StreamReference Reference { get; private set; }
             public int Alignment { get; }
 
 			private Int64 Position => mDataStream.Position;
@@ -668,14 +845,24 @@ namespace GameData
                 }
             }
 
+            internal void AlignTo(int alignment)
+            {
+                mDataWriter.Position = CMath.Align(mDataWriter.Position, alignment);
+            }
+
+            internal bool IsAligned(int alignment)
+            {
+                return CMath.IsAligned(mDataWriter.Position, alignment);
+            }
+
             internal void Write(float v)
 			{
-				Debug.Assert(CMath.IsAligned(mDataWriter.Position, sizeof(float)));
+				Debug.Assert(IsAligned(sizeof(float)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(double v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(double)));
+				Debug.Assert(IsAligned(sizeof(double)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(SByte v)
@@ -684,17 +871,17 @@ namespace GameData
 			}
 			internal void Write(Int16 v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
+				Debug.Assert(IsAligned(sizeof(Int16)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(Int32 v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
+				Debug.Assert(IsAligned(sizeof(Int32)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(Int64 v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int64)));
+				Debug.Assert(IsAligned(sizeof(Int64)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(Byte v)
@@ -703,17 +890,17 @@ namespace GameData
 			}
 			internal void Write(UInt16 v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt16)));
+				Debug.Assert(IsAligned(sizeof(UInt16)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(UInt32 v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt32)));
+				Debug.Assert(IsAligned(sizeof(UInt32)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(UInt64 v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
+				Debug.Assert(IsAligned(sizeof(UInt64)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(byte[] data, int index, int count)
@@ -724,10 +911,10 @@ namespace GameData
 			{
 				mDataWriter.Write(str);
 			}
-			
+
 			internal void Write(StreamReference v)
 			{
-				Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt32)));
+				Debug.Assert(IsAligned(sizeof(UInt32)));
 
 				if (mPointers.ContainsKey(v))
 				{
@@ -739,12 +926,12 @@ namespace GameData
                     mPointers.Add(v, offsets);
 				}
 
-				mDataWriter.Write(v.id);
+				mDataWriter.Write(v.ID);
 			}
 
 			internal Hash160 ComputeHash()
 			{
-				Hash160 dataHash = HashUtility.compute(mDataStream);
+				var dataHash = HashUtility.compute(mDataStream);
 				return dataHash;
 			}
 
@@ -793,12 +980,12 @@ namespace GameData
 						foreach (StreamOffset o in k.Value)
 						{
 							// Seek to the position that has the 'StreamReference'
-							mDataWriter.Seek(o); 
+							mDataWriter.Seek(o);
 
                             // Write the relative (signed) offset
                             int offset = (int)(outDataOffset.Offset - o.Offset);
                             // TODO: Assert when the offset is out of bounds (-2GB < offset < 2GB)
-                            mDataWriter.Write(offset); 
+                            mDataWriter.Write(offset);
 						}
 					}
 				}
@@ -815,16 +1002,16 @@ namespace GameData
 		private readonly List<DataBlock> mData = new();
 		private readonly Stack<DataBlock> mStack = new();
 
-		private EEndian Endian { get; set; }
+		private EPlatform Platform { get; set; }
 		private DataBlock Current { get; set; } = null;
 
 		#endregion
 		#region Constructor
 
-		public CppDataStream(EEndian endian)
-		{
-			Endian = endian;
-		}
+		public CppDataStream(EPlatform platform)
+        {
+            Platform = platform;
+        }
 
 		#endregion
 		#region Methods
@@ -834,7 +1021,7 @@ namespace GameData
 			if (Current != null)
 				mStack.Push(Current);
 
-			Current = new(Endian, alignment);
+			Current = new(Platform, alignment);
 			mData.Add(Current);
 			return Current.Reference;
 		}
@@ -846,6 +1033,11 @@ namespace GameData
                 Current = mStack.Pop();
             else
                 Current = null;
+        }
+
+        public void AlignTo(int alignment)
+        {
+            Current.AlignTo(alignment);
         }
 
 		public void Write(float v)
@@ -997,5 +1189,4 @@ namespace GameData
 
 		#endregion
 	}
-
 }

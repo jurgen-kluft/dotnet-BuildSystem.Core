@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-
+using System.Diagnostics;
 using Int8 = System.SByte;
 using UInt8 = System.Byte;
 using GameCore;
@@ -75,12 +75,12 @@ namespace GameData
             void WriteEnumMember(EnumMember c);
             void WriteFloatMember(FloatMember c);
             void WriteDoubleMember(DoubleMember c);
-
             void WriteStringMember(StringMember c);
             void WriteFileIdMember(FileIdMember c);
+            void WriteStructMember(StructMember c);
+
             void WriteArrayMember(ArrayMember c);
             void WriteObjectMember(ClassObject c);
-            void WriteStructMember(StructMember c);
         }
 
         #endregion
@@ -128,11 +128,15 @@ namespace GameData
             int Size { get; }
             int Alignment { get; }
             object Value { get; }
+            bool IsPointerTo { get; set; }
+            StreamReference Reference { get; }
 
             void Write(IMemberWriter writer);
         }
 
         #endregion
+
+        #region MetaType.TypeInfo
 
         public static class MetaType
 		{
@@ -225,6 +229,8 @@ namespace GameData
 			}
 		}
 
+        #endregion
+
         #region NullMember
 
         public sealed class NullMember : IClassMember
@@ -243,6 +249,9 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value => null;
+            public bool IsPointerTo { get; set; }
+
+            public StreamReference Reference { get; }
 
             public void Write(IMemberWriter writer)
             {
@@ -270,7 +279,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public bool InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -298,7 +310,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public Int8 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -326,7 +341,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public Int16 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -354,7 +372,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public Int32 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -382,7 +403,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public Int64 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -410,7 +434,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public UInt8 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -438,7 +465,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public UInt16 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -466,7 +496,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public UInt32 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -494,7 +527,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public UInt64 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -529,7 +565,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; set; }
+            public bool IsPointerTo { get; set; }
             public UInt64 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -557,7 +596,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public float InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -585,7 +627,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public double InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -596,6 +641,7 @@ namespace GameData
         #endregion
         #region StringMember
 
+        [DebuggerDisplay("String: \"{InternalValue}\", Name: {MemberName}, Pointer: {IsPointerTo}")]
         public sealed class StringMember : IClassMember
         {
             public StringMember(string name, string value)
@@ -613,7 +659,10 @@ namespace GameData
             public int Size { get; private set; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public string InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -641,7 +690,10 @@ namespace GameData
             public int Size { get; }
             public Int32 Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public Int64 InternalValue { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -653,6 +705,7 @@ namespace GameData
 
         #region StructMember
 
+        [DebuggerDisplay("Struct {TypeName}, {MemberName} {IsPointerTo}")]
         public sealed class StructMember : IClassMember
         {
             public StructMember(IStruct content, string memberName)
@@ -669,7 +722,10 @@ namespace GameData
             public int Size => Internal.StructSize;
             public Int32 Alignment => Internal.StructAlign;
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
             public IStruct Internal { get; private set; }
+
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -679,14 +735,6 @@ namespace GameData
 
         #endregion
 
-        #region ReferenceableMember
-
-        public interface IReferenceableMember
-        {
-            StreamReference Reference { get; }
-        }
-
-        #endregion
         #region CompoundMemberBase
 
         public interface ICompoundMemberBase
@@ -698,7 +746,7 @@ namespace GameData
 
         #region ArrayMember
 
-        public class ArrayMember : ICompoundMemberBase, IReferenceableMember, IClassMember
+        public class ArrayMember : ICompoundMemberBase, IClassMember
         {
             #region Constructor
 
@@ -717,6 +765,8 @@ namespace GameData
 
             public StreamReference Reference { get; set; }
 
+            public StreamReference ArrayDataReference { get; set; }
+
             public string MemberName { get; private set; }
             public Type MemberType { get; private set; }
             public IClassMember Element { get { return Members[0]; } }
@@ -724,6 +774,7 @@ namespace GameData
             public int Size { get; private set; }
             public int Alignment { get; private set; }
             public object Value { get; private set; }
+            public bool IsPointerTo { get; set; }
 
             public List<IClassMember> Members { get; set; }
 
@@ -746,7 +797,8 @@ namespace GameData
         #endregion
         #region ClassObject
 
-        public sealed class ClassObject : ICompoundMemberBase, IReferenceableMember, IClassMember
+        [DebuggerDisplay("Class {TypeName}, Pointer: {IsPointerTo}")]
+        public sealed class ClassObject : ICompoundMemberBase, IClassMember
         {
             #region Constructors
 
@@ -758,6 +810,7 @@ namespace GameData
                 Size = 0;
                 Alignment = sizeof(Int32); // Will be adjust if we have a member with a larger alignment
                 Value = value;
+                IsPointerTo = true;
                 Members = new ();
             }
 
@@ -770,6 +823,7 @@ namespace GameData
             public int Size { get; }
             public Int32 Alignment { get; private set; }
             public object Value { get;  }
+            public bool IsPointerTo { get; set; }
 
             public StreamReference Reference { get; set; }
 

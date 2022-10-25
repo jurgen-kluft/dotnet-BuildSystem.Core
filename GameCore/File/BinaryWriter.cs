@@ -20,7 +20,7 @@ namespace GameCore
         void Write(byte[] data, int index, int count);
         void Write(string v);
     }
-    
+
     #region IBinaryStream
 
     public interface IBinaryStream : IBinaryWriter
@@ -59,6 +59,11 @@ namespace GameCore
             mWriter.Write(data, 0, data.Length);
         }
 
+        public void Write(ByteSpan span)
+        {
+            mWriter.Write(span.Buffer, span.Start, span.Length);
+        }
+
         public void Write(byte[] data, int index, int count)
         {
             Debug.Assert((index + count) <= data.Length);
@@ -77,42 +82,42 @@ namespace GameCore
 
         public void Write(short v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(ushort v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(int v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(uint v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(long v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(ulong v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(float v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(double v)
         {
-            mWriter.Write(sEndian.Convert(v));
+            Write(sEndian.GetBytes(v));
         }
 
         public void Write(string s)

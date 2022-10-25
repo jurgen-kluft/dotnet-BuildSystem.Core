@@ -18,6 +18,14 @@ namespace GameData
 
     #endregion
 
+    #region InPlace
+
+    public class ArrayElementsInPlace : Attribute
+    {
+    }
+
+    #endregion
+
     #region Range
 
     public abstract class Range : Attribute

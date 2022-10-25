@@ -98,10 +98,10 @@ namespace GameCore
     {
         private FileStream mFileStream;
 
-        public BinaryStream(string filename, EEndian endian)
+        public BinaryStream(string filename, EPlatform platform)
         {
             Filename = filename;
-            Endian = endian;
+            Platform = platform;
         }
 
         public enum EMode
@@ -111,7 +111,7 @@ namespace GameCore
         }
 
         private string Filename { get; }
-        private EEndian Endian { get; }
+        private EPlatform Platform { get; }
         private IBinaryStream Writer { get; set; }
         private IBinaryReader Reader { get; set; }
 
@@ -122,8 +122,8 @@ namespace GameCore
             try
             {
                 stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
-                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryStream(stream, Endian);
-                else if (mode == EMode.Read) Reader = EndianUtils.CreateBinaryReader(stream, Endian);
+                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryStream(stream, Platform);
+                else if (mode == EMode.Read) Reader = EndianUtils.CreateBinaryReader(stream, Platform);
             }
             catch (Exception)
             {

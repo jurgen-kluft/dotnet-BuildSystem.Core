@@ -37,6 +37,7 @@ namespace GameCore
 
         private static BigEndian mEndian = new();
         private readonly BinaryReader mReader;
+        private byte[] Buffer = new byte[8];
 
         #endregion
 
@@ -118,14 +119,14 @@ namespace GameCore
 
         public float ReadFloat()
         {
-            mEndian.Convert(mReader.ReadBytes(4), out float v);
-            return v;
+            mReader.Read(Buffer, 0, 4);
+            return mEndian.ConvertFloat(ByteSpan.AsSpan(Buffer, 4));
         }
 
         public double ReadDouble()
         {
-            mEndian.Convert(mReader.ReadBytes(8), out double v);
-            return v;
+            mReader.Read(Buffer, 0, 8);
+            return mEndian.ConvertDouble(ByteSpan.AsSpan(Buffer, 8));
         }
 
         public string ReadString()
