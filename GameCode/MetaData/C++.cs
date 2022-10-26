@@ -251,8 +251,7 @@ namespace GameData
 			{
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
-                    // Actually we need to align the stream to the alignment requested by this class
-                    AlignTo(c.Alignment);
+	                AlignTo(c.Alignment); // Align the stream to the alignment requested by this class
                     foreach (var m in c.Members)
                         m.Write(this);
                     return true;
@@ -735,13 +734,18 @@ namespace GameData
             reflector.Analyze(data, book);
 
             // Sort the members on every 'Code.Class' so that alignment of data is solved.
-            foreach (ClassObject c in book.Classes)
-                c.SortMembers(new SortByMemberAlignment());
-
-            // Insert padding members to be correctly aligning members
-            foreach (ClassObject c in book.Classes)
-                c.FixMemberAlignment();
-
+            for (var i=0; i<2; ++i)
+            {
+	            foreach (var c in book.Classes)
+		            c.SortMembers(new SortByMemberAlignment());
+	            foreach (var c in book.Classes)
+		            c.DetermineAlignment();
+            }
+            
+            // Determine the size of every 'Code.Class'
+            foreach (var c in book.Classes)
+	            c.CombineBooleans();
+            
 			// TODO Booleans into bitset_t
 			// All bool members of a class should be combined to fall under one or more bitset_t member(s)
 			// So basically C# bool members should just take one bit of space.
@@ -750,12 +754,12 @@ namespace GameData
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new();
 
-            // Compile every 'Code.Class' to the DataStream.
+            // Write out every 'Code.ClassObject' to the DataStream.
             CppDataStream dataStream = new(platform);
             DataStreamWriter dataStreamWriter = new(stringTable, dataStream);
             dataStreamWriter.Open();
             {
-                ClassObject bookRoot = book.Classes[0];
+                var bookRoot = book.Classes[0];
                 bookRoot.Write(dataStreamWriter);
             }
             dataStreamWriter.Close();

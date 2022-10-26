@@ -1052,13 +1052,13 @@ namespace GameData
                     mWriter.Write(c.Members.Count);
 
                     // Offset to members array
-                    Int64 offsetsPos = mWriter.Position;
-                    foreach (IClassMember m in c.Members)
+                    var offsetsPos = mWriter.Position;
+                    foreach (var m in c.Members)
                         mWriter.Write((short)0);
                     StreamUtils.Align(mWriter, sizeof(short));
 
                     List<short> memberOffsets = new (c.Members.Count);
-                    foreach (IClassMember m in c.Members)
+                    foreach (var m in c.Members)
                     {
                         StreamUtils.Align(mWriter, m.Alignment);
                         memberOffsets.Add((short)(mWriter.Position - offsetsPos));
@@ -1067,7 +1067,7 @@ namespace GameData
 
                     // Seek back to the member offset array and write in the obtained
                     // member offsets and when done seek back to the end position.
-                    Int64 endPos = mWriter.Position;
+                    var endPos = mWriter.Position;
                     {
                         mWriter.Seek(new StreamOffset(offsetsPos));
                         foreach (short offset in memberOffsets)

@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Diagnostics;
+using DataBuildSystem;
 using Int8 = System.SByte;
 using UInt8 = System.Byte;
 using GameCore;
@@ -55,6 +56,7 @@ namespace GameData
         }
 
         #endregion
+
         #region IMemberWriter
 
         public interface IMemberWriter
@@ -91,9 +93,21 @@ namespace GameData
         {
             public int Compare(IClassMember x, IClassMember y)
             {
-                if (x.Alignment == y.Alignment) return 0;
-                else if (x.Alignment < y.Alignment) return 1;
-                else return -1;
+                var xa = x.Alignment;
+                if (x.IsPointerTo)
+                {
+                    xa = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 8 : 4;
+                }
+
+                var ya = y.Alignment;
+                if (y.IsPointerTo)
+                {
+                    ya = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 8 : 4;
+                }
+
+                if (xa == ya) return 0;
+                if (xa < ya) return 1;
+                return -1;
             }
         }
 
@@ -122,8 +136,8 @@ namespace GameData
 
         public interface IClassMember
         {
-            string MemberName { get;  }
-            Type MemberType { get;  }
+            string MemberName { get; }
+            Type MemberType { get; }
             string TypeName { get; }
             int Size { get; }
             int Alignment { get; }
@@ -139,24 +153,24 @@ namespace GameData
         #region MetaType.TypeInfo
 
         public static class MetaType
-		{
+        {
             public static bool TypeInfo(Type type, out string name, out int size, out int alignment)
-			{
+            {
                 name = type.Name;
                 if (type == typeof(bool))
-				{
+                {
                     alignment = 4;
                     size = 4;
                     name = "bool_t";
                 }
                 else if (type == typeof(byte))
-				{
+                {
                     alignment = 1;
                     size = 1;
                     name = "u8";
-				}
+                }
                 else if (type == typeof(sbyte))
-				{
+                {
                     alignment = 1;
                     size = 1;
                     name = "s8";
@@ -216,18 +230,19 @@ namespace GameData
                     name = "string_t";
                 }
                 else if (type == typeof(Enum))
-				{
+                {
                     return TypeInfo(Enum.GetUnderlyingType(type), out name, out size, out alignment);
                 }
                 else
-				{
+                {
                     alignment = 0;
                     size = 0;
                     return false;
-				}
+                }
+
                 return true;
-			}
-		}
+            }
+        }
 
         #endregion
 
@@ -237,9 +252,9 @@ namespace GameData
         {
             public NullMember(string name)
             {
-               MemberName = name;
-               MemberType = null;
-               Alignment = sizeof(Int32);
+                MemberName = name;
+                MemberType = null;
+                Alignment = sizeof(Int32);
             }
 
             public string MemberName { get; private set; }
@@ -260,6 +275,7 @@ namespace GameData
         }
 
         #endregion
+
         #region BoolMember
 
         public sealed class BoolMember : IClassMember
@@ -291,6 +307,7 @@ namespace GameData
         }
 
         #endregion
+
         #region Int8Member
 
         public sealed class Int8Member : IClassMember
@@ -322,6 +339,7 @@ namespace GameData
         }
 
         #endregion
+
         #region Int16Member
 
         public sealed class Int16Member : IClassMember
@@ -353,6 +371,7 @@ namespace GameData
         }
 
         #endregion
+
         #region Int32Member
 
         public sealed class Int32Member : IClassMember
@@ -384,6 +403,7 @@ namespace GameData
         }
 
         #endregion
+
         #region Int64Member
 
         public sealed class Int64Member : IClassMember
@@ -415,6 +435,7 @@ namespace GameData
         }
 
         #endregion
+
         #region UInt8Member
 
         public sealed class UInt8Member : IClassMember
@@ -446,6 +467,7 @@ namespace GameData
         }
 
         #endregion
+
         #region UInt16Member
 
         public sealed class UInt16Member : IClassMember
@@ -477,6 +499,7 @@ namespace GameData
         }
 
         #endregion
+
         #region UInt32Member
 
         public sealed class UInt32Member : IClassMember
@@ -508,6 +531,7 @@ namespace GameData
         }
 
         #endregion
+
         #region UInt64Member
 
         public sealed class UInt64Member : IClassMember
@@ -539,6 +563,7 @@ namespace GameData
         }
 
         #endregion
+
         #region EnumMember
 
         public sealed class EnumMember : IClassMember
@@ -577,6 +602,7 @@ namespace GameData
         }
 
         #endregion
+
         #region FloatMember
 
         public sealed class FloatMember : IClassMember
@@ -608,6 +634,7 @@ namespace GameData
         }
 
         #endregion
+
         #region DoubleMember
 
         public sealed class DoubleMember : IClassMember
@@ -639,6 +666,7 @@ namespace GameData
         }
 
         #endregion
+
         #region StringMember
 
         [DebuggerDisplay("String: \"{InternalValue}\", Name: {MemberName}, Pointer: {IsPointerTo}")]
@@ -671,6 +699,7 @@ namespace GameData
         }
 
         #endregion
+
         #region FileIdMember
 
         public sealed class FileIdMember : IClassMember
@@ -740,7 +769,7 @@ namespace GameData
         public interface ICompoundMemberBase
         {
             void AddMember(IClassMember m);
-}
+        }
 
         #endregion
 
@@ -757,10 +786,11 @@ namespace GameData
                 Value = value;
                 Alignment = sizeof(Int32) + sizeof(Int32);
                 Size = sizeof(Int32) + sizeof(Int32);
-                Members = new ();
+                Members = new();
             }
 
             #endregion
+
             #region Properties
 
             public StreamReference Reference { get; set; }
@@ -769,7 +799,12 @@ namespace GameData
 
             public string MemberName { get; private set; }
             public Type MemberType { get; private set; }
-            public IClassMember Element { get { return Members[0]; } }
+
+            public IClassMember Element
+            {
+                get { return Members[0]; }
+            }
+
             public string TypeName => "rawarr_t<" + Element.TypeName + ">";
             public int Size { get; private set; }
             public int Alignment { get; private set; }
@@ -779,9 +814,10 @@ namespace GameData
             public List<IClassMember> Members { get; set; }
 
             #endregion
+
             #region Member methods
 
-            public  void AddMember(IClassMember m)
+            public void AddMember(IClassMember m)
             {
                 Members.Add(m);
             }
@@ -795,6 +831,7 @@ namespace GameData
         }
 
         #endregion
+
         #region ClassObject
 
         [DebuggerDisplay("Class {TypeName}, Pointer: {IsPointerTo}")]
@@ -808,21 +845,22 @@ namespace GameData
                 MemberType = type;
                 TypeName = className;
                 Size = 0;
-                Alignment = sizeof(Int32); // Will be adjust if we have a member with a larger alignment
+                Alignment = 4;
                 Value = value;
                 IsPointerTo = true;
-                Members = new ();
+                Members = new();
             }
 
             #endregion
+
             #region Properties
 
-            public string MemberName { get;  }
-            public Type MemberType { get;}
-            public string TypeName {get;set;}
+            public string MemberName { get; }
+            public Type MemberType { get; }
+            public string TypeName { get; init; }
             public int Size { get; }
-            public Int32 Alignment { get; private set; }
-            public object Value { get;  }
+            public int Alignment { get; private set; }
+            public object Value { get; }
             public bool IsPointerTo { get; set; }
 
             public StreamReference Reference { get; set; }
@@ -830,13 +868,11 @@ namespace GameData
             public List<IClassMember> Members { get; private set; }
 
             #endregion
+
             #region Methods
 
-            public  void AddMember(IClassMember m)
+            public void AddMember(IClassMember m)
             {
-                if (m.Alignment > Alignment)
-                    Alignment = m.Alignment;
-
                 Members.Add(m);
             }
 
@@ -845,13 +881,25 @@ namespace GameData
                 // Sort the members on their data size, from big to small
                 Members.Sort(c);
             }
+            public void DetermineAlignment()
+            {
+                // Determine the alignment of this Class
+                if (Members.Count > 0)
+                {
+                    Alignment = Members[0].Alignment;
+                }
+            }
 
-            public void FixMemberAlignment()
-			{
-
-			}
-
+            public void CombineBooleans()
+            {
+                // Combine boolean members into max 32 boolean members
+                foreach (var m in Members)
+                {
+                }
+            }
+            
             #endregion
+
             #region Member methods
 
             public void Write(IMemberWriter writer)
