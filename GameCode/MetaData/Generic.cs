@@ -68,7 +68,11 @@ namespace GameData
             {
                 // Has no reference
             }
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
+            {
+                // Has no reference
+            }
+            public void WriteBitSetMember(BitSetMember c)
             {
                 // Has no reference
             }
@@ -184,7 +188,10 @@ namespace GameData
             public void WriteNullMember(NullMember c)
             {
             }
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
+            {
+            }
+            public void WriteBitSetMember(BitSetMember c)
             {
             }
             public void WriteInt8Member(Int8Member c)
@@ -296,19 +303,20 @@ namespace GameData
                 None = 0,
                 NullMemberDone = 1 << 1,
                 Bool8MemberDone = 1 << 2,
-                Int8MemberDone = 1 << 3,
-                Int16MemberDone = 1 << 4,
-                Int32MemberDone = 1 << 5,
-                Int64MemberDone = 1 << 6,
-                UInt8MemberDone = 1 << 7,
-                UInt16MemberDone = 1 << 8,
-                UInt32MemberDone = 1 << 9,
-                UInt64MemberDone = 1 << 10,
-                EnumMemberDone = 1 << 11,
-                FloatMemberDone = 1 << 12,
-                DoubleMemberDone = 1 << 13,
-                StringMemberDone = 1 << 14,
-                FileIdMemberDone = 1 << 15,
+                BitSetMemberDone = 1 << 3,
+                Int8MemberDone = 1 << 4,
+                Int16MemberDone = 1 << 5,
+                Int32MemberDone = 1 << 6,
+                Int64MemberDone = 1 << 7,
+                UInt8MemberDone = 1 << 8,
+                UInt16MemberDone = 1 << 9,
+                UInt32MemberDone = 1 << 10,
+                UInt64MemberDone = 1 << 11,
+                EnumMemberDone = 1 << 12,
+                FloatMemberDone = 1 << 13,
+                DoubleMemberDone = 1 << 14,
+                StringMemberDone = 1 << 15,
+                FileIdMemberDone = 1 << 16,
             };
 
             private bool HasFlag(EDone d)
@@ -346,11 +354,20 @@ namespace GameData
                 }
                 mStringTable.Add(c.MemberName.ToLower());
             }
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
             {
                 if (!HasFlag(EDone.Bool8MemberDone))
                 {
                     SetFlag(EDone.Bool8MemberDone);
+                    mStringTable.Add(c.TypeName);
+                }
+                mStringTable.Add(c.MemberName.ToLower());
+            }
+            public void WriteBitSetMember(BitSetMember c)
+            {
+                if (!HasFlag(EDone.BitSetMemberDone))
+                {
+                    SetFlag(EDone.BitSetMemberDone);
                     mStringTable.Add(c.TypeName);
                 }
                 mStringTable.Add(c.MemberName.ToLower());
@@ -547,10 +564,15 @@ namespace GameData
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write((int)0);
             }
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
             {
                 if (mAlignMembers) Align(c.Alignment);
                 mWriter.Write((int)(c.InternalValue ? 1 : 0));
+            }
+            public void WriteBitSetMember(BitSetMember c)
+            {
+                if (mAlignMembers) Align(c.Alignment);
+                mWriter.Write((int)(c.InternalValue));
             }
             public void WriteInt8Member(Int8Member c)
             {
@@ -684,10 +706,13 @@ namespace GameData
             {
                 // Embedded in the Member.OffsetOrValue as value
             }
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
             {
                 // Embedded in the Member.OffsetOrValue as value
             }
+            public void WriteBitSetMember(BitSetMember c)
+            {
+            }            
             public void WriteInt8Member(Int8Member c)
             {
                 // Embedded in the Member.OffsetOrValue as value
@@ -817,10 +842,14 @@ namespace GameData
             {
                 WriteInt32(0);
             }
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
             {
                 WriteInt32(c.InternalValue ? 0 : 1);
             }
+            public void WriteBitSetMember(BitSetMember c)
+            {
+                mWriter.Write(c.InternalValue);
+            }            
             public void WriteInt8Member(Int8Member c)
             {
                 WriteInt32(c.InternalValue);
@@ -946,10 +975,14 @@ namespace GameData
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
             {
                 WriteMember(c.TypeName, c.MemberName, c);
             }
+            public void WriteBitSetMember(BitSetMember c)
+            {
+                WriteMember(c.TypeName, c.MemberName, c);
+            }            
             public void WriteInt8Member(Int8Member c)
             {
                 WriteMember(c.TypeName, c.MemberName, c);

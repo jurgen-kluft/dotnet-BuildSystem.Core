@@ -75,12 +75,20 @@ namespace GameData
                 }
             }
 
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
             {
                 Write(c, streamReference => c.Reference = streamReference, delegate {
                     mDataStream.Write(c.InternalValue ? 0 : 1);
                     return true;
                 });
+            }
+
+            public void WriteBitSetMember(BitSetMember c)
+            {
+	            Write(c, streamReference => c.Reference = streamReference, delegate {
+		            mDataStream.Write(c.InternalValue);
+		            return true;
+	            });
             }
 
             public void WriteInt8Member(Int8Member c)
@@ -297,13 +305,24 @@ namespace GameData
                 mWriter.WriteLine(line);
             }
 
-            public void WriteBool8Member(BoolMember c)
+            public void WriteBoolMember(BoolMember c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
                 mWriter.WriteLine(line);
             }
 
+            public void WriteBitSetMember(BitSetMember c)
+            {
+	            uint bit = 1;
+	            foreach (var m in c.Members)
+	            {
+		            var line = $"\t{m.TypeName}\tget{m.MemberName}() const {{ return (m_{c.MemberName} & {bit}) != 0; }}";
+		            mWriter.WriteLine(line);
+		            bit = bit << 1;
+	            }
+            }
+            
             public void WriteInt8Member(Int8Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
@@ -483,7 +502,11 @@ namespace GameData
 			{
 				Write(c.TypeName, c.MemberName, mWriter);
 			}
-			public void WriteBool8Member(BoolMember c)
+			public void WriteBoolMember(BoolMember c)
+			{
+				Write(c.TypeName, c.MemberName, mWriter);
+			}
+			public void WriteBitSetMember(BitSetMember c)
 			{
 				Write(c.TypeName, c.MemberName, mWriter);
 			}

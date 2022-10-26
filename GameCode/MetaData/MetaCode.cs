@@ -65,7 +65,8 @@ namespace GameData
             bool Close();
 
             void WriteNullMember(NullMember c);
-            void WriteBool8Member(BoolMember c);
+            void WriteBoolMember(BoolMember c);
+            void WriteBitSetMember(BitSetMember c);
             void WriteInt8Member(Int8Member c);
             void WriteInt16Member(Int16Member c);
             void WriteInt32Member(Int32Member c);
@@ -302,12 +303,53 @@ namespace GameData
 
             public void Write(IMemberWriter writer)
             {
-                writer.WriteBool8Member(this);
+                writer.WriteBoolMember(this);
             }
         }
 
         #endregion
 
+        #region BitSetMember
+
+        public sealed class BitSetMember : IClassMember
+        {
+            public BitSetMember(List<BoolMember> members)
+            {
+                MemberName = members[0].MemberName;
+                Size = sizeof(uint);
+                InternalValue = 0;
+                uint bit = 1;
+                foreach (var b in members)
+                {
+                    if (b.InternalValue)
+                    {
+                        InternalValue = (InternalValue | bit);
+                    }
+                    bit <<= 1;
+                }
+                Value = InternalValue;
+                Alignment = sizeof(uint);
+            }
+
+            public string MemberName { get; private set; }
+            public Type MemberType => typeof(uint);
+            public string TypeName => "u32";
+            public int Size { get; private set; }
+            public Int32 Alignment { get; private set; }
+            public object Value { get; private set; }
+            public uint InternalValue { get; private set; }
+            public bool IsPointerTo { get; set; } = false;
+            public List<BoolMember> Members { get; set; }       
+
+            public StreamReference Reference { get; set; }
+
+            public void Write(IMemberWriter writer)
+            {
+                writer.WriteBitSetMember(this);
+            }
+        }
+
+        #endregion
         #region Int8Member
 
         public sealed class Int8Member : IClassMember
