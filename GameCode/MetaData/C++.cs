@@ -1,9 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Security.Cryptography;
-using System.Collections.Generic;
-using System.Text;
 using GameCore;
 
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
@@ -17,7 +12,7 @@ namespace GameData
 	{
 		#region Class and ClassMember data writer
 
-		public class DataStreamWriter : IMemberWriter
+		private sealed class DataStreamWriter : IMemberWriter
 		{
 			private readonly StringTable mStringTable;
 			private readonly CppDataStream mDataStream;
@@ -270,25 +265,15 @@ namespace GameData
 		#endregion
 		#region C++ Class Member Getter writer
 
-        private class MemberGetterWriter : IMemberWriter
+        private sealed class MemberGetterWriter : IMemberWriter
         {
-            private StreamWriter mWriter;
-
-            public MemberGetterWriter()
-            {
-                mWriter = null;
-            }
-
+            private readonly StreamWriter mWriter;
+            
             public MemberGetterWriter(StreamWriter writer)
             {
                 mWriter = writer;
             }
-
-            public void SetWriter(StreamWriter writer)
-            {
-                mWriter = writer;
-            }
-
+            
             public bool Open()
             {
                 return true;
@@ -314,12 +299,18 @@ namespace GameData
 
             public void WriteBitSetMember(BitSetMember c)
             {
-	            uint bit = 1;
-	            foreach (var m in c.Members)
+	            int n = (c.Members.Count + 31) / 32;
+	            for (var i=0; i<n; ++i)
 	            {
-		            var line = $"\t{m.TypeName}\tget{m.MemberName}() const {{ return (m_{c.MemberName} & {bit}) != 0; }}";
-		            mWriter.WriteLine(line);
-		            bit = bit << 1;
+		            uint bit = 1;
+		            string fieldName = c.Members[i * 32].MemberName;
+		            foreach (var m in c.Members)
+		            {
+			            var line =
+				            $"\t{m.TypeName}\tget{m.MemberName}() const {{ return (m_{fieldName} & {bit}) != 0; }}";
+			            mWriter.WriteLine(line);
+			            bit = bit << 1;
+		            }
 	            }
             }
             
@@ -458,21 +449,11 @@ namespace GameData
         #endregion
 		#region C++ Struct Member Writer
 
-		public class MemberWriter : IMemberWriter
+		private sealed class MemberWriter : IMemberWriter
 		{
-			private StreamWriter mWriter;
-
-			public MemberWriter()
-			{
-				mWriter = null;
-			}
-
+			private readonly StreamWriter mWriter;
+			
 			public MemberWriter(StreamWriter writer)
-			{
-				mWriter = writer;
-			}
-
-			public void SetWriter(StreamWriter writer)
 			{
 				mWriter = writer;
 			}
@@ -487,169 +468,168 @@ namespace GameData
 				return true;
 			}
 
-			public bool Write(string type, string name, StreamWriter writer)
+			private static void Write(string type, string name, bool pointer, TextWriter writer)
 			{
                 //writer.WriteLine($"\t{type} const m_{name};");
                 writer.Write('\t');
                 writer.Write(type);
+                if (pointer)
+	                writer.Write('*');
                 writer.Write(" const m_");
                 writer.Write(name);
                 writer.WriteLine(";");
-				return true;
 			}
 
 			public void WriteNullMember(NullMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteBoolMember(BoolMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteBitSetMember(BitSetMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				var n = (c.Members.Count + 31) / 32;
+				for (var i=0; i<n; ++i)
+				{
+					var fieldName = c.Members[i * 32].MemberName;
+					Write(c.TypeName, fieldName, false, mWriter);
+				}
 			}
 			public void WriteInt8Member(Int8Member c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteInt16Member(Int16Member c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteInt32Member(Int32Member c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteInt64Member(Int64Member c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteUInt8Member(UInt8Member c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteUInt16Member(UInt16Member c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteUInt32Member(UInt32Member c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
             public void WriteUInt64Member(UInt64Member c)
             {
-                Write(c.TypeName, c.MemberName, mWriter);
+                Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
             }
             public void WriteEnumMember(EnumMember c)
             {
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
             }
 			public void WriteFloatMember(FloatMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteDoubleMember(DoubleMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteStringMember(StringMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteFileIdMember(FileIdMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
             public void WriteStructMember(StructMember c)
             {
-                Write(c.TypeName, c.MemberName, mWriter);
+                Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
             }
 			public void WriteArrayMember(ArrayMember c)
 			{
-				Write(c.TypeName, c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
 			}
 			public void WriteObjectMember(ClassObject c)
 			{
-                Write($"rawobj_t<{c.TypeName}>", c.MemberName, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
             }
 		}
 
 		#endregion
 		#region C++ Code writer
 
-		public class CppCodeWriter
+		private class CppCodeWriter
 		{
-            private readonly MemberGetterWriter mGetterWriter = new();
-			private readonly MemberWriter mMemberWriter = new();
-
-            public void WriteEnum(EnumMember e, StreamWriter writer)
+			private static void WriteEnum(EnumMember e, StreamWriter writer)
             {
                 writer.WriteLine($"enum {e.EnumType.Name}");
                 writer.WriteLine("{");
                 foreach (var en in Enum.GetValues(e.EnumType))
                 {
-					object val = System.Convert.ChangeType(en, System.Enum.GetUnderlyingType(e.EnumType));
+					var val = System.Convert.ChangeType(en, System.Enum.GetUnderlyingType(e.EnumType));
 					writer.WriteLine($"\t{Enum.GetName(e.EnumType, en)} = {val},");
                 }
                 writer.WriteLine("};");
                 writer.WriteLine();
             }
 
-            public void Write(List<EnumMember> enums, StreamWriter writer)
+            public static void Write(List<EnumMember> enums, StreamWriter writer)
             {
                 HashSet<string> writtenEnums = new();
-                foreach (EnumMember c in enums)
+                foreach (var c in enums)
                 {
-                    if (!writtenEnums.Contains(c.EnumType.Name))
-                    {
-                        WriteEnum(c, writer);
-                        writtenEnums.Add(c.EnumType.Name);
-                    }
+	                if (writtenEnums.Contains(c.EnumType.Name)) continue;
+	                WriteEnum(c, writer);
+	                writtenEnums.Add(c.EnumType.Name);
                 }
 				writer.WriteLine();
 			}
 
-			public bool Write(ClassObject c, StreamWriter writer)
+            private static void Write(ClassObject c, StreamWriter writer)
 			{
 				writer.WriteLine($"class {c.TypeName}");
                 writer.WriteLine("{");
                 writer.WriteLine("public:");
 
+				MemberGetterWriter getterWriter = new(writer);
+				MemberWriter memberWriter = new(writer);
+                
                 // write public getters
-                mGetterWriter.SetWriter(writer);
-                foreach (IClassMember m in c.Members)
+                foreach (var m in c.Members)
                 {
-                    m.Write(mGetterWriter);
+                    m.Write(getterWriter);
                 }
                 writer.WriteLine();
                 writer.WriteLine("private:");
 
                 // write private members
-                mMemberWriter.SetWriter(writer);
-				foreach (IClassMember m in c.Members)
+				foreach (var m in c.Members)
 				{
-					m.Write(mMemberWriter);
+					m.Write(memberWriter);
 				}
 
                 writer.WriteLine("};");
                 writer.WriteLine();
-				return true;
 			}
 
-			public void Write(List<ClassObject> classes, StreamWriter writer)
+			public static void Write(List<ClassObject> classes, StreamWriter writer)
 			{
 				classes.Reverse();
 
 				HashSet<string> writtenClasses = new();
-				foreach (ClassObject c in classes)
+				foreach (var c in classes)
 				{
-					if (!writtenClasses.Contains(c.TypeName))
-					{
-						Write(c, writer);
-						writtenClasses.Add(c.TypeName);
-					}
+					if (writtenClasses.Contains(c.TypeName)) continue;
+					Write(c, writer);
+					writtenClasses.Add(c.TypeName);
 				}
 			}
 		}
@@ -658,7 +638,7 @@ namespace GameData
 
         #region MemberBook
 
-        class MyMemberBook : MemberBook
+        private sealed class MyMemberBook : MemberBook
         {
             public void HandoutReferences()
             {
@@ -666,7 +646,7 @@ namespace GameData
                 // Note: Strings are a bit of a special case since we also will collect the names of members and classes.
 
                 Dictionary<object, StreamReference> referencesForClassesDict = new();
-                foreach (ClassObject c in Classes)
+                foreach (var c in Classes)
                 {
                     if (c.Value != null)
                     {
@@ -687,7 +667,7 @@ namespace GameData
                 }
 
                 Dictionary<object, StreamReference> referencesForArraysDict = new();
-                foreach (ArrayMember a in Arrays)
+                foreach (var a in Arrays)
                 {
                     if (a.Value != null)
                     {
@@ -769,11 +749,6 @@ namespace GameData
             foreach (var c in book.Classes)
 	            c.CombineBooleans();
             
-			// TODO Booleans into bitset_t
-			// All bool members of a class should be combined to fall under one or more bitset_t member(s)
-			// So basically C# bool members should just take one bit of space.
-			// Hmmm, what about an array of bools, should that be converted into a bitarray_t
-
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new();
 
@@ -791,10 +766,10 @@ namespace GameData
             // IReferenceableMember objects in the DataStream.
             FileInfo dataFileInfo = new(dataFilename);
             FileStream dataFileStream = new(dataFileInfo.FullName, FileMode.Create);
-            IBinaryStream dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, platform);
+            var dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, platform);
             FileInfo relocFileInfo = new(relocFilename);
             FileStream relocFileStream = new(relocFileInfo.FullName, FileMode.Create);
-            IBinaryStream relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, platform);
+            var relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, platform);
             dataStream.Finalize(dataFileStreamWriter, stringTable);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
@@ -803,11 +778,11 @@ namespace GameData
 
             // Generate the c++ code using the CppCodeWriter.
             FileInfo codeFileInfo = new(codeFilename);
-            FileStream codeFileStream = codeFileInfo.Create();
+            var codeFileStream = codeFileInfo.Create();
             StreamWriter codeFileStreamWriter = new(codeFileStream);
             CppCodeWriter codeWriter = new ();
-			codeWriter.Write(book.Enums, codeFileStreamWriter);
-			codeWriter.Write(book.Classes, codeFileStreamWriter);
+			CppCodeWriter.Write(book.Enums, codeFileStreamWriter);
+			CppCodeWriter.Write(book.Classes, codeFileStreamWriter);
             codeFileStreamWriter.Close();
             codeFileStream.Close();
 
@@ -848,18 +823,18 @@ namespace GameData
             internal StreamReference Reference { get; private set; }
             public int Alignment { get; }
 
-			private Int64 Position => mDataStream.Position;
+			private long Position => mDataStream.Position;
 
             internal int Size => (int)mDataStream.Length;
 
             internal void End()
             {
-                int gap = CMath.Align32(Size, Alignment) - Size;
+                var gap = CMath.Align32(Size, Alignment) - Size;
 
                 // Write actual data to reach the size alignment requirement
 
-                int gap4 = gap / 4;
-                for (int i = 0; i < gap4; ++i)
+                var gap4 = gap / 4;
+                for (var i = 0; i < gap4; ++i)
                 {
                     mDataWriter.Write((uint)0xCDCDCDCD);
                 }
@@ -877,7 +852,7 @@ namespace GameData
                 mDataWriter.Position = CMath.Align(mDataWriter.Position, alignment);
             }
 
-            internal bool IsAligned(int alignment)
+            private bool IsAligned(int alignment)
             {
                 return CMath.IsAligned(mDataWriter.Position, alignment);
             }
@@ -892,42 +867,42 @@ namespace GameData
 				Debug.Assert(IsAligned(sizeof(double)));
 				mDataWriter.Write(v);
 			}
-			internal void Write(SByte v)
+			internal void Write(sbyte v)
 			{
 				mDataWriter.Write(v);
 			}
-			internal void Write(Int16 v)
+			internal void Write(short v)
 			{
-				Debug.Assert(IsAligned(sizeof(Int16)));
+				Debug.Assert(IsAligned(sizeof(short)));
 				mDataWriter.Write(v);
 			}
-			internal void Write(Int32 v)
+			internal void Write(int v)
 			{
-				Debug.Assert(IsAligned(sizeof(Int32)));
+				Debug.Assert(IsAligned(sizeof(int)));
 				mDataWriter.Write(v);
 			}
-			internal void Write(Int64 v)
+			internal void Write(long v)
 			{
-				Debug.Assert(IsAligned(sizeof(Int64)));
+				Debug.Assert(IsAligned(sizeof(long)));
 				mDataWriter.Write(v);
 			}
-			internal void Write(Byte v)
+			internal void Write(byte v)
 			{
 				mDataWriter.Write(v);
 			}
-			internal void Write(UInt16 v)
+			internal void Write(ushort v)
 			{
-				Debug.Assert(IsAligned(sizeof(UInt16)));
+				Debug.Assert(IsAligned(sizeof(ushort)));
 				mDataWriter.Write(v);
 			}
-			internal void Write(UInt32 v)
+			internal void Write(uint v)
 			{
-				Debug.Assert(IsAligned(sizeof(UInt32)));
+				Debug.Assert(IsAligned(sizeof(uint)));
 				mDataWriter.Write(v);
 			}
-			internal void Write(UInt64 v)
+			internal void Write(ulong v)
 			{
-				Debug.Assert(IsAligned(sizeof(UInt64)));
+				Debug.Assert(IsAligned(sizeof(ulong)));
 				mDataWriter.Write(v);
 			}
 			internal void Write(byte[] data, int index, int count)
@@ -941,7 +916,7 @@ namespace GameData
 
 			internal void Write(StreamReference v)
 			{
-				Debug.Assert(IsAligned(sizeof(UInt32)));
+				Debug.Assert(IsAligned(sizeof(uint)));
 
 				if (mPointers.ContainsKey(v))
 				{
@@ -1128,7 +1103,7 @@ namespace GameData
 		{
 			// Dictionary for mapping a Reference object to a Data object
             Dictionary<StreamReference, DataBlock> finalDataDataBase = new();
-			foreach (DataBlock d in mData)
+			foreach (var d in mData)
 				finalDataDataBase.Add(d.Reference, d);
 
 			// For all blocks, calculate Hash
@@ -1140,15 +1115,15 @@ namespace GameData
 				Dictionary<StreamReference, List<StreamReference>> duplicateDataBase = new();
 				Dictionary<Hash160, StreamReference> dataHashDataBase = new();
 
-				foreach (DataBlock d in mData)
+				foreach (var d in mData)
 				{
-					Hash160 hash = d.ComputeHash();
+					var hash = d.ComputeHash();
 					if (dataHashDataBase.ContainsKey(hash))
 					{
 						// Encountering a block of data which has a duplicate.
 						// After the first iteration it might be the case that
 						// they have the same 'Reference' since they are collapsed.
-						StreamReference newRef = dataHashDataBase[hash];
+						var newRef = dataHashDataBase[hash];
 						if (d.Reference != newRef)
 						{
 							if (!duplicateDataBase.ContainsKey(newRef))
@@ -1174,11 +1149,11 @@ namespace GameData
 					}
 				}
 
-				foreach (KeyValuePair<StreamReference, List<StreamReference>> p in duplicateDataBase)
+				foreach (var p in duplicateDataBase)
 				{
-					foreach (StreamReference r in p.Value)
+					foreach (var r in p.Value)
 					{
-						foreach (DataBlock d in mData)
+						foreach (var d in mData)
 						{
 							d.ReplaceReference(r, p.Key);
 						}
@@ -1197,11 +1172,11 @@ namespace GameData
             // Write strings first to the output and for each string remember the stream offset
             stringTable.Write(dataWriter, dataOffsetDataBase);
 
-            Int64 offset = dataWriter.Position;
-            foreach (KeyValuePair<StreamReference, DataBlock> k in finalDataDataBase)
+            var offset = dataWriter.Position;
+            foreach (var k in finalDataDataBase)
             {
                 offset = CMath.Align(offset, k.Value.Alignment);
-				dataOffsetDataBase.Add(k.Key, new (offset));
+				dataOffsetDataBase.Add(k.Key, new StreamOffset(offset));
 				offset += k.Value.Size;
             }
 

@@ -9,6 +9,7 @@ following things will be done by the BuildSystem:
 - It recognizes the following types:
   - ``DataUnit``; A reference to a ``IDataRoot`` that exists in another ``GameData...DLL``
   - ``FileId``; An Id that can be used to interact with BigfileManager to read a file
+  - ``bool``; Multiple booleans are combined and basically become `bits`
   - ``s8``/``s16``/``s32``/``s64``;
   - ``u8``/``u16``/``u32``/``u64``;
   - ``fx16``/``fx32``;
@@ -31,8 +32,8 @@ In your game runtime you can use the `C++` library `cgamedata` to use it.
 
 ## WIP
 
-Currently working on exporting C++ header files containing structs that are direct
+Currently working on exporting C++ header files containing classes/structs that are direct
 mirrors of their C# counterpart and map directly to the written out data.
-Working with the data in this way is a lot more convenient and easier to understand,
-but it does require that you 'recompile' your game executable (when the layout changes).
+Working with the data in this way is a lot more convenient and easier to understand, but it 
+does require that you 'recompile' your game executable (when the layout changes).
 When only the data changes you do not need to recompile your application.

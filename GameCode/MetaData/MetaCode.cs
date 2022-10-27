@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using DataBuildSystem;
 using Int8 = System.SByte;
-using UInt8 = System.Byte;
+using uint8 = System.Byte;
 using GameCore;
 
 namespace GameData
@@ -37,19 +37,19 @@ namespace GameData
 
             IClassMember NewNullMember(string memberName);
             IClassMember NewBoolMember(bool content, string memberName);
-            IClassMember NewInt8Member(SByte content, string memberName);
-            IClassMember NewUInt8Member(Byte content, string memberName);
-            IClassMember NewInt16Member(Int16 content, string memberName);
-            IClassMember NewUInt16Member(UInt16 content, string memberName);
-            IClassMember NewInt32Member(Int32 content, string memberName);
-            IClassMember NewUInt32Member(UInt32 content, string memberName);
-            IClassMember NewInt64Member(Int64 content, string memberName);
+            IClassMember NewInt8Member(sbyte content, string memberName);
+            IClassMember NewUInt8Member(byte content, string memberName);
+            IClassMember NewInt16Member(short content, string memberName);
+            IClassMember NewUInt16Member(ushort content, string memberName);
+            IClassMember NewInt32Member(int content, string memberName);
+            IClassMember NewUInt32Member(uint content, string memberName);
+            IClassMember NewInt64Member(long content, string memberName);
             IClassMember NewUInt64Member(UInt64 content, string memberName);
             IClassMember NewEnumMember(object content, string memberName);
             IClassMember NewFloatMember(float content, string memberName);
             IClassMember NewDoubleMember(double content, string memberName);
             IClassMember NewStringMember(string content, string memberName);
-            FileIdMember NewFileIdMember(Int64 content, string memberName);
+            FileIdMember NewFileIdMember(long content, string memberName);
             ClassObject NewObjectMember(Type objectType, object content, string memberName);
             ArrayMember NewArrayMember(Type arrayType, object content, string memberName);
             StructMember NewStructMember(IStruct content, string memberName);
@@ -255,7 +255,7 @@ namespace GameData
             {
                 MemberName = name;
                 MemberType = null;
-                Alignment = sizeof(Int32);
+                Alignment = sizeof(int);
             }
 
             public string MemberName { get; private set; }
@@ -263,7 +263,7 @@ namespace GameData
             public string TypeName => "void";
 
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value => null;
             public bool IsPointerTo { get; set; }
 
@@ -284,17 +284,17 @@ namespace GameData
             public BoolMember(string name, bool value)
             {
                 MemberName = name;
-                Size = sizeof(Int32);
+                Size = sizeof(int);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(Int32);
+                Alignment = sizeof(int);
             }
 
             public string MemberName { get; private set; }
             public Type MemberType => typeof(bool);
             public string TypeName => "bool";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
             public bool InternalValue { get; private set; }
@@ -316,7 +316,7 @@ namespace GameData
             public BitSetMember(List<BoolMember> members)
             {
                 MemberName = members[0].MemberName;
-                Size = sizeof(uint);
+                Size = 4;
                 InternalValue = 0;
                 uint bit = 1;
                 foreach (var b in members)
@@ -325,17 +325,19 @@ namespace GameData
                     {
                         InternalValue = (InternalValue | bit);
                     }
+
                     bit <<= 1;
                 }
+
                 Value = InternalValue;
-                Alignment = sizeof(uint);
+                Alignment = Size;
             }
 
             public string MemberName { get; private set; }
             public Type MemberType => typeof(uint);
             public string TypeName => "u32";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public uint InternalValue { get; private set; }
             public bool IsPointerTo { get; set; } = false;
@@ -354,23 +356,23 @@ namespace GameData
 
         public sealed class Int8Member : IClassMember
         {
-            public Int8Member(string name, Int8 value)
+            public Int8Member(string name, sbyte value)
             {
                 MemberName = name;
-                Size = sizeof(Int8);
+                Size = sizeof(sbyte);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(Int8);
+                Alignment = sizeof(sbyte);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(Int8);
+            public Type MemberType => typeof(sbyte);
             public string TypeName => "s8";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public Int8 InternalValue { get; private set; }
+            public sbyte InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -386,23 +388,23 @@ namespace GameData
 
         public sealed class Int16Member : IClassMember
         {
-            public Int16Member(string name, Int16 value)
+            public Int16Member(string name, short value)
             {
                 MemberName = name;
-                Size = sizeof(Int16);
+                Size = sizeof(short);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(Int16);
+                Alignment = sizeof(short);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(Int16);
+            public Type MemberType => typeof(short);
             public string TypeName => "s16";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public Int16 InternalValue { get; private set; }
+            public short InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -418,23 +420,23 @@ namespace GameData
 
         public sealed class Int32Member : IClassMember
         {
-            public Int32Member(string name, Int32 value)
+            public Int32Member(string name, int value)
             {
                 MemberName = name;
-                Size = sizeof(Int32);
+                Size = sizeof(int);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(Int32);
+                Alignment = sizeof(int);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(Int32);
+            public Type MemberType => typeof(int);
             public string TypeName => "s32";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public Int32 InternalValue { get; private set; }
+            public int InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -450,23 +452,23 @@ namespace GameData
 
         public sealed class Int64Member : IClassMember
         {
-            public Int64Member(string name, Int64 value)
+            public Int64Member(string name, long value)
             {
                 MemberName = name;
-                Size = sizeof(Int64);
+                Size = sizeof(long);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(Int64);
+                Alignment = sizeof(long);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(Int64);
+            public Type MemberType => typeof(long);
             public string TypeName => "s64";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public Int64 InternalValue { get; private set; }
+            public long InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -478,27 +480,27 @@ namespace GameData
 
         #endregion
 
-        #region UInt8Member
+        #region uint8Member
 
         public sealed class UInt8Member : IClassMember
         {
-            public UInt8Member(string name, UInt8 value)
+            public UInt8Member(string name, byte value)
             {
                 MemberName = name;
-                Size = sizeof(UInt8);
+                Size = sizeof(byte);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(UInt8);
+                Alignment = sizeof(byte);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(UInt8);
+            public Type MemberType => typeof(byte);
             public string TypeName => "u8";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public UInt8 InternalValue { get; private set; }
+            public byte InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -510,27 +512,27 @@ namespace GameData
 
         #endregion
 
-        #region UInt16Member
+        #region ushortMember
 
         public sealed class UInt16Member : IClassMember
         {
-            public UInt16Member(string name, UInt16 value)
+            public UInt16Member(string name, ushort value)
             {
                 MemberName = name;
-                Size = sizeof(UInt16);
+                Size = sizeof(ushort);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(UInt16);
+                Alignment = sizeof(ushort);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(UInt16);
+            public Type MemberType => typeof(ushort);
             public string TypeName => "u16";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public UInt16 InternalValue { get; private set; }
+            public ushort InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -546,23 +548,23 @@ namespace GameData
 
         public sealed class UInt32Member : IClassMember
         {
-            public UInt32Member(string name, UInt32 value)
+            public UInt32Member(string name, uint value)
             {
                 MemberName = name;
-                Size = sizeof(UInt32);
+                Size = sizeof(uint);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(UInt32);
+                Alignment = sizeof(uint);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(UInt32);
+            public Type MemberType => typeof(uint);
             public string TypeName => "u32";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public UInt32 InternalValue { get; private set; }
+            public uint InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -574,7 +576,7 @@ namespace GameData
 
         #endregion
 
-        #region UInt64Member
+        #region uint64Member
 
         public sealed class UInt64Member : IClassMember
         {
@@ -591,7 +593,7 @@ namespace GameData
             public Type MemberType => typeof(UInt64);
             public string TypeName => "u64";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
             public UInt64 InternalValue { get; private set; }
@@ -615,7 +617,7 @@ namespace GameData
                 MemberName = name;
                 MemberType = enumType;
                 EnumType = enumType;
-                EnumValueType = System.Enum.GetUnderlyingType(enumType);
+                EnumValueType = Enum.GetUnderlyingType(enumType);
                 MetaType.TypeInfo(EnumValueType, out string enumValueTypeName, out int size, out int alignment);
                 EnumValueTypeName = enumValueTypeName;
                 Size = size;
@@ -630,7 +632,7 @@ namespace GameData
             public Type EnumValueType { get; set; }
             public string EnumValueTypeName { get; set; }
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; set; }
             public bool IsPointerTo { get; set; }
             public UInt64 InternalValue { get; private set; }
@@ -662,7 +664,7 @@ namespace GameData
             public Type MemberType => typeof(float);
             public string TypeName => "f32";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
             public float InternalValue { get; private set; }
@@ -691,10 +693,10 @@ namespace GameData
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(Double);
+            public Type MemberType => typeof(double);
             public string TypeName => "f64";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
             public double InternalValue { get; private set; }
@@ -717,17 +719,17 @@ namespace GameData
             public StringMember(string name, string value)
             {
                 MemberName = name;
-                Size = sizeof(Int32) + sizeof(Int32);
+                Size = sizeof(int) + sizeof(int);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(Int32) + sizeof(Int32);
+                Alignment = sizeof(int) + sizeof(int);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(String);
-            public string TypeName => "rawstr_t";
+            public Type MemberType => typeof(string);
+            public string TypeName => "string_t";
             public int Size { get; private set; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
             public string InternalValue { get; private set; }
@@ -746,23 +748,23 @@ namespace GameData
 
         public sealed class FileIdMember : IClassMember
         {
-            public FileIdMember(string name, Int64 value)
+            public FileIdMember(string name, long value)
             {
                 MemberName = name;
-                Size = sizeof(Int64);
+                Size = sizeof(long);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(Int64);
+                Alignment = sizeof(long);
             }
 
             public string MemberName { get; private set; }
             public Type MemberType => typeof(FileId);
             public string TypeName => "fileid_t";
             public int Size { get; }
-            public Int32 Alignment { get; private set; }
+            public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
-            public Int64 InternalValue { get; private set; }
+            public long InternalValue { get; private set; }
 
             public StreamReference Reference { get; set; }
 
@@ -791,7 +793,7 @@ namespace GameData
             public Type MemberType { get; private set; }
             public string TypeName => Internal.StructName;
             public int Size => Internal.StructSize;
-            public Int32 Alignment => Internal.StructAlign;
+            public int Alignment => Internal.StructAlign;
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
             public IStruct Internal { get; private set; }
@@ -826,8 +828,8 @@ namespace GameData
                 MemberName = memberName;
                 MemberType = arrayType;
                 Value = value;
-                Alignment = sizeof(Int32) + sizeof(Int32);
-                Size = sizeof(Int32) + sizeof(Int32);
+                Alignment = sizeof(int) + sizeof(int);
+                Size = sizeof(int) + sizeof(int);
                 Members = new();
             }
 
@@ -934,9 +936,17 @@ namespace GameData
 
             public void CombineBooleans()
             {
-                // Combine boolean members into max 32 boolean members
-                foreach (var m in Members)
+                // Combine boolean members into bitset member
+                List<BoolMember> members = new();
+                for (var i = Members.Count - 1; i >= 0; --i)
                 {
+                    if (Members[i] is not BoolMember bm) continue;
+                    members.Add(bm);
+                    Members.RemoveAt(i);
+                }
+                if (members.Count > 0)
+                {
+                    AddMember(new BitSetMember(members));
                 }
             }
             
