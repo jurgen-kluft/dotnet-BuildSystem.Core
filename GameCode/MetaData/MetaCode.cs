@@ -315,7 +315,8 @@ namespace GameData
         {
             public BitSetMember(List<BoolMember> members)
             {
-                MemberName = members[0].MemberName;
+                Members = members;
+                MemberName = string.Empty;
                 Size = 4;
                 InternalValue = 0;
                 uint bit = 1;
@@ -627,7 +628,7 @@ namespace GameData
 
             public string MemberName { get; private set; }
             public Type MemberType { get; private set; }
-            public string TypeName => "rawenum_t<" + EnumType.Name + ", " + EnumValueTypeName + ">";
+            public string TypeName => "enum_t<" + EnumType.Name + ", " + EnumValueTypeName + ">";
             public Type EnumType { get; private set; }
             public Type EnumValueType { get; set; }
             public string EnumValueTypeName { get; set; }
@@ -849,7 +850,7 @@ namespace GameData
                 get { return Members[0]; }
             }
 
-            public string TypeName => "rawarr_t<" + Element.TypeName + ">";
+            public string TypeName => "array_t<" + Element.TypeName + ">";
             public int Size { get; private set; }
             public int Alignment { get; private set; }
             public object Value { get; private set; }

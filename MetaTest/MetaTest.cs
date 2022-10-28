@@ -43,7 +43,10 @@ namespace MetaTest
 
         public class TestRoot
         {
-            public bool m_Bool = false;
+            public bool m_Bool1 = true;
+            public bool m_Bool2 = false;
+            public bool m_Bool3 = true;
+            public bool m_Bool4 = false;
             public Int32 m_Int32 = 1;
             public SByte m_Int8 = 2;
             public float m_Float = 3.14f;
@@ -69,7 +72,7 @@ namespace MetaTest
             public List<Int64> IntegerList = new() { 0,1,2,3,4 };
 
             [ArrayElementsInPlace]
-            public TestArrayElement[] ObjectArray = new TestArrayElement[4]; // The classes/structs are serialized in-place (not as a pointer)
+            public TestArrayElement[] ObjectArray = new TestArrayElement[2]; // The classes/structs are serialized in-place (not as a pointer)
 
             public Int64?[] IntPtrArray = new long?[1];
         }

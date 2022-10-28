@@ -427,7 +427,7 @@ namespace GameData
 
             public void WriteArrayMember(ArrayMember c)
             {
-                var line = $"\tarray_t<{c.Element.TypeName}>\tget" + c.MemberName + "() const { return m_" + c.MemberName + ".array(); }";
+                var line = $"\tarray_t<{c.Element.TypeName}>\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
                 mWriter.WriteLine(line);
             }
 
@@ -435,7 +435,7 @@ namespace GameData
             {
                 if (c.IsPointerTo)
                 {
-                    var line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return m_{c.MemberName}.ptr(); }}";
+                    var line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return m_{c.MemberName}; }}";
                     mWriter.WriteLine(line);
                 }
                 else
@@ -736,6 +736,10 @@ namespace GameData
             MyMemberBook book = new();
             reflector.Analyze(data, book);
 
+            // Determine the size of every 'Code.Class'
+            foreach (var c in book.Classes)
+	            c.CombineBooleans();
+
             // Sort the members on every 'Code.Class' so that alignment of data is solved.
             for (var i=0; i<2; ++i)
             {
@@ -744,10 +748,6 @@ namespace GameData
 	            foreach (var c in book.Classes)
 		            c.DetermineAlignment();
             }
-            
-            // Determine the size of every 'Code.Class'
-            foreach (var c in book.Classes)
-	            c.CombineBooleans();
             
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new();
@@ -761,7 +761,7 @@ namespace GameData
                 bookRoot.Write(dataStreamWriter);
             }
             dataStreamWriter.Close();
-
+            
             // Finalize the DataStream and obtain a database of the position of the
             // IReferenceableMember objects in the DataStream.
             FileInfo dataFileInfo = new(dataFilename);

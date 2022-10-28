@@ -239,9 +239,9 @@ namespace GameData
             ArrayElementsInPlace,
         }
 
-        private MetaCode.IClassMember AddMember(MetaCode.ICompoundMemberBase inCompound, object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName, EOptions options)
+        private IClassMember AddMember(ICompoundMemberBase inCompound, object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName, EOptions options)
         {
-            MetaCode.IClassMember member = CreateMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName, options);
+            IClassMember member = CreateMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName, options);
             if (member == null)
                 return null;
 
@@ -249,33 +249,34 @@ namespace GameData
 
             if (mMemberGenerator.IsIStruct(dataObjectFieldType))
             {
-                MetaCode.StructMember m= member as MetaCode.StructMember;
+                StructMember m= member as StructMember;
                 mStructDatabase.Add(m);
             }
             else if (mMemberGenerator.IsFileId(dataObjectFieldType))
             {
-                MetaCode.FileIdMember m= member as MetaCode.FileIdMember;
+                FileIdMember m= member as FileIdMember;
                 mFileIdDatabase.Add(m);
             }
             else if (mMemberGenerator.IsEnum(dataObjectFieldType))
 			{
-                MetaCode.EnumMember m = member as MetaCode.EnumMember;
+                EnumMember m = member as EnumMember;
                 mEnumDatabase.Add(m);
             }
             else if (mMemberGenerator.IsArray(dataObjectFieldType))
             {
-                MetaCode.ArrayMember arrayMember = member as MetaCode.ArrayMember;
+                ArrayMember arrayMember = member as ArrayMember;
                 Type fieldElementType = dataObjectFieldType.GetElementType();
                 if (dataObjectFieldValue is Array array)
                 {
-                    foreach (object b in array)
+                    for (var i=0; i<array.Length; ++i)
                     {
-                        IClassMember element;
-                        if (b != null)
-                            element = AddMember(arrayMember, b, b.GetType(), string.Empty, EOptions.None);
-                        else
-                            element = AddMember(arrayMember, null, fieldElementType, string.Empty, EOptions.None);
-
+                        object b = array.GetValue(i);
+                        if (b == null)
+                        {
+                            b = Activator.CreateInstance(fieldElementType);
+                        }
+                        
+                        var element = AddMember(arrayMember, b, b.GetType(), string.Empty, EOptions.None);
                         if (fieldElementType.IsClass && options.HasFlag(EOptions.ArrayElementsInPlace))
                         {
                             // Class object should be serialized in-place
@@ -287,32 +288,44 @@ namespace GameData
             }
             else if (mMemberGenerator.IsGenericList(dataObjectFieldType))
             {
-                MetaCode.ArrayMember arrayMember = member as MetaCode.ArrayMember;
+                ArrayMember arrayMember = member as ArrayMember;
                 if (dataObjectFieldValue is IEnumerable array)
                 {
-                    foreach (object b in array)
+                    Type fieldElementType = dataObjectFieldType.GenericTypeArguments[0];
+                    foreach(var o in array)
                     {
-                        AddMember(arrayMember, b, b.GetType(), string.Empty, EOptions.None);
+                        var b = o;
+                        if (b == null)
+                        {
+                            b = Activator.CreateInstance(fieldElementType);
+                        }
+
+                        var element = AddMember(arrayMember, b, b.GetType(), string.Empty, EOptions.None);
+                        if (fieldElementType.IsClass && options.HasFlag(EOptions.ArrayElementsInPlace))
+                        {
+                            // Class object should be serialized in-place
+                            element.IsPointerTo = false;
+                        }
                     }
                 }
                 mArrayDatabase.Add(arrayMember);
             }
             else if (mMemberGenerator.IsObject(dataObjectFieldType))
             {
-                MetaCode.ClassObject c= member as MetaCode.ClassObject;
+                ClassObject c= member as ClassObject;
                 mClassDatabase.Add(c);
-                mStack.Push(new KeyValuePair<object, MetaCode.ClassObject>(dataObjectFieldValue, c));
+                mStack.Push(new KeyValuePair<object, ClassObject>(dataObjectFieldValue, c));
             }
             else if (mMemberGenerator.IsString(dataObjectFieldType))
             {
-                MetaCode.StringMember stringMember = member as MetaCode.StringMember;
+                StringMember stringMember = member as StringMember;
                 mStringDatabase.Add(stringMember);
             }
 
             return member;
         }
 
-        public void AddMembers(MetaCode.ClassObject inClass, object inClassObject)
+        public void AddMembers(ClassObject inClass, object inClassObject)
         {
             if (inClassObject != null)
             {
@@ -331,7 +344,7 @@ namespace GameData
                             options |= EOptions.ArrayElementsInPlace;
                         }
                     }
-                    AddMember(inClass, fieldValue, fieldType, fieldName, EOptions.None);
+                    AddMember(inClass, fieldValue, fieldType, fieldName, options);
                 }
             }
         }
