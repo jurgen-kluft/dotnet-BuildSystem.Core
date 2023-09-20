@@ -1,12 +1,9 @@
 using System;
 using System.Collections;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Collections.Generic;
 
 using Int8 = System.SByte;
 using UInt8 = System.Byte;
-using GameCore;
 using GameData.MetaCode;
 
 namespace GameData
@@ -66,7 +63,7 @@ namespace GameData
             MetaCode.IClassMember member = null;
 
             // Adjust member name
-            string memberName = dataObjectFieldName;
+            var memberName = dataObjectFieldName;
             if (memberName.StartsWith("m_"))
                 memberName = memberName[2..];
 
@@ -84,7 +81,7 @@ namespace GameData
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
-                object contentObject = dataObjectFieldValue;
+                var contentObject = dataObjectFieldValue;
                 var structMember = mMemberGenerator.NewStructMember(contentObject as IStruct, memberName);
                 member = structMember;
             }
@@ -94,9 +91,9 @@ namespace GameData
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
                 // A FileId is holding a simple index
-                PropertyInfo valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
-                object contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
-                Int64 id = (Int64)contentObject;
+                var valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
+                var contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
+                var id = (Int64)contentObject;
 
                 member = mMemberGenerator.NewFileIdMember(id, memberName);
             }
@@ -241,7 +238,7 @@ namespace GameData
 
         private IClassMember AddMember(ICompoundMemberBase inCompound, object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName, EOptions options)
         {
-            IClassMember member = CreateMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName, options);
+            var member = CreateMember(dataObjectFieldValue, dataObjectFieldType, dataObjectFieldName, options);
             if (member == null)
                 return null;
 
@@ -249,28 +246,28 @@ namespace GameData
 
             if (mMemberGenerator.IsIStruct(dataObjectFieldType))
             {
-                StructMember m= member as StructMember;
+                var m= member as StructMember;
                 mStructDatabase.Add(m);
             }
             else if (mMemberGenerator.IsFileId(dataObjectFieldType))
             {
-                FileIdMember m= member as FileIdMember;
+                var m= member as FileIdMember;
                 mFileIdDatabase.Add(m);
             }
             else if (mMemberGenerator.IsEnum(dataObjectFieldType))
 			{
-                EnumMember m = member as EnumMember;
+                var m = member as EnumMember;
                 mEnumDatabase.Add(m);
             }
             else if (mMemberGenerator.IsArray(dataObjectFieldType))
             {
-                ArrayMember arrayMember = member as ArrayMember;
-                Type fieldElementType = dataObjectFieldType.GetElementType();
+                var arrayMember = member as ArrayMember;
+                var fieldElementType = dataObjectFieldType.GetElementType();
                 if (dataObjectFieldValue is Array array)
                 {
                     for (var i=0; i<array.Length; ++i)
                     {
-                        object b = array.GetValue(i);
+                        var b = array.GetValue(i);
                         if (b == null)
                         {
                             b = Activator.CreateInstance(fieldElementType);
@@ -288,10 +285,10 @@ namespace GameData
             }
             else if (mMemberGenerator.IsGenericList(dataObjectFieldType))
             {
-                ArrayMember arrayMember = member as ArrayMember;
+                var arrayMember = member as ArrayMember;
                 if (dataObjectFieldValue is IEnumerable array)
                 {
-                    Type fieldElementType = dataObjectFieldType.GenericTypeArguments[0];
+                    var fieldElementType = dataObjectFieldType.GenericTypeArguments[0];
                     foreach(var o in array)
                     {
                         var b = o;
@@ -312,13 +309,13 @@ namespace GameData
             }
             else if (mMemberGenerator.IsObject(dataObjectFieldType))
             {
-                ClassObject c= member as ClassObject;
+                var c= member as ClassObject;
                 mClassDatabase.Add(c);
                 mStack.Push(new KeyValuePair<object, ClassObject>(dataObjectFieldValue, c));
             }
             else if (mMemberGenerator.IsString(dataObjectFieldType))
             {
-                StringMember stringMember = member as StringMember;
+                var stringMember = member as StringMember;
                 mStringDatabase.Add(stringMember);
             }
 
@@ -327,25 +324,23 @@ namespace GameData
 
         public void AddMembers(ClassObject inClass, object inClassObject)
         {
-            if (inClassObject != null)
+            if (inClassObject == null) return;
+            var dataObjectFields = GetFieldInfoList(inClassObject);
+            foreach (var dataObjectFieldInfo in dataObjectFields)
             {
-                List<FieldInfo> dataObjectFields = GetFieldInfoList(inClassObject);
-                foreach (FieldInfo dataObjectFieldInfo in dataObjectFields)
-                {
-                    string fieldName = dataObjectFieldInfo.Name;
-                    Type fieldType = dataObjectFieldInfo.FieldType;
-                    object fieldValue = dataObjectFieldInfo.GetValue(inClassObject);
-                    EOptions options = EOptions.None;
+                var fieldName = dataObjectFieldInfo.Name;
+                var fieldType = dataObjectFieldInfo.FieldType;
+                var fieldValue = dataObjectFieldInfo.GetValue(inClassObject);
+                var options = EOptions.None;
 
-                    foreach (var attribute in dataObjectFieldInfo.CustomAttributes)
+                foreach (var attribute in dataObjectFieldInfo.CustomAttributes)
+                {
+                    if (attribute.AttributeType == typeof(ArrayElementsInPlace))
                     {
-                        if (attribute.AttributeType == typeof(ArrayElementsInPlace))
-                        {
-                            options |= EOptions.ArrayElementsInPlace;
-                        }
+                        options |= EOptions.ArrayElementsInPlace;
                     }
-                    AddMember(inClass, fieldValue, fieldType, fieldName, options);
                 }
+                AddMember(inClass, fieldValue, fieldType, fieldName, options);
             }
         }
 

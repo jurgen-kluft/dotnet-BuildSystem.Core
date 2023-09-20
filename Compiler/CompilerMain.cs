@@ -67,7 +67,7 @@ namespace DataBuildSystem
                 return 1;
             }
 
-            string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             Console.WriteLine("------ DataBuildSystem.NET - Compiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemCompilerConfig.PlatformName, BuildSystemCompilerConfig.TargetName);
 
             // Record the total build time
@@ -77,17 +77,17 @@ namespace DataBuildSystem
             DirUtils.Create(BuildSystemCompilerConfig.DstPath);
             DirUtils.Create(BuildSystemCompilerConfig.PubPath);
 
-            string gameDataRootDllName = "GameData.Root.DLL";
+            var gameDataRootDllName = "GameData.Root.DLL";
 
             Console.WriteLine("dll path: " + BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
 
             // Using 'AssemblyLoadContext' so that we can also Unload the GameData DLL
-            AssemblyLoadContext gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            byte[] dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
-            Assembly gameDataRootAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
+            var gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
+            var dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
+            var gameDataRootAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
 
             // BuildSystem.DataCompiler configuration
-            IBuildSystemCompilerConfig[] configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gameDataRootAssembly);
+            var configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gameDataRootAssembly);
             if (configsForCompiler.Length > 0)
             {
                 foreach (var config in configsForCompiler)
@@ -132,10 +132,10 @@ namespace DataBuildSystem
             //       This does mean that each 'folder' in the Data folder is going to be a project or how else do we know where the generate
             //       a project?
 
-            DateTime start = DateTime.Now;
-            DateTime end = DateTime.Now;
+            var start = DateTime.Now;
+            var end = DateTime.Now;
 
-            GameDataUnits gdus = new();
+            var gdus = new GameDataUnits();
 
             start = DateTime.Now;
             Console.WriteLine("------ Initializing data compilation");

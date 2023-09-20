@@ -205,15 +205,15 @@ namespace DataBuildSystem
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
 
-            List<KeyValuePair<Hash160, IDataCompiler>> signatureList = new(compilers.Count);
-            foreach (IDataCompiler cl in compilers)
+            var signatureList = new List<KeyValuePair<Hash160, IDataCompiler>>(compilers.Count);
+            foreach (var cl in compilers)
             {
                 memoryWriter.Reset();
-                Type compilerType = cl.GetType();
-                Hash160 compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
+                var compilerType = cl.GetType();
+                var compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
                 compilerTypeSignature.WriteTo(memoryWriter);
                 cl.CompilerSignature(memoryWriter);
-                Hash160 compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                var compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
                 signatureList.Add(new KeyValuePair<Hash160, IDataCompiler>(compilerSignature, cl));
             }
             int Comparer(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
@@ -222,11 +222,11 @@ namespace DataBuildSystem
             }
             signatureList.Sort(Comparer);
 
-            Int64 index = 0;
-            Hash160 prevSignature = signatureList[0].Key;
+            long index = 0;
+            var prevSignature = signatureList[0].Key;
             foreach (var scl in signatureList)
             {
-				IFileIdProvider filesProvider = scl.Value.CompilerFileIdProvider;
+				var filesProvider = scl.Value.CompilerFileIdProvider;
                 filesProvider.FileId = index;
                 if (prevSignature != scl.Key)
                     index++;
