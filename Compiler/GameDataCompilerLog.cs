@@ -31,7 +31,7 @@ namespace DataBuildSystem
 			var previousCompilerSignatureList = BuildCompilerSignatureList(previousCompilers);
 			var currentCompilerSignatureList = BuildCompilerSignatureList(currentCompilers);
 			var comparer = new SignatureComparer();
-			
+
 			// Maximum number of compilers that can be merged is the number of current compilers.
 			mergedCompilers = new List<IDataCompiler>(currentCompilers.Count);
 
@@ -41,6 +41,7 @@ namespace DataBuildSystem
 			Result result = Result.Ok;
 			while (currentListIndex < currentCompilerSignatureList.Count)
 			{
+                var signature = currentCompilerSignatureList[currentListIndex++];
 				// We can just advance the index of the previous compiler signature list until the comparison returns that the current signature is bigger
 				// because that means that the current compiler is not in the previous list.
 				int c;
@@ -52,7 +53,7 @@ namespace DataBuildSystem
 				{
 					mergedPreviousCount++;
 
-					IDataCompiler pdc = previousCompilerSignatureList[index].Value;
+					IDataCompiler pdc = previousCompilerSignatureList[previousListIndex].Value;
 					IDataCompiler cdc = signature.Value;
 					cdc.CompilerConstruct(pdc);
 					mergedCompilers.Add(cdc);
