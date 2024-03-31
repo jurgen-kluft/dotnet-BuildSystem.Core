@@ -291,11 +291,11 @@ namespace GameCore
     {
         private BinaryWriterLittleEndian mBinaryWriter;
         private BinaryWriter mBinaryStreamWriter;
-        private FileStream mStream;
+        private Stream mStream;
 
-        public bool Open(string filepath)
+        public bool Open(Stream s)
         {
-            mStream = new (filepath, FileMode.Create);
+            mStream = s;
             mBinaryStreamWriter = new (mStream);
             mBinaryWriter = new (mBinaryStreamWriter);
             return true;

@@ -20,14 +20,15 @@ namespace GameData
         public void CompilerSignature(IBinaryWriter stream)
         {
             stream.Write(mSrcFilename);
-            for (s32 i = 0; i < mDstFilenames.Count; i++)
+            for (var i = 0; i < mDstFilenames.Count; i++)
                 stream.Write(mDstFilenames[i]);
         }
 
         public void CompilerWrite(IBinaryWriter stream)
         {
             stream.Write(mSrcFilename);
-            for (s32 i = 0; i < mDstFilenames.Count; i++)
+            stream.Write(mDstFilenames.Count);
+            for (var i = 0; i < mDstFilenames.Count; i++)
                 stream.Write(mDstFilenames[i]);
             mDependency.WriteTo(stream);
         }
@@ -35,7 +36,10 @@ namespace GameData
         public void CompilerRead(IBinaryReader stream)
         {
             mSrcFilename = stream.ReadString();
-            mDstFilename = stream.ReadString();
+            var count = stream.ReadInt32();
+            mDstFilenames.Clear();
+            for (var i = 0; i < count; i++)
+                mDstFilenames.Add(stream.ReadString());
             mDependency = Dependency.ReadFrom(stream);
         }
 

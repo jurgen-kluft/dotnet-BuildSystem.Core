@@ -56,14 +56,14 @@ namespace GameData
                     default: return 0;
                 }
             }
-            
+
             public EMetaType Type { get; set; }
             public MetaString Name { get; set; }
-            
+
             public int MemberIndex { get; set; }
             public int MemberCount { get; set; }
         }
-        
+
         public struct MetaMember
         {
             public EMetaType Type { get; set; }
@@ -108,7 +108,7 @@ namespace GameData
             public List<MetaStruct> ValuesStruct = new();
         }
 
-        
+
         #region IMemberGenerator
 
         public interface IMemberGenerator
@@ -192,13 +192,13 @@ namespace GameData
         {
             public int Compare(IClassMember x, IClassMember y)
             {
-                var xa = x.Alignment;
+                var xa = 4;
                 if (x.IsPointerTo)
                 {
                     xa = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 8 : 4;
                 }
 
-                var ya = y.Alignment;
+                var ya = 4;
                 if (y.IsPointerTo)
                 {
                     ya = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 8 : 4;
@@ -212,17 +212,17 @@ namespace GameData
 
         public class MemberNameHashComparer : IComparer<IClassMember>
         {
-            private StringTable mStringTable;
+            private StringTable _mStringTable;
 
             public MemberNameHashComparer(StringTable strTable)
             {
-                mStringTable = strTable;
+                _mStringTable = strTable;
             }
 
             public int Compare(IClassMember x, IClassMember y)
             {
-                uint hx = mStringTable.HashOf(x.MemberName);
-                uint hy = mStringTable.HashOf(y.MemberName);
+                var hx = _mStringTable.HashOf(x.MemberName);
+                var hy = _mStringTable.HashOf(y.MemberName);
                 if (hx == hy) return 0;
                 else if (hx < hy) return 1;
                 else return -1;
@@ -238,10 +238,9 @@ namespace GameData
             string MemberName { get; }
             Type MemberType { get; }
             string TypeName { get; }
-            int Size { get; }
-            int Alignment { get; }
             object Value { get; }
             bool IsPointerTo { get; set; }
+            int Alignment { get; }
             StreamReference Reference { get; }
 
             void Write(IMemberWriter writer);
@@ -365,7 +364,7 @@ namespace GameData
             public object Value => null;
             public bool IsPointerTo { get; set; }
 
-            public StreamReference Reference { get; }
+            public StreamReference Reference { get; set; }
 
             public void Write(IMemberWriter writer)
             {
@@ -374,7 +373,6 @@ namespace GameData
         }
 
         #endregion
-
         #region BoolMember
 
         public sealed class BoolMember : IClassMember
@@ -406,7 +404,6 @@ namespace GameData
         }
 
         #endregion
-
         #region BitSetMember
 
         public sealed class BitSetMember : IClassMember
@@ -440,7 +437,7 @@ namespace GameData
             public object Value { get; private set; }
             public uint InternalValue { get; private set; }
             public bool IsPointerTo { get; set; } = false;
-            public List<BoolMember> Members { get; set; }       
+            public List<BoolMember> Members { get; set; }
 
             public StreamReference Reference { get; set; }
 
@@ -461,11 +458,11 @@ namespace GameData
                 Size = sizeof(sbyte);
                 Value = value;
                 InternalValue = value;
-                Alignment = sizeof(sbyte);
+                Alignment = sizeof(Int8);
             }
 
             public string MemberName { get; private set; }
-            public Type MemberType => typeof(sbyte);
+            public Type MemberType => typeof(Int8);
             public string TypeName => "s8";
             public int Size { get; private set; }
             public int Alignment { get; private set; }
@@ -482,7 +479,6 @@ namespace GameData
         }
 
         #endregion
-
         #region Int16Member
 
         public sealed class Int16Member : IClassMember
@@ -514,7 +510,6 @@ namespace GameData
         }
 
         #endregion
-
         #region Int32Member
 
         public sealed class Int32Member : IClassMember
@@ -546,7 +541,6 @@ namespace GameData
         }
 
         #endregion
-
         #region Int64Member
 
         public sealed class Int64Member : IClassMember
@@ -578,7 +572,6 @@ namespace GameData
         }
 
         #endregion
-
         #region uint8Member
 
         public sealed class UInt8Member : IClassMember
@@ -610,7 +603,6 @@ namespace GameData
         }
 
         #endregion
-
         #region ushortMember
 
         public sealed class UInt16Member : IClassMember
@@ -642,7 +634,6 @@ namespace GameData
         }
 
         #endregion
-
         #region UInt32Member
 
         public sealed class UInt32Member : IClassMember
@@ -674,7 +665,6 @@ namespace GameData
         }
 
         #endregion
-
         #region uint64Member
 
         public sealed class UInt64Member : IClassMember
@@ -706,7 +696,6 @@ namespace GameData
         }
 
         #endregion
-
         #region EnumMember
 
         public sealed class EnumMember : IClassMember
@@ -717,7 +706,7 @@ namespace GameData
                 MemberType = enumType;
                 EnumType = enumType;
                 EnumValueType = Enum.GetUnderlyingType(enumType);
-                MetaType.TypeInfo(EnumValueType, out string enumValueTypeName, out int size, out int alignment);
+                MetaType.TypeInfo(EnumValueType, out var enumValueTypeName, out var size, out var alignment);
                 EnumValueTypeName = enumValueTypeName;
                 Size = size;
                 Alignment = alignment;
@@ -745,7 +734,6 @@ namespace GameData
         }
 
         #endregion
-
         #region FloatMember
 
         public sealed class FloatMember : IClassMember
@@ -777,7 +765,6 @@ namespace GameData
         }
 
         #endregion
-
         #region DoubleMember
 
         public sealed class DoubleMember : IClassMember
@@ -809,7 +796,6 @@ namespace GameData
         }
 
         #endregion
-
         #region StringMember
 
         [DebuggerDisplay("String: \"{InternalValue}\", Name: {MemberName}, Pointer: {IsPointerTo}")]
@@ -842,7 +828,6 @@ namespace GameData
         }
 
         #endregion
-
         #region FileIdMember
 
         public sealed class FileIdMember : IClassMember
@@ -874,7 +859,6 @@ namespace GameData
         }
 
         #endregion
-
         #region StructMember
 
         [DebuggerDisplay("Struct {TypeName}, {MemberName} {IsPointerTo}")]
@@ -890,8 +874,7 @@ namespace GameData
 
             public string MemberName { get; private set; }
             public Type MemberType { get; private set; }
-            public string TypeName => Internal.StructName;
-            public int Size => Internal.StructSize;
+            public string TypeName => Internal.GetType().Name;
             public int Alignment => Internal.StructAlign;
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
@@ -906,7 +889,6 @@ namespace GameData
         }
 
         #endregion
-
         #region CompoundMemberBase
 
         public interface ICompoundMemberBase
@@ -915,7 +897,6 @@ namespace GameData
         }
 
         #endregion
-
         #region ArrayMember
 
         public class ArrayMember : ICompoundMemberBase, IClassMember
@@ -928,8 +909,7 @@ namespace GameData
                 MemberType = arrayType;
                 Value = value;
                 Alignment = sizeof(int) + sizeof(int);
-                Size = sizeof(int) + sizeof(int);
-                Members = new();
+                Members = new List<IClassMember>();
             }
 
             #endregion
@@ -943,13 +923,9 @@ namespace GameData
             public string MemberName { get; private set; }
             public Type MemberType { get; private set; }
 
-            public IClassMember Element
-            {
-                get { return Members[0]; }
-            }
+            public IClassMember Element => Members[0];
 
             public string TypeName => "array_t<" + Element.TypeName + ">";
-            public int Size { get; private set; }
             public int Alignment { get; private set; }
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }
@@ -974,7 +950,6 @@ namespace GameData
         }
 
         #endregion
-
         #region ClassObject
 
         [DebuggerDisplay("Class {TypeName}, Pointer: {IsPointerTo}")]
@@ -987,11 +962,9 @@ namespace GameData
                 MemberName = memberName;
                 MemberType = type;
                 TypeName = className;
-                Size = 0;
-                Alignment = 4;
                 Value = value;
                 IsPointerTo = true;
-                Members = new();
+                Members = new List<IClassMember>();
             }
 
             #endregion
@@ -1001,7 +974,6 @@ namespace GameData
             public string MemberName { get; }
             public Type MemberType { get; }
             public string TypeName { get; init; }
-            public int Size { get; }
             public int Alignment { get; private set; }
             public object Value { get; }
             public bool IsPointerTo { get; set; }
@@ -1029,7 +1001,7 @@ namespace GameData
                 // Determine the alignment of this Class
                 if (Members.Count > 0)
                 {
-                    Alignment = Members[0].Alignment;
+                    Alignment = 4;
                 }
             }
 
@@ -1048,7 +1020,7 @@ namespace GameData
                     AddMember(new BitSetMember(members));
                 }
             }
-            
+
             #endregion
 
             #region Member methods

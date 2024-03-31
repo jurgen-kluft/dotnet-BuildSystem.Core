@@ -16,6 +16,7 @@ namespace GameData
             Z = z;
             W = w;
         }
+
         public FVec4(float v)
         {
             X = v;
@@ -23,6 +24,7 @@ namespace GameData
             Z = v;
             W = v;
         }
+
         public FVec4(double x, double y, double z, double w)
         {
             X = (float)x;
@@ -34,6 +36,7 @@ namespace GameData
         public int StructSize => 4 * sizeof(float);
         public int StructAlign => 4;
         public string StructName => "fvec4_t";
+
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(X);

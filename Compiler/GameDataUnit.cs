@@ -177,17 +177,17 @@ namespace DataBuildSystem
 
         public void Save(string dstPath)
         {
-            BinaryFileWriter binaryFile = new BinaryFileWriter();
-            binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log"));
+            var filepath = Path.Join(dstPath, "GameDataUnits.log");
+            var writer = EndianUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
 
-            binaryFile.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
-            binaryFile.Write(DataUnits.Count);
+            writer.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
+            writer.Write(DataUnits.Count);
             foreach (GameDataUnit gdu in DataUnits)
             {
-                gdu.Save(binaryFile);
+                gdu.Save(writer);
             }
 
-            binaryFile.Close();
+            writer.Close();
         }
     }
 

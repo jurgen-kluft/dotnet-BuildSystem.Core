@@ -6,6 +6,9 @@ namespace MetaTest
     public struct BufferHandle : IStruct
     {
         public Int32 Value;
+        public int StructSize => 4;
+        public int StructAlign => 4;
+        public string StructName => "BufferHandle";
 
         public void StructWrite(IBinaryWriter writer)
         {
@@ -17,6 +20,10 @@ namespace MetaTest
     {
         public Int32 Value;
 
+        public int StructSize => 4;
+        public int StructAlign => 4;
+        public string StructName => "TextureHandle";
+
         public void StructWrite(IBinaryWriter writer)
         {
             writer.Write(Value);
@@ -26,6 +33,9 @@ namespace MetaTest
     public struct SamplerHandle : IStruct
     {
         public Int32 Value;
+        public int StructSize => 4;
+        public int StructAlign => 4;
+        public string StructName => "SamplerHandle";
 
         public void StructWrite(IBinaryWriter writer)
         {

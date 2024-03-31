@@ -6,11 +6,18 @@ namespace GameData
     {
         public static readonly FRect SEmpty = new FRect();
 
-        public float Left;													    ///< Left point of rectangle
-        public float Top;													    ///< Top point of rectangle
-        public float Right;													///< Right point of rectangle
-        public float Bottom;                                                   ///< Bottom point of rectangle
+        public float Left;
 
+        // Left point of rectangle
+        public float Top;
+
+        // Top point of rectangle
+        public float Right;
+
+        // Right point of rectangle
+        public float Bottom;
+
+        // Bottom point of rectangle
         public FRect(float left, float top, float right, float bottom)
         {
             Left = left;
@@ -18,6 +25,7 @@ namespace GameData
             Right = right;
             Bottom = bottom;
         }
+
         public FRect(double left, double top, double right, double bottom)
         {
             Left = (float)left;
@@ -29,6 +37,7 @@ namespace GameData
         public int StructSize => 4 * sizeof(float);
         public int StructAlign => 4;
         public string StructName => "frect_t";
+
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(Left);

@@ -12,11 +12,13 @@ namespace GameData
             X = x;
             Y = y;
         }
+
         public FVec2(float v)
         {
             X = v;
             Y = v;
         }
+
         public FVec2(double x, double y)
         {
             X = (float)x;
@@ -26,6 +28,7 @@ namespace GameData
         public int StructSize => 2 * sizeof(float);
         public int StructAlign => 4;
         public string StructName => "fvec2_t";
+
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(X);

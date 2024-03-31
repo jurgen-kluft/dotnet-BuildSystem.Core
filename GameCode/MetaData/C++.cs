@@ -14,34 +14,34 @@ namespace GameData
 
 		private sealed class DataStreamWriter : IMemberWriter
 		{
-			private readonly StringTable mStringTable;
-			private readonly CppDataStream mDataStream;
+			private readonly StringTable _mStringTable;
+			private readonly CppDataStream _mDataStream;
 
 			public DataStreamWriter(StringTable stringTable, CppDataStream dataStream)
 			{
-				mStringTable = stringTable;
-				mDataStream = dataStream;
+				_mStringTable = stringTable;
+				_mDataStream = dataStream;
 			}
 
 			public bool Open()
 			{
-				mDataStream.BeginBlock(8);
+				_mDataStream.BeginBlock(8);
 				return true;
 			}
 			public bool Close()
 			{
-				mDataStream.EndBlock();
+				_mDataStream.EndBlock();
 				return true;
 			}
 
             private void AlignTo(int alignment)
             {
-                mDataStream.AlignTo(alignment);
+                _mDataStream.AlignTo(alignment);
             }
 
 			public void WriteNullMember(NullMember c)
 			{
-				mDataStream.Write(0);
+				_mDataStream.Write(0);
 			}
 
             private void Write(IClassMember c, Action<StreamReference> aSetReference, Func<bool> aWrite)
@@ -53,16 +53,16 @@ namespace GameData
                     var streamReference = c.Reference;
                     if (streamReference == StreamReference.Empty)
                     {
-                        streamReference = mDataStream.BeginBlock(c.Alignment);
+                        streamReference = _mDataStream.BeginBlock(c.Alignment);
                         {
                             aSetReference(streamReference);
                             aWrite();
                         }
-                        mDataStream.EndBlock();
+                        _mDataStream.EndBlock();
                     }
 
                     // This is our pointer
-                    mDataStream.Write(streamReference);
+                    _mDataStream.Write(streamReference);
                 }
                 else
                 {
@@ -73,7 +73,7 @@ namespace GameData
             public void WriteBoolMember(BoolMember c)
             {
                 Write(c, streamReference => c.Reference = streamReference, delegate {
-                    mDataStream.Write(c.InternalValue ? 0 : 1);
+                    _mDataStream.Write(c.InternalValue ? 0 : 1);
                     return true;
                 });
             }
@@ -81,7 +81,7 @@ namespace GameData
             public void WriteBitSetMember(BitSetMember c)
             {
 	            Write(c, streamReference => c.Reference = streamReference, delegate {
-		            mDataStream.Write(c.InternalValue);
+		            _mDataStream.Write(c.InternalValue);
 		            return true;
 	            });
             }
@@ -90,7 +90,7 @@ namespace GameData
             {
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
             }
@@ -99,7 +99,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -108,7 +108,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -117,7 +117,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -125,7 +125,7 @@ namespace GameData
 			{
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -134,7 +134,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -143,7 +143,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -152,7 +152,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -164,19 +164,19 @@ namespace GameData
                     switch (c.Alignment)
                     {
                         case 1:
-                            mDataStream.Write((byte)e);
+                            _mDataStream.Write((byte)e);
                             break;
                         case 2:
                             AlignTo(2);
-                            mDataStream.Write((ushort)e);
+                            _mDataStream.Write((ushort)e);
                             break;
                         case 4:
                             AlignTo(4);
-                            mDataStream.Write((uint)e);
+                            _mDataStream.Write((uint)e);
                             break;
                         case 8:
                             AlignTo(8);
-                            mDataStream.Write(e);
+                            _mDataStream.Write(e);
                             break;
                     }
 
@@ -187,7 +187,7 @@ namespace GameData
 			{
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -196,7 +196,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -204,11 +204,11 @@ namespace GameData
             {
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
-                    var length = mStringTable.Add(c.InternalValue);
-                    var reference = mStringTable.ReferenceOf(c.InternalValue);
+                    var length = _mStringTable.Add(c.InternalValue);
+                    var reference = _mStringTable.ReferenceOf(c.InternalValue);
                     AlignTo(c.Alignment);
-                    mDataStream.Write(reference);
-                    mDataStream.Write(length);
+                    _mDataStream.Write(reference);
+                    _mDataStream.Write(length);
                     return true;
                 });
 			}
@@ -217,7 +217,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.InternalValue);
+                    _mDataStream.Write(c.InternalValue);
                     return true;
                 });
 			}
@@ -226,7 +226,7 @@ namespace GameData
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    c.Internal.StructWrite(mDataStream);
+                    c.Internal.StructWrite(_mDataStream);
                     return true;
                 });
             }
@@ -234,19 +234,19 @@ namespace GameData
 			{
 				if (c.ArrayDataReference == StreamReference.Empty)
 				{
-					c.ArrayDataReference = mDataStream.BeginBlock(c.Alignment);
+					c.ArrayDataReference = _mDataStream.BeginBlock(c.Alignment);
 					{
 						foreach (var m in c.Members)
 							m.Write(this);
 					}
-					mDataStream.EndBlock();
+					_mDataStream.EndBlock();
 				}
 
                 Write(c, streamReference => c.Reference = streamReference, delegate
                 {
                     AlignTo(c.Alignment);
-                    mDataStream.Write(c.ArrayDataReference);
-                    mDataStream.Write(c.Members.Count);
+                    _mDataStream.Write(c.ArrayDataReference);
+                    _mDataStream.Write(c.Members.Count);
                     return true;
                 });
 			}
@@ -267,13 +267,13 @@ namespace GameData
 
         private sealed class MemberGetterWriter : IMemberWriter
         {
-            private readonly StreamWriter mWriter;
-            
+            private readonly StreamWriter _mWriter;
+
             public MemberGetterWriter(StreamWriter writer)
             {
-                mWriter = writer;
+                _mWriter = writer;
             }
-            
+
             public bool Open()
             {
                 return true;
@@ -287,14 +287,14 @@ namespace GameData
             public void WriteNullMember(NullMember c)
             {
                 var line = $"\tvoid*\tget{c.MemberName}() const {{ return 0; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteBoolMember(BoolMember c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteBitSetMember(BitSetMember c)
@@ -308,86 +308,86 @@ namespace GameData
 		            {
 			            var line =
 				            $"\t{m.TypeName}\tget{m.MemberName}() const {{ return (m_{fieldName} & {bit}) != 0; }}";
-			            mWriter.WriteLine(line);
+			            _mWriter.WriteLine(line);
 			            bit = bit << 1;
 		            }
 	            }
             }
-            
+
             public void WriteInt8Member(Int8Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteInt16Member(Int16Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteInt32Member(Int32Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteInt64Member(Int64Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteUInt8Member(UInt8Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteUInt16Member(UInt16Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteUInt32Member(UInt32Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteUInt64Member(UInt64Member c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteEnumMember(EnumMember c)
             {
                 var line = $"\t{c.EnumType.Name}\tget{c.MemberName}() const {{ {c.EnumType.Name} e; m_{c.MemberName}.get(e); return e; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteFloatMember(FloatMember c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteDoubleMember(DoubleMember c)
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteStringMember(StringMember c)
@@ -395,12 +395,12 @@ namespace GameData
                 if (c.IsPointerTo)
                 {
                     var line = $"\tstring_t\tget{c.MemberName}() const {{ return m_{c.MemberName}->str(); }}";
-                    mWriter.WriteLine(line);
+                    _mWriter.WriteLine(line);
                 }
                 else
                 {
                     var line = $"\tstring_t\tget{c.MemberName}() const {{ return m_{c.MemberName}.str(); }}";
-                    mWriter.WriteLine(line);
+                    _mWriter.WriteLine(line);
                 }
             }
 
@@ -408,7 +408,7 @@ namespace GameData
             {
                 var d = c.IsPointerTo ? "*" : "";
                 var line = $"\t{c.TypeName}\tget{c.MemberName}() const {{ return {d}m_{c.MemberName}; }}";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteStructMember(StructMember c)
@@ -416,19 +416,19 @@ namespace GameData
                 if (c.IsPointerTo)
                 {
                     var line = $"\t{c.TypeName} const&\tget{c.MemberName}() const {{ return *m_{c.MemberName}; }}";
-                    mWriter.WriteLine(line);
+                    _mWriter.WriteLine(line);
                 }
                 else
                 {
                     var line = $"\t{c.TypeName} const&\tget{c.MemberName}() const {{ return m_{c.MemberName}; }}";
-                    mWriter.WriteLine(line);
+                    _mWriter.WriteLine(line);
                 }
             }
 
             public void WriteArrayMember(ArrayMember c)
             {
                 var line = $"\tarray_t<{c.Element.TypeName}>\tget" + c.MemberName + "() const { return m_" + c.MemberName + "; }";
-                mWriter.WriteLine(line);
+                _mWriter.WriteLine(line);
             }
 
             public void WriteObjectMember(ClassObject c)
@@ -436,12 +436,12 @@ namespace GameData
                 if (c.IsPointerTo)
                 {
                     var line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return m_{c.MemberName}; }}";
-                    mWriter.WriteLine(line);
+                    _mWriter.WriteLine(line);
                 }
                 else
                 {
                     var line = $"\tconst {c.TypeName}*\tget{c.MemberName}() const {{ return &m_{c.MemberName}; }}";
-                    mWriter.WriteLine(line);
+                    _mWriter.WriteLine(line);
                 }
             }
         }
@@ -451,11 +451,11 @@ namespace GameData
 
 		private sealed class MemberWriter : IMemberWriter
 		{
-			private readonly StreamWriter mWriter;
-			
+			private readonly StreamWriter _mWriter;
+
 			public MemberWriter(StreamWriter writer)
 			{
-				mWriter = writer;
+				_mWriter = writer;
 			}
 
 			public bool Open()
@@ -482,11 +482,11 @@ namespace GameData
 
 			public void WriteNullMember(NullMember c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteBoolMember(BoolMember c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteBitSetMember(BitSetMember c)
 			{
@@ -494,72 +494,72 @@ namespace GameData
 				for (var i=0; i<n; ++i)
 				{
 					var fieldName = c.Members[i * 32].MemberName;
-					Write(c.TypeName, fieldName, false, mWriter);
+					Write(c.TypeName, fieldName, false, _mWriter);
 				}
 			}
 			public void WriteInt8Member(Int8Member c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteInt16Member(Int16Member c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteInt32Member(Int32Member c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteInt64Member(Int64Member c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteUInt8Member(UInt8Member c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteUInt16Member(UInt16Member c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteUInt32Member(UInt32Member c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
             public void WriteUInt64Member(UInt64Member c)
             {
-                Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+                Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
             }
             public void WriteEnumMember(EnumMember c)
             {
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
             }
 			public void WriteFloatMember(FloatMember c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteDoubleMember(DoubleMember c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteStringMember(StringMember c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteFileIdMember(FileIdMember c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
             public void WriteStructMember(StructMember c)
             {
-                Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+                Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
             }
 			public void WriteArrayMember(ArrayMember c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
 			}
 			public void WriteObjectMember(ClassObject c)
 			{
-				Write(c.TypeName, c.MemberName, c.IsPointerTo, mWriter);
+				Write(c.TypeName, c.MemberName, c.IsPointerTo, _mWriter);
             }
 		}
 
@@ -601,7 +601,7 @@ namespace GameData
 
 				MemberGetterWriter getterWriter = new(writer);
 				MemberWriter memberWriter = new(writer);
-                
+
                 // write public getters
                 foreach (var m in c.Members)
                 {
@@ -748,7 +748,7 @@ namespace GameData
 	            foreach (var c in book.Classes)
 		            c.DetermineAlignment();
             }
-            
+
             // The StringTable to collect (and collapse duplicate) all strings, only allow lowercase
             StringTable stringTable = new();
 
@@ -761,7 +761,7 @@ namespace GameData
                 bookRoot.Write(dataStreamWriter);
             }
             dataStreamWriter.Close();
-            
+
             // Finalize the DataStream and obtain a database of the position of the
             // IReferenceableMember objects in the DataStream.
             FileInfo dataFileInfo = new(dataFilename);
@@ -805,10 +805,10 @@ namespace GameData
 
 		private class DataBlock
 		{
-			private readonly MemoryStream mDataStream = new();
-			private readonly IBinaryStream mDataWriter;
+			private readonly MemoryStream _mDataStream = new();
+			private readonly IBinaryStream _mDataWriter;
 
-			private readonly Dictionary<StreamReference, List<StreamOffset>> mPointers = new();
+			private readonly Dictionary<StreamReference, List<StreamOffset>> _mPointers = new();
 
 			internal DataBlock(EPlatform platform, int alignment)
             {
@@ -817,15 +817,15 @@ namespace GameData
                 // Using MemoryStream with many DataBlock instances is not optimal, this could be
                 // seriously optimized
 				Reference = StreamReference.NewReference;
-				mDataWriter = EndianUtils.CreateBinaryStream(mDataStream, platform);
+				_mDataWriter = EndianUtils.CreateBinaryStream(_mDataStream, platform);
 			}
 
             internal StreamReference Reference { get; private set; }
             public int Alignment { get; }
 
-			private long Position => mDataStream.Position;
+			private long Position => _mDataStream.Position;
 
-            internal int Size => (int)mDataStream.Length;
+            internal int Size => (int)_mDataStream.Length;
 
             internal void End()
             {
@@ -836,104 +836,104 @@ namespace GameData
                 var gap4 = gap / 4;
                 for (var i = 0; i < gap4; ++i)
                 {
-                    mDataWriter.Write((uint)0xCDCDCDCD);
+                    _mDataWriter.Write((uint)0xCDCDCDCD);
                 }
 
                 gap -= (gap4 * 4);
                 while (gap > 0)
                 {
-                    mDataWriter.Write((byte)0xCD);
+                    _mDataWriter.Write((byte)0xCD);
                     gap -= 1;
                 }
             }
 
             internal void AlignTo(int alignment)
             {
-                mDataWriter.Position = CMath.Align(mDataWriter.Position, alignment);
+                _mDataWriter.Position = CMath.Align(_mDataWriter.Position, alignment);
             }
 
             private bool IsAligned(int alignment)
             {
-                return CMath.IsAligned(mDataWriter.Position, alignment);
+                return CMath.IsAligned(_mDataWriter.Position, alignment);
             }
 
             internal void Write(float v)
 			{
 				Debug.Assert(IsAligned(sizeof(float)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(double v)
 			{
 				Debug.Assert(IsAligned(sizeof(double)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(sbyte v)
 			{
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(short v)
 			{
 				Debug.Assert(IsAligned(sizeof(short)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(int v)
 			{
 				Debug.Assert(IsAligned(sizeof(int)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(long v)
 			{
 				Debug.Assert(IsAligned(sizeof(long)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(byte v)
 			{
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(ushort v)
 			{
 				Debug.Assert(IsAligned(sizeof(ushort)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(uint v)
 			{
 				Debug.Assert(IsAligned(sizeof(uint)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(ulong v)
 			{
 				Debug.Assert(IsAligned(sizeof(ulong)));
-				mDataWriter.Write(v);
+				_mDataWriter.Write(v);
 			}
 			internal void Write(byte[] data, int index, int count)
 			{
-				mDataWriter.Write(data, index, count);
+				_mDataWriter.Write(data, index, count);
 			}
 			internal void Write(string str)
 			{
-				mDataWriter.Write(str);
+				_mDataWriter.Write(str);
 			}
 
 			internal void Write(StreamReference v)
 			{
 				Debug.Assert(IsAligned(sizeof(uint)));
 
-				if (mPointers.ContainsKey(v))
+				if (_mPointers.ContainsKey(v))
 				{
-					mPointers[v].Add(new StreamOffset(Position));
+					_mPointers[v].Add(new StreamOffset(Position));
 				}
 				else
 				{
 					List<StreamOffset> offsets = new() { new StreamOffset(Position) };
-                    mPointers.Add(v, offsets);
+                    _mPointers.Add(v, offsets);
 				}
 
-				mDataWriter.Write(v.ID);
+				_mDataWriter.Write(v.ID);
 			}
 
 			internal Hash160 ComputeHash()
 			{
-				var dataHash = HashUtility.compute(mDataStream);
+				var dataHash = HashUtility.compute(_mDataStream);
 				return dataHash;
 			}
 
@@ -942,30 +942,30 @@ namespace GameData
 				if (Reference == oldRef)
 					Reference = newRef;
 
-				if (mPointers.ContainsKey(oldRef))
+				if (_mPointers.ContainsKey(oldRef))
 				{
-					List<StreamOffset> oldOffsets = mPointers[oldRef];
-					mPointers.Remove(oldRef);
+					List<StreamOffset> oldOffsets = _mPointers[oldRef];
+					_mPointers.Remove(oldRef);
 
 					// Modify data
-					StreamOffset currentPos = new(mDataStream.Position);
+					StreamOffset currentPos = new(_mDataStream.Position);
 					foreach (StreamOffset o in oldOffsets)
 					{
-						mDataWriter.Seek(o);
-						mDataWriter.Write(0);
+						_mDataWriter.Seek(o);
+						_mDataWriter.Write(0);
 					}
-					mDataWriter.Seek(currentPos);
+					_mDataWriter.Seek(currentPos);
 
 					// Update pointer and offsets
-					if (mPointers.ContainsKey(newRef))
+					if (_mPointers.ContainsKey(newRef))
 					{
-						List<StreamOffset> newOffsets = mPointers[newRef];
+						List<StreamOffset> newOffsets = _mPointers[newRef];
 						foreach (StreamOffset o in oldOffsets)
 							newOffsets.Add(o);
 					}
 					else
 					{
-						mPointers.Add(newRef, oldOffsets);
+						_mPointers.Add(newRef, oldOffsets);
 					}
 				}
 			}
@@ -974,35 +974,35 @@ namespace GameData
 			{
                 StreamUtils.Align(outData, Alignment);
 
-				StreamOffset currentPos = new(mDataStream.Position);
-				foreach (KeyValuePair<StreamReference, List<StreamOffset>> k in mPointers)
+				StreamOffset currentPos = new(_mDataStream.Position);
+				foreach (KeyValuePair<StreamReference, List<StreamOffset>> k in _mPointers)
 				{
 					if (dataOffsetDataBase.TryGetValue(k.Key, out StreamOffset outDataOffset))
 					{
 						foreach (StreamOffset o in k.Value)
 						{
 							// Seek to the position that has the 'StreamReference'
-							mDataWriter.Seek(o);
+							_mDataWriter.Seek(o);
 
                             // Write the relative (signed) offset
                             int offset = (int)(outDataOffset.Offset - o.Offset);
                             // TODO: Assert when the offset is out of bounds (-2GB < offset < 2GB)
-                            mDataWriter.Write(offset);
+                            _mDataWriter.Write(offset);
 						}
 					}
 				}
-				mDataWriter.Seek(currentPos);
+				_mDataWriter.Seek(currentPos);
 
 				// Write data
-				outData.Write(mDataStream.GetBuffer(), 0, (int)mDataStream.Length);
+				outData.Write(_mDataStream.GetBuffer(), 0, (int)_mDataStream.Length);
 			}
 		}
 
 		#endregion
 		#region Fields
 
-		private readonly List<DataBlock> mData = new();
-		private readonly Stack<DataBlock> mStack = new();
+		private readonly List<DataBlock> _mData = new();
+		private readonly Stack<DataBlock> _mStack = new();
 
 		private EPlatform Platform { get; set; }
 		private DataBlock Current { get; set; } = null;
@@ -1021,18 +1021,18 @@ namespace GameData
 		public StreamReference BeginBlock(int alignment)
 		{
 			if (Current != null)
-				mStack.Push(Current);
+				_mStack.Push(Current);
 
 			Current = new(Platform, alignment);
-			mData.Add(Current);
+			_mData.Add(Current);
 			return Current.Reference;
 		}
 
         public void EndBlock()
         {
             Current.End();
-            if (mStack.Count > 0)
-                Current = mStack.Pop();
+            if (_mStack.Count > 0)
+                Current = _mStack.Pop();
             else
                 Current = null;
         }
@@ -1103,7 +1103,7 @@ namespace GameData
 		{
 			// Dictionary for mapping a Reference object to a Data object
             Dictionary<StreamReference, DataBlock> finalDataDataBase = new();
-			foreach (var d in mData)
+			foreach (var d in _mData)
 				finalDataDataBase.Add(d.Reference, d);
 
 			// For all blocks, calculate Hash
@@ -1115,7 +1115,7 @@ namespace GameData
 				Dictionary<StreamReference, List<StreamReference>> duplicateDataBase = new();
 				Dictionary<Hash160, StreamReference> dataHashDataBase = new();
 
-				foreach (var d in mData)
+				foreach (var d in _mData)
 				{
 					var hash = d.ComputeHash();
 					if (dataHashDataBase.ContainsKey(hash))
@@ -1153,7 +1153,7 @@ namespace GameData
 				{
 					foreach (var r in p.Value)
 					{
-						foreach (var d in mData)
+						foreach (var d in _mData)
 						{
 							d.ReplaceReference(r, p.Key);
 						}

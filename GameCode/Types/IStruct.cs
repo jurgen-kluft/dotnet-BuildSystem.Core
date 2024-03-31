@@ -9,6 +9,10 @@ namespace GameData
     /// from the declared struct and can be overriden by using an attribute.
     public interface IStruct
     {
+        int StructSize { get; }
+        int StructAlign { get; }
+        string StructName { get; }
+
         void StructWrite(GameCore.IBinaryWriter writer);
     }
 }
