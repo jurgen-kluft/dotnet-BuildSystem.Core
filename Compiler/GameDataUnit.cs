@@ -53,7 +53,7 @@ namespace DataBuildSystem
 
                     // Execute all compilers, every compiler will thus check it's dependencies (source and destination files)
                     Result result = gdCl.Execute(loadedCompilers, out List<DataCompilerOutput> gdClOutput);
-                    if (result != Result.Ok)
+                    if (result.IsNotOk)
                     {
                         // Some (or all) compilers reported a change, now we have to load the assembly and build the Bigfile and Game Data.
                         Assembly gdAsm = LoadAssembly(gdu.FilePath);
@@ -91,7 +91,7 @@ namespace DataBuildSystem
                     gdCl.Merge(loadedCompilers, currentCompilers, out List<IDataCompiler> mergedCompilers);
 
                     Result result = gdCl.Execute(mergedCompilers, out List<DataCompilerOutput> gdClOutput);
-                    if (result == Result.Ok)
+                    if (result.IsOk)
                     {
                         if (gduGameDataData.IsNotOk || gduBigfile.IsNotOk)
                         {
@@ -99,7 +99,7 @@ namespace DataBuildSystem
                         }
                     }
 
-                    if (result == Result.OutOfData)
+                    if (result.IsOutOfData)
                     {
                         gdCl.AssignFileId(gdu.Index, mergedCompilers);
 

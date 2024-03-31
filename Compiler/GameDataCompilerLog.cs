@@ -15,7 +15,7 @@ namespace DataBuildSystem
 			FilePath = filepath;
 		}
 
-		private class SignatureComparer : IComparer<KeyValuePair<Hash160, IDataCompiler>>
+		private class SignatureComparer
 		{
 			public int Compare(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
 			{
@@ -25,33 +25,41 @@ namespace DataBuildSystem
 
 		public Result Merge(List<IDataCompiler> previousCompilers, List<IDataCompiler> currentCompilers, out List<IDataCompiler> mergedCompilers)
 		{
-			mergedCompilers = new List<IDataCompiler>(currentCompilers.Count);
+			// Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into 'merged_compilers'.
 
-			// Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into
-			// 'merged_compilers'.
-			// Report if there was anything 'merged'.
-
-			// Build the signature database of 'previous_compilers'
+			// We are doing this using sorted lists and binary search, since we need to be able to consider the order of the compilers.
 			var previousCompilerSignatureList = BuildCompilerSignatureList(previousCompilers);
 			var currentCompilerSignatureList = BuildCompilerSignatureList(currentCompilers);
+			var comparer = new SignatureComparer();
+			
+			// Maximum number of compilers that can be merged is the number of current compilers.
+			mergedCompilers = new List<IDataCompiler>(currentCompilers.Count);
 
+			int currentListIndex = 0;
+			int previousListIndex = 0;
 			int mergedPreviousCount = 0;
 			Result result = Result.Ok;
-			foreach (var signature in currentCompilerSignatureList)
+			while (currentListIndex < currentCompilerSignatureList.Count)
 			{
-				int index = previousCompilerSignatureList.BinarySearch(signature, new SignatureComparer());
-				if (index >= 0)
+				// We can just advance the index of the previous compiler signature list until the comparison returns that the current signature is bigger
+				// because that means that the current compiler is not in the previous list.
+				int c;
+				do {
+					c = comparer.Compare(currentCompilerSignatureList[currentListIndex], previousCompilerSignatureList[previousListIndex]);
+				} while (c > 0 && ++previousListIndex < previousCompilerSignatureList.Count);
+
+				if (c == 0)
 				{
 					mergedPreviousCount++;
 
-                    IDataCompiler pdc = previousCompilerSignatureList[index].Value;
-                    IDataCompiler cdc = signature.Value;
-                    cdc.CompilerConstruct(pdc);
-
+					IDataCompiler pdc = previousCompilerSignatureList[index].Value;
+					IDataCompiler cdc = signature.Value;
+					cdc.CompilerConstruct(pdc);
 					mergedCompilers.Add(cdc);
 				}
 				else
 				{
+					// The current compiler is not in the previous list so add it to the merged list.
 					mergedCompilers.Add(signature.Value);
 				}
 			}
@@ -67,7 +75,7 @@ namespace DataBuildSystem
 			List<KeyValuePair<Hash160, IDataCompiler>> signatureList = new(compilers.Count);
 
 			MemoryStream memoryStream = new();
-            BinaryMemoryWriter memoryWriter = new();
+			BinaryMemoryWriter memoryWriter = new();
 			if (memoryWriter.Open(memoryStream))
 			{
 				foreach (IDataCompiler cl in compilers)
@@ -94,7 +102,7 @@ namespace DataBuildSystem
 			Dictionary<Hash160, IDataCompiler> signatureDict = new(compilers.Count);
 
 			MemoryStream memoryStream = new();
-            BinaryMemoryWriter memoryWriter = new();
+			BinaryMemoryWriter memoryWriter = new();
 			if (memoryWriter.Open(memoryStream))
 			{
 				foreach (IDataCompiler cl in compilers)
@@ -108,7 +116,7 @@ namespace DataBuildSystem
 					signatureDict.Add(compilerSignature, cl);
 				}
 			}
-            return signatureDict;
+			return signatureDict;
 		}
 
 		public void AssignFileId(int unitIndex, List<IDataCompiler> compilers)
@@ -117,7 +125,7 @@ namespace DataBuildSystem
 			fileId = fileId << 32;
 
 			var sortedCompilerList = BuildCompilerSignatureList(compilers);
-			foreach(var cl in sortedCompilerList)
+			foreach (var cl in sortedCompilerList)
 			{
 				cl.Value.CompilerFileIdProvider.FileId = fileId;
 				fileId += 1;
@@ -141,11 +149,11 @@ namespace DataBuildSystem
 				gdClOutput.Add(r);
 			}
 
-            // TODO Need to be able to determine
-            // - source files out of date
-            // - destination files missing or out of date
-            // - compiler version mismatch
-            // - compiler bundle out of date
+			// TODO Need to be able to determine
+			// - source files out of date
+			// - destination files missing or out of date
+			// - compiler version mismatch
+			// - compiler bundle out of date
 
 			if (result == 0)
 			{
@@ -156,7 +164,7 @@ namespace DataBuildSystem
 
 		private void RegisterCompilers(List<IDataCompiler> compilers)
 		{
-			foreach(var cl in compilers)
+			foreach (var cl in compilers)
 			{
 				Type type = cl.GetType();
 				Hash160 typeSignature = HashUtility.Compute_ASCII(type.FullName);
@@ -208,7 +216,7 @@ namespace DataBuildSystem
 
 		public bool Load(List<IDataCompiler> compilers)
 		{
-			BinaryFileReader reader = new ();
+			BinaryFileReader reader = new();
 			if (reader.Open(FilePath))
 			{
 				while (reader.Position < reader.Length)
@@ -221,7 +229,7 @@ namespace DataBuildSystem
 					// the name of the compiler has been changed. When this is the case we need to
 					// inform the user of this class that the log is out-of-date!
 
-                    if (mCompilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
+					if (mCompilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
 					{
 						IDataCompiler compiler = Activator.CreateInstance(type) as IDataCompiler;
 						if (!mCompilerSignatureSet.Contains(compilerSignature))
@@ -263,6 +271,7 @@ namespace DataBuildSystem
 		public static Result FromRaw(int b) { return new() { ResultValue = (int)(b & 0x3) }; }
 
 		public bool IsOk { get { return ResultValue == 0; } }
+		public bool IsNotOk { get { return ResultValue != 0; } }
 		public bool IsOutOfData { get { return ((int)ResultValue & (int)(ResultEnum.OutOfDate)) != 0; } }
 		public bool IsError { get { return ((int)ResultValue & (int)(ResultEnum.Error)) != 0; } }
 
