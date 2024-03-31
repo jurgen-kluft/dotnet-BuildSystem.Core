@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Reflection;
-
 using Int8 = System.SByte;
 using UInt8 = System.Byte;
 using GameData.MetaCode;
@@ -15,15 +14,30 @@ namespace GameData
         public List<MetaCode.ClassObject> Classes { get; set; }
         public List<MetaCode.EnumMember> Enums { get; set; }
         public List<MetaCode.StructMember> Structs { get; set; }
-        public List<MetaCode.FileIdMember> FileIds{ get; set; }
-        public List<MetaCode.ArrayMember> Arrays{ get; set; }
-        public List<MetaCode.StringMember> Strings{ get; set; }
+        public List<MetaCode.FileIdMember> FileIds { get; set; }
+        public List<MetaCode.ArrayMember> Arrays { get; set; }
+        public List<MetaCode.StringMember> Strings { get; set; }
     }
 
     #endregion
 
     public class Reflector
     {
+        #region IsNullable
+
+        // Extension methods on the Type class to determine if a type is nullable
+        public static class NullableTypeHelper
+        {
+            public static bool IsNullable(Type type)
+            {
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    return true;
+                return false;
+            }
+        }
+
+        #endregion
+
         #region Fields
 
         private readonly MetaCode.IMemberGenerator _mMemberGenerator;
@@ -37,21 +51,22 @@ namespace GameData
         private readonly Stack<KeyValuePair<object, MetaCode.ClassObject>> _mStack;
 
         #endregion
+
         #region Constructor
 
         public Reflector(MetaCode.IMemberGenerator memberGenerator)
         {
             _mMemberGenerator = memberGenerator;
 
-            _mClassDatabase = new ();
-            _mStringDatabase = new ();
-            _mArrayDatabase = new ();
-            _mStructDatabase = new ();
-            _mFileIdDatabase = new ();
+            _mClassDatabase = new();
+            _mStringDatabase = new();
+            _mArrayDatabase = new();
+            _mStructDatabase = new();
+            _mFileIdDatabase = new();
 
             _mEnumDatabase = new();
 
-            _mStack = new ();
+            _mStack = new();
         }
 
         #endregion
@@ -246,16 +261,16 @@ namespace GameData
 
             if (_mMemberGenerator.IsIStruct(dataObjectFieldType))
             {
-                var m= member as StructMember;
+                var m = member as StructMember;
                 _mStructDatabase.Add(m);
             }
             else if (_mMemberGenerator.IsFileId(dataObjectFieldType))
             {
-                var m= member as FileIdMember;
+                var m = member as FileIdMember;
                 _mFileIdDatabase.Add(m);
             }
             else if (_mMemberGenerator.IsEnum(dataObjectFieldType))
-			{
+            {
                 var m = member as EnumMember;
                 _mEnumDatabase.Add(m);
             }
@@ -265,15 +280,11 @@ namespace GameData
                 var fieldElementType = dataObjectFieldType.GetElementType();
                 if (dataObjectFieldValue is Array array)
                 {
-                    for (var i=0; i<array.Length; ++i)
+                    for (var i = 0; i < array.Length; ++i)
                     {
                         var b = array.GetValue(i);
-                        if (b == null)
-                        {
-                            b = Activator.CreateInstance(fieldElementType);
-                        }
-                        
-                        var element = AddMember(arrayMember, b, b.GetType(), string.Empty, EOptions.None);
+
+                        var element = AddMember(arrayMember, b, fieldElementType, string.Empty, EOptions.None);
                         if (fieldElementType.IsClass && options.HasFlag(EOptions.ArrayElementsInPlace))
                         {
                             // Class object should be serialized in-place
@@ -281,6 +292,7 @@ namespace GameData
                         }
                     }
                 }
+
                 _mArrayDatabase.Add(arrayMember);
             }
             else if (_mMemberGenerator.IsGenericList(dataObjectFieldType))
@@ -289,7 +301,7 @@ namespace GameData
                 if (dataObjectFieldValue is IEnumerable array)
                 {
                     var fieldElementType = dataObjectFieldType.GenericTypeArguments[0];
-                    foreach(var o in array)
+                    foreach (var o in array)
                     {
                         var b = o;
                         if (b == null)
@@ -305,11 +317,12 @@ namespace GameData
                         }
                     }
                 }
+
                 _mArrayDatabase.Add(arrayMember);
             }
             else if (_mMemberGenerator.IsObject(dataObjectFieldType))
             {
-                var c= member as ClassObject;
+                var c = member as ClassObject;
                 _mClassDatabase.Add(c);
                 _mStack.Push(new KeyValuePair<object, ClassObject>(dataObjectFieldValue, c));
             }
@@ -340,11 +353,13 @@ namespace GameData
                         options |= EOptions.ArrayElementsInPlace;
                     }
                 }
+
                 AddMember(inClass, fieldValue, fieldType, fieldName, options);
             }
         }
 
         #endregion
+
         #region GetFieldInfoList
 
         /// <summary>
@@ -358,6 +373,7 @@ namespace GameData
         {
             return String.CompareOrdinal(x.GetType().Name, y.GetType().Name);
         }
+
         public List<FieldInfo> GetFieldInfoList(object o)
         {
             FieldInfo[] fields = o.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
@@ -394,7 +410,7 @@ namespace GameData
             var dataObjectType = data.GetType();
             var dataClass = _mMemberGenerator.NewObjectMember(dataObjectType, data, dataObjectType.Name);
             _mClassDatabase.Add(dataClass);
-            _mStack.Push(new (data, dataClass));
+            _mStack.Push(new(data, dataClass));
 
             while (_mStack.Count > 0)
             {
@@ -406,23 +422,23 @@ namespace GameData
             foreach (MetaCode.ClassObject c in _mClassDatabase)
                 book.Classes.Add(c);
 
-            book.Enums= new();
+            book.Enums = new();
             foreach (MetaCode.EnumMember c in _mEnumDatabase)
                 book.Enums.Add(c);
 
-            book.Structs = new ();
+            book.Structs = new();
             foreach (MetaCode.StructMember c in _mStructDatabase)
                 book.Structs.Add(c);
 
-            book.FileIds = new ();
+            book.FileIds = new();
             foreach (MetaCode.FileIdMember c in _mFileIdDatabase)
                 book.FileIds.Add(c);
 
-            book.Arrays = new ();
+            book.Arrays = new();
             foreach (MetaCode.ArrayMember a in _mArrayDatabase)
                 book.Arrays.Add(a);
 
-            book.Strings = new ();
+            book.Strings = new();
             foreach (MetaCode.StringMember s in _mStringDatabase)
                 book.Strings.Add(s);
 
@@ -436,6 +452,7 @@ namespace GameData
         }
 
         #endregion
+
         #region Static Methods
 
         public static bool HasGenericInterface(Type objectType, Type interfaceType)
