@@ -132,15 +132,12 @@ namespace DataBuildSystem
             //       This does mean that each 'folder' in the Data folder is going to be a project or how else do we know where the generate
             //       a project?
 
-            var start = DateTime.Now;
-            var end = DateTime.Now;
-
             var gdus = new GameDataUnits();
 
-            start = DateTime.Now;
+            var start = DateTime.Now;
             Console.WriteLine("------ Initializing data compilation");
             gdus.Load(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.GddPath);
-            end = DateTime.Now;
+            var end = DateTime.Now;
             Console.WriteLine("Finished initialization -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 
             start = DateTime.Now;

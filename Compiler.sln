@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigfileBuilder", "BigfileBu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetaTest", "MetaTest\MetaTest.csproj", "{77EB7182-DEB8-47B7-975B-143164A59252}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localizer", "Localizer\Localizer.csproj", "{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,5 +39,9 @@ Global
 		{77EB7182-DEB8-47B7-975B-143164A59252}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77EB7182-DEB8-47B7-975B-143164A59252}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77EB7182-DEB8-47B7-975B-143164A59252}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

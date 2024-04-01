@@ -71,18 +71,6 @@ namespace DataBuildSystem
         #endregion
         #region Properties
 
-        public static bool PlatformPc => Platform == EPlatform.Win64;
-        public static bool PlatformXboxOne => Platform == EPlatform.XboxOne;
-        public static bool PlatformXboxOneX => Platform == EPlatform.XboxOneX;
-        public static bool PlatformPs4 => Platform == EPlatform.PS4;
-        public static bool PlatformPs4Pro => Platform == EPlatform.PS4Pro;
-
-        public static bool TargetPc => _sTarget == EPlatform.Win64;
-        public static bool TargetXboxOne => _sTarget == EPlatform.XboxOne;
-        public static bool TargetXboxOneX => _sTarget == EPlatform.XboxOneX;
-        public static bool TargetPs4 => _sTarget == EPlatform.PS4;
-        public static bool TargetPs4Pro => _sTarget == EPlatform.PS4Pro;
-
         public static EEndian Endian => _sConfig.LittleEndian ? EEndian.Little : EEndian.Big;
         public static string Name { get; private set; }
         public static EPlatform Platform { get; private set; } = EPlatform.Win64;

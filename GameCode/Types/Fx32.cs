@@ -10,10 +10,12 @@ namespace GameData
         {
             mValue = (Int32)(v << 12);
         }
+
         public Fx32(float v)
         {
             mValue = (Int32)(v * (1 << 12));
         }
+
         public Fx32(double v)
         {
             mValue = (Int32)(v * (1 << 12));
@@ -23,6 +25,7 @@ namespace GameData
         {
             return new Fx32(v);
         }
+
         static public Fx32 SFromDouble(double v)
         {
             return new Fx32(v);
@@ -32,16 +35,19 @@ namespace GameData
         {
             return values;
         }
+
         static public Fx32[] SArray(params float[] values)
         {
             Fx32[] array = new Fx32[values.Length];
-            int i=0;
+            int i = 0;
             foreach (float f in values)
             {
                 array[i++] = Fx32.SFromFloat(f);
             }
+
             return array;
         }
+
         static public Fx32[] SArray(params double[] values)
         {
             Fx32[] array = new Fx32[values.Length];
@@ -50,12 +56,14 @@ namespace GameData
             {
                 array[i++] = Fx32.SFromDouble(f);
             }
+
             return array;
         }
 
         public int StructSize => sizeof(Int32);
         public int StructAlign => 4;
         public string StructName => "fx32_t";
+
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(mValue);

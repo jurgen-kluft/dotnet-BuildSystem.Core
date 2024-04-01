@@ -24,17 +24,6 @@ namespace GameData
         }
 
         public EDataUnit UnitType { get; set; }
-
-        public object extobject
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public string name { get { return MemberName; } }
-        public object value { get; set; }
     }
 }
 

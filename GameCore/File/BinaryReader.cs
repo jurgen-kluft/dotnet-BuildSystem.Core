@@ -259,6 +259,10 @@ namespace GameCore
         #endregion
     }
 
+    #endregion
+
+    #region BinaryFileReader
+
     public sealed class BinaryFileReader : IBinaryReader
     {
         private IBinaryReader mBinaryReader;

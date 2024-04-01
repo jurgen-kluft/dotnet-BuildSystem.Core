@@ -16,9 +16,9 @@ namespace DataBuildSystem
         private static void Add(Int64 fileId, string[] filenames, Bigfile bigfile, List<BigfileFile> children)
         {
             BigfileFile mainBigfileFile = new(filenames[0]);
-            for (int i = 1; i < filenames.Length; ++i)
+            for (var i = 1; i < filenames.Length; ++i)
             {
-                string filename = filenames[i];
+                var filename = filenames[i];
                 BigfileFile bigfileFile = new(filename);
                 bigfileFile.FileId = -1;
                 mainBigfileFile.Children.Add(bigfileFile);
@@ -31,7 +31,7 @@ namespace DataBuildSystem
 
         public void Save(string filename, List<DataCompilerOutput> gdClOutput)
 		{
-			BigfileBuilder bfb = new BigfileBuilder(BigfileConfig.Platform);
+			var bfb = new BigfileBuilder(BigfileConfig.Platform);
 
             Bigfile bigfile = new();
             List<BigfileFile> children = new();

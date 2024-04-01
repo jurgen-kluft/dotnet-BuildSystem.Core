@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace GameCore
 {
     [Flags]
@@ -16,5 +18,26 @@ namespace GameCore
         PS4Pro = 0x21000 | Arch64,
         PS5 = 0x22000 | Arch64,
         NintendoSwitch = 0x40000 | Arch64,
+    }
+
+    public static class Platform
+    {
+        public static EPlatform Current
+        {
+            get
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    return EPlatform.Win64;
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    return EPlatform.Mac;
+                }
+
+                throw new PlatformNotSupportedException();
+            }
+        }
     }
 }

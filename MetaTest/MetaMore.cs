@@ -19,6 +19,7 @@ namespace MetaTest
     public struct TextureHandle : IStruct
     {
         public Int32 Value;
+
         public int StructSize => 4;
         public int StructAlign => 4;
         public string StructName => "TextureHandle";

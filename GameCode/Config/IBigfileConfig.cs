@@ -44,7 +44,7 @@ namespace DataBuildSystem
 
         /// <summary>
         /// True = Allow binary duplicate files
-        /// False = All binary identical files are collapsed
+        /// False = All binary identical files are deduplicated
         /// </summary>
         bool AllowDuplicateFiles { get; }
 
@@ -74,7 +74,7 @@ namespace DataBuildSystem
         public Int64 FileAlignment => 256;
         public bool AllowDuplicateFiles => false;
         public UInt32 ReadBufferSize => 8 * 1024 * 1024;
-        public UInt32 WriteBufferSize => 48 * 1024 * 1024;
+        public UInt32 WriteBufferSize => 8 * 1024 * 1024;
 
         #endregion
     }
@@ -84,29 +84,29 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private static IBigfileConfig _sConfig = new BigfileDefaultConfig();
+        private static IBigfileConfig _Config = new BigfileDefaultConfig();
 
         #endregion
         #region Init
 
         public static void Init(IBigfileConfig config)
         {
-            _sConfig = config;
+            _Config = config;
         }
 
         #endregion
         #region Methods & Properties
 
-        public static string BigfileName => _sConfig.BigfileName;
-        public static string BigFileExtension => _sConfig.BigFileExtension;
-        public static string BigFileTocExtension => _sConfig.BigFileTocExtension;
-        public static string BigFileFdbExtension => _sConfig.BigFileFdbExtension;
-        public static string BigFileHdbExtension => _sConfig.BigFileHdbExtension;
-        public static EPlatform Platform => _sConfig.Platform;
-        public static Int64 FileAlignment => _sConfig.FileAlignment;
-        public static bool AllowDuplicateFiles => _sConfig.AllowDuplicateFiles;
-        public static UInt32 ReadBufferSize => _sConfig.ReadBufferSize;
-        public static UInt32 WriteBufferSize => _sConfig.WriteBufferSize;
+        public static string BigfileName => _Config.BigfileName;
+        public static string BigFileExtension => _Config.BigFileExtension;
+        public static string BigFileTocExtension => _Config.BigFileTocExtension;
+        public static string BigFileFdbExtension => _Config.BigFileFdbExtension;
+        public static string BigFileHdbExtension => _Config.BigFileHdbExtension;
+        public static EPlatform Platform => _Config.Platform;
+        public static Int64 FileAlignment => _Config.FileAlignment;
+        public static bool AllowDuplicateFiles => _Config.AllowDuplicateFiles;
+        public static UInt32 ReadBufferSize => _Config.ReadBufferSize;
+        public static UInt32 WriteBufferSize => _Config.WriteBufferSize;
 
         #endregion
     }

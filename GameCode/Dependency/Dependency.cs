@@ -198,9 +198,9 @@ namespace DataBuildSystem
 
         public bool Save()
         {
-            BinaryFileWriter writer = new();
-            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), FilePaths[0] + ".dep");
-            if (writer.Open(filepath))
+            var filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), FilePaths[0] + ".dep");
+            var writer = EndianUtils.CreateBinaryWriter(filepath, Platform.Current);
+            if (writer != null)
             {
                 writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
                 WriteTo(writer);

@@ -98,6 +98,23 @@ namespace GameCore
                 return (new BinaryReaderLittleEndian(br));
             return (new BinaryReaderBigEndian(br));
         }
+
+        public static IBinaryStream CreateBinaryWriter(Stream s, EPlatform platform)
+        {
+            BinaryWriter bw = new BinaryWriter(s);
+            if (EndianUtils.GetPlatformEndian(platform) == EEndian.Little)
+                return (new BinaryWriterLittleEndian(bw));
+            return (new BinaryWriterBigEndian(bw));
+        }
+
+        public static IBinaryStream CreateBinaryWriter(string filepath, EPlatform platform)
+        {
+            Stream s = new FileStream(filepath, FileMode.Create, FileAccess.Write);
+            BinaryWriter bw = new (s);
+            if (EndianUtils.GetPlatformEndian(platform) == EEndian.Little)
+                return (new BinaryWriterLittleEndian(bw));
+            return (new BinaryWriterBigEndian(bw));
+        }
     }
 
     public class LittleEndian : IEndian

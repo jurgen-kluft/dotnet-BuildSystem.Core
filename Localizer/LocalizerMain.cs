@@ -44,11 +44,11 @@ namespace DataBuildSystem
             // - DepPath      I:\Dev\Game\Data\Data\Dep.NDS
             // - PublishPath  I:\Dev\Game\Data\Data\Publish.NDS
             // - ToolPath     I:\Dev\Game\Data\Tools
-            // 
+            //
             // example:
             //     -name MJ -platform PC -territory Europe -config "Config.%PLATFORM%.cs" -srcpath "D:\Dev\.NET_BuildSystem\Data.Test" -excel0 "Loc\Localization.xls" -worksheets0 "Localization" -dstpath "%SRCPATH%\Bin.%PLATFORM%" -deppath "%SRCPATH%\Dep.%PLATFORM%" -pubpath "%SRCPATH%\Publish.%PLATFORM%" -toolpath "%SRCPATH%\Tools"
             //
-            if (!LocalizerConfig.init(cmdLine["name"], cmdLine["platform"], cmdLine["territory"], cmdLine["config"], cmdLine["srcpath"], cmdLine["excel0"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["pubpath"], cmdLine["toolpath"]))
+            if (!LocalizerConfig.Init(cmdLine["name"], cmdLine["platform"], cmdLine["territory"], cmdLine["config"], cmdLine["srcpath"], cmdLine["excel0"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["pubpath"], cmdLine["toolpath"]))
             {
                 Console.WriteLine("Usage: -platform [PLATFORM]");
                 Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");

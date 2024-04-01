@@ -59,8 +59,8 @@ namespace MetaTest
 
         public class TestArrayElement
         {
-            public int m_Int = 1;
-            public float m_Float = 2;
+            public int Int = 1;
+            public float Float = 2;
         }
 
         public class TestData

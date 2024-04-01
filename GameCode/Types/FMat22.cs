@@ -14,6 +14,7 @@ namespace GameData
             Mat[1].X = v;
             Mat[1].Y = v;
         }
+
         public FMat22(float x1, float y1, float x2, float y2)
         {
             Mat = new FVec2[2];
@@ -22,6 +23,7 @@ namespace GameData
             Mat[1].X = x2;
             Mat[1].Y = y2;
         }
+
         public FMat22(FVec2 x, FVec2 y)
         {
             Mat = new FVec2[2];
@@ -32,6 +34,7 @@ namespace GameData
         public int StructSize => 4 * sizeof(float);
         public int StructAlign => 4;
         public string StructName => "fmat22_t";
+
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(Mat[0].X);
@@ -39,6 +42,5 @@ namespace GameData
             writer.Write(Mat[1].X);
             writer.Write(Mat[1].Y);
         }
-
     }
 }

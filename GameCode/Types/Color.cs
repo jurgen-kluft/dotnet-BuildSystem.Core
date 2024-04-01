@@ -1,4 +1,3 @@
-
 using System;
 
 namespace GameData
@@ -154,8 +153,8 @@ namespace GameData
         public static readonly Color Yellowgreen = new Color(154, 205, 50);
     }
 
-	public struct Color : IStruct
-	{
+    public struct Color : IStruct
+    {
         private uint mColor;
 
         public Color(byte r, byte g, byte b, byte a)
@@ -163,13 +162,14 @@ namespace GameData
             mColor = (uint)((a << 24) | (r << 16) | (g << 8) | (b));
         }
 
-        public Color(byte r, byte g, byte b) : this(r,g,b,255)
+        public Color(byte r, byte g, byte b) : this(r, g, b, 255)
         {
         }
 
         public int StructSize => sizeof(uint);
         public int StructAlign => 4;
         public string StructName => "color_t";
+
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(mColor);

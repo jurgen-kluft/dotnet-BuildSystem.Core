@@ -53,7 +53,7 @@ namespace DataBuildSystem
 
                     // Execute all compilers, every compiler will thus check it's dependencies (source and destination files)
                     Result result = gdCl.Execute(loadedCompilers, out List<DataCompilerOutput> gdClOutput);
-                    if (result != Result.Ok)
+                    if (result.IsNotOk)
                     {
                         // Some (or all) compilers reported a change, now we have to load the assembly and build the Bigfile and Game Data.
                         Assembly gdAsm = LoadAssembly(gdu.FilePath);
@@ -91,7 +91,7 @@ namespace DataBuildSystem
                     gdCl.Merge(loadedCompilers, currentCompilers, out List<IDataCompiler> mergedCompilers);
 
                     Result result = gdCl.Execute(mergedCompilers, out List<DataCompilerOutput> gdClOutput);
-                    if (result == Result.Ok)
+                    if (result.IsOk)
                     {
                         if (gduGameDataData.IsNotOk || gduBigfile.IsNotOk)
                         {
@@ -99,7 +99,7 @@ namespace DataBuildSystem
                         }
                     }
 
-                    if (result == Result.OutOfData)
+                    if (result.IsOutOfData)
                     {
                         gdCl.AssignFileId(gdu.Index, mergedCompilers);
 
@@ -177,17 +177,17 @@ namespace DataBuildSystem
 
         public void Save(string dstPath)
         {
-            BinaryFileWriter binaryFile = new BinaryFileWriter();
-            binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log"));
+            var filepath = Path.Join(dstPath, "GameDataUnits.log");
+            var writer = EndianUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
 
-            binaryFile.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
-            binaryFile.Write(DataUnits.Count);
+            writer.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
+            writer.Write(DataUnits.Count);
             foreach (GameDataUnit gdu in DataUnits)
             {
-                gdu.Save(binaryFile);
+                gdu.Save(writer);
             }
 
-            binaryFile.Close();
+            writer.Close();
         }
     }
 
