@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameCore", "GameCore\GameCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BigfileBuilder", "BigfileBuilder\BigfileBuilder.csproj", "{0969B4F5-DA6E-4494-9A54-C85D8AABA053}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MetaTest", "MetaTest\MetaTest.csproj", "{11CF3083-6D15-4F12-BC69-C6F60AF2875A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{0969B4F5-DA6E-4494-9A54-C85D8AABA053}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0969B4F5-DA6E-4494-9A54-C85D8AABA053}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0969B4F5-DA6E-4494-9A54-C85D8AABA053}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11CF3083-6D15-4F12-BC69-C6F60AF2875A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11CF3083-6D15-4F12-BC69-C6F60AF2875A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11CF3083-6D15-4F12-BC69-C6F60AF2875A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11CF3083-6D15-4F12-BC69-C6F60AF2875A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

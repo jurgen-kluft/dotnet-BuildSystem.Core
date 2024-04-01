@@ -268,12 +268,7 @@ namespace GameData
                     for (var i=0; i<array.Length; ++i)
                     {
                         var b = array.GetValue(i);
-                        if (b == null)
-                        {
-                            b = Activator.CreateInstance(fieldElementType);
-                        }
-                        
-                        var element = AddMember(arrayMember, b, b.GetType(), string.Empty, EOptions.None);
+                        var element = AddMember(arrayMember, b, fieldElementType, string.Empty, EOptions.None);
                         if (fieldElementType.IsClass && options.HasFlag(EOptions.ArrayElementsInPlace))
                         {
                             // Class object should be serialized in-place
@@ -286,18 +281,13 @@ namespace GameData
             else if (mMemberGenerator.IsGenericList(dataObjectFieldType))
             {
                 var arrayMember = member as ArrayMember;
-                if (dataObjectFieldValue is IEnumerable array)
+                if (dataObjectFieldValue is IList list)
                 {
                     var fieldElementType = dataObjectFieldType.GenericTypeArguments[0];
-                    foreach(var o in array)
-                    {
-                        var b = o;
-                        if (b == null)
-                        {
-                            b = Activator.CreateInstance(fieldElementType);
-                        }
-
-                        var element = AddMember(arrayMember, b, b.GetType(), string.Empty, EOptions.None);
+					for (var i = 0; i < list.Count; ++i)
+					{
+                        var b = list[i];
+						var element = AddMember(arrayMember, b, fieldElementType, string.Empty, EOptions.None);
                         if (fieldElementType.IsClass && options.HasFlag(EOptions.ArrayElementsInPlace))
                         {
                             // Class object should be serialized in-place

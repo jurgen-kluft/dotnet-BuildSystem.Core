@@ -11,6 +11,104 @@ namespace GameData
 {
     namespace MetaCode
     {
+        public enum EMetaType
+        {
+            Bool,
+            Int8,
+            UInt8,
+            Int16,
+            UInt16,
+            Int32,
+            UInt32,
+            Int64,
+            UInt64,
+            Float,
+            Double,
+            String,
+            Enum,
+            Struct,
+            Array,
+            Dictionary,
+        }
+
+        public struct MetaStruct
+        {
+            public static int ByteSizeOf(EMetaType type)
+            {
+                switch (type)
+                {
+                    case EMetaType.Bool: return sizeof(bool);
+                    case EMetaType.Int8: return sizeof(sbyte);
+                    case EMetaType.UInt8: return sizeof(byte);
+                    case EMetaType.Int16: return sizeof(short);
+                    case EMetaType.UInt16: return sizeof(ushort);
+                    case EMetaType.Int32: return sizeof(int);
+                    case EMetaType.UInt32: return sizeof(uint);
+                    case EMetaType.Int64: return sizeof(long);
+                    case EMetaType.UInt64: return sizeof(ulong);
+                    case EMetaType.Float: return sizeof(float);
+                    case EMetaType.Double: return sizeof(double);
+                    case EMetaType.String: return sizeof(int) + sizeof(int);
+                    case EMetaType.Enum: return sizeof(int);
+                    case EMetaType.Struct: return sizeof(int) + sizeof(int);
+                    case EMetaType.Array: return sizeof(int) + sizeof(int);
+                    case EMetaType.Dictionary: return sizeof(int) + sizeof(int);
+                    default: return 0;
+                }
+            }
+            
+            public EMetaType Type { get; set; }
+            public MetaString Name { get; set; }
+            
+            public int MemberIndex { get; set; }
+            public int MemberCount { get; set; }
+        }
+        
+        public struct MetaMember
+        {
+            public EMetaType Type { get; set; }
+            public MetaString Name { get; set; }
+            public bool IsPointer { get; set; }
+            public int ValueIndex { get; set; }
+        }
+
+        public struct MetaArray
+        {
+            public MetaString Name { get; set; }
+            public int ValueIndex { get; set; }
+            public int Count { get; set; }
+        }
+
+        public struct MetaDictionary
+        {
+            public MetaString Name { get; set; }
+            public int KeyIndex { get; set; }
+            public int ValueIndex { get; set; }
+            public int Count { get; set; }
+        }
+
+        public struct MetaString
+        {
+            public int Length;
+            public int Index;
+        }
+
+        public class MetaCode
+        {
+            public List<bool> ValuesBool = new();
+            public List<byte> ValuesU8 = new();
+            public List<sbyte> ValuesS8 = new();
+            public List<ushort> ValuesU16 = new();
+            public List<short> ValuesS16 = new();
+            public List<uint> ValuesU32 = new();
+            public List<int> ValuesS32 = new();
+            public List<ulong> ValuesU64 = new();
+            public List<long> ValuesS64 = new();
+            public List<string> ValuesString = new();
+            public List<MetaStruct> ValuesStruct = new();
+        }
+
+        
         #region IMemberGenerator
 
         public interface IMemberGenerator
