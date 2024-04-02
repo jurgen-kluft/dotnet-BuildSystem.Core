@@ -76,7 +76,7 @@ namespace GameData
 
 		public class MetaCode
         {
-            public List<bool> ValuesBool = new();
+            public List<bool> ValuesBool = new() { false, true };
             public List<byte> ValuesU8 = new();
             public List<sbyte> ValuesS8 = new();
             public List<ushort> ValuesU16 = new();
