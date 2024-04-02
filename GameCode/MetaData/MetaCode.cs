@@ -11,7 +11,7 @@ namespace GameData
 {
     namespace MetaCode
     {
-        public enum EMetaType
+        public enum EMetaType : Int8
         {
             Bool,
             Int8,
@@ -26,74 +26,55 @@ namespace GameData
             Double,
             String,
             Enum,
-            Struct,
-            Array,
+            FileId,
+			Struct,
+			StructPtr,
+			Array,
             Dictionary,
         }
 
-        public struct MetaStruct
-        {
-            public static int ByteSizeOf(EMetaType type)
-            {
-                switch (type)
-                {
-                    case EMetaType.Bool: return sizeof(bool);
-                    case EMetaType.Int8: return sizeof(sbyte);
-                    case EMetaType.UInt8: return sizeof(byte);
-                    case EMetaType.Int16: return sizeof(short);
-                    case EMetaType.UInt16: return sizeof(ushort);
-                    case EMetaType.Int32: return sizeof(int);
-                    case EMetaType.UInt32: return sizeof(uint);
-                    case EMetaType.Int64: return sizeof(long);
-                    case EMetaType.UInt64: return sizeof(ulong);
-                    case EMetaType.Float: return sizeof(float);
-                    case EMetaType.Double: return sizeof(double);
-                    case EMetaType.String: return sizeof(int) + sizeof(int);
-                    case EMetaType.Enum: return sizeof(int);
-                    case EMetaType.Struct: return sizeof(int) + sizeof(int);
-                    case EMetaType.Array: return sizeof(int) + sizeof(int);
-                    case EMetaType.Dictionary: return sizeof(int) + sizeof(int);
-                    default: return 0;
-                }
-            }
-
-            public EMetaType Type { get; set; }
-            public MetaString Name { get; set; }
-
-            public int MemberIndex { get; set; }
-            public int MemberCount { get; set; }
-        }
 
         public struct MetaMember
         {
-            public EMetaType Type { get; set; }
-            public MetaString Name { get; set; }
-            public bool IsPointer { get; set; }
-            public int ValueIndex { get; set; }
-        }
+			public static int ByteSizeOf(EMetaType type)
+			{
+				switch (type)
+				{
+					case EMetaType.Bool: return sizeof(bool);
+					case EMetaType.Int8: return sizeof(sbyte);
+					case EMetaType.UInt8: return sizeof(byte);
+					case EMetaType.Int16: return sizeof(short);
+					case EMetaType.UInt16: return sizeof(ushort);
+					case EMetaType.Int32: return sizeof(int);
+					case EMetaType.UInt32: return sizeof(uint);
+					case EMetaType.Int64: return sizeof(long);
+					case EMetaType.UInt64: return sizeof(ulong);
+					case EMetaType.Float: return sizeof(float);
+					case EMetaType.Double: return sizeof(double);
+					case EMetaType.String: return sizeof(int) + sizeof(int);
+					case EMetaType.Enum: return sizeof(int);
+                    case EMetaType.FileId: return FileId.StructSize;
+					case EMetaType.Struct: return sizeof(int) + sizeof(int);
+					case EMetaType.Array: return sizeof(int) + sizeof(int);
+					case EMetaType.Dictionary: return sizeof(int) + sizeof(int);
+					default: return 0;
+				}
+			}
 
-        public struct MetaArray
-        {
-            public MetaString Name { get; set; }
-            public int ValueIndex { get; set; }
-            public int Count { get; set; }
-        }
+			public EMetaType Type { get; set; }
+			public int Name { get; set; }
+			public int Index { get; set; } // If we are a Struct the members start here
+			public int Count { get; set; } // If we are an Array/List/Dict/Struct we hold many elements/members
 
-        public struct MetaDictionary
-        {
-            public MetaString Name { get; set; }
-            public int KeyIndex { get; set; }
-            public int ValueIndex { get; set; }
-            public int Count { get; set; }
-        }
+			// List/Array elements
+			public EMetaType PrimaryType { get; set; }
+			public int PrimaryIndex { get; set; }
+			// Dictionary has two types, key (primary) and value (secondary)
+			public EMetaType SecondaryType { get; set; }
+			public int SecondaryIndex { get; set; }
+		}
 
-        public struct MetaString
-        {
-            public int Length;
-            public int Index;
-        }
-
-        public class MetaCode
+		public class MetaCode
         {
             public List<bool> ValuesBool = new();
             public List<byte> ValuesU8 = new();
@@ -103,9 +84,13 @@ namespace GameData
             public List<uint> ValuesU32 = new();
             public List<int> ValuesS32 = new();
             public List<ulong> ValuesU64 = new();
-            public List<long> ValuesS64 = new();
-            public List<string> ValuesString = new();
-            public List<MetaStruct> ValuesStruct = new();
+			public List<long> ValuesS64 = new();
+			public List<float> ValuesF32 = new();
+			public List<double> ValuesF64 = new();
+			public List<string> ValuesString = new();
+			public List<int> ValuesEnum= new();
+			public List<FileId> ValuesFileId = new();
+			public List<MetaMember> ValueMembers = new();
         }
 
 
@@ -192,16 +177,20 @@ namespace GameData
         {
             public int Compare(IClassMember x, IClassMember y)
             {
-                var xa = 4;
+                var xa = x.Alignment;
                 if (x.IsPointerTo)
                 {
-                    xa = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 8 : 4;
+                    // Actually raw_ptr_t is just using 4 bytes, so no matter what the platform is
+                    // we will use 4 bytes for the pointer size.
+                    xa = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 4 : 4;
                 }
 
-                var ya = 4;
+                var ya = y.Alignment;
                 if (y.IsPointerTo)
                 {
-                    ya = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 8 : 4;
+					// Actually raw_ptr_t is just using 4 bytes, so no matter what the platform is
+					// we will use 4 bytes for the pointer size.
+					ya = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 4 : 4;
                 }
 
                 if (xa == ya) return 0;
@@ -874,7 +863,7 @@ namespace GameData
 
             public string MemberName { get; private set; }
             public Type MemberType { get; private set; }
-            public string TypeName => Internal.GetType().Name;
+            public string TypeName => Internal.StructName;
             public int Alignment => Internal.StructAlign;
             public object Value { get; private set; }
             public bool IsPointerTo { get; set; }

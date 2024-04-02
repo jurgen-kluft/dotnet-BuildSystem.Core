@@ -499,7 +499,7 @@ namespace GameData
                 writer.Write('\t');
                 if (pointer)
                 {
-                    writer.Write("raw_obj_t<" + type + ">");
+                    writer.Write("raw_ptr_t<" + type + ">");
                 }
                 else
                 {

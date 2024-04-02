@@ -71,8 +71,9 @@ namespace MetaTest
             public float[] Floats = new float[8];
             public List<Int64> IntegerList = new() { 0,1,2,3,4 };
 
-            [ArrayElementsInPlace]
-            public TestArrayElement[] ObjectArray = new TestArrayElement[2]; // The classes/structs are serialized in-place (not as a pointer)
+			// The classes/structs are serialized in-place (not as a pointer)
+			[ArrayElementsInPlace]
+            public TestArrayElement[] ObjectArray = new TestArrayElement[2] { new(), new() };
 
             public Int64?[] IntPtrArray = new long?[1];
         }

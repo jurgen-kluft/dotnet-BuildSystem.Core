@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MetaTest": {
+      "commandName": "Project",
+      "workingDirectory": "E:\\Dev.NET\\.NET_BuildSystem\\MetaTest"
+    }
+  }
+}
