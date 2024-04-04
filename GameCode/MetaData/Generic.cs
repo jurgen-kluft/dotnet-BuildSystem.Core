@@ -1191,10 +1191,11 @@ namespace GameData
 
             try
             {
-                IMemberGenerator genericMemberGenerator = new GenericMemberGenerator();
+                IMemberFactory genericMemberFactory = new GenericMemberFactory();
+                ITypeInformation typeInformation = new GenericTypeInformation();
 
                 // Analyze Root and generate a list of 'Code.Class' objects from this.
-                Reflector reflector = new(genericMemberGenerator);
+                Reflector reflector = new(genericMemberFactory, typeInformation);
 
                 MyMemberBook book = new();
                 reflector.Analyze(inData, book);
@@ -1307,15 +1308,11 @@ namespace GameData
 
     #region Generic MemberGenerator
 
-    public sealed class GenericMemberGenerator : IMemberGenerator
-    {
-        #region Fields
-
-
-        #endregion
+        public sealed class GenericTypeInformation : ITypeInformation
+        {
         #region Constructor
 
-        public GenericMemberGenerator()
+        public GenericTypeInformation()
         {
         }
 
@@ -1344,9 +1341,33 @@ namespace GameData
         {
             return (t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(List<>)));
         }
-        public bool IsObject(Type t) { return t.IsClass && !t.IsArray && !IsString(t); }
+        public bool IsGenericDictionary(Type t)
+        {
+            return (t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(Dictionary<,>)));
+        }
+        public bool IsClass(Type t) { return (t.IsClass || (t.IsValueType && !t.IsPrimitive && !t.IsEnum)) && (!t.IsArray && !IsString(t)); }
+        public bool IsStruct(Type t) { return (t.IsValueType && !t.IsPrimitive && !t.IsEnum) && (!t.IsArray && !IsString(t) && (t != typeof(decimal))&& (t != typeof(DateTime))); }
         public bool IsFileId(Type t) { return !t.IsPrimitive && Reflector.HasGenericInterface(t, typeof(GameData.IFileId)); }
         public bool IsIStruct(Type t) { return Reflector.HasGenericInterface(t, typeof(GameData.IStruct)); }
+
+
+        #endregion
+    }
+
+    public sealed class GenericMemberFactory : IMemberFactory
+    {
+        #region Fields
+
+
+        #endregion
+        #region Constructor
+
+        public GenericMemberFactory()
+        {
+        }
+
+        #endregion
+        #region IMemberGenerator methods
 
         public IClassMember NewNullMember(string memberName) { return new NullMember(memberName); }
         public IClassMember NewBoolMember(bool o, string memberName) { return new BoolMember(memberName, o); }
@@ -1363,9 +1384,6 @@ namespace GameData
         public IClassMember NewStringMember(string o, string memberName) { return new StringMember(memberName, o); }
         public IClassMember NewEnumMember(object o, string memberName) { return new EnumMember(memberName, o.GetType(), o); }
 
-        #endregion
-        #region IMemberGenerator methods
-
         public ClassObject NewObjectMember(Type classType, object content, string memberName)
         {
             string className = classType.Name;
@@ -1379,14 +1397,14 @@ namespace GameData
             return arrayMember;
         }
 
-        public StructMember NewStructMember(IStruct content, string memberName)
+        public StructMember NewStructMember(Type type, object content, string memberName)
         {
-            StructMember atom = new(content, memberName);
+            StructMember atom = new(content as IStruct, memberName);
             return atom;
         }
-        public FileIdMember NewFileIdMember( Int64 content, string memberName)
+        public FileIdMember NewFileIdMember(Type type, object content, string memberName)
         {
-            FileIdMember fileid = new(memberName, content);
+            FileIdMember fileid = new(memberName, (long)content);
             return fileid;
         }
 

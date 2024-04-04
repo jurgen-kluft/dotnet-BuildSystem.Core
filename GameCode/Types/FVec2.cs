@@ -25,7 +25,7 @@ namespace GameData
             Y = (float)y;
         }
 
-        public int StructSize => 2 * sizeof(float);
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "fvec2_t";
 

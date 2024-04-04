@@ -13,10 +13,7 @@ namespace GameData
     {
         public List<MetaCode.ClassObject> Classes { get; set; }
         public List<MetaCode.EnumMember> Enums { get; set; }
-        public List<MetaCode.StructMember> Structs { get; set; }
-        public List<MetaCode.FileIdMember> FileIds { get; set; }
         public List<MetaCode.ArrayMember> Arrays { get; set; }
-        public List<MetaCode.StringMember> Strings { get; set; }
     }
 
     #endregion
@@ -40,7 +37,8 @@ namespace GameData
 
         #region Fields
 
-        private readonly MetaCode.IMemberGenerator _mMemberGenerator;
+        private readonly MetaCode.IMemberFactory _memberFactory;
+        private readonly MetaCode.ITypeInformation _typeInfo;
         private readonly List<MetaCode.ClassObject> _mClassDatabase;
         private readonly List<MetaCode.EnumMember> _mEnumDatabase;
         private readonly List<MetaCode.StringMember> _mStringDatabase;
@@ -54,9 +52,10 @@ namespace GameData
 
         #region Constructor
 
-        public Reflector(MetaCode.IMemberGenerator memberGenerator)
+        public Reflector(MetaCode.IMemberFactory memberFactory, ITypeInformation typeInfo)
         {
-            _mMemberGenerator = memberGenerator;
+            _memberFactory = memberFactory;
+            _typeInfo = typeInfo;
 
             _mClassDatabase = new();
             _mStringDatabase = new();
@@ -91,16 +90,13 @@ namespace GameData
                 return nullableMember;
             }
 
-            if (_mMemberGenerator.IsIStruct(dataObjectFieldType))
+            if (_typeInfo.IsIStruct(dataObjectFieldType))
             {
-                if (dataObjectFieldValue == null)
-                    dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
-
                 var contentObject = dataObjectFieldValue;
-                var structMember = _mMemberGenerator.NewStructMember(contentObject as IStruct, memberName);
+                var structMember = _memberFactory.NewStructMember(dataObjectFieldType, contentObject, memberName);
                 member = structMember;
             }
-            else if (_mMemberGenerator.IsFileId(dataObjectFieldType))
+            else if (_typeInfo.IsFileId(dataObjectFieldType))
             {
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
@@ -108,29 +104,28 @@ namespace GameData
                 // A FileId is holding a simple index
                 var valuePropertyInfo = dataObjectFieldType.GetProperty("Value");
                 var contentObject = valuePropertyInfo.GetValue(dataObjectFieldValue, null);
-                var id = (Int64)contentObject;
 
-                member = _mMemberGenerator.NewFileIdMember(id, memberName);
+                member = _memberFactory.NewFileIdMember(dataObjectFieldType, contentObject, memberName);
             }
-            else if (_mMemberGenerator.IsArray(dataObjectFieldType))
+            else if (_typeInfo.IsArray(dataObjectFieldType))
             {
                 var arrayType = typeof(Array);
-                member = _mMemberGenerator.NewArrayMember(arrayType, dataObjectFieldValue, memberName);
+                member = _memberFactory.NewArrayMember(arrayType, dataObjectFieldValue, memberName);
             }
-            else if (_mMemberGenerator.IsGenericList(dataObjectFieldType))
+            else if (_typeInfo.IsGenericList(dataObjectFieldType))
             {
                 var arrayType = dataObjectFieldType.GetGenericTypeDefinition();
-                member = _mMemberGenerator.NewArrayMember(arrayType, dataObjectFieldValue, memberName);
+                member = _memberFactory.NewArrayMember(arrayType, dataObjectFieldValue, memberName);
             }
-            else if (_mMemberGenerator.IsString(dataObjectFieldType))
+            else if (_typeInfo.IsString(dataObjectFieldType))
             {
                 // Create default empty string
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = string.Empty;
 
-                member = _mMemberGenerator.NewStringMember((string)dataObjectFieldValue, memberName) as MetaCode.StringMember;
+                member = _memberFactory.NewStringMember((string)dataObjectFieldValue, memberName) as MetaCode.StringMember;
             }
-            else if (_mMemberGenerator.IsObject(dataObjectFieldType))
+            else if (_typeInfo.IsClass(dataObjectFieldType))
             {
                 Type classType;
                 if (dataObjectFieldValue != null)
@@ -138,103 +133,103 @@ namespace GameData
                 else
                     classType = dataObjectFieldType;
 
-                member = _mMemberGenerator.NewObjectMember(classType, dataObjectFieldValue, memberName);
+                member = _memberFactory.NewObjectMember(classType, dataObjectFieldValue, memberName);
             }
-            else if (_mMemberGenerator.IsBool(dataObjectFieldType))
+            else if (_typeInfo.IsBool(dataObjectFieldType))
             {
                 // Create default bool
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new bool();
 
-                member = _mMemberGenerator.NewBoolMember((bool)dataObjectFieldValue, memberName) as MetaCode.BoolMember;
+                member = _memberFactory.NewBoolMember((bool)dataObjectFieldValue, memberName) as MetaCode.BoolMember;
             }
-            else if (_mMemberGenerator.IsInt8(dataObjectFieldType))
+            else if (_typeInfo.IsInt8(dataObjectFieldType))
             {
                 // Create default Int8
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new SByte();
 
-                member = _mMemberGenerator.NewInt8Member((Int8)dataObjectFieldValue, memberName) as MetaCode.Int8Member;
+                member = _memberFactory.NewInt8Member((Int8)dataObjectFieldValue, memberName) as MetaCode.Int8Member;
             }
-            else if (_mMemberGenerator.IsUInt8(dataObjectFieldType))
+            else if (_typeInfo.IsUInt8(dataObjectFieldType))
             {
                 // Create default UInt8
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt8();
 
-                member = _mMemberGenerator.NewUInt8Member((UInt8)dataObjectFieldValue, memberName) as MetaCode.UInt8Member;
+                member = _memberFactory.NewUInt8Member((UInt8)dataObjectFieldValue, memberName) as MetaCode.UInt8Member;
             }
-            else if (_mMemberGenerator.IsInt16(dataObjectFieldType))
+            else if (_typeInfo.IsInt16(dataObjectFieldType))
             {
                 // Create default Int16
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new Int16();
 
-                member = _mMemberGenerator.NewInt16Member((Int16)dataObjectFieldValue, memberName) as MetaCode.Int16Member;
+                member = _memberFactory.NewInt16Member((Int16)dataObjectFieldValue, memberName) as MetaCode.Int16Member;
             }
-            else if (_mMemberGenerator.IsUInt16(dataObjectFieldType))
+            else if (_typeInfo.IsUInt16(dataObjectFieldType))
             {
                 // Create default UInt16
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt16();
 
-                member = _mMemberGenerator.NewUInt16Member((UInt16)dataObjectFieldValue, memberName) as MetaCode.UInt16Member;
+                member = _memberFactory.NewUInt16Member((UInt16)dataObjectFieldValue, memberName) as MetaCode.UInt16Member;
             }
-            else if (_mMemberGenerator.IsInt32(dataObjectFieldType))
+            else if (_typeInfo.IsInt32(dataObjectFieldType))
             {
                 // Create default Int32
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new Int32();
 
-                member = _mMemberGenerator.NewInt32Member((Int32)dataObjectFieldValue, memberName) as MetaCode.Int32Member;
+                member = _memberFactory.NewInt32Member((Int32)dataObjectFieldValue, memberName) as MetaCode.Int32Member;
             }
-            else if (_mMemberGenerator.IsUInt32(dataObjectFieldType))
+            else if (_typeInfo.IsUInt32(dataObjectFieldType))
             {
                 // Create default UInt32
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt32();
 
-                member = _mMemberGenerator.NewUInt32Member((UInt32)dataObjectFieldValue, memberName) as MetaCode.UInt32Member;
+                member = _memberFactory.NewUInt32Member((UInt32)dataObjectFieldValue, memberName) as MetaCode.UInt32Member;
             }
-            else if (_mMemberGenerator.IsInt64(dataObjectFieldType))
+            else if (_typeInfo.IsInt64(dataObjectFieldType))
             {
                 // Create default Int64
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new Int64();
 
-                member = _mMemberGenerator.NewInt64Member((Int64)dataObjectFieldValue, memberName) as MetaCode.Int64Member;
+                member = _memberFactory.NewInt64Member((Int64)dataObjectFieldValue, memberName) as MetaCode.Int64Member;
             }
-            else if (_mMemberGenerator.IsUInt64(dataObjectFieldType))
+            else if (_typeInfo.IsUInt64(dataObjectFieldType))
             {
                 // Create default UInt64
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new UInt64();
 
-                member = _mMemberGenerator.NewUInt64Member((UInt64)dataObjectFieldValue, memberName) as MetaCode.UInt64Member;
+                member = _memberFactory.NewUInt64Member((UInt64)dataObjectFieldValue, memberName) as MetaCode.UInt64Member;
             }
-            else if (_mMemberGenerator.IsFloat(dataObjectFieldType))
+            else if (_typeInfo.IsFloat(dataObjectFieldType))
             {
                 // Create default Float
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new float();
 
-                member = _mMemberGenerator.NewFloatMember((float)dataObjectFieldValue, memberName) as MetaCode.FloatMember;
+                member = _memberFactory.NewFloatMember((float)dataObjectFieldValue, memberName) as MetaCode.FloatMember;
             }
-            else if (_mMemberGenerator.IsDouble(dataObjectFieldType))
+            else if (_typeInfo.IsDouble(dataObjectFieldType))
             {
                 // Create default Double
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = new float();
 
-                member = _mMemberGenerator.NewDoubleMember((double)dataObjectFieldValue, memberName) as MetaCode.DoubleMember;
+                member = _memberFactory.NewDoubleMember((double)dataObjectFieldValue, memberName) as MetaCode.DoubleMember;
             }
-            else if (_mMemberGenerator.IsEnum(dataObjectFieldType))
+            else if (_typeInfo.IsEnum(dataObjectFieldType))
             {
                 // Create default enum
                 if (dataObjectFieldValue == null)
                     dataObjectFieldValue = Activator.CreateInstance(dataObjectFieldType);
 
-                member = _mMemberGenerator.NewEnumMember(dataObjectFieldValue, memberName) as MetaCode.EnumMember;
+                member = _memberFactory.NewEnumMember(dataObjectFieldValue, memberName) as MetaCode.EnumMember;
             }
             else
             {
@@ -259,22 +254,22 @@ namespace GameData
 
             inCompound.AddMember(member);
 
-            if (_mMemberGenerator.IsIStruct(dataObjectFieldType))
+            if (_typeInfo.IsIStruct(dataObjectFieldType))
             {
                 var m = member as StructMember;
                 _mStructDatabase.Add(m);
             }
-            else if (_mMemberGenerator.IsFileId(dataObjectFieldType))
+            else if (_typeInfo.IsFileId(dataObjectFieldType))
             {
                 var m = member as FileIdMember;
                 _mFileIdDatabase.Add(m);
             }
-            else if (_mMemberGenerator.IsEnum(dataObjectFieldType))
+            else if (_typeInfo.IsEnum(dataObjectFieldType))
             {
                 var m = member as EnumMember;
                 _mEnumDatabase.Add(m);
             }
-            else if (_mMemberGenerator.IsArray(dataObjectFieldType))
+            else if (_typeInfo.IsArray(dataObjectFieldType))
             {
                 var arrayMember = member as ArrayMember;
                 var fieldElementType = dataObjectFieldType.GetElementType();
@@ -294,7 +289,7 @@ namespace GameData
 
                 _mArrayDatabase.Add(arrayMember);
             }
-            else if (_mMemberGenerator.IsGenericList(dataObjectFieldType))
+            else if (_typeInfo.IsGenericList(dataObjectFieldType))
             {
                 var arrayMember = member as ArrayMember;
                 if (dataObjectFieldValue is IList list)
@@ -314,13 +309,13 @@ namespace GameData
 
                 _mArrayDatabase.Add(arrayMember);
             }
-            else if (_mMemberGenerator.IsObject(dataObjectFieldType))
+            else if (_typeInfo.IsClass(dataObjectFieldType))
             {
                 var c = member as ClassObject;
                 _mClassDatabase.Add(c);
                 _mStack.Push(new KeyValuePair<object, ClassObject>(dataObjectFieldValue, c));
             }
-            else if (_mMemberGenerator.IsString(dataObjectFieldType))
+            else if (_typeInfo.IsString(dataObjectFieldType))
             {
                 var stringMember = member as StringMember;
                 _mStringDatabase.Add(stringMember);
@@ -402,39 +397,27 @@ namespace GameData
             //
 
             var dataObjectType = data.GetType();
-            var dataClass = _mMemberGenerator.NewObjectMember(dataObjectType, data, dataObjectType.Name);
+            var dataClass = _memberFactory.NewObjectMember(dataObjectType, data, dataObjectType.Name);
             _mClassDatabase.Add(dataClass);
             _mStack.Push(new(data, dataClass));
 
             while (_mStack.Count > 0)
             {
-                KeyValuePair<object, MetaCode.ClassObject> p = _mStack.Pop();
+                var p = _mStack.Pop();
                 AddMembers(p.Value, p.Key);
             }
 
             book.Classes = new();
-            foreach (MetaCode.ClassObject c in _mClassDatabase)
+            foreach (var c in _mClassDatabase)
                 book.Classes.Add(c);
 
             book.Enums = new();
-            foreach (MetaCode.EnumMember c in _mEnumDatabase)
+            foreach (var c in _mEnumDatabase)
                 book.Enums.Add(c);
 
-            book.Structs = new();
-            foreach (MetaCode.StructMember c in _mStructDatabase)
-                book.Structs.Add(c);
-
-            book.FileIds = new();
-            foreach (MetaCode.FileIdMember c in _mFileIdDatabase)
-                book.FileIds.Add(c);
-
             book.Arrays = new();
-            foreach (MetaCode.ArrayMember a in _mArrayDatabase)
+            foreach (var a in _mArrayDatabase)
                 book.Arrays.Add(a);
-
-            book.Strings = new();
-            foreach (MetaCode.StringMember s in _mStringDatabase)
-                book.Strings.Add(s);
 
             _mClassDatabase.Clear();
             _mStructDatabase.Clear();

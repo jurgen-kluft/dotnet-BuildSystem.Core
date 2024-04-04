@@ -11,92 +11,9 @@ namespace GameData
 {
     namespace MetaCode
     {
-        public enum EMetaType : Int8
-        {
-            Bool,
-            Int8,
-            UInt8,
-            Int16,
-            UInt16,
-            Int32,
-            UInt32,
-            Int64,
-            UInt64,
-            Float,
-            Double,
-            String,
-            Enum,
-            FileId,
-			Struct,
-			StructPtr,
-			Array,
-            Dictionary,
-        }
+        #region TypeInformation
 
-
-        public struct MetaMember
-        {
-			public static int ByteSizeOf(EMetaType type)
-			{
-				switch (type)
-				{
-					case EMetaType.Bool: return sizeof(bool);
-					case EMetaType.Int8: return sizeof(sbyte);
-					case EMetaType.UInt8: return sizeof(byte);
-					case EMetaType.Int16: return sizeof(short);
-					case EMetaType.UInt16: return sizeof(ushort);
-					case EMetaType.Int32: return sizeof(int);
-					case EMetaType.UInt32: return sizeof(uint);
-					case EMetaType.Int64: return sizeof(long);
-					case EMetaType.UInt64: return sizeof(ulong);
-					case EMetaType.Float: return sizeof(float);
-					case EMetaType.Double: return sizeof(double);
-					case EMetaType.String: return sizeof(int) + sizeof(int);
-					case EMetaType.Enum: return sizeof(int);
-                    case EMetaType.FileId: return FileId.StructSize;
-					case EMetaType.Struct: return sizeof(int) + sizeof(int);
-					case EMetaType.Array: return sizeof(int) + sizeof(int);
-					case EMetaType.Dictionary: return sizeof(int) + sizeof(int);
-					default: return 0;
-				}
-			}
-
-			public EMetaType Type { get; set; }
-			public int Name { get; set; }
-			public int Index { get; set; } // If we are a Struct the members start here
-			public int Count { get; set; } // If we are an Array/List/Dict/Struct we hold many elements/members
-
-			// List/Array elements
-			public EMetaType PrimaryType { get; set; }
-			public int PrimaryIndex { get; set; }
-			// Dictionary has two types, key (primary) and value (secondary)
-			public EMetaType SecondaryType { get; set; }
-			public int SecondaryIndex { get; set; }
-		}
-
-		public class MetaCode
-        {
-            public List<bool> ValuesBool = new() { false, true };
-            public List<byte> ValuesU8 = new();
-            public List<sbyte> ValuesS8 = new();
-            public List<ushort> ValuesU16 = new();
-            public List<short> ValuesS16 = new();
-            public List<uint> ValuesU32 = new();
-            public List<int> ValuesS32 = new();
-            public List<ulong> ValuesU64 = new();
-			public List<long> ValuesS64 = new();
-			public List<float> ValuesF32 = new();
-			public List<double> ValuesF64 = new();
-			public List<string> ValuesString = new();
-			public List<int> ValuesEnum= new();
-			public List<FileId> ValuesFileId = new();
-			public List<MetaMember> ValueMembers = new();
-        }
-
-
-        #region IMemberGenerator
-
-        public interface IMemberGenerator
+        public interface ITypeInformation
         {
             bool IsNull(Type t);
             bool IsBool(Type t);
@@ -114,10 +31,18 @@ namespace GameData
             bool IsEnum(Type t);
             bool IsArray(Type t);
             bool IsGenericList(Type t);
-            bool IsObject(Type t);
+            bool IsGenericDictionary(Type t);
+            bool IsClass(Type t);
+            bool IsStruct(Type t);
             bool IsIStruct(Type t);
             bool IsFileId(Type t);
+        }
 
+        #endregion
+        #region MemberFactory
+
+        public interface IMemberFactory
+        {
             IClassMember NewNullMember(string memberName);
             IClassMember NewBoolMember(bool content, string memberName);
             IClassMember NewInt8Member(sbyte content, string memberName);
@@ -132,14 +57,13 @@ namespace GameData
             IClassMember NewFloatMember(float content, string memberName);
             IClassMember NewDoubleMember(double content, string memberName);
             IClassMember NewStringMember(string content, string memberName);
-            FileIdMember NewFileIdMember(long content, string memberName);
-            ClassObject NewObjectMember(Type objectType, object content, string memberName);
-            ArrayMember NewArrayMember(Type arrayType, object content, string memberName);
-            StructMember NewStructMember(IStruct content, string memberName);
+            FileIdMember NewFileIdMember(Type type, object content, string memberName);
+            ClassObject NewObjectMember(Type type, object content, string memberName);
+            ArrayMember NewArrayMember(Type type, object content, string memberName);
+            StructMember NewStructMember(Type type, object content, string memberName);
         }
 
         #endregion
-
         #region IMemberWriter
 
         public interface IMemberWriter
@@ -182,7 +106,7 @@ namespace GameData
                 {
                     // Actually raw_ptr_t is just using 4 bytes, so no matter what the platform is
                     // we will use 4 bytes for the pointer size.
-                    xa = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 4 : 4;
+                    xa = 4;
                 }
 
                 var ya = y.Alignment;
@@ -190,7 +114,7 @@ namespace GameData
                 {
 					// Actually raw_ptr_t is just using 4 bytes, so no matter what the platform is
 					// we will use 4 bytes for the pointer size.
-					ya = EndianUtils.IsPlatform64Bit(BuildSystemCompilerConfig.Platform) ? 4 : 4;
+					ya = 4;
                 }
 
                 if (xa == ya) return 0;

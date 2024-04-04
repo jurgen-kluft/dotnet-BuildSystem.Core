@@ -29,7 +29,7 @@ namespace GameData
             get { return mProvider.FileId; }
         }
 
-        public static int StructSize => sizeof(Int64);
+        public bool StructIsValueType => true;
         public int StructAlign => 8;
         public string StructName => "fileid_t";
 

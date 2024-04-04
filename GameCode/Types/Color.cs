@@ -166,7 +166,7 @@ namespace GameData
         {
         }
 
-        public int StructSize => sizeof(uint);
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "color_t";
 

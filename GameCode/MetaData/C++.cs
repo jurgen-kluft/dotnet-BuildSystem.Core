@@ -786,9 +786,10 @@ namespace GameData
         public static void Write(EPlatform platform, object data, string dataFilename, string codeFilename, string relocFilename)
         {
             // Analyze Data.Root and generate a list of 'Code.Class' objects from this.
-            IMemberGenerator genericMemberGenerator = new GenericMemberGenerator();
+            IMemberFactory genericMemberFactory = new GenericMemberFactory();
+            ITypeInformation typeInformation = new GenericTypeInformation();
 
-            Reflector reflector = new(genericMemberGenerator);
+            Reflector reflector = new(genericMemberFactory, typeInformation);
 
             MyMemberBook book = new();
             reflector.Analyze(data, book);
@@ -840,6 +841,65 @@ namespace GameData
             CppCodeWriter codeWriter = new();
             CppCodeWriter.Write(book.Enums, codeFileStreamWriter);
             CppCodeWriter.Write(book.Classes, codeFileStreamWriter);
+            codeFileStreamWriter.Close();
+            codeFileStream.Close();
+        }
+
+        public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename, string relocFilename)
+        {
+            // Analyze Data.Root and generate a list of 'Code.Class' objects from this.
+            var metaCode = new MetaCode.MetaCode();
+            var metaMemberFactory = new MetaMemberFactory(metaCode);
+            var typeInformation = new GenericTypeInformation();
+
+            var reflector = new Reflector2(metaCode, metaMemberFactory, typeInformation);
+            reflector.Analyze(data);
+
+            // In every class combine booleans into bitsets
+            // foreach (var c in metaCode.Classes)
+            // {
+            //     metaCode.CombineBooleans(c);
+            // }
+            //
+            // // Sort the members on every 'Code.Class' so that alignment of data is solved.
+            // for (var i = 0; i < 2; ++i)
+            // {
+            //     foreach (var c in metaCode.Classes)
+            //         metaCode.SortMembers(c, new MetaCode.MetaCode.SortMembersBySize());
+            //     foreach (var c in metaCode.Classes)
+            //         metaCode.DetermineAlignment(c);
+            // }
+
+            // Write out every 'Code.ClassObject' to the DataStream.
+            var stringTable = new StringTable(); // The StringTable to collect (and collapse duplicate) all strings
+            var dataStream = new CppDataStream(platform);
+            dataStream.BeginBlock(8);
+            {
+                metaCode.Write(stringTable, dataStream);
+            }
+            dataStream.EndBlock();
+
+            // Finalize the DataStream and obtain a database of the position of the
+            // IReferenceableMember objects in the DataStream.
+            var dataFileInfo = new FileInfo(dataFilename);
+            var dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
+            var dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, platform);
+            // var relocFileInfo = new FileInfo(relocFilename);
+            // var relocFileStream = new FileStream(relocFileInfo.FullName, FileMode.Create);
+            // var relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, platform);
+            dataStream.Finalize(dataFileStreamWriter, stringTable);
+            dataFileStreamWriter.Close();
+            dataFileStream.Close();
+            // relocFileStreamWriter.Close();
+            // relocFileStream.Close();
+
+            // Generate the c++ code using the CppCodeWriter.
+            var codeFileInfo = new FileInfo(codeFilename);
+            var codeFileStream = codeFileInfo.Create();
+            var codeFileStreamWriter = new StreamWriter(codeFileStream);
+            var codeWriter = new MetaCode.CppCodeWriter(metaCode);
+            codeWriter.WriteEnums(codeFileStreamWriter);
+            codeWriter.WriteClasses(codeFileStreamWriter);
             codeFileStreamWriter.Close();
             codeFileStream.Close();
         }

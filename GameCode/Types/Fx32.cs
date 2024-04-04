@@ -60,7 +60,7 @@ namespace GameData
             return array;
         }
 
-        public int StructSize => sizeof(Int32);
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "fx32_t";
 

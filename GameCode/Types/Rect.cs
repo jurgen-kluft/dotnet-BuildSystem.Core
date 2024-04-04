@@ -19,7 +19,7 @@ namespace GameData
             Bottom = bottom;
         }
 
-        public int StructSize => 4 * sizeof(int);
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "rect_t";
 

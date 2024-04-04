@@ -9,7 +9,7 @@ namespace GameData
     /// from the declared struct and can be overriden by using an attribute.
     public interface IStruct
     {
-        static int StructSize { get; }
+        bool StructIsValueType { get; } // Is this struct a value type or a reference type (pointer)?
         int StructAlign { get; }
         string StructName { get; }
 

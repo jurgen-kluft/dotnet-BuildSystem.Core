@@ -34,7 +34,7 @@ namespace GameData
             Bottom = (float)bottom;
         }
 
-        public int StructSize => 4 * sizeof(float);
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "frect_t";
 

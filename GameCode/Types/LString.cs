@@ -27,26 +27,13 @@ namespace GameData
 
         #region Properties
 
-        public int StructSize => sizeof(Int64);
+        public bool StructIsValueType => true;
         public int StructAlign => 8;
         public string StructName => "lstring_t";
 
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(LStringId);
-        }
-
-        #endregion
-
-        #region Methods
-
-        public static LString[] SArray(params string[] values)
-        {
-            LString[] array = new LString[values.Length];
-            int i = 0;
-            foreach (var s in values)
-                array[i++] = new LString(s);
-            return array;
         }
 
         #endregion

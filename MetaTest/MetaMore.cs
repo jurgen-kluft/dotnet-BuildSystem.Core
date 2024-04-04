@@ -6,7 +6,7 @@ namespace MetaTest
     public struct BufferHandle : IStruct
     {
         public Int32 Value;
-        public int StructSize => 4;
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "BufferHandle";
 
@@ -20,7 +20,7 @@ namespace MetaTest
     {
         public Int32 Value;
 
-        public int StructSize => 4;
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "TextureHandle";
 
@@ -33,7 +33,7 @@ namespace MetaTest
     public struct SamplerHandle : IStruct
     {
         public Int32 Value;
-        public int StructSize => 4;
+        public bool StructIsValueType => true;
         public int StructAlign => 4;
         public string StructName => "SamplerHandle";
 
