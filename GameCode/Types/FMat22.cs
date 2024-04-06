@@ -32,6 +32,7 @@ namespace GameData
         }
 
         public bool StructIsValueType => true;
+        public int StructSize => 2*2*4;
         public int StructAlign => 4;
         public string StructName => "fmat22_t";
 

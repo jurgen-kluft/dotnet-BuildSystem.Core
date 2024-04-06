@@ -6,6 +6,7 @@ using System.Runtime.Loader;
 
 using GameCore;
 using GameData;
+using GameData.MetaCode;
 
 namespace MetaTest
 {
@@ -43,13 +44,13 @@ namespace MetaTest
 
         public class TestRoot
         {
+            public float m_Float = 3.14f;
+            public Int32 m_Int = 1;
             public bool m_Bool1 = true;
             public bool m_Bool2 = false;
             public bool m_Bool3 = true;
             public bool m_Bool4 = false;
-            public Int32 m_Int32 = 1;
             public SByte m_Int8 = 2;
-            public float m_Float = 3.14f;
             public ETestEnum m_Enum = ETestEnum.EnumerationC;
             public Color m_Color = Colors.Aliceblue;
 

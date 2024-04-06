@@ -9,6 +9,11 @@ namespace GameCore
         {
             return (position + (alignment - 1)) & ~(alignment - 1);
         }
+        public static bool TryAlign(Int64 position, Int64 alignment, out Int64 aligned)
+        {
+            aligned = (position + (alignment - 1)) & ~(alignment - 1);
+            return aligned == position;
+        }
         public static bool IsAligned(Int64 position, Int64 alignment)
         {
             Int64 newpos = (position + (alignment - 1)) & ~(alignment - 1);
@@ -18,6 +23,11 @@ namespace GameCore
         public static Int32 Align32(Int32 position, Int32 alignment)
         {
             return (position + (alignment - 1)) & ~(alignment - 1);
+        }
+        public static bool TryAlign32(Int32 position, Int32 alignment, out Int32 aligned)
+        {
+            aligned = (position + (alignment - 1)) & ~(alignment - 1);
+            return aligned == position;
         }
 
     }
@@ -94,11 +104,11 @@ namespace GameCore
         }
     }
 
-    public sealed class BinaryStream
+    public sealed class BinaryFileStream
     {
         private FileStream mFileStream;
 
-        public BinaryStream(string filename, EPlatform platform)
+        public BinaryFileStream(string filename, EPlatform platform)
         {
             Filename = filename;
             Platform = platform;
@@ -112,7 +122,7 @@ namespace GameCore
 
         private string Filename { get; }
         private EPlatform Platform { get; }
-        private IBinaryStream Writer { get; set; }
+        private IBinaryWriter Writer { get; set; }
         private IBinaryReader Reader { get; set; }
 
         public bool Open(EMode mode)
@@ -122,7 +132,7 @@ namespace GameCore
             try
             {
                 stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
-                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryStream(stream, Platform);
+                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryWriter(stream, Platform);
                 else if (mode == EMode.Read) Reader = EndianUtils.CreateBinaryReader(stream, Platform);
             }
             catch (Exception)
@@ -142,13 +152,11 @@ namespace GameCore
         {
             if (Writer != null)
             {
-                Writer.Close();
                 Writer = null;
                 mFileStream.Close();
             }
             else if (Reader != null)
             {
-                Reader.Close();
                 Reader = null;
                 mFileStream.Close();
             }

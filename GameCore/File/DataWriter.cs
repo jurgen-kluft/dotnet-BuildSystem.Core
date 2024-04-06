@@ -7,7 +7,7 @@ namespace GameCore
 {
     #region IDataWriter
 
-    public interface IDataWriter : IBinaryStream
+    public interface IDataWriter : IBinaryStreamWriter
     {
         void Begin();
 
@@ -24,7 +24,7 @@ namespace GameCore
 
         void End();
 
-        void Final(IBinaryStream dataWriter, out Dictionary<StreamReference, StreamContext> referenceDatabase, out Dictionary<StreamReference, StreamContext> unresolvedReferences, out Dictionary<StreamReference, StreamContext> markerDatabase);
+        void Final(IBinaryStreamWriter dataWriter, out Dictionary<StreamReference, StreamContext> referenceDatabase, out Dictionary<StreamReference, StreamContext> unresolvedReferences, out Dictionary<StreamReference, StreamContext> markerDatabase);
     }
 
     #endregion
@@ -46,10 +46,10 @@ namespace GameCore
 
             private readonly Int64 mAlignment = 4;
             private readonly MemoryStream mDataStream = new MemoryStream();
-            private readonly IBinaryStream mDataWriter;
+            private readonly IBinaryStreamWriter mDataWriter;
 
             private readonly MemoryStream mTypeStream = new MemoryStream();
-            private readonly IBinaryStream mTypeWriter;
+            private readonly IBinaryStreamWriter mTypeWriter;
 
             private readonly Dictionary<StreamReference, StreamContext> mReferenceContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
             private readonly Dictionary<StreamReference, StreamContext> mMarkerContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
@@ -76,8 +76,8 @@ namespace GameCore
             {
                 Platform = platform;
                 mAlignment = alignment;
-                mDataWriter = EndianUtils.CreateBinaryStream(mDataStream, platform);
-                mTypeWriter = EndianUtils.CreateBinaryStream(mTypeStream, platform);
+                mDataWriter = EndianUtils.CreateBinaryWriter(mDataStream, platform);
+                mTypeWriter = EndianUtils.CreateBinaryWriter(mTypeStream, platform);
 
                 mReferenceContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
                 mMarkerContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
@@ -283,7 +283,7 @@ namespace GameCore
                 }
             }
 
-            internal void Finalize(IBinaryStream outData, StreamContext currentContext, IDictionary<StreamReference, StreamContext> referenceDataBase, IDictionary<StreamReference, StreamContext> markerDataBase)
+            internal void Finalize(IBinaryStreamWriter outData, StreamContext currentContext, IDictionary<StreamReference, StreamContext> referenceDataBase, IDictionary<StreamReference, StreamContext> markerDataBase)
             {
                 StreamUtils.Align(outData, mAlignment);
                 currentContext.Offset = new StreamOffset(outData.Position);
@@ -490,6 +490,11 @@ namespace GameCore
             mCurrentDataBlock.Write(v);
         }
 
+        public void WriteStream(byte[] data, int offset, int count)
+        {
+            mCurrentDataBlock.Write(data, offset, count);
+        }
+
         public Int64 Position
         {
             get
@@ -507,6 +512,10 @@ namespace GameCore
             get
             {
                 return mCurrentDataBlock.Length;
+            }
+            set
+            {
+
             }
         }
 
@@ -530,7 +539,7 @@ namespace GameCore
         #endregion
         #region Finalize
 
-        public void Final(IBinaryStream dataWriter, out Dictionary<StreamReference, StreamContext> referenceDatabase, out Dictionary<StreamReference, StreamContext> unresolvedReferences, out Dictionary<StreamReference, StreamContext> markerDatabase)
+        public void Final(IBinaryStreamWriter dataWriter, out Dictionary<StreamReference, StreamContext> referenceDatabase, out Dictionary<StreamReference, StreamContext> unresolvedReferences, out Dictionary<StreamReference, StreamContext> markerDatabase)
         {
             referenceDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
             markerDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());

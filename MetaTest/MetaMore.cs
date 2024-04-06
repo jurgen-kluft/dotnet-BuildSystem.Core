@@ -7,6 +7,7 @@ namespace MetaTest
     {
         public Int32 Value;
         public bool StructIsValueType => true;
+        public int StructSize => 1 * sizeof(int);
         public int StructAlign => 4;
         public string StructName => "BufferHandle";
 
@@ -21,6 +22,7 @@ namespace MetaTest
         public Int32 Value;
 
         public bool StructIsValueType => true;
+        public int StructSize => 1 * sizeof(int);
         public int StructAlign => 4;
         public string StructName => "TextureHandle";
 
@@ -34,6 +36,7 @@ namespace MetaTest
     {
         public Int32 Value;
         public bool StructIsValueType => true;
+        public int StructSize => 1 * sizeof(int);
         public int StructAlign => 4;
         public string StructName => "SamplerHandle";
 

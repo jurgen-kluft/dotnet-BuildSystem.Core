@@ -28,6 +28,7 @@ namespace GameData
         #region Properties
 
         public bool StructIsValueType => true;
+        public int StructSize => sizeof(Int64);
         public int StructAlign => 8;
         public string StructName => "lstring_t";
 

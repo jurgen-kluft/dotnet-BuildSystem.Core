@@ -61,6 +61,7 @@ namespace GameData
         }
 
         public bool StructIsValueType => true;
+        public int StructSize => sizeof(short);
         public int StructAlign => 2;
         public string StructName => "fx16_t";
 

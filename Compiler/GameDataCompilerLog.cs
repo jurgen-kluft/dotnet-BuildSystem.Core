@@ -15,6 +15,8 @@ namespace DataBuildSystem
             FilePath = filepath;
         }
 
+        private EPlatform Platform { get; set; }
+
         private class SignatureComparer
         {
             public int Compare(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
@@ -80,7 +82,7 @@ namespace DataBuildSystem
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream))
+            if (memoryWriter.Open(memoryStream, EndianUtils.GetEndianForPlatform(Platform)))
             {
                 foreach (var cl in compilers)
                 {
@@ -110,7 +112,7 @@ namespace DataBuildSystem
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream))
+            if (memoryWriter.Open(memoryStream, EndianUtils.GetEndianForPlatform(Platform)))
             {
                 foreach (var cl in compilers)
                 {
@@ -188,7 +190,7 @@ namespace DataBuildSystem
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream))
+            if (memoryWriter.Open(memoryStream, EndianUtils.GetEndianForPlatform(Platform)))
             {
                 foreach (var compiler in cl)
                 {

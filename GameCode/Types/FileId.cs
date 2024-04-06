@@ -30,6 +30,7 @@ namespace GameData
         }
 
         public bool StructIsValueType => true;
+        public int StructSize => 8;
         public int StructAlign => 8;
         public string StructName => "fileid_t";
 

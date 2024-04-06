@@ -238,7 +238,8 @@ namespace GameCore
 
         public static Hash160 ReadFrom(IBinaryReader _reader)
         {
-            byte[] hash = _reader.ReadBytes(Size);
+            var hash = new byte[Hash160.Size];
+            _reader.ReadBytes(hash, 0, hash.Length);
             return ConstructTake(hash);
         }
 

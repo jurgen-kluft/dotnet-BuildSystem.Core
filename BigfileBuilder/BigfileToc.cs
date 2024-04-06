@@ -487,7 +487,8 @@ namespace DataBuildSystem
 
                     case >= 0:
                         // Read Toc Entry content hash
-                        byte[] hash = reader.ReadBytes(Hash160.Size);
+                        byte[] hash = new byte[Hash160.Size];
+                        reader.ReadBytes(hash, 0, hash.Length);
 
                         int sectionIndex = block;
                         ITocEntry te = Sections[sectionIndex].Toc[item];
@@ -836,7 +837,7 @@ namespace DataBuildSystem
 
         private static void WriteTable(IWriteContext context, FileStream stream, EPlatform platform)
         {
-            IBinaryStream binaryWriter = EndianUtils.CreateBinaryStream(stream, platform);
+            IBinaryStreamWriter binaryWriter = EndianUtils.CreateBinaryWriter(stream, platform);
             {
                 int block = -1;
                 do

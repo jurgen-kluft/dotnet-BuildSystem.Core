@@ -5,35 +5,21 @@ namespace GameCore
 {
     #region Endian Classes
 
-    public struct ByteSpan
-    {
-        public byte[] Buffer { get; set; }
-        public int Start { get; set; }
-        public int Length { get; set; }
-
-        public static ByteSpan AsSpan(byte[] buffer, int length)
-        {
-            return new ByteSpan() { Buffer = buffer, Start = 0, Length = length};
-        }
-        public static ByteSpan AsSpan(byte[] buffer, int start, int length)
-        {
-            return new ByteSpan() { Buffer = buffer, Start = start, Length = length};
-        }
-    }
-
     public interface IEndian
     {
         bool little { get; }
         bool big { get; }
 
-        ByteSpan GetBytes(Int16 v);
-        ByteSpan GetBytes(UInt16 v);
-        ByteSpan GetBytes(Int32 v);
-        ByteSpan GetBytes(UInt32 v);
-        ByteSpan GetBytes(Int64 v);
-        ByteSpan GetBytes(UInt64 v);
-        ByteSpan GetBytes(float v);
-        ByteSpan GetBytes(double v);
+        int GetBytes(byte v, byte[] buffer);
+        int GetBytes(sbyte v, byte[] buffer);
+        int GetBytes(Int16 v, byte[] buffer);
+        int GetBytes(UInt16 v, byte[] buffer);
+        int GetBytes(Int32 v, byte[] buffer);
+        int GetBytes(UInt32 v, byte[] buffer);
+        int GetBytes(Int64 v, byte[] buffer);
+        int GetBytes(UInt64 v, byte[] buffer);
+        int GetBytes(float v, byte[] buffer);
+        int GetBytes(double v, byte[] buffer);
 
         Int16 Convert(Int16 v);
         UInt16 Convert(UInt16 v);
@@ -42,8 +28,8 @@ namespace GameCore
         Int64 Convert(Int64 v);
         UInt64 Convert(UInt64 v);
 
-        float ConvertFloat(ByteSpan bytes);
-        double ConvertDouble(ByteSpan bytes);
+        float ConvertFloat(byte[] bytes, int index);
+        double ConvertDouble(byte[] bytes, int index);
     }
 
     public enum EEndian
@@ -73,17 +59,33 @@ namespace GameCore
             };
         }
 
+        private static IEndian _littleEndian = new LittleEndian();
+        private static IEndian _bigEndian = new BigEndian();
+
+        private static IEndian GetEndian(EEndian endian)
+        {
+            return endian switch
+            {
+                EEndian.Little => _littleEndian,
+                EEndian.Big => _bigEndian,
+                _ => _littleEndian
+            };
+        }
+
+        public static IEndian GetEndianForPlatform(EPlatform platform)
+        {
+            return GetEndian(GetPlatformEndian(platform));
+        }
+
         public static bool IsPlatform64Bit(EPlatform platform)
         {
             return (platform & EPlatform.Arch64) != 0;
         }
 
-        public static IBinaryStream CreateBinaryStream(Stream s, EPlatform platform)
+        public static IBinaryStream CreateBinaryStream2(Stream s, EPlatform platform)
         {
-            BinaryWriter bw = new BinaryWriter(s);
-            if (EndianUtils.GetPlatformEndian(platform) == EEndian.Little)
-                return new BinaryWriterLittleEndian(bw);
-            return new BinaryWriterBigEndian(bw);
+            BinaryStream bs = new BinaryStream(s);
+            return bs;
         }
 
         public static IDataWriter CreateDataWriter(EPlatform platform)
@@ -91,7 +93,7 @@ namespace GameCore
             return new DataWriter(platform);
         }
 
-        public static IBinaryReader CreateBinaryReader(Stream s, EPlatform platform)
+        public static IBinaryStreamReader CreateBinaryReader(Stream s, EPlatform platform)
         {
             BinaryReader br = new BinaryReader(s);
             if (EndianUtils.GetPlatformEndian(platform) == EEndian.Little)
@@ -99,74 +101,249 @@ namespace GameCore
             return (new BinaryReaderBigEndian(br));
         }
 
-        public static IBinaryStream CreateBinaryWriter(Stream s, EPlatform platform)
+        public static IBinaryStreamWriter CreateBinaryWriter(Stream s, EPlatform platform)
         {
-            BinaryWriter bw = new BinaryWriter(s);
-            if (EndianUtils.GetPlatformEndian(platform) == EEndian.Little)
-                return (new BinaryWriterLittleEndian(bw));
-            return (new BinaryWriterBigEndian(bw));
+            var bs = new BinaryStream(s);
+            return (new BinaryEndianWriter(EndianUtils.GetEndian(EndianUtils.GetPlatformEndian(platform)), bs));
         }
 
-        public static IBinaryStream CreateBinaryWriter(string filepath, EPlatform platform)
+        public static IBinaryStreamWriter CreateBinaryWriter(string filepath, EPlatform platform)
         {
             Stream s = new FileStream(filepath, FileMode.Create, FileAccess.Write);
-            BinaryWriter bw = new (s);
-            if (EndianUtils.GetPlatformEndian(platform) == EEndian.Little)
-                return (new BinaryWriterLittleEndian(bw));
-            return (new BinaryWriterBigEndian(bw));
+            BinaryStream bs = new(s);
+            return (new BinaryEndianWriter(EndianUtils.GetEndian(EndianUtils.GetPlatformEndian(platform)), bs));
         }
     }
 
     public class LittleEndian : IEndian
     {
-        private byte[] Buffer = new byte[8];
         public bool little => true;
         public bool big => false;
 
-        public ByteSpan GetBytes(Int16 v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 2); }
-        public ByteSpan GetBytes(UInt16 v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 2); }
-        public ByteSpan GetBytes(Int32 v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 4); }
-        public ByteSpan GetBytes(UInt32 v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 4); }
-        public ByteSpan GetBytes(Int64 v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 8); }
-        public ByteSpan GetBytes(UInt64 v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 8); }
-        public ByteSpan GetBytes(float v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 4); }
-        public ByteSpan GetBytes(double v) { BitConverter.TryWriteBytes(Buffer, v); return ByteSpan.AsSpan(Buffer, 0, 8); }
+        public int GetBytes(sbyte v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 1;
+        }
 
-        public Int16 Convert(Int16 v) { return v;}
-        public UInt16 Convert(UInt16 v) { return v;}
-        public Int32 Convert(Int32 v) { return v;}
-        public UInt32 Convert(UInt32 v) { return v;}
-        public Int64 Convert(Int64 v) { return v;}
-        public UInt64 Convert(UInt64 v) { return v;}
-        public float ConvertFloat(ByteSpan bytes) { return BitConverter.ToSingle(bytes.Buffer, bytes.Start); }
-        public double ConvertDouble(ByteSpan bytes) { return BitConverter.ToDouble(bytes.Buffer, bytes.Start); }
+        public int GetBytes(byte v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 1;
+        }
 
+        public int GetBytes(Int16 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 2;
+        }
+
+        public int GetBytes(UInt16 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 2;
+        }
+
+        public int GetBytes(Int32 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 4;
+        }
+
+        public int GetBytes(UInt32 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 4;
+        }
+
+        public int GetBytes(Int64 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 8;
+        }
+
+        public int GetBytes(UInt64 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 8;
+        }
+
+        public int GetBytes(float v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 4;
+        }
+
+        public int GetBytes(double v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 8;
+        }
+
+        public Int16 Convert(Int16 v)
+        {
+            return v;
+        }
+
+        public UInt16 Convert(UInt16 v)
+        {
+            return v;
+        }
+
+        public Int32 Convert(Int32 v)
+        {
+            return v;
+        }
+
+        public UInt32 Convert(UInt32 v)
+        {
+            return v;
+        }
+
+        public Int64 Convert(Int64 v)
+        {
+            return v;
+        }
+
+        public UInt64 Convert(UInt64 v)
+        {
+            return v;
+        }
+
+        public float ConvertFloat(byte[] bytes, int index)
+        {
+            return BitConverter.ToSingle(bytes, index);
+        }
+
+        public double ConvertDouble(byte[] bytes, int index)
+        {
+            return BitConverter.ToDouble(bytes, index);
+        }
     }
 
     public class BigEndian : IEndian
     {
-        private byte[] Buffer = new byte[8];
         public bool little => false;
         public bool big => true;
 
-        public ByteSpan GetBytes(Int16 v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 2); return ByteSpan.AsSpan(Buffer, 0,2); }
-        public ByteSpan GetBytes(UInt16 v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 2); return ByteSpan.AsSpan(Buffer, 0,2); }
-        public ByteSpan GetBytes(Int32 v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 4);  return ByteSpan.AsSpan(Buffer, 0,4); }
-        public ByteSpan GetBytes(UInt32 v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 4); return ByteSpan.AsSpan(Buffer, 0,4); }
-        public ByteSpan GetBytes(Int64 v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 8);  return ByteSpan.AsSpan(Buffer, 0,8); }
-        public ByteSpan GetBytes(UInt64 v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 8); return ByteSpan.AsSpan(Buffer, 0,8); }
-        public ByteSpan GetBytes(float v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 4);  return ByteSpan.AsSpan(Buffer, 0,4); }
-        public ByteSpan GetBytes(double v) { BitConverter.TryWriteBytes(Buffer, v); Swap(Buffer, 0, 8); return ByteSpan.AsSpan(Buffer, 0,8); }
+        public int GetBytes(sbyte v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 1;
+        }
+
+        public int GetBytes(byte v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            return 1;
+        }
+
+        public int GetBytes(Int16 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 2);
+            return 2;
+        }
+
+        public int GetBytes(UInt16 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 2);
+            return 2;
+        }
+
+        public int GetBytes(Int32 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 4);
+            return 4;
+        }
+
+        public int GetBytes(UInt32 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 4);
+            return 4;
+        }
+
+        public int GetBytes(Int64 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 8);
+            return 8;
+        }
+
+        public int GetBytes(UInt64 v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 8);
+            return 8;
+        }
+
+        public int GetBytes(float v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 4);
+            return 4;
+        }
+
+        public int GetBytes(double v, byte[] buffer)
+        {
+            BitConverter.TryWriteBytes(buffer, v);
+            Swap(buffer, 0, 8);
+            return 8;
+        }
 
 
-        public Int16 Convert(Int16 v) { var bytes = GetBytes(v); return BitConverter.ToInt16(bytes.Buffer);}
-        public UInt16 Convert(UInt16 v) { var bytes = GetBytes(v); return BitConverter.ToUInt16(bytes.Buffer);}
-        public Int32 Convert(Int32 v) { var bytes = GetBytes(v); return BitConverter.ToInt32(bytes.Buffer);}
-        public UInt32 Convert(UInt32 v) { var bytes = GetBytes(v); return BitConverter.ToUInt32(bytes.Buffer);}
-        public Int64 Convert(Int64 v) { var bytes = GetBytes(v); return BitConverter.ToInt64(bytes.Buffer);}
-        public UInt64 Convert(UInt64 v) { var bytes = GetBytes(v); return BitConverter.ToUInt64(bytes.Buffer);}
-        public float ConvertFloat(ByteSpan bytes) { Swap(bytes.Buffer, bytes.Start, 4); return BitConverter.ToSingle(bytes.Buffer, bytes.Start); }
-        public double ConvertDouble(ByteSpan bytes) { Swap(bytes.Buffer, bytes.Start, 4); return BitConverter.ToDouble(bytes.Buffer, bytes.Start); }
+        private byte[] _buffer = new byte[8];
+
+        public Int16 Convert(Int16 v)
+        {
+            var bytes = GetBytes(v, _buffer);
+            return BitConverter.ToInt16(_buffer);
+        }
+
+        public UInt16 Convert(UInt16 v)
+        {
+            var bytes = GetBytes(v, _buffer);
+            return BitConverter.ToUInt16(_buffer);
+        }
+
+        public Int32 Convert(Int32 v)
+        {
+            var bytes = GetBytes(v, _buffer);
+            return BitConverter.ToInt32(_buffer);
+        }
+
+        public UInt32 Convert(UInt32 v)
+        {
+            var bytes = GetBytes(v, _buffer);
+            return BitConverter.ToUInt32(_buffer);
+        }
+
+        public Int64 Convert(Int64 v)
+        {
+            var bytes = GetBytes(v, _buffer);
+            return BitConverter.ToInt64(_buffer);
+        }
+
+        public UInt64 Convert(UInt64 v)
+        {
+            var bytes = GetBytes(v, _buffer);
+            return BitConverter.ToUInt64(_buffer);
+        }
+
+        public float ConvertFloat(byte[] bytes, int index)
+        {
+            Swap(bytes, index, 4);
+            return BitConverter.ToSingle(bytes, index);
+        }
+
+        public double ConvertDouble(byte[] bytes, int index)
+        {
+            Swap(bytes, index, 4);
+            return BitConverter.ToDouble(bytes, index);
+        }
 
         private static void Swap(byte[] b, int s, int l)
         {

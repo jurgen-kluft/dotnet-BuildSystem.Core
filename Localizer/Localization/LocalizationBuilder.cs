@@ -521,7 +521,7 @@ namespace DataBuildSystem
                     }
 
                     FileStream fileStream = new(fileInfo.FullName, FileMode.OpenOrCreate, FileAccess.Write);
-                    IBinaryStream writer = EndianUtils.CreateBinaryWriter(fileStream, LocalizerConfig.Platform);
+                    IBinaryStreamWriter writer = EndianUtils.CreateBinaryWriter(fileStream, LocalizerConfig.Platform);
 
                     writer.Write((Int32)(magic >> 32));
                     writer.Write((Int32)(magic));
@@ -677,7 +677,7 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    IBinaryStream writer = EndianUtils.CreateBinaryWriter(mFolder + mFilename, Platform.Current);
+                    IBinaryStreamWriter writer = EndianUtils.CreateBinaryWriter(mFolder + mFilename, Platform.Current);
 
                     writer.Write(magic);
                     mStrTable.Write(writer);
@@ -880,7 +880,7 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    IBinaryStream writer = EndianUtils.CreateBinaryWriter(Path.Join(mFolder, mFilename), Platform.Current);
+                    IBinaryStreamWriter writer = EndianUtils.CreateBinaryWriter(Path.Join(mFolder, mFilename), Platform.Current);
 
                     writer.Write(magic);
                     mStrTable.Write(writer);

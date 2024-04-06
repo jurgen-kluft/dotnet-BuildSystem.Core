@@ -34,6 +34,7 @@ namespace GameData
         }
 
         public bool StructIsValueType => true;
+        public int StructSize => 4*sizeof(float);
         public int StructAlign => 4;
         public string StructName => "fvec4_t";
 

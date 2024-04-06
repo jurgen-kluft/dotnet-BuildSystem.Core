@@ -8,49 +8,53 @@ namespace GameCore
     {
         #region Fields
 
-        private readonly UTF8Encoding mEncoding = new UTF8Encoding();
-        private readonly Dictionary<string, int> mDictionary = new ();
-        private readonly List<uint> mHashes = new();
-        private readonly List<int> mLengths = new();
-        private readonly List<StreamReference> mReferences = new ();
-        private readonly List<string> mStrings = new ();
+        private readonly UTF8Encoding _encoding = new UTF8Encoding();
+        private readonly Dictionary<string, int> _dictionary = new();
+        private readonly List<uint> _hashes = new();
+        private readonly List<int> _lengths = new();
+        private readonly List<StreamReference> _references = new();
+        private readonly List<string> _strings = new();
 
         #endregion
+
         #region Properties
 
         public StreamReference Reference { get; set; }
 
-        public string this[int index] => mStrings[index];
+        public string this[int index] => _strings[index];
 
-        private int Count => mStrings.Count;
+        public int Count => _strings.Count;
 
         #endregion
+
         #region Public Methods
 
         public int Add(string inString)
         {
-            if (!mDictionary.TryGetValue(inString, out int index))
-            {
-                index = mStrings.Count;
+            if (_dictionary.TryGetValue(inString, out var index)) return index;
+            index = _strings.Count;
 
-                mDictionary.Add(inString, index);
-                mReferences.Add(StreamReference.NewReference);
-                mStrings.Add(inString);
+            _dictionary.Add(inString, index);
+            _references.Add(StreamReference.NewReference);
+            _strings.Add(inString);
 
-                byte[] utf8 = mEncoding.GetBytes(inString);
-                mLengths.Add(utf8.Length + 1);
+            var utf8 = _encoding.GetBytes(inString);
+            _lengths.Add(utf8.Length + 1);
 
-                uint hash = Hashing.Compute(utf8);
-                mHashes.Add(hash);
-            }
+            var hash = Hashing.Compute(utf8);
+            _hashes.Add(hash);
 
-            return mLengths[index];
+            return index;
+        }
+
+        public byte[] GetBytes(string inString)
+        {
+            return _encoding.GetBytes(inString);
         }
 
         private int InternalIndexOf(string inString)
         {
-            if (!mDictionary.TryGetValue(inString, out int index))
-                index = -1;
+            var index = _dictionary.GetValueOrDefault(inString, -1);
             return index;
         }
 
@@ -61,86 +65,90 @@ namespace GameCore
 
         public uint HashOf(string inString)
         {
-            int index = IndexOf(inString);
-            if (index == -1)
-                return UInt32.MaxValue;
-            else
-                return mHashes[index];
+            var index = IndexOf(inString);
+            return index == -1 ? uint.MaxValue : _hashes[index];
+        }
+
+        public uint LengthOf(string inString)
+        {
+            var index = IndexOf(inString);
+            return index == -1 ? 0 : (uint)_lengths[index];
+        }
+
+        public int LengthOfByIndex(int index)
+        {
+            return _lengths[index];
         }
 
         private StreamReference InternalReferenceOf(string inString)
         {
-            int index = InternalIndexOf(inString);
-            if (index==-1)
-                return StreamReference.Empty;
-            else
-                return mReferences[index];
+            var index = InternalIndexOf(inString);
+            return index == -1 ? StreamReference.Empty : _references[index];
         }
 
         public StreamReference ReferenceOf(string inString)
         {
-            string str = inString;
+            var str = inString;
             return InternalReferenceOf(str);
         }
 
         public void SortByHash()
         {
-            Dictionary<uint, string> hashToString = new ();
-            Dictionary<uint, int> hashToLength = new ();
-            Dictionary<uint, StreamReference> hashToReference = new ();
-            for (int i=0; i<mStrings.Count; ++i)
+            Dictionary<uint, string> hashToString = new();
+            Dictionary<uint, int> hashToLength = new();
+            Dictionary<uint, StreamReference> hashToReference = new();
+            for (var i = 0; i < _strings.Count; ++i)
             {
-                uint hash = mHashes[i];
-                string str = mStrings[i];
+                var hash = _hashes[i];
+                var str = _strings[i];
                 hashToString.Add(hash, str);
-                hashToLength.Add(hash, mLengths[i]);
+                hashToLength.Add(hash, _lengths[i]);
                 hashToReference.Add(hash, InternalReferenceOf(str));
             }
 
-            mHashes.Sort();
+            _hashes.Sort();
 
-            mStrings.Clear();
-            mReferences.Clear();
-            mLengths.Clear();
-            foreach (uint hash in mHashes)
+            _strings.Clear();
+            _references.Clear();
+            _lengths.Clear();
+            foreach (var hash in _hashes)
             {
-                hashToString.TryGetValue(hash, out string s);
-                mStrings.Add(s);
-                hashToReference.TryGetValue(hash, out StreamReference r);
-                mReferences.Add(r);
-                hashToLength.TryGetValue(hash, out int l);
-                mLengths.Add(l);
+                hashToString.TryGetValue(hash, out var s);
+                _strings.Add(s);
+                hashToReference.TryGetValue(hash, out var r);
+                _references.Add(r);
+                hashToLength.TryGetValue(hash, out var l);
+                _lengths.Add(l);
             }
 
-            mDictionary.Clear();
-            for (int i=0; i<mStrings.Count; ++i)
+            _dictionary.Clear();
+            for (var i = 0; i < _strings.Count; ++i)
             {
-                mDictionary.Add(mStrings[i], i);
+                _dictionary.Add(_strings[i], i);
             }
         }
 
-        public void Write(IBinaryStream writer, Dictionary<StreamReference, StreamOffset> dataOffsetDataBase)
+        public void Write(IBinaryStreamWriter writer, Dictionary<StreamReference, StreamOffset> dataOffsetDataBase)
         {
             SortByHash();
 
             StreamOffset offset = new(writer.Position);
 
             // Need to determine some good size
-            byte[] utf8 = new byte[8192];
+            var utf8 = new byte[8192];
 
             // Write strings and assign them a StreamReference and StreamOffset
-            foreach (string s in mStrings)
+            foreach (var s in _strings)
             {
-                StreamReference r = InternalReferenceOf(s);
+                var r = InternalReferenceOf(s);
                 dataOffsetDataBase.Add(r, offset);
 
-                int utf8Len = mEncoding.GetBytes(s, 0, s.Length, utf8, 0);
+                var utf8Len = _encoding.GetBytes(s, 0, s.Length, utf8, 0);
                 utf8[utf8Len] = 0; // Do include a terminating zero
                 writer.Write(utf8, 0, utf8Len + 1);
 
                 offset += utf8Len + 1;
             }
-
         }
 
         public void Write(IDataWriter writer)
@@ -148,45 +156,43 @@ namespace GameCore
             SortByHash();
 
             // Write StringTable
-            writer.BeginBlock(Reference, sizeof(Int32));
+            writer.BeginBlock(Reference, sizeof(int));
             {
-                StreamReference hashesReference = StreamReference.NewReference;
-                StreamReference referencesReference = StreamReference.NewReference;
-                StreamReference stringsReference = StreamReference.NewReference;
+                var hashesReference = StreamReference.NewReference;
+                var referencesReference = StreamReference.NewReference;
+                var stringsReference = StreamReference.NewReference;
 
                 writer.Write(Count);
                 writer.Write(hashesReference);
                 writer.Write(referencesReference);
 
                 // String hashes
-                writer.BeginBlock(hashesReference, sizeof(Int32));
+                writer.BeginBlock(hashesReference, sizeof(int));
                 {
-                    foreach (uint s in mHashes)
+                    foreach (var s in _hashes)
                         writer.Write(s);
                     writer.EndBlock();
                 }
 
                 // String References
-                writer.BeginBlock(referencesReference, sizeof(Int32));
+                writer.BeginBlock(referencesReference, sizeof(int));
                 {
-                    foreach (string s in mStrings)
+                    foreach (var s in _strings)
                     {
-                        StreamReference r = InternalReferenceOf(s);
+                        var r = InternalReferenceOf(s);
                         writer.Write(r);
                     }
                 }
 
                 // String Data
-                writer.BeginBlock(stringsReference, sizeof(Int32));
+                writer.BeginBlock(stringsReference, sizeof(int));
                 {
-                    foreach (string s in mStrings)
+                    foreach (var s in _strings)
                     {
-                        StreamReference r = InternalReferenceOf(s);
-                        if (writer.BeginBlock(r, sizeof(Int32)))
-                        {
-                            writer.Write(s);
-                            writer.EndBlock();
-                        }
+                        var r = InternalReferenceOf(s);
+                        if (!writer.BeginBlock(r, sizeof(int))) continue;
+                        writer.Write(s);
+                        writer.EndBlock();
                     }
                 }
             }

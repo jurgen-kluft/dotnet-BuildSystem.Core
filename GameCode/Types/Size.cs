@@ -16,6 +16,7 @@ namespace GameData
         }
 
         public bool StructIsValueType => true;
+        public int StructSize => 2 * sizeof(int);
         public int StructAlign => 4;
         public string StructName => "size_t";
 

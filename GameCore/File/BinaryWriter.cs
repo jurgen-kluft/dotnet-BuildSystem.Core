@@ -23,281 +23,212 @@ namespace GameCore
 
     #region IBinaryStream
 
-    public interface IBinaryStream : IBinaryWriter
+    public interface IBinaryStream
     {
+        void WriteStream(byte[] data, int index, int count);
+
         Int64 Position { get; set; }
-        Int64 Length { get; }
+        Int64 Length { get; set; }
 
         bool Seek(StreamOffset offset);
         void Close();
     }
 
-    #endregion
-
-    #region BinaryWriter (Big Endian)
-
-    public sealed class BinaryWriterBigEndian : IBinaryStream
+    public interface IBinaryStreamWriter : IBinaryStream, IBinaryWriter
     {
-        #region Fields
-
-        private static readonly BigEndian sEndian = new();
-        private readonly BinaryWriter mWriter;
-
-        #endregion
-        #region Constructor
-
-        public BinaryWriterBigEndian(BinaryWriter writer)
-        {
-            mWriter = writer;
-        }
-
-        #endregion
-        #region IBinaryWriter Members
-
-        public void Write(byte[] data)
-        {
-            mWriter.Write(data, 0, data.Length);
-        }
-
-        public void Write(ByteSpan span)
-        {
-            mWriter.Write(span.Buffer, span.Start, span.Length);
-        }
-
-        public void Write(byte[] data, int index, int count)
-        {
-            Debug.Assert((index + count) <= data.Length);
-            mWriter.Write(data, index, count);
-        }
-
-        public void Write(sbyte v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(byte v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(short v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(ushort v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(int v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(uint v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(long v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(ulong v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(float v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(double v)
-        {
-            Write(sEndian.GetBytes(v));
-        }
-
-        public void Write(string s)
-        {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
-            Debug.Assert(CMath.IsAligned(mWriter.BaseStream.Position, 4));
-            Write(data.Length);
-            Write(data);
-            Write((byte)0);
-        }
-
-        public Int64 Position
-        {
-            get
-            {
-                return mWriter.BaseStream.Position;
-            }
-            set
-            {
-                mWriter.BaseStream.Position = value;
-            }
-        }
-
-        public Int64 Length
-        {
-            get
-            {
-                return mWriter.BaseStream.Length;
-            }
-        }
-
-        public bool Seek(StreamOffset offset)
-        {
-            Int64 newPos = mWriter.BaseStream.Seek(offset.Offset, SeekOrigin.Begin);
-            return offset.Offset == newPos;
-        }
-
-        public void Close()
-        {
-            mWriter.Close();
-        }
-
-        #endregion
     }
 
-    #endregion
-    #region BinaryWriter (Little Endian)
-
-    public sealed class BinaryWriterLittleEndian : IBinaryStream
+    public interface IBinaryStreamReader : IBinaryStream, IBinaryReader
     {
-        #region Fields
-
-        private readonly BinaryWriter mWriter;
-
-        #endregion
-        #region Constructor
-
-        public BinaryWriterLittleEndian(BinaryWriter writer)
-        {
-            mWriter = writer;
-        }
-
-        #endregion
-        #region IBinaryWriter Members
-
-        public void Write(byte[] data)
-        {
-            mWriter.Write(data, 0, data.Length);
-        }
-
-        public void Write(byte[] data, int index, int count)
-        {
-            Debug.Assert((index + count) <= data.Length);
-            mWriter.Write(data, index, count);
-        }
-
-        public void Write(sbyte v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(byte v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(short v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(ushort v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(int v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(uint v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(long v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(ulong v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(float v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(double v)
-        {
-            mWriter.Write(v);
-        }
-
-        public void Write(string s)
-        {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
-            Debug.Assert(CMath.IsAligned(mWriter.BaseStream.Position, 4));
-            Write(data.Length);
-            Write(data);
-            Write((byte)0);
-        }
-
-        public Int64 Position
-        {
-            get
-            {
-                return mWriter.BaseStream.Position;
-            }
-            set
-            {
-                mWriter.BaseStream.Position = value;
-            }
-        }
-
-        public Int64 Length
-        {
-            get
-            {
-                return mWriter.BaseStream.Length;
-            }
-        }
-
-        public bool Seek(StreamOffset offset)
-        {
-            Int64 newPos = mWriter.BaseStream.Seek(offset.Offset, SeekOrigin.Begin);
-            return offset.Offset == newPos;
-        }
-
-        public void Close()
-        {
-            mWriter.Close();
-        }
-
-        #endregion
     }
 
-    public sealed class BinaryFileWriter : IBinaryStream
+    public class BinaryStream : IBinaryStream
     {
-        private BinaryWriterLittleEndian mBinaryWriter;
-        private BinaryWriter mBinaryStreamWriter;
         private Stream mStream;
 
-        public bool Open(Stream s)
+        public BinaryStream(Stream stream)
+        {
+            mStream = stream;
+        }
+
+        public void WriteStream(byte[] data, int index, int count)
+        {
+            mStream.Write(data, index, count);
+        }
+
+        public Int64 Position
+        {
+            get { return mStream.Position; }
+            set { mStream.Position = value; }
+        }
+
+        public Int64 Length
+        {
+            get { return mStream.Length; }
+            set { mStream.SetLength(value); }
+        }
+
+        public bool Seek(StreamOffset offset)
+        {
+            return mStream.Seek(offset.Offset, SeekOrigin.Begin) == offset.Offset;
+        }
+
+        public void Close()
+        {
+            mStream.Close();
+        }
+    }
+
+    #endregion
+
+    #region BinaryWriter (Big and Little Endian)
+
+    public sealed class BinaryEndianWriter : IBinaryStreamWriter
+    {
+        #region Fields
+
+        private readonly IEndian _endian;
+        private readonly IBinaryStream _writer;
+
+        #endregion
+
+        #region Constructor
+
+        public BinaryEndianWriter(IEndian endian, IBinaryStream writer)
+        {
+            _endian = endian;
+            _writer = writer;
+        }
+
+        #endregion
+
+        #region IBinaryWriter Members
+
+        public void Write(byte[] data)
+        {
+            _writer.WriteStream(data, 0, data.Length);
+        }
+
+        public void Write(byte[] data, int index, int count)
+        {
+            Debug.Assert((index + count) <= data.Length);
+            _writer.WriteStream(data, index, count);
+        }
+
+        public void Write(sbyte v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(byte v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        private byte[] _buffer = new byte[32];
+
+        public void Write(short v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(ushort v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(int v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(uint v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(long v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(ulong v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(float v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(double v)
+        {
+            var n = _endian.GetBytes(v, _buffer);
+            Write(_buffer, 0, n);
+        }
+
+        public void Write(string s)
+        {
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            Write(data.Length);
+            Write(data);
+            Write((byte)0);
+        }
+
+        public void WriteStream(byte[] data, int index, int count)
+        {
+            Debug.Assert((index + count) <= data.Length);
+            _writer.WriteStream(data, index, count);
+        }
+
+        public Int64 Position
+        {
+            get { return _writer.Position; }
+            set { _writer.Position = value; }
+        }
+
+        public Int64 Length
+        {
+            get { return _writer.Length; }
+            set { _writer.Length = value; }
+        }
+
+        public bool Seek(StreamOffset offset)
+        {
+            return _writer.Seek(offset);
+        }
+
+        public void Close()
+        {
+            _writer.Close();
+        }
+
+        #endregion
+    }
+
+    #endregion
+
+    public sealed class BinaryFileWriter : IBinaryWriter
+    {
+        private BinaryEndianWriter mBinaryWriter;
+        private BinaryStream mBinaryStream;
+        private Stream mStream;
+
+        public bool Open(Stream s, IEndian endian)
         {
             mStream = s;
-            mBinaryStreamWriter = new (mStream);
-            mBinaryWriter = new (mBinaryStreamWriter);
+            mBinaryStream = new(mStream);
+            mBinaryWriter = new(endian, mBinaryStream);
             return true;
         }
 
@@ -374,56 +305,48 @@ namespace GameCore
 
         public Int64 Position
         {
-            get
-            {
-                return mBinaryStreamWriter.BaseStream.Position;
-            }
-            set
-            {
-                mBinaryStreamWriter.BaseStream.Position = value;
-            }
+            get { return mBinaryStream.Position; }
+            set { mBinaryStream.Position = value; }
         }
 
         public Int64 Length
         {
-            get
-            {
-                return mBinaryStreamWriter.BaseStream.Length;
-            }
+            get { return mBinaryStream.Length; }
+            set { mBinaryStream.Length = value; }
         }
 
         public bool Seek(StreamOffset offset)
         {
-            return mBinaryWriter.Seek(offset);
+            return mBinaryStream.Seek(offset);
         }
 
         public void Close()
         {
-            mBinaryWriter.Close();
+            mBinaryStream.Close();
             mStream.Close();
         }
 
         #endregion
     }
 
-    public class BinaryMemoryWriter : IBinaryStream
+    public class BinaryMemoryWriter : IBinaryStreamWriter
     {
-        private BinaryWriterLittleEndian mBinaryWriter;
-        private BinaryWriter mBinaryStreamWriter;
+        private BinaryEndianWriter mBinaryWriter;
+        private BinaryStream mBinaryStream;
         private MemoryStream mStream;
 
-        public bool Open(MemoryStream ms)
+        public bool Open(MemoryStream ms, IEndian endian)
         {
             mStream = ms;
-            mBinaryStreamWriter = new(ms);
-            mBinaryWriter = new(mBinaryStreamWriter);
+            mBinaryStream = new(ms);
+            mBinaryWriter = new(endian, mBinaryStream);
             return true;
         }
 
         public void Reset()
-		{
+        {
             mStream.Position = 0;
-		}
+        }
 
         #region IBinaryWriter Members
 
@@ -496,39 +419,36 @@ namespace GameCore
             Write((byte)0);
         }
 
+        public void WriteStream(byte[] data, int index, int count)
+        {
+            Debug.Assert((index + count) <= data.Length);
+            mBinaryWriter.WriteStream(data, index, count);
+        }
+
         public Int64 Position
         {
-            get
-            {
-                return mBinaryStreamWriter.BaseStream.Position;
-            }
-            set
-            {
-                mBinaryStreamWriter.BaseStream.Position = value;
-            }
+            get { return mBinaryStream.Position; }
+            set { mBinaryStream.Position = value; }
         }
 
         public Int64 Length
         {
-            get
-            {
-                return mBinaryStreamWriter.BaseStream.Length;
-            }
+            get { return mBinaryStream.Length; }
+            set { mBinaryStream.Length = (value); }
         }
 
         public bool Seek(StreamOffset offset)
         {
-            return mBinaryWriter.Seek(offset);
+            return mBinaryStream.Seek(offset);
         }
 
         public void Close()
         {
-            mBinaryWriter.Close();
+            mBinaryStream.Close();
             mStream.Close();
         }
 
         #endregion
     }
 
-    #endregion
 }

@@ -824,10 +824,10 @@ namespace GameData
             // IReferenceableMember objects in the DataStream.
             FileInfo dataFileInfo = new(dataFilename);
             FileStream dataFileStream = new(dataFileInfo.FullName, FileMode.Create);
-            var dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, platform);
+            var dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, platform);
             FileInfo relocFileInfo = new(relocFilename);
             FileStream relocFileStream = new(relocFileInfo.FullName, FileMode.Create);
-            var relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, platform);
+            var relocFileStreamWriter = EndianUtils.CreateBinaryWriter(relocFileStream, platform);
             dataStream.Finalize(dataFileStreamWriter, stringTable);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
@@ -848,7 +848,10 @@ namespace GameData
         public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename, string relocFilename)
         {
             // Analyze Data.Root and generate a list of 'Code.Class' objects from this.
-            var metaCode = new MetaCode.MetaCode();
+
+            // Use string table in MetaCode
+            var stringTable = new StringTable(); // The StringTable to collect all strings (and collapse duplicates) used in the data
+            var metaCode = new MetaCode.MetaCode(stringTable);
             var metaMemberFactory = new MetaMemberFactory(metaCode);
             var typeInformation = new GenericTypeInformation();
 
@@ -856,42 +859,42 @@ namespace GameData
             reflector.Analyze(data);
 
             // In every class combine booleans into bitsets
-            // foreach (var c in metaCode.Classes)
-            // {
-            //     metaCode.CombineBooleans(c);
-            // }
-            //
-            // // Sort the members on every 'Code.Class' so that alignment of data is solved.
-            // for (var i = 0; i < 2; ++i)
-            // {
-            //     foreach (var c in metaCode.Classes)
-            //         metaCode.SortMembers(c, new MetaCode.MetaCode.SortMembersBySize());
-            //     foreach (var c in metaCode.Classes)
-            //         metaCode.DetermineAlignment(c);
-            // }
-
-            // Write out every 'Code.ClassObject' to the DataStream.
-            var stringTable = new StringTable(); // The StringTable to collect (and collapse duplicate) all strings
-            var dataStream = new CppDataStream(platform);
-            dataStream.BeginBlock(8);
+            for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
             {
-                metaCode.Write(stringTable, dataStream);
+                var mt = metaCode.MembersType[ci];
+                if (!mt.IsClass) continue;
+                metaCode.CombineBooleans(ci);
             }
-            dataStream.EndBlock();
 
-            // Finalize the DataStream and obtain a database of the position of the
-            // IReferenceableMember objects in the DataStream.
+            // Sort the members on every 'Code.Class' so that alignment of data is solved.
+
+            // NOTE
+            // In the list of classes we have many 'duplicates', classes of the same type that are emitted
+            // multiple times. We need to make sure the sorting of members is stable and deterministic.
+
+            var memberSizeComparer = new MetaCode.MetaCode.SortMembersBySize(metaCode);
+            for (var i = 0; i < 2; ++i)
+            {
+                for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
+                {
+                    var mt = metaCode.MembersType[ci];
+                    if (!mt.IsClass) continue;
+                    metaCode.SortMembers(ci, memberSizeComparer);
+                }
+            }
+
+            // Write out every the underlying member 'data' of the code to a DataStream
+            var dataStream = new CppDataStream2(platform);
+            var dataStreamWriter = new DataStreamWriter2(metaCode, stringTable, dataStream);
+            dataStreamWriter.Write();
+
+            // Finalize the DataStream by writing the data to a file
             var dataFileInfo = new FileInfo(dataFilename);
             var dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
-            var dataFileStreamWriter = EndianUtils.CreateBinaryStream(dataFileStream, platform);
-            // var relocFileInfo = new FileInfo(relocFilename);
-            // var relocFileStream = new FileStream(relocFileInfo.FullName, FileMode.Create);
-            // var relocFileStreamWriter = EndianUtils.CreateBinaryStream(relocFileStream, platform);
-            dataStream.Finalize(dataFileStreamWriter, stringTable);
+            var dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, platform);
+            dataStream.Finalize(dataFileStreamWriter);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
-            // relocFileStreamWriter.Close();
-            // relocFileStream.Close();
 
             // Generate the c++ code using the CppCodeWriter.
             var codeFileInfo = new FileInfo(codeFilename);
@@ -921,7 +924,7 @@ namespace GameData
         private class DataBlock
         {
             private readonly MemoryStream _mDataStream = new();
-            private readonly IBinaryStream _mDataWriter;
+            private readonly IBinaryStreamWriter _mDataWriter;
 
             private readonly Dictionary<StreamReference, List<StreamOffset>> _mPointers = new();
 
@@ -932,7 +935,7 @@ namespace GameData
                 // Using MemoryStream with many DataBlock instances is not optimal, this could be
                 // seriously optimized
                 Reference = StreamReference.NewReference;
-                _mDataWriter = EndianUtils.CreateBinaryStream(_mDataStream, platform);
+                _mDataWriter = EndianUtils.CreateBinaryWriter(_mDataStream, platform);
             }
 
             internal StreamReference Reference { get; private set; }
@@ -1097,7 +1100,7 @@ namespace GameData
                 }
             }
 
-            internal void WriteTo(IBinaryStream outData, IDictionary<StreamReference, StreamOffset> dataOffsetDataBase)
+            internal void WriteTo(IBinaryStreamWriter outData, IDictionary<StreamReference, StreamOffset> dataOffsetDataBase)
             {
                 StreamUtils.Align(outData, Alignment);
 
@@ -1243,7 +1246,7 @@ namespace GameData
             Current.Write(v);
         }
 
-        public void Finalize(IBinaryStream dataWriter, StringTable stringTable)
+        public void Finalize(IBinaryStreamWriter dataWriter, StringTable stringTable)
         {
             // Dictionary for mapping a Reference object to a Data object
             Dictionary<StreamReference, DataBlock> finalDataDataBase = new();

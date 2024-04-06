@@ -69,6 +69,7 @@ namespace GameData
                 var element = array.GetValue(i);
                 CreateMember(element, elementType, elementName);
             }
+
             var endIndex = _metaCode.MembersType.Count;
             var count = endIndex - startIndex;
             if (count == 0)
@@ -92,6 +93,7 @@ namespace GameData
             {
                 CreateMember(element, elementType, elementName);
             }
+
             var endIndex = _metaCode.MembersType.Count;
 
             _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
@@ -124,23 +126,6 @@ namespace GameData
             _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
         }
 
-        private void ProcessStruct(MemberProcess m)
-        {
-            var classMemberIndex = _memberFactory.NewClassMember(m.Type, m.Object, string.Empty);
-
-            var startIndex = _metaCode.MembersType.Count;
-            var dataObjectFields = GetFieldInfoList(m.Object);
-            foreach (var dataObjectFieldInfo in dataObjectFields)
-            {
-                var fieldName = dataObjectFieldInfo.Name;
-                var fieldType = dataObjectFieldInfo.FieldType;
-                var fieldValue = dataObjectFieldInfo.GetValue(m.Object);
-                CreateMember(fieldValue, fieldType, fieldName);
-            }
-            var endIndex = _metaCode.MembersType.Count;
-            _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
-        }
-
         private void ProcessClass(MemberProcess m)
         {
             var startIndex = _metaCode.MembersType.Count;
@@ -155,25 +140,6 @@ namespace GameData
 
             var endIndex = _metaCode.MembersType.Count;
             _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
-
-            // var dataObjectFields = GetFieldInfoList(m.Object);
-            // foreach (var dataObjectFieldInfo in dataObjectFields)
-            // {
-            //     var fieldName = dataObjectFieldInfo.Name;
-            //     var fieldType = dataObjectFieldInfo.FieldType;
-            //     var fieldValue = dataObjectFieldInfo.GetValue(m.Object);
-            //     var options = EOptions.None;
-            //
-            //     foreach (var attribute in dataObjectFieldInfo.CustomAttributes)
-            //     {
-            //         if (attribute.AttributeType == typeof(ArrayElementsInPlace))
-            //         {
-            //             options |= EOptions.ArrayElementsInPlace;
-            //         }
-            //     }
-            //
-            //     AddMember(m.MemberIndex, fieldValue, fieldType, fieldName, options);
-            // }
         }
 
         private void CreateMember(object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
@@ -191,14 +157,12 @@ namespace GameData
                 {
                     if (_typeInformation.IsArray(underlyingType) || _typeInformation.IsGenericList(underlyingType))
                     {
+                        dataObjectFieldType = underlyingType;
                         dataObjectFieldValue = Activator.CreateInstance(underlyingType);
-                        int member = _memberFactory.NewClassMember(underlyingType, dataObjectFieldValue, memberName);
-                        _metaCode.UpdateStartIndexAndCount(member, 0, 0);
                     }
                     else if (_typeInformation.IsStruct(underlyingType) || _typeInformation.IsClass(underlyingType))
                     {
                         dataObjectFieldType = underlyingType;
-                        _memberFactory.NewClassMember(underlyingType, null, memberName);
                     }
                     else
                     {
@@ -206,39 +170,44 @@ namespace GameData
                         dataObjectFieldValue = Activator.CreateInstance(underlyingType);
                     }
                 }
-                else
+                else if (underlyingType != null)
                 {
                     dataObjectFieldType = underlyingType;
+                }
+                else
+                {
+                    // This is a nullable type and the underlying type is null
+                    return;
                 }
             }
 
             if (_typeInformation.IsIStruct(dataObjectFieldType))
             {
-                int member = _memberFactory.NewIStructMember(dataObjectFieldType, dataObjectFieldValue, memberName);
+                _memberFactory.NewStructMember(dataObjectFieldType, dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsGenericDictionary(dataObjectFieldType))
             {
-                int member = _memberFactory.NewDictionaryMember(dataObjectFieldType, memberName);
+                var member = _memberFactory.NewDictionaryMember(dataObjectFieldType, dataObjectFieldValue, memberName);
                 _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessDictionary });
             }
             else if (_typeInformation.IsArray(dataObjectFieldType))
             {
-                int member = _memberFactory.NewArrayMember(dataObjectFieldType, memberName);
+                var member = _memberFactory.NewArrayMember(dataObjectFieldType, dataObjectFieldValue, memberName);
                 _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessArray });
             }
             else if (_typeInformation.IsGenericList(dataObjectFieldType))
             {
-                int member = _memberFactory.NewArrayMember(dataObjectFieldType, memberName);
+                var member = _memberFactory.NewArrayMember(dataObjectFieldType, dataObjectFieldValue, memberName);
                 _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessList });
             }
             else if (_typeInformation.IsStruct(dataObjectFieldType))
             {
-                int member = _memberFactory.NewStructMember(dataObjectFieldType, dataObjectFieldValue, memberName);
-                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessStruct });
+                var member = _memberFactory.NewClassMember(dataObjectFieldType, dataObjectFieldValue, memberName);
+                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
             }
             else if (_typeInformation.IsClass(dataObjectFieldType))
             {
-                int member = _memberFactory.NewClassMember(dataObjectFieldType, dataObjectFieldValue, memberName);
+                var member = _memberFactory.NewClassMember(dataObjectFieldType, dataObjectFieldValue, memberName);
                 _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
             }
             else if (_typeInformation.IsString(dataObjectFieldType))
@@ -344,16 +313,15 @@ namespace GameData
             //    functions, since that would add a 'vfptr'.
             //
 
-            if (_typeInformation.IsClass(root.GetType()))
+            if (!_typeInformation.IsClass(root.GetType())) return;
+
+            var rootIndex = _metaCode.MembersType.Count;
+            _memberFactory.NewClassMember(root.GetType(), root, string.Empty);
+            _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = rootIndex, Object = root, Type = root.GetType(), Process = ProcessClass });
+            while (_memberProcessQueue.Count > 0)
             {
-                var rootIndex = _metaCode.MembersType.Count;
-                _memberFactory.NewClassMember(root.GetType(), root, string.Empty);
-                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = rootIndex, Object = root, Type = root.GetType(), Process = ProcessClass });
-                while (_memberProcessQueue.Count > 0)
-                {
-                    var m = _memberProcessQueue.Dequeue();
-                    m.Process(m);
-                }
+                var m = _memberProcessQueue.Dequeue();
+                m.Process(m);
             }
         }
 

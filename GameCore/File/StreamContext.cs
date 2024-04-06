@@ -46,7 +46,7 @@ namespace GameCore
             mReferencesOfReferenceInStream.Add(offset);
         }
 
-        public void ResolveToNull(IBinaryStream writer)
+        public void ResolveToNull(IBinaryStreamWriter writer)
         {
             if (mReferencesOfReferenceInStream.Count > 0)
             {
@@ -79,7 +79,7 @@ namespace GameCore
             }
         }
 
-        public bool Resolve(IBinaryStream writer)
+        public bool Resolve(IBinaryStreamWriter writer)
         {
             if (mReferencesOfReferenceInStream.Count > 0)
             {

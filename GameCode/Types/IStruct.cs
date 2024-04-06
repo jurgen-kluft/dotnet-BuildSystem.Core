@@ -11,6 +11,7 @@ namespace GameData
     {
         bool StructIsValueType { get; } // Is this struct a value type or a reference type (pointer)?
         int StructAlign { get; }
+        int StructSize { get; }
         string StructName { get; }
 
         void StructWrite(GameCore.IBinaryWriter writer);

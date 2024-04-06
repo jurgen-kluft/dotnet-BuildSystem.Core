@@ -11,7 +11,7 @@ namespace GameCore
         Int64 Length { get; }
 
         bool SkipBytes(Int64 size);
-        byte[] ReadBytes(int size);
+        int ReadBytes(byte[] buffer, int offset, int count);
         sbyte ReadInt8();
         byte ReadUInt8();
         Int16 ReadInt16();
@@ -70,11 +70,9 @@ namespace GameCore
             return (newpos - curpos) == numbytes;
         }
 
-        public byte[] ReadBytes(int count)
+        public int ReadBytes(byte[] buffer, int offset, int count)
         {
-            byte[] data = new byte[count];
-            mReader.Read(data, 0, count);
-            return data;
+            return mReader.Read(buffer, offset, count);
         }
 
         public sbyte ReadInt8()
@@ -120,19 +118,20 @@ namespace GameCore
         public float ReadFloat()
         {
             mReader.Read(Buffer, 0, 4);
-            return mEndian.ConvertFloat(ByteSpan.AsSpan(Buffer, 4));
+            return mEndian.ConvertFloat(Buffer, 0);
         }
 
         public double ReadDouble()
         {
             mReader.Read(Buffer, 0, 8);
-            return mEndian.ConvertDouble(ByteSpan.AsSpan(Buffer, 8));
+            return mEndian.ConvertDouble(Buffer, 0);
         }
 
         public string ReadString()
         {
             Int32 len = ReadInt32();
-            byte[] data = ReadBytes(len + 1);
+            byte[] data = new byte[len + 1];
+            ReadBytes(data, 0, len + 1);
             string s = System.Text.Encoding.UTF8.GetString(data, 0, len);
             return s;
         }
@@ -186,11 +185,9 @@ namespace GameCore
             return (newpos - curpos) == numbytes;
         }
 
-        public byte[] ReadBytes(int count)
+        public int ReadBytes(byte[] data, int offset, int count)
         {
-            byte[] data = new byte[count];
-            mReader.Read(data, 0, count);
-            return data;
+            return mReader.Read(data, offset, count);
         }
 
         public sbyte ReadInt8()
@@ -246,7 +243,8 @@ namespace GameCore
         public string ReadString()
         {
             Int32 len = ReadInt32();
-            byte[] data = ReadBytes(len + 1); // Also read the terminator
+            byte[] data = new byte[len + 1];
+            ReadBytes(data, 0, len + 1);
             string s = System.Text.Encoding.UTF8.GetString(data, 0, len);
             return s;
         }
@@ -307,9 +305,9 @@ namespace GameCore
             return mBinaryReader.SkipBytes(numbytes);
         }
 
-        public byte[] ReadBytes(int size)
+        public int ReadBytes(byte[] data, int offset, int size)
         {
-            return mBinaryReader.ReadBytes(size);
+            return mBinaryReader.ReadBytes(data, offset, size);
         }
 
         public sbyte ReadInt8()

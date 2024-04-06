@@ -1183,11 +1183,11 @@ namespace GameData
         {
             FileInfo dataFileInfo = new(dataFilename);
             FileStream dataStream = new(dataFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024);
-            IBinaryStream resourceDataWriter = EndianUtils.CreateBinaryStream(dataStream, platform);
+            IBinaryStreamWriter resourceDataWriter = EndianUtils.CreateBinaryWriter(dataStream, platform);
 
             FileInfo reallocTableFileInfo = new(relocFilename);
             FileStream reallocTableStream = new(reallocTableFileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 2 * 1024 * 1024);
-            IBinaryStream resourceDataReallocTableWriter = EndianUtils.CreateBinaryStream(reallocTableStream, platform);
+            IBinaryStreamWriter resourceDataReallocTableWriter = EndianUtils.CreateBinaryWriter(reallocTableStream, platform);
 
             try
             {
