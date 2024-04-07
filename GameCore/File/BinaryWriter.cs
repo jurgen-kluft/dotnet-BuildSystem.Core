@@ -5,7 +5,7 @@ using System.IO;
 namespace GameCore
 {
     #region IBinaryWriter and IBinaryStream
-    
+
     public interface IBinaryWriter
     {
         void Write(sbyte v);
@@ -75,8 +75,7 @@ namespace GameCore
     #endregion
 
     #region BinaryWriter (Endian)
-    
-        
+
     public interface IBinaryStreamWriter : IStreamWriter, IBinaryWriter
     {
     }
@@ -110,6 +109,7 @@ namespace GameCore
 
         public void Write(byte[] data, int index, int count)
         {
+            if (count == 0) return;
             Debug.Assert((index + count) <= data.Length);
             _writer.WriteStream(data, index, count);
         }
@@ -183,7 +183,7 @@ namespace GameCore
             Write(data);
             Write((byte)0);
         }
-        
+
         public void WriteStream(byte[] data, int index, int count)
         {
             Debug.Assert((index + count) <= data.Length);
@@ -448,5 +448,4 @@ namespace GameCore
 
         #endregion
     }
-
 }

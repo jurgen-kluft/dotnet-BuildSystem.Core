@@ -884,7 +884,7 @@ namespace GameData
                 }
             }
 
-            // Write out every the underlying member 'data' of the code to a DataStream
+            // Write out every underlying 'data' of the code to a DataStream
             var dataStream = new CppDataStream2(platform);
             DataStreamWriter2.Write(metaCode, stringTable, dataStream);
 
