@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using ActorSystem = DataBuildSystem.ActorFlow.System;
 
 namespace GameCore
 {
@@ -48,8 +49,8 @@ namespace GameCore
         }
 
         public string Filename { get; private set; }
-        public StreamWriter Writer { get; private set; }
-        public StreamReader Reader { get; private set; }
+        public System.IO.StreamWriter Writer { get; private set; }
+        public System.IO.StreamReader Reader { get; private set; }
 
         public bool Exists()
         {
@@ -66,10 +67,10 @@ namespace GameCore
                 switch (mode)
                 {
                     case EMode.Write:
-                        Writer = new StreamWriter(stream);
+                        Writer = new System.IO.StreamWriter(stream);
                         break;
                     case EMode.Read:
-                        Reader = new StreamReader(stream);
+                        Reader = new System.IO.StreamReader(stream);
                         break;
                     default:
                         break;
@@ -167,19 +168,19 @@ namespace GameCore
 
     public static class StreamUtils
     {
-        private static Int64 Position(IBinaryStream writer)
+        private static Int64 Position(IStreamWriter writer)
         {
             Int64 p = writer.Position;
             return p;
         }
 
-        public static bool Aligned(IBinaryStream writer, Int64 alignment)
+        public static bool Aligned(IStreamWriter writer, Int64 alignment)
         {
             Int64 p = CMath.Align(writer.Position, alignment);
             return (p == writer.Position);
         }
 
-        public static void Align(IBinaryStream writer, Int64 alignment)
+        public static void Align(IStreamWriter writer, Int64 alignment)
         {
             writer.Position = CMath.Align(writer.Position, alignment);
         }

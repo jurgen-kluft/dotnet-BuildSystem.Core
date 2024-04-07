@@ -88,7 +88,7 @@ namespace GameCore
                     FileInfo fileInfo = new FileInfo(filename);
                     if (fileInfo.Exists)
                     {
-                        StreamReader reader = fileInfo.OpenText();
+                        System.IO.StreamReader reader = fileInfo.OpenText();
                         Args[0] = reader.ReadToEnd();
                         reader.Close();
                     }

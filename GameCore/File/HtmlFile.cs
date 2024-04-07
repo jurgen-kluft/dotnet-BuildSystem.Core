@@ -30,10 +30,10 @@ namespace GameCore
 
     public interface IHtmlTag
     {
-        bool Begin(StreamWriter writer);
-        bool Begin(StreamWriter writer, HtmlAttribute attr);
-        bool Begin(StreamWriter writer, HtmlAttribute[] attrs);
-        void End(StreamWriter writer);
+        bool Begin(System.IO.StreamWriter writer);
+        bool Begin(System.IO.StreamWriter writer, HtmlAttribute attr);
+        bool Begin(System.IO.StreamWriter writer, HtmlAttribute[] attrs);
+        void End(System.IO.StreamWriter writer);
     }
 
     public struct HtmlTag : IHtmlTag
@@ -49,13 +49,13 @@ namespace GameCore
             mName = name;
         }
 
-        public bool Begin(StreamWriter writer)
+        public bool Begin(System.IO.StreamWriter writer)
         {
             writer.Write(String.Format("<{0}>", mName));
             return false;
         }
 
-        public bool Begin(StreamWriter writer, HtmlAttribute attr)
+        public bool Begin(System.IO.StreamWriter writer, HtmlAttribute attr)
         {
             writer.Write(String.Format("<{0}", mName));
             attr.Write(writer);
@@ -63,7 +63,7 @@ namespace GameCore
             return false;
         }
 
-        public bool Begin(StreamWriter writer, HtmlAttribute[] attrs)
+        public bool Begin(System.IO.StreamWriter writer, HtmlAttribute[] attrs)
         {
             writer.Write(String.Format("<{0}", mName));
             foreach (HtmlAttribute attr in attrs)
@@ -72,7 +72,7 @@ namespace GameCore
             return false;
         }
 
-        public void End(StreamWriter writer)
+        public void End(System.IO.StreamWriter writer)
         {
             writer.Write(String.Format("</{0}>", mName));
         }
@@ -87,23 +87,23 @@ namespace GameCore
             mName = name;
         }
 
-        public bool Begin(StreamWriter writer)
+        public bool Begin(System.IO.StreamWriter writer)
         {
             writer.Write(String.Format("<{0}>", mName));
             return true;
         }
 
-        public bool Begin(StreamWriter writer, HtmlAttribute attr)
+        public bool Begin(System.IO.StreamWriter writer, HtmlAttribute attr)
         {
             return true;
         }
 
-        public bool Begin(StreamWriter writer, HtmlAttribute[] attrs)
+        public bool Begin(System.IO.StreamWriter writer, HtmlAttribute[] attrs)
         {
             return true;
         }
 
-        public void End(StreamWriter writer)
+        public void End(System.IO.StreamWriter writer)
         {
         }
     }
@@ -119,7 +119,7 @@ namespace GameCore
             mValue = value;
         }
 
-        public void Write(StreamWriter writer)
+        public void Write(System.IO.StreamWriter writer)
         {
             writer.Write(String.Format(" {0}={1}", mName, mValue));
         }
@@ -134,23 +134,23 @@ namespace GameCore
             mText = text;
         }
 
-        public bool Begin(StreamWriter writer)
+        public bool Begin(System.IO.StreamWriter writer)
         {
             writer.Write(String.Format("<!-- {0} -->", mText));
             return true;
         }
 
-        public bool Begin(StreamWriter writer, HtmlAttribute attr)
+        public bool Begin(System.IO.StreamWriter writer, HtmlAttribute attr)
         {
             return true;
         }
 
-        public bool Begin(StreamWriter writer, HtmlAttribute[] attrs)
+        public bool Begin(System.IO.StreamWriter writer, HtmlAttribute[] attrs)
         {
             return true;
         }
 
-        public void End(StreamWriter writer)
+        public void End(System.IO.StreamWriter writer)
         {
         }
     }
@@ -202,11 +202,11 @@ namespace GameCore
     public class HtmlFileWriter : IHtmlWriter
     {
         private readonly Stack<IHtmlTag> mClosingTags = new Stack<IHtmlTag>();
-        private readonly StreamWriter mWriter;
+        private readonly System.IO.StreamWriter mWriter;
 
         public HtmlFileWriter(Stream stream)
         {
-            mWriter = new StreamWriter(stream);
+            mWriter = new System.IO.StreamWriter(stream);
         }
 
         public void Write(string str)

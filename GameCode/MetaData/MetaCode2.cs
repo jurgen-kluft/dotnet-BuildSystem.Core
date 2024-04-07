@@ -7,6 +7,7 @@ using DataBuildSystem;
 using Int8 = System.SByte;
 using UInt8 = System.Byte;
 using GameCore;
+using StreamWriter = System.IO.StreamWriter;
 
 namespace GameData
 {
@@ -135,7 +136,9 @@ namespace GameData
 
             public int MemberAlignment => sMemberAlignment[Index];
 
-            private const uint FlagInPlace = 0x200000; // For Arrays and Dictionaries, the elements are written in place as values not as references
+            private const uint
+                FlagInPlace =
+                    0x200000; // For Arrays and Dictionaries, the elements are written in place as values not as references
 
             public bool IsStruct => Index == Struct;
             public bool IsClass => Index == Class;
@@ -162,7 +165,10 @@ namespace GameData
             public readonly List<MetaInfo> MembersType = new();
             public readonly List<int> MembersName = new();
             public readonly List<int> MembersStart = new(); // If we are a Struct the members start here
-            public readonly List<int> MembersCount = new(); // If we are an Array/List/Dict/Struct we hold many elements/members
+
+            public readonly List<int>
+                MembersCount = new(); // If we are an Array/List/Dict/Struct we hold many elements/members
+
             public readonly List<object> MembersObject = new(); // This is to know the type of the class
 
             public MetaCode(StringTable dataStrings)
@@ -390,16 +396,6 @@ namespace GameData
                     if (!swapped) break;
                 }
             }
-
-            public void Write(CppDataStream dataStream)
-            {
-                // Write the instantiated code as binary data matching the class layout
-
-                // Every reference type (class, array, dictionary) will be written as a pointer to the data
-
-                // We need to keep track of where the data is written so we can write the pointers to the data, this
-                // is done by keeping StreamReferences for each reference type.
-            }
         }
 
         #region C++ Code writer
@@ -456,7 +452,7 @@ namespace GameData
 
             private static string GetClassMemberTypeName(int memberIndex, MetaCode metaCode, EOption option)
             {
-                string className = metaCode.MembersObject[memberIndex].GetType().Name;
+                var className = metaCode.MembersObject[memberIndex].GetType().Name;
                 return className + "*";
             }
 
@@ -493,28 +489,29 @@ namespace GameData
 
             private delegate string GetMemberTypeStringDelegate(int memberIndex, MetaCode metaCode, EOption option);
 
-            private static readonly GetMemberTypeStringDelegate[] sGetMemberTypeString = new GetMemberTypeStringDelegate[(int)MetaInfo.Count]
-            {
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName, // f64
-                GetMemberTypeName, // raw_string_t
-                GetEnumMemberTypeName,
-                GetStructMemberTypeName, // struct
-                GetClassMemberTypeName, // class
-                GetArrayMemberTypeName,
-                GetDictMemberTypeName,
-            };
+            private static readonly GetMemberTypeStringDelegate[] sGetMemberTypeString =
+                new GetMemberTypeStringDelegate[(int)MetaInfo.Count]
+                {
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName,
+                    GetMemberTypeName, // f64
+                    GetMemberTypeName, // raw_string_t
+                    GetEnumMemberTypeName,
+                    GetStructMemberTypeName, // struct
+                    GetClassMemberTypeName, // class
+                    GetArrayMemberTypeName,
+                    GetDictMemberTypeName,
+                };
 
 
             private static string GetReturnTypeName(int memberIndex, MetaCode metaCode, EOption option)
@@ -564,80 +561,86 @@ namespace GameData
 
             private delegate string GetReturnTypeStringDelegate(int memberIndex, MetaCode metaCode, EOption option);
 
-            private static readonly GetReturnTypeStringDelegate[] sGetReturnTypeString = new GetReturnTypeStringDelegate[(int)MetaInfo.Count]
-            {
-                null,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName,
-                GetReturnTypeName, // f64
-                GetReturnTypeName, // string_t
-                GetEnumReturnTypeName,
-                GetStructReturnTypeName, // class
-                GetClassReturnTypeName, // class
-                GetArrayReturnTypeName,
-                GetDictReturnTypeName,
-            };
+            private static readonly GetReturnTypeStringDelegate[] sGetReturnTypeString =
+                new GetReturnTypeStringDelegate[(int)MetaInfo.Count]
+                {
+                    null,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName,
+                    GetReturnTypeName, // f64
+                    GetReturnTypeName, // string_t
+                    GetEnumReturnTypeName,
+                    GetStructReturnTypeName, // class
+                    GetClassReturnTypeName, // class
+                    GetArrayReturnTypeName,
+                    GetDictReturnTypeName,
+                };
 
-            private delegate void WriteGetterDelegate(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option);
+            private delegate void WriteGetterDelegate(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option);
 
-            private static readonly WriteGetterDelegate[] sWriteGetterDelegates = new WriteGetterDelegate[(int)MetaInfo.Count]
-            {
-                null,
-                WritePrimitiveGetter,
-                WriteBitsetGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WriteStringGetter,
-                WriteEnumGetter,
-                WriteStructGetter,
-                WriteClassGetter,
-                WriteArrayGetter,
-                WriteDictionaryGetter
-            };
+            private static readonly WriteGetterDelegate[] sWriteGetterDelegates =
+                new WriteGetterDelegate[(int)MetaInfo.Count]
+                {
+                    null,
+                    WritePrimitiveGetter,
+                    WriteBitsetGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WritePrimitiveGetter,
+                    WriteStringGetter,
+                    WriteEnumGetter,
+                    WriteStructGetter,
+                    WriteClassGetter,
+                    WriteArrayGetter,
+                    WriteDictionaryGetter
+                };
 
-            private delegate void WriteMemberDelegate(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option);
+            private delegate void WriteMemberDelegate(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option);
 
-            private static readonly WriteMemberDelegate[] sWriteMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
-            {
-                null,
-                WritePrimitiveMember,
-                WriteBitsetMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WriteEnumMember,
-                WriteStructMember,
-                WriteClassMember,
-                WriteArrayMember,
-                WriteDictionaryMember
-            };
+            private static readonly WriteMemberDelegate[] sWriteMemberDelegates =
+                new WriteMemberDelegate[(int)MetaInfo.Count]
+                {
+                    null,
+                    WritePrimitiveMember,
+                    WriteBitsetMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WritePrimitiveMember,
+                    WriteEnumMember,
+                    WriteStructMember,
+                    WriteClassMember,
+                    WriteArrayMember,
+                    WriteDictionaryMember
+                };
 
-            private static void WriteBitsetGetter(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteBitsetGetter(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var msi = metaCode.MembersStart[memberIndex];
@@ -650,27 +653,32 @@ namespace GameData
                     var booleanMemberIndex = msi + i;
                     var booleanMemberName = metaCode.MembersName[booleanMemberIndex];
                     var booleanName = metaCode.CodeStrings[booleanMemberName];
-                    writer.WriteLine($"\tinline bool get{booleanName}() const {{ return (m_{memberName} & (1 << {i})) != 0; }}");
+                    writer.WriteLine(
+                        $"\tinline bool get{booleanName}() const {{ return (m_{memberName} & (1 << {i})) != 0; }}");
                 }
             }
 
-            private static void WriteBitsetMember(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteBitsetMember(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
                 writer.WriteLine($"\tu32 m_{memberName};");
             }
 
-            private static void WritePrimitiveGetter(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WritePrimitiveGetter(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var mt = metaCode.MembersType[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
                 var typeIndex = mt.Index;
-                writer.WriteLine($"\tinline {sTypeNames[typeIndex]} get{memberName}() const {{ return m_{memberName}; }}");
+                writer.WriteLine(
+                    $"\tinline {sTypeNames[typeIndex]} get{memberName}() const {{ return m_{memberName}; }}");
             }
 
-            private static void WritePrimitiveMember(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WritePrimitiveMember(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var mt = metaCode.MembersType[memberIndex];
@@ -679,7 +687,8 @@ namespace GameData
                 writer.WriteLine($"\t{sTypeNames[typeIndex]} m_{memberName};");
             }
 
-            private static void WriteStringGetter(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteStringGetter(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
@@ -704,7 +713,8 @@ namespace GameData
                 writer.WriteLine($"\tenum_t<{enumTypeName}, u32> m_{memberName};");
             }
 
-            private static void WriteStructGetter(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteStructGetter(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
@@ -715,7 +725,8 @@ namespace GameData
                 writer.WriteLine($"\tinline {className} const& get{memberName}() const {{ return m_{memberName}; }}");
             }
 
-            private static void WriteStructMember(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteStructMember(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
@@ -724,7 +735,8 @@ namespace GameData
                 writer.WriteLine($"\t{className} m_{memberName};");
             }
 
-            private static void WriteClassGetter(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteClassGetter(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
@@ -732,7 +744,8 @@ namespace GameData
                 writer.WriteLine($"\tinline {className} const* get{memberName}() const {{ return m_{memberName}; }}");
             }
 
-            private static void WriteClassMember(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteClassMember(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
@@ -740,7 +753,8 @@ namespace GameData
                 writer.WriteLine("\t" + className + "* m_" + memberName + ";");
             }
 
-            private static void WriteArrayGetter(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteArrayGetter(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var memberName = metaCode.CodeStrings[mni];
@@ -750,10 +764,12 @@ namespace GameData
                 // figure out the element type of the array, could be a primitive, struct, class, enum or even another array
                 var returnTypeString = sGetReturnTypeString[fet.Index](msi, metaCode, option);
 
-                writer.WriteLine($"\tinline array_t<{returnTypeString}> const& get{memberName}() const {{ return m_{memberName}; }}");
+                writer.WriteLine(
+                    $"\tinline array_t<{returnTypeString}> const& get{memberName}() const {{ return m_{memberName}; }}");
             }
 
-            private static void WriteArrayMember(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteArrayMember(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var msi = metaCode.MembersStart[memberIndex];
@@ -763,7 +779,8 @@ namespace GameData
                 writer.WriteLine($"\tarray_t<{elementName}> m_{memberName};");
             }
 
-            private static void WriteDictionaryGetter(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteDictionaryGetter(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var msi = metaCode.MembersStart[memberIndex];
@@ -777,10 +794,12 @@ namespace GameData
                 var keyTypeString = sGetReturnTypeString[keyElement.Index](msi, metaCode, option);
                 var valueTypeString = sGetReturnTypeString[valueElement.Index](msi + count, metaCode, option);
 
-                writer.WriteLine($"\tinline dict_t<{keyTypeString}, {valueTypeString}> const& get{memberName}() const {{ return m_{memberName}; }}");
+                writer.WriteLine(
+                    $"\tinline dict_t<{keyTypeString}, {valueTypeString}> const& get{memberName}() const {{ return m_{memberName}; }}");
             }
 
-            private static void WriteDictionaryMember(int memberIndex, StreamWriter writer, MetaCode metaCode, EOption option)
+            private static void WriteDictionaryMember(int memberIndex, StreamWriter writer, MetaCode metaCode,
+                EOption option)
             {
                 var mni = metaCode.MembersName[memberIndex];
                 var msi = metaCode.MembersStart[memberIndex];
@@ -1011,7 +1030,8 @@ namespace GameData
             public int NewStringMember(string content, string memberName)
             {
                 var mi = _metaCode.MembersObject.Count;
-                _metaCode.AddMember(MetaInfo.AsString, RegisterCodeString(memberName), RegisterDataString(content), 1, content);
+                _metaCode.AddMember(MetaInfo.AsString, RegisterCodeString(memberName), RegisterDataString(content), 1,
+                    content);
                 return mi;
             }
 
@@ -1064,105 +1084,15 @@ namespace GameData
 
         #endregion
 
-
         #region Class and ClassMember data writer
 
-        public sealed class DataStreamWriter2
+        public static class DataStreamWriter2
         {
-            private readonly MetaCode _metaCode;
-            private readonly StringTable _stringTable;
-            private readonly CppDataStream2 _dataStream;
-            private readonly int[] _memberSizes;
-            private readonly int[] _dataSizes;
+            private delegate void WriteMemberDelegate(int memberIndex, WriteContext ctx);
+            private delegate int CalcSizeOfTypeDelegate(int memberIndex,WriteContext ctx);
 
-            private delegate void WriteMemberDelegate(int memberIndex);
 
-            private readonly WriteMemberDelegate[] _writeMemberDelegates;
-
-            private delegate int CalcSizeOfTypeDelegate(int memberIndex);
-
-            private readonly CalcSizeOfTypeDelegate[] _calcMemberSizeOfTypeDelegates;
-            private readonly CalcSizeOfTypeDelegate[] _calcDataSizeOfTypeDelegates;
-
-            public DataStreamWriter2(MetaCode metaCode, StringTable stringTable, CppDataStream2 dataStream)
-            {
-                _metaCode = metaCode;
-                _stringTable = stringTable;
-                _dataStream = dataStream;
-
-                _writeMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
-                {
-                    null,
-                    WriteBool,
-                    WriteBitset,
-                    WriteInt8,
-                    WriteUInt8,
-                    WriteInt16,
-                    WriteUInt16,
-                    WriteInt32,
-                    WriteUInt32,
-                    WriteInt64,
-                    WriteUInt64,
-                    WriteFloat,
-                    WriteDouble,
-                    WriteString,
-                    WriteEnum,
-                    WriteStruct,
-                    WriteClass,
-                    WriteArray,
-                    WriteDictionary
-                };
-
-                _memberSizes = new int[_metaCode.MembersType.Count];
-                _calcMemberSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
-                {
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfStruct,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType,
-                    GetMemberSizeOfType
-                };
-
-                _dataSizes = new int[_metaCode.MembersType.Count];
-                _calcDataSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
-                {
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    GetDataSizeOfType,
-                    CalcDataSizeOfString,
-                    GetDataSizeOfType,
-                    CalcDataSizeOfStruct,
-                    CalcDataSizeOfClass,
-                    CalcDataSizeOfArray,
-                    CalcDataSizeOfDictionary
-                };
-            }
-
-            private delegate void WriteProcessDelegate(int memberIndex, StreamReference r);
+            private delegate void WriteProcessDelegate(int memberIndex, StreamReference r, WriteContext ctx);
 
             private struct WriteProcess
             {
@@ -1170,234 +1100,294 @@ namespace GameData
                 public WriteProcessDelegate Process { get; init; }
                 public StreamReference Reference { get; init; }
             }
-
-            private readonly Queue<WriteProcess> _writeQueue = new();
-
-            private delegate int CalcSizeDelegate(int memberIndex);
-
-            private struct CalcSize
+            
+            private class WriteContext
             {
-                public int MemberIndex { get; init; }
-                public CalcSizeDelegate Process { get; init; }
+                public MetaCode MetaCode { get; init; }
+                public StringTable StringTable { get; init; }
+                public CppDataStream2 DataStream { get; init; }
+                public CalcSizeOfTypeDelegate[] CalcSizeOfTypeDelegates { get; init; }
+                public CalcSizeOfTypeDelegate[] CalcDataSizeOfTypeDelegates { get; init; }
+                public WriteMemberDelegate[] WriteMemberDelegates { get; init; }
+                public Queue<WriteProcess> WriteProcessQueue { get; init; }
             }
 
-            private readonly Queue<CalcSize> _sizeQueue = new();
-
-            public void Write()
+            public static void Write(MetaCode metaCode, StringTable stringTable, CppDataStream2 dataStream)
             {
-                CalcSizes();
-
-                WriteClass(0);
-                while (_writeQueue.Count > 0)
+                var ctx = new WriteContext
                 {
-                    var wp = _writeQueue.Dequeue();
-                    wp.Process(wp.MemberIndex, wp.Reference);
+                    MetaCode = metaCode,
+                    StringTable = stringTable,
+                    DataStream = dataStream,
+                    WriteProcessQueue = new Queue<WriteProcess>(),
+
+                    WriteMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
+                    {
+                        null,
+                        WriteBool,
+                        WriteBitset,
+                        WriteInt8,
+                        WriteUInt8,
+                        WriteInt16,
+                        WriteUInt16,
+                        WriteInt32,
+                        WriteUInt32,
+                        WriteInt64,
+                        WriteUInt64,
+                        WriteFloat,
+                        WriteDouble,
+                        WriteString,
+                        WriteEnum,
+                        WriteStruct,
+                        WriteClass,
+                        WriteArray,
+                        WriteDictionary
+                    },
+
+                    CalcSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
+                    {
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfStruct,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType,
+                        GetMemberSizeOfType
+                    },
+
+                    CalcDataSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
+                    {
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        GetDataSizeOfType,
+                        CalcDataSizeOfString,
+                        GetDataSizeOfType,
+                        CalcDataSizeOfStruct,
+                        CalcDataSizeOfClass,
+                        CalcDataSizeOfArray,
+                        CalcDataSizeOfDictionary
+                    }
+                };
+                
+                WriteClass(0, ctx);
+                while (ctx.WriteProcessQueue.Count > 0)
+                {
+                    var wp = ctx.WriteProcessQueue.Dequeue();
+                    wp.Process(wp.MemberIndex, wp.Reference, ctx);
                 }
             }
 
-            private void CalcSizes()
+            private static void WriteBool(int memberIndex,WriteContext ctx)
             {
-                for (var i = 0; i < _metaCode.MembersType.Count; ++i)
-                {
-                    var mt = _metaCode.MembersType[i];
-                    _memberSizes[i] = _calcMemberSizeOfTypeDelegates[mt.Index](i);
-                }
-
-                for (var i = 0; i < _metaCode.MembersType.Count; ++i)
-                {
-                    var mt = _metaCode.MembersType[i];
-                    _dataSizes[i] = _calcDataSizeOfTypeDelegates[mt.Index](i);
-                }
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Write((bool)member ? (Int8)1 : (Int8)0);
             }
 
-            private void WriteBool(int memberIndex)
+            private static void WriteBitset(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Write((bool)member ? (Int8)1 : (Int8)0);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(4);
+                ctx.DataStream.Write((uint)member);
             }
 
-            private void WriteBitset(int memberIndex)
+            private static void WriteInt8(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(4);
-                _dataStream.Write((uint)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Write((Int8)member);
             }
 
-            private void WriteInt8(int memberIndex)
+            private static void WriteUInt8(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Write((Int8)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Write((UInt8)member);
             }
 
-            private void WriteUInt8(int memberIndex)
+            private static void WriteInt16(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Write((UInt8)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(2);
+                ctx.DataStream.Write((short)member);
             }
 
-            private void WriteInt16(int memberIndex)
+            private static void WriteUInt16(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(2);
-                _dataStream.Write((short)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(2);
+                ctx.DataStream.Write((ushort)member);
             }
 
-            private void WriteUInt16(int memberIndex)
+            private static void WriteInt32(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(2);
-                _dataStream.Write((ushort)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(4);
+                ctx.DataStream.Write((int)member);
             }
 
-            private void WriteInt32(int memberIndex)
+            private static void WriteUInt32(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(4);
-                _dataStream.Write((int)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(4);
+                ctx.DataStream.Write((uint)member);
             }
 
-            private void WriteUInt32(int memberIndex)
+            private static void WriteInt64(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(4);
-                _dataStream.Write((uint)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(8);
+                ctx.DataStream.Write((long)member);
             }
 
-            private void WriteInt64(int memberIndex)
+            private static void WriteUInt64(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(8);
-                _dataStream.Write((long)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(8);
+                ctx.DataStream.Write((ulong)member);
             }
 
-            private void WriteUInt64(int memberIndex)
+            private static void WriteFloat(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(8);
-                _dataStream.Write((ulong)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(4);
+                ctx.DataStream.Write((float)member);
             }
 
-            private void WriteFloat(int memberIndex)
+            private static void WriteDouble(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(4);
-                _dataStream.Write((float)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(8);
+                ctx.DataStream.Write((double)member);
             }
 
-            private void WriteDouble(int memberIndex)
-            {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(8);
-                _dataStream.Write((double)member);
-            }
-
-            private void WriteStringDataProcess(int memberIndex, StreamReference r)
+            private static void WriteStringDataProcess(int memberIndex, StreamReference r,WriteContext ctx)
             {
                 // A string is written as UTF-8 data
-                _dataStream.OpenBlock(r);
+                ctx.DataStream.OpenBlock(r);
                 {
-                    var member = _metaCode.MembersObject[memberIndex];
-                    var utf8 = _stringTable.GetBytes((string)member);
-                    _dataStream.Write(utf8); // write the UTF-8 data
-                    _dataStream.Write((UInt8)0); // null terminator
+                    var member = ctx.MetaCode.MembersObject[memberIndex];
+                    var utf8 = ctx.StringTable.GetBytes((string)member);
+                    ctx.DataStream.Write(utf8); // write the UTF-8 data
+                    ctx.DataStream.Write((UInt8)0); // null terminator
                 }
-                _dataStream.CloseBlock();
+                ctx.DataStream.CloseBlock();
             }
 
-            private void WriteString(int memberIndex)
+            private static void WriteString(int memberIndex,WriteContext ctx)
             {
-                var ms = _memberSizes[memberIndex];
-                var mr = _dataStream.NewBlock(4, ms);
-                _dataStream.Align(4);
-                _dataStream.Write(mr, ms);
+                var mt = ctx.MetaCode.MembersType[memberIndex];
+                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
+                var mr = ctx.DataStream.NewBlock(4, ms);
+                ctx.DataStream.Align(4);
+                ctx.DataStream.Write(mr, ms);
 
                 // We need to schedule the string content to be written
-                _writeQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteStringDataProcess, Reference = mr });
+                ctx.WriteProcessQueue.Enqueue(new WriteProcess(){ MemberIndex = memberIndex, Process = WriteStringDataProcess, Reference = mr });
             }
 
-            private void WriteEnum(int memberIndex)
+            private static void WriteEnum(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersObject[memberIndex];
-                _dataStream.Align(4);
-                _dataStream.Write((uint)member);
+                var member = ctx.MetaCode.MembersObject[memberIndex];
+                ctx.DataStream.Align(4);
+                ctx.DataStream.Write((uint)member);
             }
 
-            private void WriteStruct(int memberIndex)
+            private static void WriteStruct(int memberIndex,WriteContext ctx)
             {
-                var mt = _metaCode.MembersType[memberIndex];
-                var ms = _memberSizes[memberIndex];
-
-                var mx = _metaCode.MembersObject[memberIndex] as IStruct;
-                _dataStream.Align(mx.StructAlign);
-                mx.StructWrite(_dataStream);
+                var mx = ctx.MetaCode.MembersObject[memberIndex] as IStruct;
+                ctx.DataStream.Align(mx.StructAlign);
+                mx.StructWrite(ctx.DataStream);
             }
 
-            private void WriteClassDataProcess(int memberIndex, StreamReference r)
+            private static void WriteClassDataProcess(int memberIndex, StreamReference r,WriteContext ctx)
             {
                 // A class is written as a collection of members
-                _dataStream.OpenBlock(r);
+                ctx.DataStream.OpenBlock(r);
                 {
-                    var msi = _metaCode.MembersStart[memberIndex];
-                    var count = _metaCode.MembersCount[memberIndex];
+                    var msi = ctx.MetaCode.MembersStart[memberIndex];
+                    var count = ctx.MetaCode.MembersCount[memberIndex];
                     for (var mi = msi; mi < msi + count; ++mi)
                     {
-                        var et = _metaCode.MembersType[mi];
-                        _writeMemberDelegates[et.Index](mi);
+                        var et = ctx.MetaCode.MembersType[mi];
+                        ctx.WriteMemberDelegates[et.Index](mi, ctx);
                     }
                 }
-                _dataStream.CloseBlock();
+                ctx.DataStream.CloseBlock();
             }
 
-            private void WriteClass(int memberIndex)
+            private static void WriteClass(int memberIndex,WriteContext ctx)
             {
-                var ms = _dataSizes[memberIndex];
-                var mr = _dataStream.NewBlock(_metaCode.GetDataAlignment(memberIndex), ms);
-                _dataStream.Write(mr);
+                var mt = ctx.MetaCode.MembersType[memberIndex];
+                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
+                var mr = ctx.DataStream.NewBlock(ctx.MetaCode.GetDataAlignment(memberIndex), ms);
+                ctx.DataStream.Write(mr);
 
                 // We need to schedule the content of this class to be written
-                _writeQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteClassDataProcess, Reference = mr });
+                ctx.WriteProcessQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteClassDataProcess, Reference = mr });
             }
 
-            private void WriteArrayDataProcess(int memberIndex, StreamReference r)
+
+            private static void WriteArrayDataProcess(int memberIndex, StreamReference r,WriteContext ctx)
             {
                 // An Array<T> is written as an array of elements
-                _dataStream.OpenBlock(r);
+                ctx.DataStream.OpenBlock(r);
                 {
-                    var msi = _metaCode.MembersStart[memberIndex];
-                    var count = _metaCode.MembersCount[memberIndex];
-                    var et = _metaCode.MembersType[msi];
+                    var msi = ctx.MetaCode.MembersStart[memberIndex];
+                    var count = ctx.MetaCode.MembersCount[memberIndex];
+                    var et = ctx.MetaCode.MembersType[msi];
                     for (var mi = msi; mi < msi + count; ++mi)
                     {
-                        _writeMemberDelegates[et.Index](mi);
+                        ctx.WriteMemberDelegates[et.Index](mi, ctx);
                     }
                 }
-                _dataStream.CloseBlock();
+                ctx.DataStream.CloseBlock();
             }
 
-            private void WriteArray(int memberIndex)
+            private static void WriteArray(int memberIndex,WriteContext ctx)
             {
-                var ms = _dataSizes[memberIndex];
-                var count = _metaCode.MembersCount[memberIndex];
-                var mr = _dataStream.NewBlock(_metaCode.GetDataAlignment(memberIndex), ms);
-                _dataStream.Write(mr, count);
+                var mt = ctx.MetaCode.MembersType[memberIndex];
+                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
+                var count = ctx.MetaCode.MembersCount[memberIndex];
+                var mr = ctx.DataStream.NewBlock(ctx.MetaCode.GetDataAlignment(memberIndex), ms);
+                ctx.DataStream.Write(mr, count);
 
                 // We need to schedule this array to be written
-                _writeQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteArrayDataProcess, Reference = mr });
+                ctx.WriteProcessQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteArrayDataProcess, Reference = mr });
             }
 
-            private void WriteDictionaryDataProcess(int memberIndex, StreamReference r)
+            private static void WriteDictionaryDataProcess(int memberIndex, StreamReference r,WriteContext ctx)
             {
                 // A Dictionary<key,value> is written as an array of keys followed by an array of values
-                _dataStream.OpenBlock(r);
+                ctx.DataStream.OpenBlock(r);
                 {
-                    var msi = _metaCode.MembersStart[memberIndex];
-                    var count = _metaCode.MembersCount[memberIndex];
-                    var kt = _metaCode.MembersType[msi];
-                    var vt = _metaCode.MembersType[msi + count];
+                    var msi = ctx.MetaCode.MembersStart[memberIndex];
+                    var count = ctx.MetaCode.MembersCount[memberIndex];
+                    var kt = ctx.MetaCode.MembersType[msi];
+                    var vt = ctx.MetaCode.MembersType[msi + count];
                     // First write the array of keys
                     for (var mi = msi; mi < msi + count; ++mi)
                     {
-                        _writeMemberDelegates[kt.Index](mi);
+                        ctx.WriteMemberDelegates[kt.Index](mi, ctx);
                     }
 
                     // NOTE, alignment ?
@@ -1405,67 +1395,69 @@ namespace GameData
                     // Second, write the array of values
                     for (var mi = msi; mi < msi + count; ++mi)
                     {
-                        _writeMemberDelegates[vt.Index](mi);
+                        ctx.WriteMemberDelegates[vt.Index](mi, ctx);
                     }
                 }
-                _dataStream.CloseBlock();
+                ctx.DataStream.CloseBlock();
             }
 
-            private void WriteDictionary(int memberIndex)
+            private static void WriteDictionary(int memberIndex, WriteContext ctx)
             {
-                var ms = _dataSizes[memberIndex];
-                var count = _metaCode.MembersCount[memberIndex];
-                var mr = _dataStream.NewBlock(_metaCode.GetDataAlignment(memberIndex), ms);
-                _dataStream.Write(mr, count);
+                var mt = ctx.MetaCode.MembersType[memberIndex];
+                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
+                var count = ctx.MetaCode.MembersCount[memberIndex];
+                var mr = ctx.DataStream.NewBlock(ctx.MetaCode.GetDataAlignment(memberIndex), ms);
+                ctx.DataStream.Write(mr, count);
 
                 // We need to schedule this array to be written
-                _writeQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteDictionaryDataProcess, Reference = mr });
+                ctx.WriteProcessQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteDictionaryDataProcess, Reference = mr });
             }
 
-            private int GetMemberSizeOfType(int memberIndex)
+            private static int GetMemberSizeOfType(int memberIndex,WriteContext ctx)
             {
-                return _metaCode.MembersType[memberIndex].SizeInBytes;
+                return ctx.MetaCode.MembersType[memberIndex].SizeInBytes;
             }
 
-            private int GetMemberSizeOfStruct(int memberIndex)
+            private static int GetMemberSizeOfStruct(int memberIndex,WriteContext ctx)
             {
-                var xi = _metaCode.MembersObject[memberIndex] as IStruct;
+                var xi = ctx.MetaCode.MembersObject[memberIndex] as IStruct;
                 return xi.StructSize;
             }
 
 
-            private int GetDataSizeOfType(int memberIndex)
+            private static int GetDataSizeOfType(int memberIndex,WriteContext ctx)
             {
-                return _metaCode.MembersType[memberIndex].SizeInBytes;
+                return ctx.MetaCode.MembersType[memberIndex].SizeInBytes;
             }
 
-            private int CalcDataSizeOfString(int memberIndex)
+            private static int CalcDataSizeOfString(int memberIndex,WriteContext ctx)
             {
-                var member = _metaCode.MembersStart[memberIndex];
-                return _stringTable.LengthOfByIndex(member) + 1;
+                var member = ctx.MetaCode.MembersStart[memberIndex];
+                return ctx.StringTable.LengthOfByIndex(member) + 1;
             }
 
-            private int CalcDataSizeOfStruct(int memberIndex)
+            private static int CalcDataSizeOfStruct(int memberIndex,WriteContext ctx)
             {
-                var xi = _metaCode.MembersObject[memberIndex] as IStruct;
+                var xi = ctx.MetaCode.MembersObject[memberIndex] as IStruct;
                 return xi.StructSize;
             }
 
-            private int CalcDataSizeOfClass(int memberIndex)
+            private static int CalcDataSizeOfClass(int memberIndex,WriteContext ctx)
             {
-                var msi = _metaCode.MembersStart[memberIndex];
-                var count = _metaCode.MembersCount[memberIndex];
+                var msi = ctx.MetaCode.MembersStart[memberIndex];
+                var count = ctx.MetaCode.MembersCount[memberIndex];
 
                 // Alignment of this class is determined by the first member
-                var classAlign = _metaCode.GetMemberAlignment(msi);
+                var classAlign = ctx.MetaCode.GetMemberAlignment(msi);
 
                 var size = 0;
                 for (var mi = msi; mi < msi + count; ++mi)
                 {
-                    var ms = _memberSizes[mi];
+                    // Obtain the size of this member
+                    var ms = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode.MembersType[mi].Index](mi, ctx);
 
                     // Align the size based on the member type alignment
-                    size = CMath.Align32(size, _metaCode.GetMemberAlignment(mi));
+                    size = CMath.Align32(size, ctx.MetaCode.GetMemberAlignment(mi));
 
                     size += ms;
                 }
@@ -1475,31 +1467,33 @@ namespace GameData
                 return size;
             }
 
-            private int CalcDataSizeOfArray(int memberIndex)
+            private static int CalcDataSizeOfArray(int memberIndex,WriteContext ctx)
             {
-                var msi = _metaCode.MembersStart[memberIndex];
-                var count = _metaCode.MembersCount[memberIndex];
+                var msi = ctx.MetaCode.MembersStart[memberIndex];
+                var count = ctx.MetaCode.MembersCount[memberIndex];
 
                 // Determine the alignment of the element and see if we need to align the size
-                var elementAlign = _metaCode.GetMemberAlignment(msi);
-                var elementSize = _memberSizes[msi];
+                var elementAlign = ctx.MetaCode.GetMemberAlignment(msi);
+                var elementSize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode.MembersType[msi].Index](msi, ctx);
                 elementSize = CMath.Align32(elementSize, elementAlign);
 
                 var size = count * elementSize;
                 return size;
             }
 
-            private int CalcDataSizeOfDictionary(int memberIndex)
+            private static int CalcDataSizeOfDictionary(int memberIndex,WriteContext ctx)
             {
-                var msi = _metaCode.MembersStart[memberIndex];
-                var count = _metaCode.MembersCount[memberIndex];
+                var msi = ctx.MetaCode.MembersStart[memberIndex];
+                var count = ctx.MetaCode.MembersCount[memberIndex];
 
-                var keyAlign = _metaCode.GetMemberAlignment(msi);
-                var keySize = _memberSizes[msi];
+                var keyIndex = msi;
+                var keyAlign = ctx.MetaCode.GetMemberAlignment(keyIndex);
+                var keySize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode.MembersType[keyIndex].Index](keyIndex, ctx);
                 keySize = CMath.Align32(keySize, keyAlign);
 
-                var valueAlign = _metaCode.GetMemberAlignment(msi + count);
-                var valueSize = _memberSizes[msi + count];
+                var valueIndex = msi + count;
+                var valueAlign = ctx.MetaCode.GetMemberAlignment(valueIndex);
+                var valueSize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode.MembersType[valueIndex].Index](valueIndex, ctx);
                 valueSize = CMath.Align32(valueSize, valueAlign);
 
                 var size = CMath.Align32(count * keySize, valueAlign) + count * valueSize;
@@ -1541,6 +1535,113 @@ namespace GameData
                 Platform = platform;
                 _mDataWriter = EndianUtils.CreateBinaryWriter(_mMemoryStream, Platform);
                 _mData.Add(new DataBlock(Platform) { Offset = 0, Size = 0, Reference = StreamReference.NewReference });
+            }
+
+            #endregion
+
+            #region DataBlock
+
+            private class DataBlock
+            {
+                private readonly Dictionary<StreamReference, List<StreamOffset>> _mPointers = new();
+
+                internal DataBlock(EPlatform platform)
+                {
+                    Alignment = 8;
+                    Reference = StreamReference.NewReference;
+                }
+
+                public int Alignment { get; init; }
+                public long Offset { get; init; }
+                public long Size { get; init; }
+
+                public StreamReference Reference { get; set; }
+
+
+                internal void End()
+                {
+                    var gap = CMath.Align(Size, Alignment) - Size;
+
+                    // Write actual data to reach the size alignment requirement
+                }
+
+                public Hash160 ComputeHash(byte[] memoryBytes)
+                {
+                    var dataHash = HashUtility.compute(memoryBytes, (int)Offset, (int)Size);
+                    return dataHash;
+                }
+
+                internal void ReplaceReference(IBinaryStreamWriter writer, StreamReference oldRef,
+                    StreamReference newRef)
+                {
+                    if (Reference == oldRef)
+                        Reference = newRef;
+
+                    if (!_mPointers.ContainsKey(oldRef)) return;
+
+                    var oldOffsets = _mPointers[oldRef];
+                    _mPointers.Remove(oldRef);
+
+                    // Modify data
+                    var currentPos = new StreamOffset(writer.Position);
+                    foreach (var o in oldOffsets)
+                    {
+                        writer.Seek(o.Offset);
+                        writer.Write(0);
+                    }
+
+                    writer.Seek(currentPos.Offset);
+
+                    // Update pointer and offsets
+                    if (_mPointers.ContainsKey(newRef))
+                    {
+                        var newOffsets = _mPointers[newRef];
+                        foreach (var o in oldOffsets)
+                            newOffsets.Add(o);
+                    }
+                    else
+                    {
+                        _mPointers.Add(newRef, oldOffsets);
+                    }
+                }
+
+                internal void WriteTo(IBinaryStreamWriter dataWriter, IBinaryStreamReader dataReader,
+                    IStreamWriter outData, IDictionary<StreamReference, StreamOffset> dataOffsetDataBase)
+                {
+                    StreamUtils.Align(outData, Alignment);
+
+                    StreamOffset currentPos = new(dataWriter.Position);
+                    foreach (var k in _mPointers)
+                    {
+                        if (!dataOffsetDataBase.TryGetValue(k.Key, out var outDataOffset)) continue;
+
+                        foreach (var o in k.Value)
+                        {
+                            // Seek to the position that has the 'StreamReference'
+                            dataWriter.Seek(o.Offset);
+
+                            // Write the relative (signed) offset
+                            var offset = (outDataOffset.Offset - o.Offset);
+
+                            // Assert when the offset is out of bounds (-2GB < offset < 2GB)
+                            Debug.Assert(offset is >= int.MinValue and <= int.MaxValue);
+                            dataWriter.Write(offset);
+                        }
+                    }
+
+                    dataWriter.Seek(currentPos.Offset);
+                    dataReader.Seek(Offset);
+
+                    // Write the data of this block to the output
+                    var length = (int)Size;
+                    var buffer = new byte[4096];
+                    while (length > 0)
+                    {
+                        var read = dataReader.ReadBytes(buffer, 0, 4096);
+                        outData.WriteStream(buffer, 0, read);
+                        length -= read;
+                    }
+                }
             }
 
             #endregion
@@ -1605,7 +1706,8 @@ namespace GameData
                 // We may need to 'pad' the block with '0' to its size (for correct hashing)
 
                 // Check if the position is within the bounds of this block
-                Debug.Assert(_mDataWriter.Position >= _mData[_current].Offset && _mDataWriter.Position <= (_mData[_current].Offset + _mData[_current].Size));
+                Debug.Assert(_mDataWriter.Position >= _mData[_current].Offset &&
+                             _mDataWriter.Position <= (_mData[_current].Offset + _mData[_current].Size));
 
                 _current = -1;
             }
@@ -1690,113 +1792,6 @@ namespace GameData
                 _mDataWriter.Write(length);
             }
 
-            private Hash160 ComputeHash(byte[] data, long offset, long size)
-            {
-                var hash = HashUtility.compute(data, (int)offset, (int)size);
-                return hash;
-            }
-
-            private class DataBlock
-            {
-                private readonly Dictionary<StreamReference, List<StreamOffset>> _mPointers = new();
-
-                internal DataBlock(EPlatform platform)
-                {
-                    Alignment = 8;
-                    Reference = StreamReference.NewReference;
-                }
-
-                public long Offset { get; init; }
-                public long Size { get; init; }
-
-                public StreamReference Reference { get; set; }
-                public int Alignment { get; set; }
-
-
-                internal void End()
-                {
-                    var gap = CMath.Align(Size, Alignment) - Size;
-
-                    // Write actual data to reach the size alignment requirement
-                }
-
-                public Hash160 ComputeHash(byte[] memoryBytes)
-                {
-                    var dataHash = HashUtility.compute(memoryBytes, (int)Offset, (int)Size);
-                    return dataHash;
-                }
-
-                internal void ReplaceReference(IBinaryStreamWriter writer, StreamReference oldRef, StreamReference newRef)
-                {
-                    if (Reference == oldRef)
-                        Reference = newRef;
-
-                    if (_mPointers.ContainsKey(oldRef))
-                    {
-                        List<StreamOffset> oldOffsets = _mPointers[oldRef];
-                        _mPointers.Remove(oldRef);
-
-                        // Modify data
-                        StreamOffset currentPos = new(writer.Position);
-                        foreach (StreamOffset o in oldOffsets)
-                        {
-                            writer.Seek(o);
-                            writer.Write(0);
-                        }
-
-                        writer.Seek(currentPos);
-
-                        // Update pointer and offsets
-                        if (_mPointers.ContainsKey(newRef))
-                        {
-                            List<StreamOffset> newOffsets = _mPointers[newRef];
-                            foreach (StreamOffset o in oldOffsets)
-                                newOffsets.Add(o);
-                        }
-                        else
-                        {
-                            _mPointers.Add(newRef, oldOffsets);
-                        }
-                    }
-                }
-
-                internal void WriteTo(IBinaryStreamWriter dataWriter, IBinaryStreamReader dataReader, IBinaryStreamWriter outData, IDictionary<StreamReference, StreamOffset> dataOffsetDataBase)
-                {
-                    StreamUtils.Align(outData, Alignment);
-
-                    StreamOffset currentPos = new(dataWriter.Position);
-                    foreach (KeyValuePair<StreamReference, List<StreamOffset>> k in _mPointers)
-                    {
-                        if (dataOffsetDataBase.TryGetValue(k.Key, out StreamOffset outDataOffset))
-                        {
-                            foreach (StreamOffset o in k.Value)
-                            {
-                                // Seek to the position that has the 'StreamReference'
-                                dataWriter.Seek(o);
-
-                                // Write the relative (signed) offset
-                                int offset = (int)(outDataOffset.Offset - o.Offset);
-                                // TODO: Assert when the offset is out of bounds (-2GB < offset < 2GB)
-                                dataWriter.Write(offset);
-                            }
-                        }
-                    }
-
-                    dataWriter.Seek(currentPos);
-
-                    // Write data
-                    var length = (int)Size;
-                    var buffer = new byte[4096];
-                    while (length > 0)
-                    {
-                        var read = dataReader.ReadBytes(buffer, 0, 4096);
-                        outData.Write(buffer, 0, read);
-                        length -= read;
-                    }
-                }
-            }
-
-
             public void Finalize(IBinaryStreamWriter dataWriter)
             {
                 // Dictionary for mapping a Reference object to a Data object
@@ -1808,12 +1803,12 @@ namespace GameData
                 // Collapse identical blocks, and when a collapse has occurred we have
                 // to re-iterate again since a collapse changes the Hash of a block.
 
-                var memoryBytes = _mMemoryStream.ToArray();
-                var memoryStream = new MemoryStream(memoryBytes, true);
+                var memoryStreamBytes = _mMemoryStream.ToArray();
+                var memoryStream = new MemoryStream(memoryStreamBytes, true);
                 var memoryWriter = EndianUtils.CreateBinaryWriter(memoryStream, Platform);
                 var memoryReader = EndianUtils.CreateBinaryReader(memoryStream, Platform);
 
-                bool collapse = true;
+                var collapse = true;
                 while (collapse)
                 {
                     Dictionary<StreamReference, List<StreamReference>> duplicateDataBase = new();
@@ -1821,7 +1816,7 @@ namespace GameData
 
                     foreach (var d in _mData)
                     {
-                        var hash = ComputeHash(memoryBytes, d.Offset, d.Size);
+                        var hash = d.ComputeHash(memoryStreamBytes);
                         if (dataHashDataBase.ContainsKey(hash))
                         {
                             // Encountering a block of data which has a duplicate.
@@ -1888,7 +1883,7 @@ namespace GameData
                 // Dump all blocks to outData
                 // Dump all reallocation info to outReallocationTable
                 // Patch the location of every reference in the memory stream!
-                foreach (KeyValuePair<StreamReference, DataBlock> k in finalDataDataBase)
+                foreach (var k in finalDataDataBase)
                 {
 //                    k.Value.WriteTo(dataWriter, dataOffsetDataBase);
                     k.Value.WriteTo(memoryWriter, memoryReader, dataWriter, dataOffsetDataBase);

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using GameCore;
+using StreamWriter = System.IO.StreamWriter;
 
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 
@@ -885,8 +886,7 @@ namespace GameData
 
             // Write out every the underlying member 'data' of the code to a DataStream
             var dataStream = new CppDataStream2(platform);
-            var dataStreamWriter = new DataStreamWriter2(metaCode, stringTable, dataStream);
-            dataStreamWriter.Write();
+            DataStreamWriter2.Write(metaCode, stringTable, dataStream);
 
             // Finalize the DataStream by writing the data to a file
             var dataFileInfo = new FileInfo(dataFilename);
@@ -1080,11 +1080,11 @@ namespace GameData
                     StreamOffset currentPos = new(_mDataStream.Position);
                     foreach (StreamOffset o in oldOffsets)
                     {
-                        _mDataWriter.Seek(o);
+                        _mDataWriter.Seek(o.Offset);
                         _mDataWriter.Write(0);
                     }
 
-                    _mDataWriter.Seek(currentPos);
+                    _mDataWriter.Seek(currentPos.Offset);
 
                     // Update pointer and offsets
                     if (_mPointers.ContainsKey(newRef))
@@ -1112,7 +1112,7 @@ namespace GameData
                         foreach (StreamOffset o in k.Value)
                         {
                             // Seek to the position that has the 'StreamReference'
-                            _mDataWriter.Seek(o);
+                            _mDataWriter.Seek(o.Offset);
 
                             // Write the relative (signed) offset
                             int offset = (int)(outDataOffset.Offset - o.Offset);
@@ -1122,7 +1122,7 @@ namespace GameData
                     }
                 }
 
-                _mDataWriter.Seek(currentPos);
+                _mDataWriter.Seek(currentPos.Offset);
 
                 // Write data
                 outData.Write(_mDataStream.GetBuffer(), 0, (int)_mDataStream.Length);

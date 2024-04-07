@@ -15,8 +15,8 @@ namespace DataBuildSystem
         {
             #region Methods
 
-            int Begin(int block, IBinaryReader reader);
-            void Read(int block, int item, IBinaryReader reader);
+            int Begin(int block, IBinaryStreamReader reader);
+            void Read(int block, int item, IBinaryStreamReader reader);
             bool Next(int block);
 
             #endregion
@@ -26,8 +26,8 @@ namespace DataBuildSystem
         {
             #region Methods
 
-            int Begin(int block, IBinaryWriter writer);
-            void Write(int block, int item, IBinaryWriter writer);
+            int Begin(int block, IBinaryStreamWriter writer);
+            void Write(int block, int item, IBinaryStreamWriter writer);
             bool Next(int block);
 
             #endregion
@@ -237,7 +237,7 @@ namespace DataBuildSystem
 
             #region IReadContext Members
 
-            public int Begin(int block, IBinaryReader reader)
+            public int Begin(int block, IBinaryStreamReader reader)
             {
                 if (block == -1)
                 {
@@ -271,7 +271,7 @@ namespace DataBuildSystem
                 return e.Children.Count > 0;
             }
 
-            public void Read(int block, int item, IBinaryReader reader)
+            public void Read(int block, int item, IBinaryStreamReader reader)
             {
                 switch (block)
                 {
@@ -365,7 +365,7 @@ namespace DataBuildSystem
 
             #region IReadContext Members
 
-            public int Begin(int block, IBinaryReader reader)
+            public int Begin(int block, IBinaryStreamReader reader)
             {
                 if (block == -1)
                 {
@@ -384,7 +384,7 @@ namespace DataBuildSystem
                 return Sections[block].TocExtraCount;
             }
 
-            public void Read(int block, int item, IBinaryReader reader)
+            public void Read(int block, int item, IBinaryStreamReader reader)
             {
                 switch (block)
                 {
@@ -454,7 +454,7 @@ namespace DataBuildSystem
 
             #region IReadContext Members
 
-            public int Begin(int block, IBinaryReader reader)
+            public int Begin(int block, IBinaryStreamReader reader)
             {
                 if (block == -1)
                 {
@@ -473,7 +473,7 @@ namespace DataBuildSystem
                 return 0;
             }
 
-            public void Read(int block, int item, IBinaryReader reader)
+            public void Read(int block, int item, IBinaryStreamReader reader)
             {
                 switch (block)
                 {
@@ -558,7 +558,7 @@ namespace DataBuildSystem
                 return (Int32)((UInt32)value | (UInt32)0x80000000);
             }
 
-            public int Begin(int block, IBinaryWriter writer)
+            public int Begin(int block, IBinaryStreamWriter writer)
             {
                 if (block == -1)
                 {
@@ -572,7 +572,7 @@ namespace DataBuildSystem
                 return section.TocCount;
             }
 
-            public void Write(int block, int item, IBinaryWriter writer)
+            public void Write(int block, int item, IBinaryStreamWriter writer)
             {
                 switch (block)
                 {
@@ -673,7 +673,7 @@ namespace DataBuildSystem
                 }
             }
 
-            public int Begin(int block, IBinaryWriter writer)
+            public int Begin(int block, IBinaryStreamWriter writer)
             {
                 Index = 0;
 
@@ -689,7 +689,7 @@ namespace DataBuildSystem
                 return section.TocCount;
             }
 
-            public void Write(int block, int item, IBinaryWriter writer)
+            public void Write(int block, int item, IBinaryStreamWriter writer)
             {
                 if (block == -1)
                 {
@@ -748,7 +748,7 @@ namespace DataBuildSystem
                 }
             }
 
-            public int Begin(int block, IBinaryWriter writer)
+            public int Begin(int block, IBinaryStreamWriter writer)
             {
                 if (block == -1)
                 {
@@ -762,7 +762,7 @@ namespace DataBuildSystem
                 return section.TocCount;
             }
 
-            public void Write(int block, int item, IBinaryWriter writer)
+            public void Write(int block, int item, IBinaryStreamWriter writer)
             {
                 if (block == -1)
                 {
@@ -808,7 +808,7 @@ namespace DataBuildSystem
 
         private static void ReadTable(IReadContext context, FileStream stream, EPlatform platform)
         {
-            IBinaryReader binaryReader = EndianUtils.CreateBinaryReader(stream, platform);
+            IBinaryStreamReader binaryReader = EndianUtils.CreateBinaryReader(stream, platform);
             {
                 int block = -1;
                 do

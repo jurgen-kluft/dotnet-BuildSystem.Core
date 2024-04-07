@@ -226,7 +226,8 @@ namespace DataBuildSystem
         public bool Load(List<IDataCompiler> compilers)
         {
             BinaryFileReader reader = new();
-            if (!reader.Open(FilePath)) return false;
+            if (!reader.Open(FilePath))
+                return false;
 
             while (reader.Position < reader.Length)
             {

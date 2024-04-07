@@ -57,11 +57,11 @@ namespace GameCore
                     foreach (var o in mReferencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.Empty);
-                        writer.Seek(o);
+                        writer.Seek(o.Offset);
                         writer.Write(NULL);
                     }
 
-                    writer.Seek(currentOffset);
+                    writer.Seek(currentOffset.Offset);
                 }
                 else
                 {
@@ -70,11 +70,11 @@ namespace GameCore
                     foreach (var o in mReferencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.Empty);
-                        writer.Seek(o);
+                        writer.Seek(o.Offset);
                         writer.Write(NULL);
                     }
 
-                    writer.Seek(currentOffset);
+                    writer.Seek(currentOffset.Offset);
                 }
             }
         }
@@ -101,11 +101,11 @@ namespace GameCore
                     foreach (var o in mReferencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.Empty);
-                        writer.Seek(o);
+                        writer.Seek(o.Offset);
                         writer.Write(offsetToWrite);
                     }
 
-                    writer.Seek(currentOffset);
+                    writer.Seek(currentOffset.Offset);
                 }
                 else // EArch.Arch64, 64-bit pointers
                 {
@@ -114,10 +114,10 @@ namespace GameCore
                     foreach (var o in mReferencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.Empty);
-                        writer.Seek(o);
+                        writer.Seek(o.Offset);
                         writer.Write(offsetToWrite);
                     }
-                    writer.Seek(currentOffset);
+                    writer.Seek(currentOffset.Offset);
                 }
             }
             return true;

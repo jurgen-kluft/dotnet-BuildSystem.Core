@@ -149,7 +149,7 @@ namespace GameCore
             }
         }
 
-        internal bool save(StreamWriter writer)
+        internal bool save(System.IO.StreamWriter writer)
         {
             try
             {
@@ -358,12 +358,12 @@ namespace GameCore
 
             try
             {
-                FileInfo fileInfo = new FileInfo(dstPath + main.Filename + extension);
+                var fileInfo = new FileInfo(dstPath + main.Filename + extension);
                 if (fileInfo.Exists == false)
                     return false;
 
-                FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                StreamReader reader = new StreamReader(fileStream);
+                var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var reader = new System.IO.StreamReader(fileStream);
 
                 bool ok = false;
                 try
@@ -531,7 +531,7 @@ namespace GameCore
         #endregion
         #region Private Static Methods
 
-        private static bool sReadSingle(StreamReader reader, DepFile depfile)
+        private static bool sReadSingle(System.IO.StreamReader reader, DepFile depfile)
         {
             bool readOneDepFile = false;
 
@@ -683,7 +683,7 @@ namespace GameCore
             return sReadMulti(filename, string.Empty, path, out depFiles);
         }
 
-        internal static List<DepFile> sReadMulti(StreamReader reader)
+        internal static List<DepFile> sReadMulti(System.IO.StreamReader reader)
         {
             List<DepFile> readDepFiles = new List<DepFile>();
             while (!reader.EndOfStream)
@@ -708,7 +708,7 @@ namespace GameCore
                 }
 
                 FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                StreamReader reader = new StreamReader(fileStream);
+                System.IO.StreamReader reader = new System.IO.StreamReader(fileStream);
 
                 List<DepFile> readDepFiles = sReadMulti(reader);
                 depFiles = readDepFiles.ToArray();

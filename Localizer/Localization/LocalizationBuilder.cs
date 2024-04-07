@@ -649,7 +649,7 @@ namespace DataBuildSystem
                         mFileSize = fileinfoXlsIds.Length;
 
                         FileStream filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        IBinaryReader filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, LocalizerConfig.Platform);
+                        IBinaryStreamReader filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, LocalizerConfig.Platform);
 
                         Int64 magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);
@@ -843,7 +843,7 @@ namespace DataBuildSystem
                         mFileSize = fileinfoXlsIds.Length;
 
                         FileStream filestreamXlsIds = new(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        IBinaryReader filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, Platform.Current);
+                        IBinaryStreamReader filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, Platform.Current);
 
                         Int64 magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);

@@ -229,9 +229,10 @@ namespace GameCore
                 mDataWriter.Write((Int32) v.ID);
             }
 
-            internal bool Seek(StreamOffset pos)
+            internal Int64 Seek(Int64 pos)
             {
-                return mTypeWriter.Seek(pos) && mDataWriter.Seek(pos);
+                mTypeWriter.Seek(pos);
+                return mDataWriter.Seek(pos);
             }
 
             internal Hash160 ComputeHash()
@@ -264,10 +265,10 @@ namespace GameCore
                     var currentPos = new StreamOffset(mDataStream.Position);
                     for (var i = 0; i < oldContext.Count; i++)
                     {
-                        mDataWriter.Seek(oldContext[i]);
+                        mDataWriter.Seek(oldContext[i].Offset);
                         mDataWriter.Write(newRef.ID);
                     }
-                    mDataWriter.Seek(currentPos);
+                    mDataWriter.Seek(currentPos.Offset);
 
                     // Update reference and offsets
                     if (HoldsStreamReference(newRef))
@@ -519,7 +520,7 @@ namespace GameCore
             }
         }
 
-        public bool Seek(StreamOffset offset)
+        public Int64 Seek(Int64 offset)
         {
             return mCurrentDataBlock.Seek(offset);
         }

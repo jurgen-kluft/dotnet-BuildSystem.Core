@@ -1104,11 +1104,11 @@ namespace GameData
                     // member offsets and when done seek back to the end position.
                     var endPos = _mWriter.Position;
                     {
-                        _mWriter.Seek(new StreamOffset(offsetsPos));
+                        _mWriter.Seek(offsetsPos);
                         foreach (short offset in memberOffsets)
                             _mWriter.Write(offset);
                     }
-                    _mWriter.Seek(new StreamOffset(endPos));
+                    _mWriter.Seek(endPos);
 
                     _mWriter.EndBlock();
                 }
