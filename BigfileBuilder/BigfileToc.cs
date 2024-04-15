@@ -242,8 +242,8 @@ namespace DataBuildSystem
                 if (block == -1)
                 {
                     // Read the header
-                    int totalNumberOfEntries = reader.ReadInt32();
-                    int numberOfSections = reader.ReadInt32();
+                    var totalNumberOfEntries = reader.ReadInt32();
+                    var numberOfSections = reader.ReadInt32();
 
                     Sections = new(numberOfSections);
                     Entries.Capacity = totalNumberOfEntries;
@@ -276,12 +276,12 @@ namespace DataBuildSystem
                 switch (block)
                 {
                     case -1:
-                        TocSection ts = Sections[item];
+                        var ts = Sections[item];
                         var count = reader.ReadInt32();
                         ts.DataOffset = reader.ReadInt32() << 5;
                         ts.TocOffset = reader.ReadInt32();
                         ts.Toc = new(count);
-                        for (int j = 0; j < count; ++j)
+                        for (var j = 0; j < count; ++j)
                         {
                             var e = new TocEntry();
                             ts.Toc.Add(e);
@@ -294,9 +294,9 @@ namespace DataBuildSystem
                         if ((block & 1) == 0)
                         {
                             // Read Toc Entries
-                            Int32 fileOffset = reader.ReadInt32();
-                            Int32 fileSize = reader.ReadInt32();
-                            int sectionIndex = (block / 2);
+                            var fileOffset = reader.ReadInt32();
+                            var fileSize = reader.ReadInt32();
+                            var sectionIndex = (block / 2);
                             TocEntry e = new((Int64)item, new StreamOffset(fileOffset), fileSize);
                             Sections[sectionIndex].Toc.Add(e);
                             if (HasChildren(e))
@@ -307,15 +307,15 @@ namespace DataBuildSystem
                         else
                         {
                             // Read extra info for some TocEntry
-                            int sectionIndex = (block / 2);
-                            ITocEntry e = Sections[sectionIndex].Toc[item];
+                            var sectionIndex = (block / 2);
+                            var e = Sections[sectionIndex].Toc[item];
                             if (HasChildren(e))
                             {
-                                int numChildren = reader.ReadInt32();
-                                for (int i = 0; i < numChildren; ++i)
+                                var numChildren = reader.ReadInt32();
+                                for (var i = 0; i < numChildren; ++i)
                                 {
-                                    int childFileId = reader.ReadInt32();
-                                    ITocEntry childEntry = Sections[sectionIndex].Toc[childFileId];
+                                    var childFileId = reader.ReadInt32();
+                                    var childEntry = Sections[sectionIndex].Toc[childFileId];
                                     e.Children.Add(childEntry);
                                 }
                             }
@@ -370,8 +370,8 @@ namespace DataBuildSystem
                 if (block == -1)
                 {
                     // Read the header
-                    int numTotalEntries = reader.ReadInt32();
-                    int numSections = reader.ReadInt32();
+                    var numTotalEntries = reader.ReadInt32();
+                    var numSections = reader.ReadInt32();
 
                     return numSections;
                 }
@@ -403,10 +403,10 @@ namespace DataBuildSystem
                         else
                         {
                             reader.Position = CMath.Align(reader.Position, 4);
-                            string filename = reader.ReadString();
+                            var filename = reader.ReadString();
 
-                            int sectionIndex = (block / 2);
-                            ITocEntry te = Sections[sectionIndex].Toc[item];
+                            var sectionIndex = (block / 2);
+                            var te = Sections[sectionIndex].Toc[item];
                             te.Filename = filename;
                         }
 
@@ -459,8 +459,8 @@ namespace DataBuildSystem
                 if (block == -1)
                 {
                     // Read the header
-                    int numTotalEntries = reader.ReadInt32();
-                    int numSections = reader.ReadInt32();
+                    var numTotalEntries = reader.ReadInt32();
+                    var numSections = reader.ReadInt32();
 
                     return numSections;
                 }
@@ -478,7 +478,7 @@ namespace DataBuildSystem
                 switch (block)
                 {
                     case -1:
-                        TocSection ts = Sections[item];
+                        var ts = Sections[item];
                         var count = reader.ReadInt32();
                         reader.ReadInt32();
                         reader.ReadInt64();
@@ -487,11 +487,11 @@ namespace DataBuildSystem
 
                     case >= 0:
                         // Read Toc Entry content hash
-                        byte[] hash = new byte[Hash160.Size];
-                        reader.ReadBytes(hash, 0, hash.Length);
+                        var hash = new byte[Hash160.Size];
+                        reader.Read(hash, 0, hash.Length);
 
-                        int sectionIndex = block;
-                        ITocEntry te = Sections[sectionIndex].Toc[item];
+                        var sectionIndex = block;
+                        var te = Sections[sectionIndex].Toc[item];
                         te.FileContentHash = Hash160.ConstructTake(hash);
                         break;
                 }
@@ -529,7 +529,7 @@ namespace DataBuildSystem
                 Entries = entries;
 
                 // Compute the offset of each section
-                Int32 offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
+                var offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
                 foreach (var section in Sections)
                 {
                     section.TocOffset = offset;
@@ -541,7 +541,7 @@ namespace DataBuildSystem
                     {
                         if (HasChildren(te))
                         {
-                            int binarySize = sizeof(Int32) + te.Children.Count * sizeof(Int32);
+                            var binarySize = sizeof(Int32) + te.Children.Count * sizeof(Int32);
                             offset += binarySize;
                         }
                     }
@@ -568,7 +568,7 @@ namespace DataBuildSystem
                     return Sections.Count;
                 }
 
-                TocSection section = Sections[block / 2];
+                var section = Sections[block / 2];
                 return section.TocCount;
             }
 
@@ -580,7 +580,7 @@ namespace DataBuildSystem
                         {
                             // Write the offset to each section, use 64-bit so that
                             // the C++ side can replace it with a pointer after loading.
-                            TocSection section = Sections[item];
+                            var section = Sections[item];
                             writer.Write((UInt64)section.TocOffset);
                             break;
                         }
@@ -588,11 +588,11 @@ namespace DataBuildSystem
                         {
                             if (block.IsEven())
                             {
-                                TocSection section = Sections[block / 2];
-                                ITocEntry e = section.Toc[item];
+                                var section = Sections[block / 2];
+                                var e = section.Toc[item];
 
-                                Int32 offset = (Int32)(e.FileOffset.Offset >> 5);
-                                Int32 size = e.FileSize;
+                                var offset = (Int32)(e.FileOffset.Offset >> 5);
+                                var size = e.FileSize;
                                 if (HasChildren(e))
                                 {
                                     // Mark file size so that it is known that offset is actually an offset
@@ -607,8 +607,8 @@ namespace DataBuildSystem
                             }
                             else
                             {
-                                TocSection section = Sections[block / 2];
-                                ITocEntry e = section.Toc[item];
+                                var section = Sections[block / 2];
+                                var e = section.Toc[item];
                                 if (HasChildren(e))
                                 {
                                     writer.Write(e.Children.Count);
@@ -659,7 +659,7 @@ namespace DataBuildSystem
                 FilenameOffsets = new(entries.Count);
 
                 // Compute the offset of each section
-                Int32 offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
+                var offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
                 foreach (var section in Sections)
                 {
                     SectionOffsets.Add(offset);
@@ -685,7 +685,7 @@ namespace DataBuildSystem
                     return Sections.Count;
                 }
 
-                TocSection section = Sections[block / 2];
+                var section = Sections[block / 2];
                 return section.TocCount;
             }
 
@@ -703,7 +703,7 @@ namespace DataBuildSystem
                     }
                     else
                     {
-                        TocSection section = Sections[block / 2];
+                        var section = Sections[block / 2];
                         writer.Write(section.Toc[item].Filename);
                     }
                 }
@@ -740,7 +740,7 @@ namespace DataBuildSystem
                 SectionOffsets = new(Sections.Count);
 
                 // Compute the offset of each section
-                Int32 offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
+                var offset = sizeof(Int32) + sizeof(Int32) + Sections.Count * sizeof(Int32);
                 foreach (var section in Sections)
                 {
                     SectionOffsets.Add(offset);
@@ -758,7 +758,7 @@ namespace DataBuildSystem
                     return Sections.Count;
                 }
 
-                TocSection section = Sections[block];
+                var section = Sections[block];
                 return section.TocCount;
             }
 
@@ -770,7 +770,7 @@ namespace DataBuildSystem
                 }
                 else
                 {
-                    TocSection section = Sections[block];
+                    var section = Sections[block];
                     section.Toc[item].FileContentHash.WriteTo(writer);
                 }
             }
@@ -795,7 +795,7 @@ namespace DataBuildSystem
 
         public static bool Exists(string filename)
         {
-            string bigFileTocFilename = filename;
+            var bigFileTocFilename = filename;
             bigFileTocFilename = Path.ChangeExtension(bigFileTocFilename, BigfileConfig.BigFileTocExtension);
             FileInfo fileInfo = new(bigFileTocFilename);
             return fileInfo.Exists;
@@ -808,13 +808,13 @@ namespace DataBuildSystem
 
         private static void ReadTable(IReadContext context, FileStream stream, EPlatform platform)
         {
-            IBinaryStreamReader binaryReader = EndianUtils.CreateBinaryReader(stream, platform);
+            var binaryReader = EndianUtils.CreateBinaryReader(stream, platform);
             {
-                int block = -1;
+                var block = -1;
                 do
                 {
-                    int count = context.Begin(block, binaryReader);
-                    for (int i = 0; i < count; ++i)
+                    var count = context.Begin(block, binaryReader);
+                    for (var i = 0; i < count; ++i)
                         context.Read(block, i, binaryReader);
                     block += 1;
                 } while (context.Next(block));
@@ -839,11 +839,11 @@ namespace DataBuildSystem
         {
             IBinaryStreamWriter binaryWriter = EndianUtils.CreateBinaryWriter(stream, platform);
             {
-                int block = -1;
+                var block = -1;
                 do
                 {
-                    int count = context.Begin(block, binaryWriter);
-                    for (int i = 0; i < count; ++i)
+                    var count = context.Begin(block, binaryWriter);
+                    for (var i = 0; i < count; ++i)
                         context.Write(block, i, binaryWriter);
                     block += 1;
                 } while (context.Next(block));
@@ -856,7 +856,7 @@ namespace DataBuildSystem
             FileInfo fileInfo = new(filename);
             if (!fileInfo.Exists)
             {
-                FileStream fileCreationStream = File.Create(fileInfo.FullName);
+                var fileCreationStream = File.Create(fileInfo.FullName);
                 fileCreationStream.Close();
             }
 
@@ -871,9 +871,9 @@ namespace DataBuildSystem
 
             try
             {
-                FileStream bigFileTocFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileTocExtension));
-                FileStream bigFileFdbFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileFdbExtension));
-                FileStream bigFileHdbFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileHdbExtension));
+                var bigFileTocFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileTocExtension));
+                var bigFileFdbFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileFdbExtension));
+                var bigFileHdbFileStream = OpenFileStreamForReading(Path.ChangeExtension(filename, BigfileConfig.BigFileHdbExtension));
                 {
                     try
                     {
@@ -904,7 +904,7 @@ namespace DataBuildSystem
         {
             // Create all TocEntry items in the same order as the Bigfile files which is important
             // because the FileId is equal to the location(index) in the List/Array.
-            Int32 totalEntries = 0;
+            var totalEntries = 0;
             foreach (var bf in bigfiles)
             {
                 totalEntries += bf.Files.Count;
@@ -917,7 +917,7 @@ namespace DataBuildSystem
                 TocSection section = new();
                 foreach (var file in bf.Files)
                 {
-                    ITocEntry fileEntry = Factory.Create(file.FileId, file.FileOffset, file.FileSize, file.Filename, ECompressed.No, file.FileContentHash);
+                    var fileEntry = Factory.Create(file.FileId, file.FileOffset, file.FileSize, file.Filename, ECompressed.No, file.FileContentHash);
                     entries.Add(fileEntry);
                     section.Toc.Add(fileEntry);
                 }
@@ -925,18 +925,18 @@ namespace DataBuildSystem
             }
 
             // Manage children of each TocEntry
-            for (int i=0; i<bigfiles.Count; ++i)
+            for (var i=0; i<bigfiles.Count; ++i)
             {
-                Bigfile bf = bigfiles[i];
-                TocSection section = sections[i];
+                var bf = bigfiles[i];
+                var section = sections[i];
 
-                for (int j=0; j<bf.Files.Count; ++j)
+                for (var j=0; j<bf.Files.Count; ++j)
                 {
-                    BigfileFile bff = bf.Files[i];
-                    ITocEntry entry = entries[(int)bff.FileId];
+                    var bff = bf.Files[i];
+                    var entry = entries[(int)bff.FileId];
                     foreach (var child in bff.Children)
                     {
-                        ITocEntry childEntry = entries[(int)child.FileId];
+                        var childEntry = entries[(int)child.FileId];
                         entry.Children.Add(childEntry);
                         section.TocExtraCount++;
                     }
@@ -945,9 +945,9 @@ namespace DataBuildSystem
 
             try
             {
-                FileStream bigFileTocFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
-                FileStream bigFileFdbFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileFdbExtension));
-                FileStream bigFileHdbFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileHdbExtension));
+                var bigFileTocFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
+                var bigFileFdbFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileFdbExtension));
+                var bigFileHdbFileStream = OpenFileStreamForWriting(Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileHdbExtension));
 
                 {
                     try
