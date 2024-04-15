@@ -143,7 +143,7 @@ namespace DataBuildSystem
                         {
                             FileInfo fileInfo = new(filepath);
                             if (fileInfo.Exists)
-                                newHash = HashUtility.compute(fileInfo);
+                                newHash = HashUtility.Compute(fileInfo);
                         }
                         break;
                     case EMethod.TimestampHash:

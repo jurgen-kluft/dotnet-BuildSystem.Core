@@ -213,7 +213,7 @@ namespace GameCore
                     _referenceContextDatabase.Add(v, streamContext);
                 }
                 _typeWriter.Write((int) EDataType.Reference);
-                _dataWriter.Write((int) v.ID);
+                _dataWriter.Write((int) v.Id);
             }
 
             internal long Seek(long pos)
@@ -224,7 +224,7 @@ namespace GameCore
 
             internal Hash160 ComputeHash()
             {
-                return HashUtility.compute(_dataStream.GetBuffer(), (int) _dataStream.Length, _typeStream.GetBuffer(), (int) _typeStream.Length);
+                return HashUtility.Compute(_dataStream.GetBuffer(), (int) _dataStream.Length, _typeStream.GetBuffer(), (int) _typeStream.Length);
             }
 
             #endregion
@@ -253,7 +253,7 @@ namespace GameCore
                     for (var i = 0; i < oldContext.Count; i++)
                     {
                         _dataWriter.Seek(oldContext[i]);
-                        _dataWriter.Write(newRef.ID);
+                        _dataWriter.Write(newRef.Id);
                     }
                     _dataWriter.Seek(currentPos);
 

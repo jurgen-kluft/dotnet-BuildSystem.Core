@@ -72,7 +72,6 @@ namespace GameData
             // NOTE
             // In the list of classes we have many 'duplicates', classes of the same type that are emitted
             // multiple times. We need to make sure the sorting of members is stable and deterministic.
-
             var memberSizeComparer = new MetaCode.MetaCode.SortMembersBySize(metaCode);
             for (var i = 0; i < 2; ++i)
             {
@@ -85,7 +84,7 @@ namespace GameData
             }
 
             // Write out every underlying member 'data' of the code to a DataStream
-            var dataStream = new CppDataStream2(platform);
+            var dataStream = new CppDataStream2(platform, stringTable);
             DataStreamWriter2.Write(metaCode, stringTable, dataStream);
 
             // Finalize the DataStream by writing the data to a file

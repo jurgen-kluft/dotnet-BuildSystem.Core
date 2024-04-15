@@ -366,17 +366,17 @@ namespace GameCore
 
         public static Hash160 Compute_ASCII(string str)
         {
-            var data = System.Text.ASCIIEncoding.Default.GetBytes(str);
-            return Compute(data);
+            var data = System.Text.Encoding.ASCII.GetBytes(str);
+            return Compute(data.AsSpan());
         }
 
         public static Hash160 Compute_UTF8(string str)
         {
-            var data = System.Text.UTF8Encoding.Default.GetBytes(str);
-            return Compute(data);
+            var data = System.Text.Encoding.UTF8.GetBytes(str);
+            return Compute(data.AsSpan());
         }
 
-        public static Hash160 compute(FileInfo s)
+        public static Hash160 Compute(FileInfo s)
         {
             if (!s.Exists)
                 return Hash160.Null;
@@ -410,28 +410,23 @@ namespace GameCore
             }
         }
 
-        public static Hash160 compute(MemoryStream ms)
+        public static Hash160 Compute(MemoryStream ms)
         {
             var data = ms.GetBuffer();
             return Sha1.Compute(data);
         }
 
-        public static Hash160 compute(bool[] values)
+        public static Hash160 Compute(bool[] values)
         {
             var ms = new MemoryStream();
             foreach (var v in values)
             {
                 ms.WriteByte(v ? (byte)1 : (byte)0);
             }
-            return compute(ms);
+            return Compute(ms);
         }
 
-        public static Hash160 compute(byte[] v)
-        {
-            return Sha1.Compute(v, 0, v.Length);
-        }
-
-        public static Hash160 compute(byte[] v1, int v1Length, byte[] v2, int v2Length)
+        public static Hash160 Compute(byte[] v1, int v1Length, byte[] v2, int v2Length)
         {
             var sha1 = SHA1.Create();
             sha1.TransformBlock(v1, 0, v1Length, v1, 0);
@@ -439,27 +434,22 @@ namespace GameCore
             return Hash160.ConstructTake(sha1.Hash);
         }
 
-        public static Hash160 compute(byte[] v, int index, int count)
-        {
-            return Sha1.Compute(v, index, count);
-        }
-
-        public static Hash160 compute(ReadOnlySpan<byte> data)
+        public static Hash160 Compute(ReadOnlySpan<byte> data)
         {
             return Sha1.Compute(data);
         }
 
-        public static Hash160 compute(sbyte[] v)
+        public static Hash160 Compute(sbyte[] v)
         {
             return Sha1.Compute((byte[])(Array)v, 0, v.Length);
         }
 
-        public static Hash160 compute(sbyte[] v, int index, int count)
+        public static Hash160 Compute(sbyte[] v, int index, int count)
         {
             return Sha1.Compute((byte[])(Array)v, index, count);
         }
 
-        public static Hash160 compute(short[] values)
+        public static Hash160 Compute(short[] values)
         {
             var bytes = new byte[2*values.Length];
             var count = 0;
@@ -472,10 +462,10 @@ namespace GameCore
                     v = (short)(v >> 8);
                 }
             }
-            return compute(bytes);
+            return Compute(bytes);
         }
 
-        public static Hash160 compute(ushort[] values)
+        public static Hash160 Compute(ushort[] values)
         {
             var bytes = new byte[2*values.Length];
             var count = 0;
@@ -488,10 +478,10 @@ namespace GameCore
                     v = (ushort)(v >> 8);
                 }
             }
-            return compute(bytes);
+            return Compute(bytes);
         }
 
-        public static Hash160 compute(int[] values)
+        public static Hash160 Compute(int[] values)
         {
             var bytes = new byte[4*values.Length];
             var count = 0;
@@ -504,10 +494,10 @@ namespace GameCore
                     v = (int)(v >> 8);
                 }
             }
-            return compute(bytes);
+            return Compute(bytes);
         }
 
-        public static Hash160 compute(uint[] values)
+        public static Hash160 Compute(uint[] values)
         {
             var bytes = new byte[4*values.Length];
             var count = 0;
@@ -520,10 +510,10 @@ namespace GameCore
                     v = (uint)(v >> 8);
                 }
             }
-            return compute(bytes);
+            return Compute(bytes);
         }
 
-        public static Hash160 compute(long[] values)
+        public static Hash160 Compute(long[] values)
         {
             var bytes = new byte[8*values.Length];
             var count = 0;
@@ -536,10 +526,10 @@ namespace GameCore
                     v = (long)(v >> 8);
                 }
             }
-            return compute(bytes);
+            return Compute(bytes);
         }
 
-        public static Hash160 compute(ulong[] values)
+        public static Hash160 Compute(ulong[] values)
         {
             var bytes = new byte[8*values.Length];
             var count = 0;
@@ -552,10 +542,10 @@ namespace GameCore
                     v = (ulong)(v >> 8);
                 }
             }
-            return compute(bytes);
+            return Compute(bytes);
         }
 
-        public static Hash160 compute(float[] values)
+        public static Hash160 Compute(float[] values)
         {
             var bytes = new byte[4*values.Length];
             var count = 0;
@@ -568,7 +558,7 @@ namespace GameCore
                     bytes[count++] = vb[i];
                 }
             }
-            return compute(bytes);
+            return Compute(bytes);
         }
 
         #endregion

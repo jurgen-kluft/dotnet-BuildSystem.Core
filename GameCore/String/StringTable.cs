@@ -8,12 +8,13 @@ namespace GameCore
     {
         #region Fields
 
-        private readonly UTF8Encoding _encoding = new UTF8Encoding();
+        private readonly UTF8Encoding _encoding = new ();
         private readonly Dictionary<string, int> _dictionary = new();
         private readonly List<uint> _hashes = new();
         private readonly List<int> _lengths = new();
         private readonly List<StreamReference> _references = new();
         private readonly List<string> _strings = new();
+        private readonly byte[] _utf8 = new byte[8192];
 
         #endregion
 
@@ -38,18 +39,35 @@ namespace GameCore
             _references.Add(StreamReference.NewReference);
             _strings.Add(inString);
 
-            var utf8 = _encoding.GetBytes(inString);
-            _lengths.Add(utf8.Length + 1);
+            var count = _encoding.GetByteCount(inString);
+            if (count < (_utf8.Length - 1))
+            {
+                var len = _encoding.GetBytes(inString, 0, inString.Length, _utf8, 0);
+                _lengths.Add(len + 1);
 
-            var hash = Hashing.Compute(utf8);
-            _hashes.Add(hash);
+                var hash = Hashing.Compute(_utf8.AsSpan(0, len + 1));
+                _hashes.Add(hash);
+            }
+            else
+            {
+                var bytes = new byte[count + 1];
+                var len = _encoding.GetBytes(inString, 0, inString.Length, bytes, 0);
+                _lengths.Add(len + 1);
+
+                var hash = Hashing.Compute(bytes);
+                _hashes.Add(hash);
+            }
 
             return index;
         }
 
         public byte[] GetBytes(string inString)
         {
-            return _encoding.GetBytes(inString);
+            var idx = IndexOf(inString);
+            var len = LengthOfByIndex(idx);
+            var bytes = new byte[len];
+            _encoding.GetBytes(inString, 0, inString.Length, bytes, 0);
+            return bytes;
         }
 
         private int InternalIndexOf(string inString)
@@ -80,6 +98,11 @@ namespace GameCore
             return _lengths[index];
         }
 
+        public StreamReference ReferenceOfByIndex(int index)
+        {
+            return _references[index];
+        }
+
         private StreamReference InternalReferenceOf(string inString)
         {
             var index = InternalIndexOf(inString);
@@ -88,8 +111,7 @@ namespace GameCore
 
         public StreamReference ReferenceOf(string inString)
         {
-            var str = inString;
-            return InternalReferenceOf(str);
+            return InternalReferenceOf(inString);
         }
 
         public void SortByHash()
@@ -128,14 +150,11 @@ namespace GameCore
             }
         }
 
-        public void Write(IBinaryStreamWriter writer, Dictionary<StreamReference, StreamOffset> dataOffsetDataBase)
+        public void Write(IBinaryStreamWriter writer, Dictionary<StreamReference, long> dataOffsetDataBase)
         {
             SortByHash();
 
-            StreamOffset offset = new(writer.Position);
-
-            // Need to determine some good size
-            var utf8 = new byte[8192];
+            var offset = writer.Position;
 
             // Write strings and assign them a StreamReference and StreamOffset
             foreach (var s in _strings)
@@ -143,9 +162,9 @@ namespace GameCore
                 var r = InternalReferenceOf(s);
                 dataOffsetDataBase.Add(r, offset);
 
-                var utf8Len = _encoding.GetBytes(s, 0, s.Length, utf8, 0);
-                utf8[utf8Len] = 0; // Do include a terminating zero
-                writer.Write(utf8, 0, utf8Len + 1);
+                var utf8Len = _encoding.GetBytes(s, 0, s.Length, _utf8, 0);
+                _utf8[utf8Len] = 0; // Do include a terminating zero
+                writer.Write(_utf8, 0, utf8Len + 1);
 
                 offset += utf8Len + 1;
             }

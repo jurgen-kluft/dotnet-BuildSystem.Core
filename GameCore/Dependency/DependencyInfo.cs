@@ -91,7 +91,7 @@ namespace GameCore
                 case DepInfo.EDepMethod.HASH:
                     {
                         FileInfo fileInfo = new FileInfo(fullFilename);
-                        return fileInfo.Exists ? HashUtility.compute(fileInfo) : Hash160.Empty;
+                        return fileInfo.Exists ? HashUtility.Compute(fileInfo) : Hash160.Empty;
                     }
 
                 case DepInfo.EDepMethod.TIMESTAMP:

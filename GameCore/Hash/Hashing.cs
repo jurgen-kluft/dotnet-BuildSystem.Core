@@ -28,6 +28,15 @@ namespace GameCore
             hash = hash ^ (hash >> 16);
         }
 
+        private static void InternalHash(ReadOnlySpan<byte> data, ref uint hash)
+        {
+            // x 65599
+            hash = 0;
+            foreach (var b in data)
+                hash = hash * 65599 + b;
+            hash = hash ^ (hash >> 16);
+        }
+
         #endregion
         #region Public Methods
 
@@ -42,6 +51,13 @@ namespace GameCore
         {
             uint hash = 0;
             InternalHash(data, data.Length, ref hash);
+            return hash;
+        }
+
+        public static uint Compute(ReadOnlySpan<byte> data)
+        {
+            uint hash = 0;
+            InternalHash(data, ref hash);
             return hash;
         }
 
