@@ -47,12 +47,10 @@ namespace GameData
         // functionality to write any kind of class, function and member.
 
 
-        public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename, string relocFilename)
+        public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename, string relocationFilename)
         {
-            // Analyze Data.Root and generate a list of 'Code.Class' objects from this.
-
             // Use string table in MetaCode
-            var stringTable = new StringTable(); // The StringTable to collect all strings (and collapse duplicates) used in the data
+            var stringTable = new StringTable();
             var metaCode = new MetaCode.MetaCode(stringTable);
             var metaMemberFactory = new MetaMemberFactory(metaCode);
             var typeInformation = new GenericTypeInformation();
@@ -68,7 +66,7 @@ namespace GameData
                 metaCode.CombineBooleans(ci);
             }
 
-            // Sort the members on every 'Code.Class' so that alignment of data is solved.
+            // Sort the members on every class so that alignment of data is solved.
             // NOTE
             // In the list of classes we have many 'duplicates', classes of the same type that are emitted
             // multiple times. We need to make sure the sorting of members is stable and deterministic.
