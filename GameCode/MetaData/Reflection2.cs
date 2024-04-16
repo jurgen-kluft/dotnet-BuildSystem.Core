@@ -24,7 +24,7 @@ namespace GameData
 
         #region Fields
 
-        private readonly MetaCode.MetaCode _metaCode;
+        private readonly MetaCode.MetaCode2 _metaCode2;
         private readonly IMemberFactory2 _memberFactory;
         private readonly ITypeInformation _typeInformation;
 
@@ -32,9 +32,9 @@ namespace GameData
 
         #region Constructor
 
-        public Reflector2(MetaCode.MetaCode metaCode, MetaCode.IMemberFactory2 memberFactory, ITypeInformation typeInformation)
+        public Reflector2(MetaCode.MetaCode2 metaCode2, MetaCode.IMemberFactory2 memberFactory, ITypeInformation typeInformation)
         {
-            _metaCode = metaCode;
+            _metaCode2 = metaCode2;
             _memberFactory = memberFactory;
             _typeInformation = typeInformation;
         }
@@ -61,7 +61,7 @@ namespace GameData
             if (m.Object is not Array array)
                 return;
 
-            var startIndex = _metaCode.MembersType.Count;
+            var startIndex = _metaCode2.MembersType.Count;
             var elementType = array.GetType().GetElementType();
             var elementName = string.Empty;
             for (var i = 0; i < array.Length; i++)
@@ -70,7 +70,7 @@ namespace GameData
                 CreateMember(element, elementType, elementName);
             }
 
-            var endIndex = _metaCode.MembersType.Count;
+            var endIndex = _metaCode2.MembersType.Count;
             var count = endIndex - startIndex;
             if (count == 0)
             {
@@ -78,7 +78,7 @@ namespace GameData
                 CreateMember(null, elementType, elementName);
             }
 
-            _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, count);
+            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, count);
         }
 
         private void ProcessList(MemberProcess m)
@@ -86,7 +86,7 @@ namespace GameData
             if (m.Object is not IList list)
                 return;
 
-            var startIndex = _metaCode.MembersType.Count;
+            var startIndex = _metaCode2.MembersType.Count;
             var elementType = m.Type.GetGenericArguments()[0];
             var elementName = string.Empty;
             foreach (var element in list)
@@ -94,9 +94,9 @@ namespace GameData
                 CreateMember(element, elementType, elementName);
             }
 
-            var endIndex = _metaCode.MembersType.Count;
+            var endIndex = _metaCode2.MembersType.Count;
 
-            _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
+            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
         }
 
         private void ProcessDictionary(MemberProcess m)
@@ -105,7 +105,7 @@ namespace GameData
                 return;
 
             var elementName = string.Empty;
-            var startIndex = _metaCode.MembersType.Count;
+            var startIndex = _metaCode2.MembersType.Count;
 
             var dictionaryGenericTyping = dictionary.GetType().GetGenericArguments();
 
@@ -121,14 +121,14 @@ namespace GameData
                 CreateMember(element.Value, valueType, elementName);
             }
 
-            var endIndex = _metaCode.MembersType.Count;
+            var endIndex = _metaCode2.MembersType.Count;
 
-            _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
+            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
         }
 
         private void ProcessClass(MemberProcess m)
         {
-            var startIndex = _metaCode.MembersType.Count;
+            var startIndex = _metaCode2.MembersType.Count;
             var dataObjectFields = GetFieldInfoList(m.Object);
             foreach (var dataObjectFieldInfo in dataObjectFields)
             {
@@ -138,8 +138,8 @@ namespace GameData
                 CreateMember(fieldValue, fieldType, fieldName);
             }
 
-            var endIndex = _metaCode.MembersType.Count;
-            _metaCode.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
+            var endIndex = _metaCode2.MembersType.Count;
+            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
         }
 
         private void CreateMember(object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
@@ -216,47 +216,47 @@ namespace GameData
             }
             else if (_typeInformation.IsBool(dataObjectFieldType))
             {
-                _memberFactory.NewBoolMember(dataObjectFieldValue != null && (bool)dataObjectFieldValue, memberName);
+                _memberFactory.NewBoolMember(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsInt8(dataObjectFieldType))
             {
-                _memberFactory.NewInt8Member((Int8)dataObjectFieldValue, memberName);
+                _memberFactory.NewInt8Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsUInt8(dataObjectFieldType))
             {
-                _memberFactory.NewUInt8Member((UInt8)dataObjectFieldValue, memberName);
+                _memberFactory.NewUInt8Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsInt16(dataObjectFieldType))
             {
-                _memberFactory.NewInt16Member((Int16)dataObjectFieldValue, memberName);
+                _memberFactory.NewInt16Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsUInt16(dataObjectFieldType))
             {
-                _memberFactory.NewUInt16Member((UInt16)dataObjectFieldValue, memberName);
+                _memberFactory.NewUInt16Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsInt32(dataObjectFieldType))
             {
-                _memberFactory.NewInt32Member((Int32)dataObjectFieldValue, memberName);
+                _memberFactory.NewInt32Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsUInt32(dataObjectFieldType))
             {
-                _memberFactory.NewUInt32Member((UInt32)dataObjectFieldValue, memberName);
+                _memberFactory.NewUInt32Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsInt64(dataObjectFieldType))
             {
-                _memberFactory.NewInt64Member((Int64)dataObjectFieldValue, memberName);
+                _memberFactory.NewInt64Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsUInt64(dataObjectFieldType))
             {
-                _memberFactory.NewUInt64Member((UInt64)dataObjectFieldValue, memberName);
+                _memberFactory.NewUInt64Member(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsFloat(dataObjectFieldType))
             {
-                _memberFactory.NewFloatMember((float)dataObjectFieldValue, memberName);
+                _memberFactory.NewFloatMember(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsDouble(dataObjectFieldType))
             {
-                _memberFactory.NewDoubleMember((double)dataObjectFieldValue, memberName);
+                _memberFactory.NewDoubleMember(dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsEnum(dataObjectFieldType))
             {

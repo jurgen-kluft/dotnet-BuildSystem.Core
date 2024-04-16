@@ -9,25 +9,38 @@ namespace GameCore
         #region Fields
 
         private readonly UTF8Encoding _encoding = new ();
-        private readonly Dictionary<string, int> _dictionary = new();
-        private readonly List<uint> _hashes = new();
-        private readonly List<int> _lengths = new();
-        private readonly List<StreamReference> _references = new();
-        private readonly List<string> _strings = new();
-        private readonly byte[] _utf8 = new byte[8192];
+        private readonly Dictionary<string, int> _dictionary;
+        private readonly List<uint> _hashes;
+        private readonly List<int> _lengths;
+        private readonly List<StreamReference> _references;
+        private readonly List<string> _strings;
+        private readonly byte[] _utf8;
 
         #endregion
-
+        #region Constructor
+        
+        public StringTable(int estimatedNumberOfStrings = 4096, int longestUtf8StrLen = 8192)
+        {
+            _dictionary = new Dictionary<string, int>(estimatedNumberOfStrings);
+            _hashes = new List<uint>(estimatedNumberOfStrings);
+            _lengths = new List<int>(estimatedNumberOfStrings);
+            _references = new List<StreamReference>(estimatedNumberOfStrings);
+            _strings = new List<string>(estimatedNumberOfStrings);
+            _utf8 = new byte[longestUtf8StrLen];
+            
+            Reference = StreamReference.NewReference;
+        }
+        
+        #endregion
         #region Properties
 
-        public StreamReference Reference { get; set; }
+        public StreamReference Reference { get; init; }
 
         public string this[int index] => _strings[index];
 
         public int Count => _strings.Count;
 
         #endregion
-
         #region Public Methods
 
         public int Add(string inString)

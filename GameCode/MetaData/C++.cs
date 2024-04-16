@@ -51,7 +51,7 @@ namespace GameData
         {
             // Use string table in MetaCode
             var stringTable = new StringTable();
-            var metaCode = new MetaCode.MetaCode(stringTable, 8192);
+            var metaCode = new MetaCode.MetaCode2(stringTable, 8192);
             var metaMemberFactory = new MetaMemberFactory(metaCode);
             var typeInformation = new GenericTypeInformation();
 
@@ -59,7 +59,7 @@ namespace GameData
             reflector.Analyze(data);
 
             // In every class combine booleans into bitsets
-            for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
+            for (var ci = 0; ci < metaCode.Count; ++ci)
             {
                 var mt = metaCode.MembersType[ci];
                 if (!mt.IsClass) continue;
@@ -70,7 +70,7 @@ namespace GameData
             // NOTE
             // In the list of classes we have many 'duplicates', classes of the same type that are emitted
             // multiple times. We need to make sure the sorting of members is stable and deterministic.
-            var memberSizeComparer = new MetaCode.MetaCode.SortMembersBySize(metaCode);
+            var memberSizeComparer = new MetaCode.MetaCode2.SortMembersBySize(metaCode);
             for (var i = 0; i < 2; ++i)
             {
                 for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
