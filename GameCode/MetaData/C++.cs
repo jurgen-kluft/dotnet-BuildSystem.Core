@@ -51,7 +51,7 @@ namespace GameData
         {
             // Use string table in MetaCode
             var stringTable = new StringTable();
-            var metaCode = new MetaCode.MetaCode(stringTable);
+            var metaCode = new MetaCode.MetaCode(stringTable, 8192);
             var metaMemberFactory = new MetaMemberFactory(metaCode);
             var typeInformation = new GenericTypeInformation();
 

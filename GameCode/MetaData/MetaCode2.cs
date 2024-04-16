@@ -10,23 +10,23 @@ namespace GameData
     {
         public interface IMemberFactory2
         {
-            int NewBoolMember(bool content, string memberName);
-            int NewInt8Member(sbyte content, string memberName);
-            int NewUInt8Member(byte content, string memberName);
-            int NewInt16Member(short content, string memberName);
-            int NewUInt16Member(ushort content, string memberName);
-            int NewInt32Member(int content, string memberName);
-            int NewUInt32Member(uint content, string memberName);
-            int NewInt64Member(long content, string memberName);
-            int NewUInt64Member(ulong content, string memberName);
-            int NewFloatMember(float content, string memberName);
-            int NewDoubleMember(double content, string memberName);
-            int NewStringMember(string content, string memberName);
-            int NewEnumMember(Type type, object content, string memberName);
+            void NewBoolMember(bool content, string memberName);
+            void NewInt8Member(sbyte content, string memberName);
+            void NewUInt8Member(byte content, string memberName);
+            void NewInt16Member(short content, string memberName);
+            void NewUInt16Member(ushort content, string memberName);
+            void NewInt32Member(int content, string memberName);
+            void NewUInt32Member(uint content, string memberName);
+            void NewInt64Member(long content, string memberName);
+            void NewUInt64Member(ulong content, string memberName);
+            void NewFloatMember(float content, string memberName);
+            void NewDoubleMember(double content, string memberName);
+            void NewStringMember(string content, string memberName);
+            void NewEnumMember(Type type, object content, string memberName);
             int NewArrayMember(Type type, object content, string memberName);
             int NewDictionaryMember(Type type, object content, string memberName);
             int NewClassMember(Type type, object content, string memberName);
-            int NewStructMember(Type type, object content, string memberName);
+            void NewStructMember(Type type, object content, string memberName);
         }
 
         public struct MetaInfo
@@ -154,21 +154,25 @@ namespace GameData
 
         public class MetaCode
         {
-            public readonly List<string> CodeStrings = new();
+            public readonly List<string> CodeStrings;
             public readonly StringTable DataStrings;
 
-            public readonly List<MetaInfo> MembersType = new();
-            public readonly List<int> MembersName = new();
-            public readonly List<int> MembersStart = new(); // If we are a Struct the members start here
+            public readonly List<MetaInfo> MembersType;
+            public readonly List<int> MembersName;
+            public readonly List<int> MembersStart; // If we are a Struct the members start here
 
             public readonly List<int>
                 MembersCount = new(); // If we are an Array/List/Dict/Struct we hold many elements/members
 
             public readonly List<object> MembersObject = new(); // This is to know the type of the class
 
-            public MetaCode(StringTable dataStrings)
+            public MetaCode(StringTable dataStrings, int estimatedCount)
             {
+                CodeStrings = new List<string>(estimatedCount);
                 DataStrings = dataStrings;
+                MembersType = new List<MetaInfo>(estimatedCount);
+                MembersName = new List<int>(estimatedCount);
+                MembersStart = new List<int>(estimatedCount);
             }
 
             public int AddMember(MetaInfo info, int name, int startIndex, int count, object o)
@@ -955,135 +959,99 @@ namespace GameData
                 return _metaCode.DataStrings.Add(str);
             }
 
-            public int NewBoolMember(bool content, string memberName)
+            public void NewBoolMember(bool content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsBool, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewInt8Member(sbyte content, string memberName)
+            public void NewInt8Member(sbyte content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsInt8, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewUInt8Member(byte content, string memberName)
+            public void NewUInt8Member(byte content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsUInt8, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewInt16Member(short content, string memberName)
+            public void NewInt16Member(short content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsInt16, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewUInt16Member(ushort content, string memberName)
+            public void NewUInt16Member(ushort content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsUInt16, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewInt32Member(int content, string memberName)
+            public void NewInt32Member(int content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsInt32, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewUInt32Member(uint content, string memberName)
+            public void NewUInt32Member(uint content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsUInt32, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewInt64Member(long content, string memberName)
+            public void NewInt64Member(long content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsInt64, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewUInt64Member(ulong content, string memberName)
+            public void NewUInt64Member(ulong content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsUInt64, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewFloatMember(float content, string memberName)
+            public void NewFloatMember(float content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsFloat, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewDoubleMember(double content, string memberName)
+            public void NewDoubleMember(double content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsDouble, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
-            public int NewStringMember(string content, string memberName)
+            public void NewStringMember(string content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
-                _metaCode.AddMember(MetaInfo.AsString, RegisterCodeString(memberName), RegisterDataString(content), 1,
-                    content);
-                return mi;
+                _metaCode.AddMember(MetaInfo.AsString, RegisterCodeString(memberName), RegisterDataString(content), 1, content);
             }
 
-            public int NewEnumMember(Type type, object content, string memberName)
+            public void NewEnumMember(Type type, object content, string memberName)
             {
                 if (content is not Enum e)
-                    return -1;
+                    return;
 
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(MetaInfo.AsEnum, RegisterCodeString(memberName), -1, 1, e);
-                return mi;
             }
 
             public int NewArrayMember(Type type, object content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
-                _metaCode.AddMember(MetaInfo.AsArray, RegisterCodeString(memberName), -1, 0, content);
-                return _metaCode.MembersType.Count - 1;
+                return _metaCode.AddMember(MetaInfo.AsArray, RegisterCodeString(memberName), -1, 0, content);
             }
 
             public int NewDictionaryMember(Type type, object content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
-                _metaCode.AddMember(MetaInfo.AsDictionary, RegisterCodeString(memberName), -1, 0, content);
-                return mi;
+                return _metaCode.AddMember(MetaInfo.AsDictionary, RegisterCodeString(memberName), -1, 0, content);
             }
 
-            public int NewStructMember(Type type, object content, string memberName)
+            public void NewStructMember(Type type, object content, string memberName)
             {
                 // An IStruct is either a value type or a reference type, the C++ code is already 'known' in the codebase.
                 // Also the data of the 'members' of this struct are written by using the IStruct interface, so we do not
                 // need to 'parse' the members of this struct, we will just write the data as is.
                 if (content is not IStruct o)
-                    return -1;
+                    return;
 
                 var metaType = MetaInfo.AsStruct;
-
-                var mi = _metaCode.MembersObject.Count;
                 _metaCode.AddMember(metaType, RegisterCodeString(memberName), -1, 1, content);
-                return mi;
             }
 
             public int NewClassMember(Type type, object content, string memberName)
             {
-                var mi = _metaCode.MembersObject.Count;
-                _metaCode.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content);
-                return mi;
+                return _metaCode.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content);
             }
         }
 
