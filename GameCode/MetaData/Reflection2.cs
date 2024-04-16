@@ -216,7 +216,7 @@ namespace GameData
             }
             else if (_typeInformation.IsBool(dataObjectFieldType))
             {
-                _memberFactory.NewBoolMember((bool)dataObjectFieldValue, memberName);
+                _memberFactory.NewBoolMember(dataObjectFieldValue != null && (bool)dataObjectFieldValue, memberName);
             }
             else if (_typeInformation.IsInt8(dataObjectFieldType))
             {
@@ -315,39 +315,13 @@ namespace GameData
 
             if (!_typeInformation.IsClass(root.GetType())) return;
 
-            var rootIndex = _metaCode.MembersType.Count;
-            _memberFactory.NewClassMember(root.GetType(), root, string.Empty);
+            var rootIndex = _memberFactory.NewClassMember(root.GetType(), root, string.Empty);
             _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = rootIndex, Object = root, Type = root.GetType(), Process = ProcessClass });
             while (_memberProcessQueue.Count > 0)
             {
                 var m = _memberProcessQueue.Dequeue();
                 m.Process(m);
             }
-        }
-
-        #endregion
-
-        #region Static Methods
-
-        public static bool HasGenericInterface(Type objectType, Type interfaceType)
-        {
-            var baseTypes = objectType.GetInterfaces();
-            foreach (var t in baseTypes)
-                if (t == interfaceType)
-                    return true;
-            return false;
-        }
-
-        public static bool HasOrIsGenericInterface(Type objectType, Type interfaceType)
-        {
-            if (objectType == interfaceType)
-                return true;
-
-            var baseTypes = objectType.GetInterfaces();
-            foreach (var t in baseTypes)
-                if (t == interfaceType)
-                    return true;
-            return false;
         }
 
         #endregion

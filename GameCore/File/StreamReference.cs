@@ -4,35 +4,35 @@ using System.Diagnostics;
 
 namespace GameCore
 {
-    [DebuggerDisplay("ID: {ID}")]
+    [DebuggerDisplay("ID: {Id}")]
     public struct StreamReference
     {
         #region Fields
 
         public static readonly StreamReference Empty = new StreamReference(0);
-        private static UInt32 sID = 1;
-
-        private readonly UInt32 mID;
 
         #endregion
         #region Constructor
 
-        private StreamReference(UInt32 id)
+        private StreamReference(uint id)
         {
-            mID = id;
+            Id = id;
         }
 
         public StreamReference(StreamReference r)
         {
-            mID = r.mID;
+            Id = r.Id;
         }
 
         #endregion
         #region Properties
 
-        public UInt32 ID
+        private static uint UniqueId { get; set; }
+
+        public uint Id
         {
-            get { return mID; }
+            get;
+            private set;
         }
 
         #endregion
@@ -40,11 +40,11 @@ namespace GameCore
 
         public static bool operator ==(StreamReference a, StreamReference b)
         {
-            return a.ID == b.ID;
+            return a.Id == b.Id;
         }
         public static bool operator !=(StreamReference a, StreamReference b)
         {
-            return a.ID != b.ID;
+            return a.Id != b.Id;
         }
 
         #endregion
@@ -54,12 +54,12 @@ namespace GameCore
         {
             public bool Equals(StreamReference lhs, StreamReference rhs)
             {
-                return lhs.ID == rhs.ID;
+                return lhs.Id == rhs.Id;
             }
 
             public int GetHashCode(StreamReference r)
             {
-                return (int)r.ID;
+                return (int)r.Id;
             }
         }
 
@@ -70,20 +70,20 @@ namespace GameCore
         {
             get
             {
-                StreamReference sr = new(sID);
-                ++sID;
+                StreamReference sr = new(UniqueId);
+                ++UniqueId;
                 return sr;
             }
         }
 
         public override bool Equals(object obj)
         {
-            return ((StreamReference)obj).ID == ID;
+            return obj != null && ((StreamReference)obj).Id == Id;
         }
 
         public override int GetHashCode()
         {
-            return (int)ID;
+            return (int)Id;
         }
 
         #endregion

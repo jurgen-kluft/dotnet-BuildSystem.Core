@@ -17,7 +17,7 @@ namespace GameCore
         /// <param name="reference"></param>
         /// <param name="alignment"></param>
         /// <returns>True if successful, False if the reference was already processed before!</returns>
-        bool BeginBlock(StreamReference reference, Int64 alignment);
+        bool BeginBlock(StreamReference reference, long alignment);
         void Write(StreamReference v);
         void Mark(StreamReference reference);
         void EndBlock();
@@ -40,47 +40,47 @@ namespace GameCore
     {
         #region DataBlock
 
-        internal class DataBlock
+        private class DataBlock
         {
             #region Fields
 
-            private readonly Int64 mAlignment = 4;
-            private readonly MemoryStream mDataStream = new MemoryStream();
-            private readonly IBinaryStreamWriter mDataWriter;
+            private readonly long _alignment = 4;
+            private readonly MemoryStream _dataStream = new MemoryStream();
+            private readonly IBinaryStreamWriter _dataWriter;
 
-            private readonly MemoryStream mTypeStream = new MemoryStream();
-            private readonly IBinaryStreamWriter mTypeWriter;
+            private readonly MemoryStream _typeStream = new MemoryStream();
+            private readonly IBinaryStreamWriter _typeWriter;
 
-            private readonly Dictionary<StreamReference, StreamContext> mReferenceContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
-            private readonly Dictionary<StreamReference, StreamContext> mMarkerContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
+            private readonly Dictionary<StreamReference, StreamContext> _referenceContextDatabase;
+            private readonly Dictionary<StreamReference, StreamContext> _markerContextDatabase;
 
             private enum EDataType : byte
             {
-                FLOAT = 0,
-                DOUBLE = 0,
-                SBYTE = 0,
-                BYTE = 0,
-                INT16 = 0,
-                UINT16 = 0,
-                INT32 = 0,
-                UINT32 = 0,
-                INT64 = 0,
-                UINT64 = 0,
-                REFERENCE = 1,
+                Float = 0,
+                Double = 1,
+                Sbyte = 2,
+                Byte = 3,
+                Int16 = 4,
+                Uint16 = 5,
+                Int32 = 6,
+                Uint32 = 7,
+                Int64 = 8,
+                Uint64 = 9,
+                Reference = 15,
             }
 
             #endregion
             #region Constructor
 
-            internal DataBlock(Int64 alignment, EPlatform platform)
+            internal DataBlock(long alignment, EPlatform platform)
             {
                 Platform = platform;
-                mAlignment = alignment;
-                mDataWriter = EndianUtils.CreateBinaryWriter(mDataStream, platform);
-                mTypeWriter = EndianUtils.CreateBinaryWriter(mTypeStream, platform);
+                _alignment = alignment;
+                _dataWriter = EndianUtils.CreateBinaryWriter(_dataStream, platform);
+                _typeWriter = EndianUtils.CreateBinaryWriter(_typeStream, platform);
 
-                mReferenceContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
-                mMarkerContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
+                _referenceContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
+                _markerContextDatabase = new Dictionary<StreamReference, StreamContext>(new StreamReference.Comparer());
             }
 
             #endregion
@@ -88,37 +88,26 @@ namespace GameCore
 
             internal EPlatform Platform { get; set; }
 
-            internal Int64 Position
+            internal long Position
             {
-                get
-                {
-                    return mDataStream.Position;
-                }
-                set
-                {
-                    mDataStream.Position = value;
-                }
+                get => _dataStream.Position;
+                set => _dataStream.Position = value;
             }
 
-            internal Int32 Length
-            {
-                get
-                {
-                    return (Int32)mDataStream.Length;
-                }
-            }
+            internal int Length => (int)_dataStream.Length;
 
             #endregion
             #region Methods
 
             internal void Mark(StreamReference reference)
             {
-                StreamContext ctx;
-                if (!mMarkerContextDatabase.TryGetValue(reference, out ctx))
+                if (!_markerContextDatabase.TryGetValue(reference, out var ctx))
                 {
-                    ctx = new StreamContext(Platform);
-                    ctx.Offset = new StreamOffset(Position);
-                    mMarkerContextDatabase.Add(reference, ctx);
+                    ctx = new StreamContext(Platform)
+                    {
+                        Offset = (Position)
+                    };
+                    _markerContextDatabase.Add(reference, ctx);
                 }
                 else
                 {
@@ -129,115 +118,113 @@ namespace GameCore
             internal void Write(byte[] v)
             {
                 for (var i = 0; i < v.Length; ++i)
-                    mTypeWriter.Write((byte)EDataType.BYTE);
-
-                mDataWriter.Write(v);
+                    _typeWriter.Write((byte)EDataType.Byte);
+                _dataWriter.Write(v, 0, v.Length);
             }
 
             internal void Write(byte[] v, int index, int count)
             {
-                for (var i = index; i < count; i++)
-                    mTypeWriter.Write((byte)EDataType.BYTE);
-
                 Debug.Assert((index + count) <= v.Length);
-                mDataWriter.Write(v, index, count);
+                for (var i = index; i < count; i++)
+                    _typeWriter.Write((byte)EDataType.Byte);
+                _dataWriter.Write(v, index, count);
             }
 
             internal void Write(float v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
-                mTypeWriter.Write((int) EDataType.FLOAT);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(int)));
+                _typeWriter.Write((int) EDataType.Float);
+                _dataWriter.Write(v);
             }
 
             internal void Write(double v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
-                mTypeWriter.Write((UInt64) EDataType.DOUBLE);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(ulong)));
+                _typeWriter.Write((ulong) EDataType.Double);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(SByte v)
+            internal void Write(sbyte v)
             {
-                mTypeWriter.Write((byte) EDataType.SBYTE);
-                mDataWriter.Write(v);
+                _typeWriter.Write((byte) EDataType.Sbyte);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(Int16 v)
+            internal void Write(short v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
-                mTypeWriter.Write((short) EDataType.INT16);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(short)));
+                _typeWriter.Write((short) EDataType.Int16);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(Int32 v)
+            internal void Write(int v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
-                mTypeWriter.Write((Int32) EDataType.INT32);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(int)));
+                _typeWriter.Write((int) EDataType.Int32);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(Int64 v)
+            internal void Write(long v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
-                mTypeWriter.Write((Int64) EDataType.INT64);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(ulong)));
+                _typeWriter.Write((long) EDataType.Int64);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(Byte v)
+            internal void Write(byte v)
             {
-                mTypeWriter.Write((byte) EDataType.BYTE);
-                mDataWriter.Write(v);
+                _typeWriter.Write((byte) EDataType.Byte);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(UInt16 v)
+            internal void Write(ushort v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int16)));
-                mTypeWriter.Write((UInt16) EDataType.UINT16);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(short)));
+                _typeWriter.Write((ushort) EDataType.Uint16);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(UInt32 v)
+            internal void Write(uint v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
-                mTypeWriter.Write((UInt32) EDataType.UINT32);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(int)));
+                _typeWriter.Write((uint) EDataType.Uint32);
+                _dataWriter.Write(v);
             }
 
-            internal void Write(UInt64 v)
+            internal void Write(ulong v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(UInt64)));
-                mTypeWriter.Write((UInt64) EDataType.UINT64);
-                mDataWriter.Write(v);
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(ulong)));
+                _typeWriter.Write((ulong) EDataType.Uint64);
+                _dataWriter.Write(v);
             }
 
             internal void Write(StreamReference v)
             {
-                Debug.Assert(StreamUtils.Aligned(mDataWriter, sizeof(Int32)));
+                Debug.Assert(StreamUtils.Aligned(_dataWriter, sizeof(int)));
 
-                if (mReferenceContextDatabase.ContainsKey(v))
+                if (_referenceContextDatabase.TryGetValue(v, out var value))
                 {
-                    mReferenceContextDatabase[v].Add(new StreamOffset(mDataWriter.Position));
+                    value.Add(_dataWriter.Position);
                 }
                 else
                 {
                     var streamContext = new StreamContext(Platform);
-                    streamContext.Add(new StreamOffset(mDataWriter.Position));
-                    mReferenceContextDatabase.Add(v, streamContext);
+                    streamContext.Add(_dataWriter.Position);
+                    _referenceContextDatabase.Add(v, streamContext);
                 }
-                mTypeWriter.Write((Int32) EDataType.REFERENCE);
-                mDataWriter.Write((Int32) v.ID);
+                _typeWriter.Write((int) EDataType.Reference);
+                _dataWriter.Write((int) v.Id);
             }
 
-            internal Int64 Seek(Int64 pos)
+            internal long Seek(long pos)
             {
-                mTypeWriter.Seek(pos);
-                return mDataWriter.Seek(pos);
+                _typeWriter.Seek(pos);
+                return _dataWriter.Seek(pos);
             }
 
             internal Hash160 ComputeHash()
             {
-                return HashUtility.compute(mDataStream.GetBuffer(), (Int32) mDataStream.Length, mTypeStream.GetBuffer(), (Int32) mTypeStream.Length);
+                return HashUtility.Compute(_dataStream.GetBuffer(), (int) _dataStream.Length, _typeStream.GetBuffer(), (int) _typeStream.Length);
             }
 
             #endregion
@@ -245,90 +232,87 @@ namespace GameCore
 
             internal void GetWrittenStreamReferences(ICollection<StreamReference> references)
             {
-                foreach (var p in mReferenceContextDatabase)
+                foreach (var p in _referenceContextDatabase)
                     references.Add(p.Key);
             }
 
             internal bool HoldsStreamReference(StreamReference r)
             {
-                return mReferenceContextDatabase.ContainsKey(r);
+                return _referenceContextDatabase.ContainsKey(r);
             }
 
             internal void ReplaceReference(StreamReference oldRef, StreamReference newRef)
             {
                 if (HoldsStreamReference(oldRef))
                 {
-                    var oldContext = mReferenceContextDatabase[oldRef];
-                    mReferenceContextDatabase.Remove(oldRef);
+                    var oldContext = _referenceContextDatabase[oldRef];
+                    _referenceContextDatabase.Remove(oldRef);
 
                     // Modify the data by replacing the oldRef with the newRef
-                    var currentPos = new StreamOffset(mDataStream.Position);
+                    var currentPos = _dataStream.Position;
                     for (var i = 0; i < oldContext.Count; i++)
                     {
-                        mDataWriter.Seek(oldContext[i].Offset);
-                        mDataWriter.Write(newRef.ID);
+                        _dataWriter.Seek(oldContext[i]);
+                        _dataWriter.Write(newRef.Id);
                     }
-                    mDataWriter.Seek(currentPos.Offset);
+                    _dataWriter.Seek(currentPos);
 
                     // Update reference and offsets
                     if (HoldsStreamReference(newRef))
                     {
-                        var newContext = mReferenceContextDatabase[newRef];
+                        var newContext = _referenceContextDatabase[newRef];
                         for (var i = 0; i < oldContext.Count; i++)
                             newContext.Add(oldContext[i]);
                     }
                     else
                     {
-                        mReferenceContextDatabase.Add(newRef, oldContext);
+                        _referenceContextDatabase.Add(newRef, oldContext);
                     }
                 }
             }
 
             internal void Finalize(IBinaryStreamWriter outData, StreamContext currentContext, IDictionary<StreamReference, StreamContext> referenceDataBase, IDictionary<StreamReference, StreamContext> markerDataBase)
             {
-                StreamUtils.Align(outData, mAlignment);
-                currentContext.Offset = new StreamOffset(outData.Position);
+                StreamUtils.Align(outData, _alignment);
+                currentContext.Offset = outData.Position;
 
                 // (The order of handling markers and references is not important)
                 // Handle markers (addresses)
                 {
-                    foreach (var k in mMarkerContextDatabase)
+                    foreach (var k in _markerContextDatabase)
                     {
-                        StreamContext context;
-                        var exists = referenceDataBase.TryGetValue(k.Key, out context);
+                        var exists = referenceDataBase.TryGetValue(k.Key, out var context);
                         if (!exists)
                             context = new StreamContext(Platform);
 
                         // Every marker needs to get the offset that it has in the final stream
-                        Debug.Assert(context.Offset == StreamOffset.Empty);
-                        context.Offset = new StreamOffset(currentContext.Offset + k.Value.Offset);
+                        Debug.Assert(context.Offset == StreamOffset.Empty.Offset);
+                        context.Offset = currentContext.Offset + k.Value.Offset;
 
                         for (var i = 0; i < k.Value.Count; i++)
                         {
-                            Debug.Assert(k.Value[i].Offset != -1);
-                            context.Add(new StreamOffset(currentContext.Offset + k.Value[i]));
+                            Debug.Assert(k.Value[i] != -1);
+                            context.Add(currentContext.Offset + k.Value[i]);
                         }
 
                         if (!exists)
                             referenceDataBase.Add(k.Key, context);
-                        if (!markerDataBase.ContainsKey(k.Key))
-                            markerDataBase.Add(k.Key, context);
+                        markerDataBase.TryAdd(k.Key, context);
                     }
                 }
 
                 // Handle references (pointers)
                 {
-                    foreach (var k in mReferenceContextDatabase)
+                    foreach (var k in _referenceContextDatabase)
                     {
-                        StreamContext context;
-                        var exists = referenceDataBase.TryGetValue(k.Key, out context);
+                        var exists = referenceDataBase.TryGetValue(k.Key, out var context);
                         if (!exists)
                             context = new StreamContext(Platform);
 
                         for (var i = 0; i < k.Value.Count; i++)
                         {
-                            Debug.Assert(k.Value[i].Offset != -1);
-                            context.Add(new StreamOffset(currentContext.Offset + k.Value[i]));
+                            Debug.Assert(k.Value[i] != -1);
+                            context.Add(currentContext.Offset + k.Value[i]);
                         }
 
                         if (!exists)
@@ -337,7 +321,7 @@ namespace GameCore
                 }
 
                 // Write data
-                outData.Write(mDataStream.GetBuffer(), 0, (Int32) mDataStream.Length);
+                outData.Write(_dataStream.GetBuffer(), 0, (int) _dataStream.Length);
             }
 
             #endregion
@@ -347,42 +331,26 @@ namespace GameCore
 
         #region Fields
 
-        internal struct StreamReferenceDataBlockPair
+        readonly struct StreamReferenceDataBlockPair
         {
-            private readonly StreamReference mStreamReference;
-            private readonly DataBlock mDataBlock;
-
             internal StreamReferenceDataBlockPair(StreamReference r, DataBlock d)
             {
-                mStreamReference = r;
-                mDataBlock = d;
+                Reference = r;
+                DataBlock = d;
             }
 
-            internal StreamReference Reference
-            {
-                get
-                {
-                    return mStreamReference;
-                }
-            }
-
-            internal DataBlock DataBlock
-            {
-                get
-                {
-                    return mDataBlock;
-                }
-            }
+            internal StreamReference Reference { get; }
+            internal DataBlock DataBlock { get; }
         }
 
-        private readonly Dictionary<StreamReference, Int32> mStreamReferenceToDataBlockIdxDictionary = new Dictionary<StreamReference, Int32>(new StreamReference.Comparer());
-        private readonly List<StreamReferenceDataBlockPair> mDataBlocks = new List<StreamReferenceDataBlockPair>();
+        private readonly Dictionary<StreamReference, int> _streamReferenceToDataBlockIdxDictionary = new (new StreamReference.Comparer());
+        private readonly List<StreamReferenceDataBlockPair> _dataBlocks = new ();
 
-        private readonly Stack<Int32> mStack = new Stack<Int32>();
-        private readonly StreamReference mMainReference;
+        private readonly Stack<int> _stack = new();
+        private readonly StreamReference _mainReference;
 
-        private Int32 mCurrentDataBlockIdx;
-        private DataBlock mCurrentDataBlock;
+        private int _currentDataBlockIdx;
+        private DataBlock _currentDataBlock;
 
         private EPlatform Platform { get; set; }
 
@@ -391,7 +359,7 @@ namespace GameCore
 
         public DataWriter(EPlatform platform)
         {
-            mMainReference = StreamReference.NewReference;
+            _mainReference = StreamReference.NewReference;
             Platform = platform;
         }
 
@@ -400,8 +368,8 @@ namespace GameCore
 
         public void Begin()
         {
-            const Int64 alignment = sizeof(Int32);
-            var reference = mMainReference;
+            const long alignment = sizeof(int);
+            var reference = _mainReference;
             BeginBlock(reference, alignment);
         }
 
@@ -410,17 +378,17 @@ namespace GameCore
             EndBlock();
         }
 
-        public bool BeginBlock(StreamReference reference, Int64 alignment)
+        public bool BeginBlock(StreamReference reference, long alignment)
         {
-            if (mStreamReferenceToDataBlockIdxDictionary.ContainsKey(reference))
+            if (_streamReferenceToDataBlockIdxDictionary.ContainsKey(reference))
                 return false;
 
             // --------------------------------------------------------------------------------------------------------
-            mCurrentDataBlockIdx = mDataBlocks.Count;
-            mStreamReferenceToDataBlockIdxDictionary.Add(reference, mCurrentDataBlockIdx);
-            mStack.Push(mCurrentDataBlockIdx);
-            mCurrentDataBlock = new DataBlock(alignment, Platform);
-            mDataBlocks.Add(new StreamReferenceDataBlockPair(reference, mCurrentDataBlock));
+            _currentDataBlockIdx = _dataBlocks.Count;
+            _streamReferenceToDataBlockIdxDictionary.Add(reference, _currentDataBlockIdx);
+            _stack.Push(_currentDataBlockIdx);
+            _currentDataBlock = new DataBlock(alignment, Platform);
+            _dataBlocks.Add(new StreamReferenceDataBlockPair(reference, _currentDataBlock));
             // --------------------------------------------------------------------------------------------------------
 
             return true;
@@ -428,108 +396,95 @@ namespace GameCore
 
         public void Mark(StreamReference reference)
         {
-            mCurrentDataBlock.Mark(reference);
+            _currentDataBlock.Mark(reference);
         }
 
         public void Write(float v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(double v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(sbyte v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(short v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(int v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
-        public void Write(Int64 v)
+        public void Write(long v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(byte v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(ushort v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(uint v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
-        public void Write(UInt64 v)
+        public void Write(ulong v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
         public void Write(byte[] v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
-        public void Write(byte[] v, int index, int count)
-        {
-            Debug.Assert((index + count) <= v.Length);
-            mCurrentDataBlock.Write(v, index, count);
-        }
+
         public void Write(string v)
         {
             foreach (var c in v)
-                mCurrentDataBlock.Write((byte)c);
-            mCurrentDataBlock.Write((byte)0);
+                _currentDataBlock.Write((byte)c);
+            _currentDataBlock.Write((byte)0);
         }
         public void Write(StreamReference v)
         {
-            mCurrentDataBlock.Write(v);
+            _currentDataBlock.Write(v);
         }
 
-        public void WriteStream(byte[] data, int offset, int count)
+        public void Write(byte[] data, int offset, int count)
         {
-            mCurrentDataBlock.Write(data, offset, count);
+            _currentDataBlock.Write(data, offset, count);
         }
 
-        public Int64 Position
+        public long Position
         {
-            get
-            {
-                return mCurrentDataBlock.Position;
-            }
-            set
-            {
-                mCurrentDataBlock.Position = value;
-            }
+            get => _currentDataBlock.Position;
+            set => _currentDataBlock.Position = value;
         }
 
-        public Int64 Length
+        public long Length
         {
-            get
-            {
-                return mCurrentDataBlock.Length;
-            }
+            get => _currentDataBlock.Length;
             set
             {
 
             }
         }
 
-        public Int64 Seek(Int64 offset)
+        public long Seek(long offset)
         {
-            return mCurrentDataBlock.Seek(offset);
+            return _currentDataBlock.Seek(offset);
         }
 
         public void EndBlock()
         {
             // Obtain the information of the previous block (Stack.Pop)
-            mCurrentDataBlockIdx = mStack.Pop();
-            mCurrentDataBlock = mDataBlocks[mCurrentDataBlockIdx].DataBlock;
+            _currentDataBlockIdx = _stack.Pop();
+            _currentDataBlock = _dataBlocks[_currentDataBlockIdx].DataBlock;
         }
 
         public void Close()
@@ -549,16 +504,16 @@ namespace GameCore
             try
             {
                 var finalDataBlockDatabase = new Dictionary<StreamReference, DataBlock>(new StreamReference.Comparer());
-                foreach (var d in mDataBlocks)
+                foreach (var d in _dataBlocks)
                     finalDataBlockDatabase.Add(d.Reference, d.DataBlock);
 
                 // Build dictionary collecting the DataBlocks for every StreamReference so that we do
                 // not have to iterate over the whole list when replacing references.
                 var streamReferenceInWhichDataBlocks = new Dictionary<StreamReference, List<DataBlock>>(new StreamReference.Comparer());
-                foreach (var d in mDataBlocks)
+                foreach (var d in _dataBlocks)
                     streamReferenceInWhichDataBlocks.Add(d.Reference, new List<DataBlock>());
                 var streamReferencesWrittenInDataBlock = new List<StreamReference>();
-                foreach (var d in mDataBlocks)
+                foreach (var d in _dataBlocks)
                 {
                     streamReferencesWrittenInDataBlock.Clear();
                     d.DataBlock.GetWrittenStreamReferences(streamReferencesWrittenInDataBlock);
@@ -591,12 +546,11 @@ namespace GameCore
                     {
                         var block = p.Value;
                         var hash = block.ComputeHash();
-                        if (hashToDataBlockDatabase.ContainsKey(hash))
+                        if (hashToDataBlockDatabase.TryGetValue(hash, out var newRef))
                         {
                             // Encountering a block of data which has a duplicate.
                             // After the first iteration it might be the case that
                             // they have the same 'Reference' since they are collapsed.
-                            var newRef = hashToDataBlockDatabase[hash];
                             if (p.Key != newRef)
                             {
                                 if (!duplicateDatabase.ContainsKey(newRef))
@@ -626,11 +580,9 @@ namespace GameCore
 
                     // Did we find any duplicates, if so then we also replaced references and by doing so MD5 hashes have changed.
                     // Some blocks now might have an identical MD5 due to this, so we need to iterate again.
-                    foreach (var p in duplicateDatabase)
+                    foreach (var (newRef, value) in duplicateDatabase)
                     {
-                        var newRef = p.Key;
-
-                        foreach (var oldRef in p.Value)
+                        foreach (var oldRef in value)
                         {
                             if (streamReferenceInWhichDataBlocks.TryGetValue(oldRef, out var oldRefDataBlocks))
                             {
@@ -649,36 +601,36 @@ namespace GameCore
                             }
                         }
 
-                        foreach (var s in p.Value)
+                        foreach (var s in value)
                             streamReferenceInWhichDataBlocks.Remove(s);
                     }
                     collapse = duplicateDatabase.Count > 0;
                 }
 
                 // Finalize the DataBlocks and resolve all references
-                foreach (var k in finalDataBlockDatabase)
+                foreach (var (vRef, vDb) in finalDataBlockDatabase)
                 {
-                    if (!referenceDatabase.TryGetValue(k.Key, out var currentContext))
+                    if (!referenceDatabase.TryGetValue(vRef, out var currentContext))
                     {
                         currentContext = new StreamContext(Platform);
-                        referenceDatabase.Add(k.Key, currentContext);
+                        referenceDatabase.Add(vRef, currentContext);
                     }
 
-                    k.Value.Finalize(dataWriter, currentContext, referenceDatabase, markerDatabase);
+                    vDb.Finalize(dataWriter, currentContext, referenceDatabase, markerDatabase);
                 }
 
                 // Write all the 'pointer values (relocatable)' 'references'
-                foreach (var k in referenceDatabase)
+                foreach (var (vRef, vDb) in referenceDatabase)
                 {
                     // TODO: Pointers (offsets), are forced to 32 bit
-                    if (k.Key == StreamReference.Empty)
+                    if (vRef == StreamReference.Empty)
                     {
-                        k.Value.ResolveToNull(dataWriter);
+                        vDb.ResolveToNull(dataWriter);
                     }
                     else
                     {
-                        if (!k.Value.Resolve(dataWriter))
-                            unresolvedReferences.Add(k.Key, k.Value);
+                        if (!vDb.Resolve(dataWriter))
+                            unresolvedReferences.Add(vRef, vDb);
                     }
                 }
 

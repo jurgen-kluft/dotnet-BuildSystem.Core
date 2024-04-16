@@ -521,7 +521,7 @@ namespace DataBuildSystem
                     }
 
                     FileStream fileStream = new(fileInfo.FullName, FileMode.OpenOrCreate, FileAccess.Write);
-                    IBinaryStreamWriter writer = EndianUtils.CreateBinaryWriter(fileStream, LocalizerConfig.Platform);
+                    var writer = EndianUtils.CreateBinaryWriter(fileStream, LocalizerConfig.Platform);
 
                     writer.Write((Int32)(magic >> 32));
                     writer.Write((Int32)(magic));
@@ -648,8 +648,8 @@ namespace DataBuildSystem
                     {
                         mFileSize = fileinfoXlsIds.Length;
 
-                        FileStream filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        IBinaryStreamReader filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, LocalizerConfig.Platform);
+                        var filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        var filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, LocalizerConfig.Platform);
 
                         Int64 magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);
@@ -677,7 +677,7 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    IBinaryStreamWriter writer = EndianUtils.CreateBinaryWriter(mFolder + mFilename, Platform.Current);
+                    var writer = EndianUtils.CreateBinaryWriter(mFolder + mFilename, Platform.Current);
 
                     writer.Write(magic);
                     mStrTable.Write(writer);
@@ -842,8 +842,8 @@ namespace DataBuildSystem
                     {
                         mFileSize = fileinfoXlsIds.Length;
 
-                        FileStream filestreamXlsIds = new(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        IBinaryStreamReader filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, Platform.Current);
+                        var filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        var filestreamXlsIdsReader = EndianUtils.CreateBinaryReader(filestreamXlsIds, Platform.Current);
 
                         Int64 magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);
@@ -880,7 +880,7 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    IBinaryStreamWriter writer = EndianUtils.CreateBinaryWriter(Path.Join(mFolder, mFilename), Platform.Current);
+                    var writer = EndianUtils.CreateBinaryWriter(Path.Join(mFolder, mFilename), Platform.Current);
 
                     writer.Write(magic);
                     mStrTable.Write(writer);
