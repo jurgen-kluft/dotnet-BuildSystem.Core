@@ -66,11 +66,11 @@ namespace GameData
                 metaCode.CombineBooleans(ci);
             }
 
-            // Sort the members on every class so that alignment of data is solved.
+            // Sort the members on every class so that we do not have to consider member alignment
             // NOTE
             // In the list of classes we have many 'duplicates', classes of the same type that are emitted
-            // multiple times. We need to make sure the sorting of members is stable and deterministic.
-            var memberSizeComparer = new MetaCode.MetaCode2.SortMembersBySize(metaCode);
+            // multiple times. We need to make sure the sorting of members is stable and predictable.
+            var memberSizeComparer = new MetaCode.MetaCode2.SortMembersPredicate(metaCode);
             for (var i = 0; i < 2; ++i)
             {
                 for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
@@ -89,9 +89,14 @@ namespace GameData
             var dataFileInfo = new FileInfo(dataFilename);
             var dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
             var dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, platform);
-            dataStream.Finalize(dataFileStreamWriter);
+            var relocFileInfo = new FileInfo(relocationFilename);
+            var relocFileStream = new FileStream(relocFileInfo.FullName, FileMode.Create);
+            var relocFileStreamWriter = EndianUtils.CreateBinaryWriter(relocFileStream, platform);
+            dataStream.Finalize(dataFileStreamWriter, relocFileStreamWriter);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
+            relocFileStreamWriter.Close();
+            relocFileStream.Close();
 
             // Generate the c++ code using the CppCodeWriter.
             var codeFileInfo = new FileInfo(codeFilename);

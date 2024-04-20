@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using GameCore;
 using GameData;
 
@@ -15,24 +11,23 @@ namespace DataBuildSystem
             Modified = 1,
             Missing = 2,
         }
+
         private sbyte StateValue { get; set; }
-        public int AsInt { get { return (int)StateValue; } }
+        public int AsInt => StateValue;
 
         public static readonly State Ok = new() { StateValue = (sbyte)StateEnum.Ok };
         public static readonly State Missing = new() { StateValue = (sbyte)StateEnum.Missing };
         public static readonly State Modified = new() { StateValue = (sbyte)StateEnum.Modified };
-
-        public static State FromRaw(sbyte b) { return new() { StateValue = (sbyte)(b & 0x3) }; }
 
         public State(int state)
         {
             StateValue = (sbyte)state;
         }
 
-        public bool IsOk { get { return StateValue == 0; } }
-        public bool IsNotOk { get { return StateValue != 0; } }
-        public bool IsModified { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Modified)) != 0; } }
-        public bool IsMissing { get { return ((sbyte)StateValue & (sbyte)(StateEnum.Missing)) != 0; } }
+        public bool IsOk => StateValue == 0;
+        public bool IsNotOk => StateValue != 0;
+        public bool IsModified => (StateValue & (sbyte)(StateEnum.Modified)) != 0;
+        public bool IsMissing => (StateValue & (sbyte)(StateEnum.Missing)) != 0;
 
         public void Merge(State s)
         {
@@ -64,7 +59,8 @@ namespace DataBuildSystem
 
         public override bool Equals(object obj)
         {
-            State other = (State)obj;
+            if (obj == null) return false;
+            var other = (State)obj;
             return this.AsInt == other.AsInt;
         }
     }
@@ -73,17 +69,10 @@ namespace DataBuildSystem
     {
         public enum EState : byte
         {
-            Uninitialized,
-
-            /// Not initialized
-            NotFound,
-
-            /// File doesn't exist
-            Changed,
-
-            /// File state has changed since previous check
-            Unchanged,
-            /// File state is identical to previous check
+            Uninitialized, // Not initialized
+            NotFound, // File doesn't exist
+            Changed, // File state has changed since previous check
+            Unchanged, // File state is identical to previous check
         }
 
         public enum EMethod : byte
@@ -93,19 +82,42 @@ namespace DataBuildSystem
             TimestampAndContentHash,
         }
 
-        private int Count
+        private int Count => Infos.Count;
+
+        // Note: We could make each entry just a byte Array, this would be
+        // a very specific optimizations which will speed up the loading.
+
+        private struct Info
         {
-            get { return Ids.Count; }
+            public readonly uint Value;
+
+            public Info(uint value)
+            {
+                Value = value;
+            }
+
+            public EGameDataPath Path
+            {
+                get => (EGameDataPath)(Value & 0xFF);
+                init => Value = (Value & 0xFFFFFF00) | (uint)value;
+            }
+
+            public short Id
+            {
+                get => (short)((Value >> 8) & 0xFFFF);
+                init => Value = (Value & 0xFFFF00FF) | ((uint)value << 8);
+            }
+
+            public EMethod Method
+            {
+                get => (EMethod)((Value >> 24) & 0xFF);
+                init => Value = (Value & 0x00FFFFFF) | ((uint)value << 24);
+            }
         }
 
-        /// Note: We could make each entry just a byte Array, this would be
-        /// a very specific optimizations which will speed up the loading.
-
-        private List<byte> Paths { get; set; } = new List<byte>();
-        private List<string> FilePaths { get; set; } = new List<string>();
-        private List<short> Ids { get; set; } = new List<short>();
-        private List<EMethod> Methods { get; set; } = new List<EMethod>();
-        private List<Hash160> Hashes { get; set; } = new List<Hash160>();
+        private List<Info> Infos { get; set; } = new();
+        private List<Hash160> Hashes { get; set; } = new();
+        private List<string> FilePaths { get; set; } = new();
 
         public Dependency()
         {
@@ -118,10 +130,8 @@ namespace DataBuildSystem
 
         public void Add(short id, EGameDataPath p, string filepath)
         {
-            Paths.Add((byte)p);
+            Infos.Add(new Info { Path = p, Id = id, Method = EMethod.TimestampHash });
             FilePaths.Add(filepath);
-            Ids.Add(id);
-            Methods.Add(EMethod.TimestampHash);
             Hashes.Add(Hash160.Empty);
         }
 
@@ -129,33 +139,31 @@ namespace DataBuildSystem
         // Return true if dependencies where updated
         public bool Update(Action<short, State> ood)
         {
-            bool result = false;
-            for (int i = 0; i < Count; ++i)
+            var result = false;
+            for (var i = 0; i < Count; ++i)
             {
-                EMethod method = Methods[i];
+                var method = Infos[i].Method;
 
                 // Return ids of dependencies that have changed
-                Hash160 newHash = Hash160.Null;
-                string filepath = Path.Join(GameDataPath.GetPath((EGameDataPath)Paths[i]), FilePaths[i]);
+                var newHash = Hash160.Null;
+                var filepath = Path.Join(GameDataPath.GetPath(Infos[i].Path), FilePaths[i]);
                 switch (method)
                 {
                     case EMethod.ContentHash:
-                        {
-                            FileInfo fileInfo = new(filepath);
-                            if (fileInfo.Exists)
-                                newHash = HashUtility.Compute(fileInfo);
-                        }
+                    {
+                        FileInfo fileInfo = new(filepath);
+                        if (fileInfo.Exists)
+                            newHash = HashUtility.Compute(fileInfo);
+                    }
                         break;
                     case EMethod.TimestampHash:
+                    {
+                        FileInfo fileInfo = new(filepath);
+                        if (fileInfo.Exists)
                         {
-                            FileInfo fileInfo = new(filepath);
-                            if (fileInfo.Exists)
-                            {
-                                newHash = Hash160.FromDateTime(File.GetLastWriteTime(filepath));
-                            }
+                            newHash = Hash160.FromDateTime(File.GetLastWriteTime(filepath));
                         }
-                        break;
-                    default:
+                    }
                         break;
                 }
 
@@ -163,36 +171,38 @@ namespace DataBuildSystem
                 {
                     result = true;
                     Hashes[i] = newHash;
-                    ood?.Invoke(Ids[i], State.Missing);
+                    ood?.Invoke(Infos[i].Id, State.Missing);
                 }
                 else if (newHash != Hashes[i])
                 {
                     result = true;
                     Hashes[i] = newHash;
-                    ood?.Invoke(Ids[i], State.Modified);
+                    ood?.Invoke(Infos[i].Id, State.Modified);
                 }
                 else // (newHash == Hashes[i])
                 {
-                    ood?.Invoke(Ids[i], State.Ok);
+                    ood?.Invoke(Infos[i].Id, State.Ok);
                 }
             }
+
             return result;
         }
 
-        public static Dependency Load(EGameDataPath path, string _filepath)
+        public static Dependency Load(EGameDataPath path, string filePath)
         {
             BinaryFileReader reader = new();
-            string filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), _filepath, ".dep"));
+            var filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), filePath, ".dep"));
             if (reader.Open(filepath))
             {
-                Int64 magic = reader.ReadInt64();
+                var magic = reader.ReadInt64();
                 if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
                 {
-                    Dependency dep = ReadFrom(reader);
+                    var dep = ReadFrom(reader);
                     reader.Close();
                     return dep;
                 }
             }
+
             return null;
         }
 
@@ -217,33 +227,21 @@ namespace DataBuildSystem
         {
             Dependency dep = new();
             {
-                Int32 count = reader.ReadInt32();
-                dep.Paths = new(count);
-                dep.FilePaths = new List<string>(count);
-                dep.Ids = new List<short>(count);
-                dep.Methods = new List<EMethod>(count);
+                var count = reader.ReadInt32();
+                dep.Infos = new List<Info>(count);
                 dep.Hashes = new List<Hash160>(count);
 
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
-                    dep.Paths.Add(reader.ReadUInt8());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    string fp = reader.ReadString();
-                    dep.FilePaths.Add(fp);
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    dep.Ids.Add(reader.ReadInt16());
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    dep.Methods.Add((EMethod)reader.ReadUInt8());
-                }
-                for (int i = 0; i < count; i++)
-                {
+                    dep.Infos.Add(new Info(reader.ReadUInt32()));
                     dep.Hashes.Add(Hash160.ReadFrom(reader));
+                }
+
+                dep.FilePaths = new List<string>(count);
+                for (var i = 0; i < count; i++)
+                {
+                    var fp = reader.ReadString();
+                    dep.FilePaths.Add(fp);
                 }
             }
             return dep;
@@ -252,25 +250,15 @@ namespace DataBuildSystem
         public void WriteTo(IBinaryWriter writer)
         {
             writer.Write(Count);
-            foreach (byte b in Paths)
+            for (var i = 0; i < Count; i++)
             {
-                writer.Write(b);
+                writer.Write(Infos[i].Value);
+                Hashes[i].WriteTo(writer);
             }
-            foreach (string fp in FilePaths)
+
+            foreach (var i in FilePaths)
             {
-                writer.Write(fp);
-            }
-            foreach (short id in Ids)
-            {
-                writer.Write(id);
-            }
-            foreach (EMethod b in Methods)
-            {
-                writer.Write((byte)b);
-            }
-            foreach (Hash160 h in Hashes)
-            {
-                h.WriteTo(writer);
+                writer.Write(i);
             }
         }
     }
