@@ -1,17 +1,37 @@
-using System;
-using System.Collections.Generic;
 
 namespace GameData
 {
     using GameCore;
     using MetaCode;
 
-    /// <summary>
-    /// StdStream representing a standard object data tree
-    /// </summary>
-    public sealed class StdDataStream
+    #region TypeInformation
+
+    public interface ITypeInformation
     {
+        bool IsNull(Type t);
+        bool IsBool(Type t);
+        bool IsInt8(Type t);
+        bool IsUInt8(Type t);
+        bool IsInt16(Type t);
+        bool IsUInt16(Type t);
+        bool IsInt32(Type t);
+        bool IsUInt32(Type t);
+        bool IsInt64(Type t);
+        bool IsUInt64(Type t);
+        bool IsFloat(Type t);
+        bool IsDouble(Type t);
+        bool IsString(Type t);
+        bool IsEnum(Type t);
+        bool IsArray(Type t);
+        bool IsGenericList(Type t);
+        bool IsGenericDictionary(Type t);
+        bool IsClass(Type t);
+        bool IsStruct(Type t);
+        bool IsIStruct(Type t);
+        bool IsFileId(Type t);
     }
+
+    #endregion
 
     public sealed class GenericTypeInformation : ITypeInformation
     {
@@ -124,23 +144,10 @@ namespace GameData
 
         #endregion
 
-
         #region Static Methods
 
         private static bool HasGenericInterface(Type objectType, Type interfaceType)
         {
-            var baseTypes = objectType.GetInterfaces();
-            foreach (var t in baseTypes)
-                if (t == interfaceType)
-                    return true;
-            return false;
-        }
-
-        private static bool HasOrIsGenericInterface(Type objectType, Type interfaceType)
-        {
-            if (objectType == interfaceType)
-                return true;
-
             var baseTypes = objectType.GetInterfaces();
             foreach (var t in baseTypes)
                 if (t == interfaceType)

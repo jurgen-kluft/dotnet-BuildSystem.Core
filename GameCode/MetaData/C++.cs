@@ -1,8 +1,5 @@
-using System.Diagnostics;
 using GameCore;
 using StreamWriter = System.IO.StreamWriter;
-
-// ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 
 namespace GameData
 {
@@ -16,20 +13,20 @@ namespace GameData
         // C/C++ code:
         //   - Endian
         //   - Enums
-        //   - Member memory alignment
+        //   - Member sort for memory alignment
         //   - Database of written references, objects, arrays, strings
         //     - For emitting an object once as well as terminating circular references
         //   - C# class hierarchy is collapsed to one C++ class
-        //   - Duplicate data (strings, arrays)
+        //   - De-duplicated data (strings, arrays)
 
         // Need to define
         // - String data representation (struct string_t)
-        //   - string_t { u32 const mLength; u32 const mStr; }
-        // - LString data representation (lstring_t = uint64_t)
-        // - FileId data representation (fileid_t = uint64_t)
-        // - Array data representation (template<T> array_t { u32 const mSize; u32 const mArray; })
-        // - Array of Array of Array of String ?
-        // - Embedding a struct or class will result in a pointer to that struct/class
+        //   - string_t { u32 const mLength; char const* mStr; }
+        // - LString data representation (lstring_t = u64)
+        // - FileId data representation (fileid_t = u64)
+        // - Array data representation (template<T> array_t { u32 const mSize; T const* mArray; })
+        // - Embedding a struct (IStruct) will be treated as a value type
+        // - Embedding a class will result in a pointer to that class
 
         // Defined: (big/little endian)
         // double       -> 8 byte
@@ -40,12 +37,11 @@ namespace GameData
         // uint/int     -> 4 byte
         // ushort/short -> 2 byte
         // byte         -> 1 byte
-        // bool         -> 4 byte (although many booleans are packed into 32 bits)
+        // bool         -> 1 byte (although many booleans are packed together
 
         // We will use a ResourceDataWriter for writing the resource data as binary data
         // Exporting every class as a struct in C/C++ using a ClassWriter providing enough
         // functionality to write any kind of class, function and member.
-
 
         public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename, string relocationFilename)
         {
@@ -70,33 +66,33 @@ namespace GameData
             // NOTE
             // In the list of classes we have many 'duplicates', classes of the same type that are emitted
             // multiple times. We need to make sure the sorting of members is stable and predictable.
-            var memberSizeComparer = new MetaCode.MetaCode2.SortMembersPredicate(metaCode);
+            var memberSortPredicate = new MetaCode.MetaCode2.SortMembersPredicate(metaCode);
             for (var i = 0; i < 2; ++i)
             {
                 for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
                 {
                     var mt = metaCode.MembersType[ci];
                     if (!mt.IsClass) continue;
-                    metaCode.SortMembers(ci, memberSizeComparer);
+                    metaCode.SortMembers(ci, memberSortPredicate);
                 }
             }
 
             // Write out every underlying member 'data' of the code to a DataStream
             var dataStream = new CppDataStream2(platform, stringTable);
-            DataStreamWriter2.Write(metaCode, stringTable, dataStream);
+            CppDataStreamWriter2.Write(metaCode, stringTable, dataStream);
 
             // Finalize the DataStream by writing the data to a file
             var dataFileInfo = new FileInfo(dataFilename);
             var dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
             var dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, platform);
-            var relocFileInfo = new FileInfo(relocationFilename);
-            var relocFileStream = new FileStream(relocFileInfo.FullName, FileMode.Create);
-            var relocFileStreamWriter = EndianUtils.CreateBinaryWriter(relocFileStream, platform);
-            dataStream.Finalize(dataFileStreamWriter, relocFileStreamWriter);
+            var relocationFileInfo = new FileInfo(relocationFilename);
+            var relocationFileStream = new FileStream(relocationFileInfo.FullName, FileMode.Create);
+            var relocationFileStreamWriter = EndianUtils.CreateBinaryWriter(relocationFileStream, platform);
+            dataStream.Finalize(dataFileStreamWriter, relocationFileStreamWriter);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
-            relocFileStreamWriter.Close();
-            relocFileStream.Close();
+            relocationFileStreamWriter.Close();
+            relocationFileStream.Close();
 
             // Generate the c++ code using the CppCodeWriter.
             var codeFileInfo = new FileInfo(codeFilename);

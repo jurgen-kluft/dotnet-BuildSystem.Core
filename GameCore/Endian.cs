@@ -83,11 +83,6 @@ namespace GameCore
             return (platform & EPlatform.Arch64) != 0;
         }
 
-        public static IDataWriter CreateDataWriter(EPlatform platform)
-        {
-            return new DataWriter(platform);
-        }
-
         public static IBinaryStreamReader CreateBinaryReader(Stream s, EPlatform platform)
         {
             var bs = new BinaryStreamReader(s);

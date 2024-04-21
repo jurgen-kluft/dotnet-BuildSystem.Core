@@ -9,10 +9,9 @@ namespace GameData
     /// from the declared struct and can be overriden by using an attribute.
     public interface IStruct
     {
-        bool StructIsValueType { get; } // Is this struct a value type or a reference type (pointer)?
-        int StructAlign { get; }
-        int StructSize { get; }
-        string StructName { get; }
+        int StructAlign { get; } // This is the required memory alignment of the struct
+        int StructSize { get; } // This is the memory size of the struct
+        string StructName { get; } // This is the name of the struct in the target code-base
 
         void StructWrite(GameCore.IBinaryWriter writer);
     }

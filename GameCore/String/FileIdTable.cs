@@ -99,14 +99,16 @@ namespace GameCore
 
         public void Write(IDataWriter writer)
         {
-            writer.BeginBlock(Reference, sizeof(Int32));
+            writer.NewBlock(Reference, 8, 2 * sizeof(ulong));
+            writer.OpenBlock(Reference);
             {
                 StreamReference idReference = StreamReference.NewReference;
 
-                writer.Write(Count);
+                writer.Write((long)Count);
                 writer.Write(idReference);
 
-                writer.BeginBlock(idReference, 16);
+                writer.NewBlock(idReference, 8, mItems.Count * sizeof(long));
+                writer.OpenBlock(idReference);
                 {
                     for (int i = 0; i < mItems.Count; ++i)
                     {
@@ -114,9 +116,9 @@ namespace GameCore
                         writer.Mark(mReferences[i]);
                         writer.Write(id);
                     }
-                    writer.EndBlock();
+                    writer.CloseBlock();
                 }
-                writer.EndBlock();
+                writer.CloseBlock();
             }
         }
 

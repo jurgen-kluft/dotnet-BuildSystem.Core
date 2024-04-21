@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace GameCore
@@ -18,7 +16,7 @@ namespace GameCore
 
         #endregion
         #region Constructor
-        
+
         public StringTable(int estimatedNumberOfStrings = 4096, int longestUtf8StrLen = 8192)
         {
             _dictionary = new Dictionary<string, int>(estimatedNumberOfStrings);
@@ -27,18 +25,16 @@ namespace GameCore
             _references = new List<StreamReference>(estimatedNumberOfStrings);
             _strings = new List<string>(estimatedNumberOfStrings);
             _utf8 = new byte[longestUtf8StrLen];
-            
+
             Reference = StreamReference.NewReference;
         }
-        
+
         #endregion
         #region Properties
 
         public StreamReference Reference { get; init; }
 
-        public string this[int index] => _strings[index];
-
-        public int Count => _strings.Count;
+        private int Count => _strings.Count;
 
         #endregion
         #region Public Methods
@@ -74,37 +70,6 @@ namespace GameCore
             return index;
         }
 
-        public byte[] GetBytes(string inString)
-        {
-            var idx = IndexOf(inString);
-            var len = LengthOfByIndex(idx);
-            var bytes = new byte[len];
-            _encoding.GetBytes(inString, 0, inString.Length, bytes, 0);
-            return bytes;
-        }
-
-        private int InternalIndexOf(string inString)
-        {
-            var index = _dictionary.GetValueOrDefault(inString, -1);
-            return index;
-        }
-
-        private int IndexOf(string inString)
-        {
-            return InternalIndexOf(inString);
-        }
-
-        public uint HashOf(string inString)
-        {
-            var index = IndexOf(inString);
-            return index == -1 ? uint.MaxValue : _hashes[index];
-        }
-
-        public uint LengthOf(string inString)
-        {
-            var index = IndexOf(inString);
-            return index == -1 ? 0 : (uint)_lengths[index];
-        }
 
         public int LengthOfByIndex(int index)
         {
@@ -116,18 +81,7 @@ namespace GameCore
             return _references[index];
         }
 
-        private StreamReference InternalReferenceOf(string inString)
-        {
-            var index = InternalIndexOf(inString);
-            return index == -1 ? StreamReference.Empty : _references[index];
-        }
-
-        public StreamReference ReferenceOf(string inString)
-        {
-            return InternalReferenceOf(inString);
-        }
-
-        public void SortByHash()
+        private void SortByHash()
         {
             Dictionary<uint, string> hashToString = new();
             Dictionary<uint, int> hashToLength = new();
@@ -136,9 +90,10 @@ namespace GameCore
             {
                 var hash = _hashes[i];
                 var str = _strings[i];
+                var r = _references[i];
                 hashToString.Add(hash, str);
                 hashToLength.Add(hash, _lengths[i]);
-                hashToReference.Add(hash, InternalReferenceOf(str));
+                hashToReference.Add(hash, r);
             }
 
             _hashes.Sort();
@@ -170,11 +125,12 @@ namespace GameCore
             var offset = writer.Position;
 
             // Write strings and assign them a StreamReference and StreamOffset
-            foreach (var s in _strings)
+            for (var i = 0; i < _strings.Count; ++i)
             {
-                var r = InternalReferenceOf(s);
+                var r = _references[i];
                 dataOffsetDataBase.Add(r, offset);
 
+                var s = _strings[i];
                 var utf8Len = _encoding.GetBytes(s, 0, s.Length, _utf8, 0);
                 _utf8[utf8Len] = 0; // Do include a terminating zero
                 writer.Write(_utf8, 0, utf8Len + 1);
@@ -187,48 +143,74 @@ namespace GameCore
         {
             SortByHash();
 
-            // Write StringTable
-            writer.BeginBlock(Reference, sizeof(int));
-            {
-                var hashesReference = StreamReference.NewReference;
-                var referencesReference = StreamReference.NewReference;
-                var stringsReference = StreamReference.NewReference;
+            // We need to precompute the size of the string table parts
+            var hashesSize = _hashes.Count * sizeof(uint);
+            var offsetsSize = _references.Count * sizeof(uint);
 
+            var stringsSize = 0;
+            foreach (var s in _lengths)
+                stringsSize += s;
+
+            var mainSize = sizeof(long) + sizeof(ulong) + sizeof(ulong);
+
+            // Write StringTable
+            var mainReference = StreamReference.NewReference;
+            var hashesReference = StreamReference.NewReference;
+            var offsetsReference = StreamReference.NewReference;
+            var stringsReference = StreamReference.NewReference;
+
+            writer.NewBlock(mainReference, 8, mainSize);
+            writer.NewBlock(hashesReference, 8, hashesSize);
+            writer.NewBlock(offsetsReference, 8, offsetsSize);
+            writer.NewBlock(stringsReference, 8, stringsSize);
+
+            writer.OpenBlock(mainReference);
+            {
+                writer.Write(StringTools.Encode_32_5('S','T','R','T','B'));
                 writer.Write(Count);
                 writer.Write(hashesReference);
-                writer.Write(referencesReference);
+                writer.Write(offsetsReference);
+                writer.Write(stringsReference);
 
-                // String hashes
-                writer.BeginBlock(hashesReference, sizeof(int));
+                // String Hashes
+                writer.OpenBlock(hashesReference);
                 {
-                    foreach (var s in _hashes)
-                        writer.Write(s);
-                    writer.EndBlock();
+                    for (var i = 0; i < _strings.Count; ++i)
+                    {
+                        var h = _hashes[i];
+                        writer.Write(h);
+                    }
+                    writer.CloseBlock();
                 }
 
-                // String References
-                writer.BeginBlock(referencesReference, sizeof(int));
+                // String Offsets
+                writer.OpenBlock(offsetsReference);
                 {
-                    foreach (var s in _strings)
+                    var offset = 0;
+                    for (var i = 0; i < _strings.Count; ++i)
                     {
-                        var r = InternalReferenceOf(s);
-                        writer.Write(r);
+                        writer.Write(offset);
+                        offset += _lengths[i];
                     }
+                    writer.CloseBlock();
                 }
 
                 // String Data
-                writer.BeginBlock(stringsReference, sizeof(int));
+                writer.OpenBlock(stringsReference);
                 {
-                    foreach (var s in _strings)
+                    for (var i = 0; i < _strings.Count; ++i)
                     {
-                        var r = InternalReferenceOf(s);
-                        if (!writer.BeginBlock(r, sizeof(int))) continue;
-                        writer.Write(s);
-                        writer.EndBlock();
+                        var s = _strings[i];
+                        var r = _references[i];
+                        var utf8Len = _encoding.GetBytes(s, 0, s.Length, _utf8, 0);
+                        _utf8[utf8Len] = 0; // Do include a terminating zero
+                        writer.Mark(r); // Mark the reference in the data stream
+                        writer.Write(_utf8, 0, utf8Len + 1);
                     }
+                    writer.CloseBlock();
                 }
             }
-            writer.EndBlock();
+            writer.CloseBlock();
         }
 
         #endregion

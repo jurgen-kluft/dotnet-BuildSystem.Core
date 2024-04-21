@@ -1,30 +1,14 @@
-using System;
 using System.Collections;
 using System.Reflection;
-using Int8 = System.SByte;
-using UInt8 = System.Byte;
 using GameData.MetaCode;
 
 namespace GameData
 {
     public class Reflector2
     {
-        #region IsNullable
-
-        // Extension methods on the Type class to determine if a type is nullable
-        public static class NullableTypeHelper
-        {
-            public static bool IsNullable(Type type)
-            {
-                return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
-            }
-        }
-
-        #endregion
-
         #region Fields
 
-        private readonly MetaCode.MetaCode2 _metaCode2;
+        private readonly MetaCode2 _metaCode2;
         private readonly IMemberFactory2 _memberFactory;
         private readonly ITypeInformation _typeInformation;
 
@@ -32,7 +16,7 @@ namespace GameData
 
         #region Constructor
 
-        public Reflector2(MetaCode.MetaCode2 metaCode2, MetaCode.IMemberFactory2 memberFactory, ITypeInformation typeInformation)
+        public Reflector2(MetaCode2 metaCode2, IMemberFactory2 memberFactory, ITypeInformation typeInformation)
         {
             _metaCode2 = metaCode2;
             _memberFactory = memberFactory;
@@ -268,13 +252,6 @@ namespace GameData
 
         #region GetFieldInfoList
 
-        /// <summary>
-        /// Return a 'List<FieldInfo>' of the incoming object that contains the info of
-        /// all fields of that object, including base classes. The returned list is
-        /// sorted from base-class down to derived classes, members also appear in the
-        /// list in the order of how they are defined.
-        /// </summary>
-        ///
         private static int CompareFieldInfo(FieldInfo x, FieldInfo y)
         {
             return string.CompareOrdinal(x.GetType().Name, y.GetType().Name);
