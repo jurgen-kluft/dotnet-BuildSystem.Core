@@ -71,7 +71,7 @@ namespace DataBuildSystem
         #endregion
         #region Properties
 
-        public static EEndian Endian => _sConfig.LittleEndian ? EEndian.Little : EEndian.Big;
+        public static bool LittleEndian => _sConfig.LittleEndian;
         public static string Name { get; private set; }
         public static EPlatform Platform { get; private set; } = EPlatform.Win64;
 

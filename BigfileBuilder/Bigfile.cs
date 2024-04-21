@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using GameCore;
 
 namespace DataBuildSystem
@@ -29,8 +26,8 @@ namespace DataBuildSystem
             {
                 Close();
 
-                string bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
-                FileInfo bigfileInfo = new(bigfileFilepath);
+                var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
+                var bigfileInfo = new FileInfo(bigfileFilepath);
                 DirUtils.Create(bigfileInfo.DirectoryName);
                 FileStream = new(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (Int32)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
             }
@@ -47,8 +44,7 @@ namespace DataBuildSystem
         /// Save all BigfileFiles into the Bigfile, this uses a different approach. It allocates
         /// the full size of the Bigfile first and uses seek to write all the BigfileFiles.
         /// </summary>
-        /// <param name="path">The absolute path of where 'files' can be found</param>
-        /// <param name="files">All the files to include in the Bigfile</param>
+        /// <param name="filepath">The name of the bigfile</param>
         /// <returns>True if successful</returns>
         public Int64 Save(string filepath)
         {
@@ -70,7 +66,7 @@ namespace DataBuildSystem
         {
             // Align the file on the calculated additionalLength
             FileStream.Position = CMath.Align(FileStream.Position, BigfileConfig.FileAlignment);
-            Int64 position = FileStream.Position;
+            var position = FileStream.Position;
 
             Debug.Assert(fileSize < Int32.MaxValue);
 
@@ -91,18 +87,17 @@ namespace DataBuildSystem
 
         public void Close()
         {
-            if (FileStream != null)
-            {
-                FileStream.Close();
-                FileStream = null;
-            }
+            if (FileStream == null) return;
+
+            FileStream.Close();
+            FileStream = null;
         }
     }
 
     public sealed class BigfileReader
     {
-        private FileStream FileStream;
-        private BinaryReader mBinaryReader;
+        private FileStream _fileStream;
+        private BinaryReader _binaryReader;
 
         public bool Open(string filepath)
         {
@@ -110,11 +105,11 @@ namespace DataBuildSystem
             {
                 Close();
 
-                string bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
+                var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 FileInfo bigfileInfo = new(bigfileFilepath);
 
-                FileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
-                mBinaryReader = new(FileStream);
+                _fileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
+                _binaryReader = new(_fileStream);
             }
             catch (Exception e)
             {
@@ -127,17 +122,16 @@ namespace DataBuildSystem
 
         public void Close()
         {
-            if (FileStream != null)
-            {
-                if (mBinaryReader != null)
-                {
-                    mBinaryReader.Close();
-                    mBinaryReader = null;
-                }
+            if (_fileStream == null) return;
 
-                FileStream.Close();
-                FileStream = null;
+            if (_binaryReader != null)
+            {
+                _binaryReader.Close();
+                _binaryReader = null;
             }
+
+            _fileStream.Close();
+            _fileStream = null;
         }
     }
 

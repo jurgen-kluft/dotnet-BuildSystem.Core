@@ -7,24 +7,24 @@ namespace DataBuildSystem
 {
     public interface IExcelCharConversion
     {
-        char from { get; }
-        char to { get; }
+        char From { get; }
+        char To { get; }
     }
 
     public interface IExcelSheetColumn
     {
-        string name { get; }
-        int column { get; }
-        int beginRow { get; }
-        int endRow { get; }
-        byte[] asciiset { get; }
+        string Name { get; }
+        int Column { get; }
+        int BeginRow { get; }
+        int EndRow { get; }
+        byte[] AsciiSet { get; }
     }
 
     public interface IExcelSheetConfig
     {
-        int beginRow { get; }
-        int endRow { get; }
-        IExcelSheetColumn[] columns { get; }
+        int BeginRow { get; }
+        int EndRow { get; }
+        IExcelSheetColumn[] Columns { get; }
     }
 
     public interface IBuildSystemLocalizerConfig
@@ -58,40 +58,19 @@ namespace DataBuildSystem
     {
         #region Properties
 
-        public string Platform
-        {
-            get { return "Default"; }
-        }
+        public string Platform => "Default";
 
-        public bool LittleEndian
-        {
-            get { return true; }
-        }
+        public bool LittleEndian => true;
 
-        public bool Unicode
-        {
-            get { return false; }
-        }
+        public bool Unicode => false;
 
-        public string SubDepFileExtension
-        {
-            get { return ".sdep"; }
-        }
+        public string SubDepFileExtension => ".sdep";
 
-        public string MainDepFileExtension
-        {
-            get { return ".dep"; }
-        }
+        public string MainDepFileExtension => ".dep";
 
-        public string SubLocFileExtension
-        {
-            get { return ".sloc"; }
-        }
+        public string SubLocFileExtension => ".sloc";
 
-        public string MainLocFileExtension
-        {
-            get { return ".loc"; }
-        }
+        public string MainLocFileExtension => ".loc";
 
         #endregion
     }
@@ -120,155 +99,65 @@ namespace DataBuildSystem
 
         #region Properties
 
-        public static bool PlatformPc
-        {
-            get { return _sPlatform == EPlatform.Win64; }
-        }
+        public static bool PlatformPc => _sPlatform == EPlatform.Win64;
 
-        public static bool platformXboxOne
-        {
-            get { return _sPlatform == EPlatform.XboxOne; }
-        }
+        public static bool PlatformXboxOne => _sPlatform == EPlatform.XboxOne;
 
-        public static bool platformXboxOneX
-        {
-            get { return _sPlatform == EPlatform.XboxOneX; }
-        }
+        public static bool PlatformXboxOneX => _sPlatform == EPlatform.XboxOneX;
 
-        public static bool PlatformPs4
-        {
-            get { return _sPlatform == EPlatform.PS4; }
-        }
+        public static bool PlatformPs4 => _sPlatform == EPlatform.PS4;
 
-        public static bool PlatformPs4Pro
-        {
-            get { return _sPlatform == EPlatform.PS4Pro; }
-        }
+        public static bool PlatformPs4Pro => _sPlatform == EPlatform.PS4Pro;
 
-        public static bool TargetPc
-        {
-            get { return _sTarget == EPlatform.Win64; }
-        }
+        public static bool TargetPc => _sTarget == EPlatform.Win64;
 
-        public static bool targetXboxOne
-        {
-            get { return _sTarget == EPlatform.XboxOne; }
-        }
+        public static bool TargetXboxOne => _sTarget == EPlatform.XboxOne;
 
-        public static bool targetXboxOneX
-        {
-            get { return _sTarget == EPlatform.XboxOneX; }
-        }
+        public static bool TargetXboxOneX => _sTarget == EPlatform.XboxOneX;
 
-        public static bool TargetPs4
-        {
-            get { return _sTarget == EPlatform.PS4; }
-        }
+        public static bool TargetPs4 => _sTarget == EPlatform.PS4;
 
-        public static bool TargetPs4Pro
-        {
-            get { return _sTarget == EPlatform.PS4Pro; }
-        }
+        public static bool TargetPs4Pro => _sTarget == EPlatform.PS4Pro;
 
-        public static string Name
-        {
-            get { return _sName; }
-        }
+        public static string Name => _sName;
 
-        public static EEndian Endian
-        {
-            get { return _sConfig.LittleEndian ? EEndian.Little : EEndian.Big; }
-        }
+        public static bool LittleEndian => _sConfig.LittleEndian;
 
-        public static EPlatform Platform
-        {
-            get { return _sPlatform; }
-        }
+        public static EPlatform Platform => _sPlatform;
 
-        public static Filename ConfigFilename
-        {
-            get { return _sConfigFilename; }
-        }
+        public static Filename ConfigFilename => _sConfigFilename;
 
-        public static string PlatformName
-        {
-            get { return _sPlatform.ToString(); }
-        }
+        public static string PlatformName => _sPlatform.ToString();
 
-        public static EPlatform Target
-        {
-            get { return _sTarget; }
-        }
+        public static EPlatform Target => _sTarget;
 
-        public static string TargetName
-        {
-            get { return _sTarget.ToString(); }
-        }
+        public static string TargetName => _sTarget.ToString();
 
-        public static ETerritory Territory
-        {
-            get { return _sTerritory; }
-        }
+        public static ETerritory Territory => _sTerritory;
 
-        public static string TerritoryName
-        {
-            get { return _sTerritory.ToString(); }
-        }
+        public static string TerritoryName => _sTerritory.ToString();
 
-        public static Dirname SrcPath
-        {
-            get { return _sSrcPath; }
-        }
+        public static Dirname SrcPath => _sSrcPath;
 
-        public static string Excel0
-        {
-            get { return _sExcel0; }
-        }
+        public static string Excel0 => _sExcel0;
 
-        public static Dirname DstPath
-        {
-            get { return _sDstPath; }
-        }
+        public static Dirname DstPath => _sDstPath;
 
-        public static Dirname SubPath
-        {
-            get { return _sSubPath; }
-        }
+        public static Dirname SubPath => _sSubPath;
 
-        public static Dirname DepPath
-        {
-            get { return _sDepPath; }
-        }
+        public static Dirname DepPath => _sDepPath;
 
-        public static Dirname PublishPath
-        {
-            get { return _sPublishPath; }
-        }
+        public static Dirname PublishPath => _sPublishPath;
 
-        public static Dirname ToolPath
-        {
-            get { return _sToolPath; }
-        }
+        public static Dirname ToolPath => _sToolPath;
 
-        public static string SubDepFileExtension
-        {
-            get { return _sConfig.SubDepFileExtension; }
-        }
+        public static string SubDepFileExtension => _sConfig.SubDepFileExtension;
 
-        public static string MainDepFileExtension
-        {
-            get { return _sConfig.MainDepFileExtension; }
-        }
+        public static string MainDepFileExtension => _sConfig.MainDepFileExtension;
 
-        public static string SubLocFileExtension
-        {
-            get { return _sConfig.SubLocFileExtension; }
-        }
+        public static string SubLocFileExtension => _sConfig.SubLocFileExtension;
 
-        public static string MainLocFileExtension
-        {
-            get { return _sConfig.MainLocFileExtension; }
-        }
+        public static string MainLocFileExtension => _sConfig.MainLocFileExtension;
 
         #endregion
 

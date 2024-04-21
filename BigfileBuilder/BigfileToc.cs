@@ -808,7 +808,7 @@ namespace DataBuildSystem
 
         private static void ReadTable(IReadContext context, FileStream stream, EPlatform platform)
         {
-            var binaryReader = EndianUtils.CreateBinaryReader(stream, platform);
+            var binaryReader = ArchitectureUtils.CreateBinaryReader(stream, platform);
             {
                 var block = -1;
                 do
@@ -837,7 +837,7 @@ namespace DataBuildSystem
 
         private static void WriteTable(IWriteContext context, FileStream stream, EPlatform platform)
         {
-            IBinaryStreamWriter binaryWriter = EndianUtils.CreateBinaryWriter(stream, platform);
+            IBinaryStreamWriter binaryWriter = ArchitectureUtils.CreateBinaryWriter(stream, platform);
             {
                 var block = -1;
                 do

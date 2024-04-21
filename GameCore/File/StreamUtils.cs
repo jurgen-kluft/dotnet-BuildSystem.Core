@@ -133,8 +133,8 @@ namespace GameCore
             try
             {
                 stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
-                if (mode == EMode.Write) Writer = EndianUtils.CreateBinaryWriter(stream, Platform);
-                else if (mode == EMode.Read) Reader = EndianUtils.CreateBinaryReader(stream, Platform);
+                if (mode == EMode.Write) Writer = ArchitectureUtils.CreateBinaryWriter(stream, Platform);
+                else if (mode == EMode.Read) Reader = ArchitectureUtils.CreateBinaryReader(stream, Platform);
             }
             catch (Exception)
             {

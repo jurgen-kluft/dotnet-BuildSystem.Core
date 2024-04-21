@@ -32,25 +32,17 @@ namespace GameCore
 
     public sealed class BinaryEndianReader : IBinaryReader, IBinaryStreamReader
     {
-        #region Fields
-
-        private readonly IEndian _endian;
+        private readonly IArchitecture _architecture;
         private readonly IBinaryStreamReader _reader;
         private readonly byte[] _buffer = new byte[8];
 
-        #endregion
-
-        #region Constructor
-
-        public BinaryEndianReader(IEndian endian, IBinaryStreamReader reader)
+        public BinaryEndianReader(IArchitecture architecture, IBinaryStreamReader reader)
         {
-            _endian = endian;
+            _architecture = architecture;
             _reader = reader;
         }
 
-        #endregion
-
-        #region IBinaryReader Members
+        public IArchitecture Architecture => _architecture;
 
         public long Position
         {
@@ -96,49 +88,49 @@ namespace GameCore
         public short ReadInt16()
         {
             _reader.Read(_buffer, 0, 2);
-            return _endian.ReadInt16(_buffer, 0);
+            return _architecture.ReadInt16(_buffer, 0);
         }
 
         public ushort ReadUInt16()
         {
             _reader.Read(_buffer, 0, 2);
-            return _endian.ReadUInt16(_buffer, 0);
+            return _architecture.ReadUInt16(_buffer, 0);
         }
 
         public int ReadInt32()
         {
             _reader.Read(_buffer, 0, 4);
-            return _endian.ReadInt32(_buffer, 0);
+            return _architecture.ReadInt32(_buffer, 0);
         }
 
         public uint ReadUInt32()
         {
             _reader.Read(_buffer, 0, 4);
-            return _endian.ReadUInt32(_buffer, 0);
+            return _architecture.ReadUInt32(_buffer, 0);
         }
 
         public long ReadInt64()
         {
             _reader.Read(_buffer, 0, 8);
-            return _endian.ReadInt64(_buffer, 0);
+            return _architecture.ReadInt64(_buffer, 0);
         }
 
         public ulong ReadUInt64()
         {
             _reader.Read(_buffer, 0, 8);
-            return _endian.ReadUInt64(_buffer, 0);
+            return _architecture.ReadUInt64(_buffer, 0);
         }
 
         public float ReadFloat()
         {
             _reader.Read(_buffer, 0, 4);
-            return _endian.ReadFloat(_buffer, 0);
+            return _architecture.ReadFloat(_buffer, 0);
         }
 
         public double ReadDouble()
         {
             _reader.Read(_buffer, 0, 8);
-            return _endian.ReadDouble(_buffer, 0);
+            return _architecture.ReadDouble(_buffer, 0);
         }
 
         public string ReadString()
@@ -154,14 +146,7 @@ namespace GameCore
         {
             _reader.Close();
         }
-
-        #endregion
     }
-
-    #endregion
-
-
-    #region BinaryFileReader
 
     public sealed class BinaryFileReader : IBinaryStreamReader
     {
@@ -171,25 +156,24 @@ namespace GameCore
 
         public bool Open(string filepath)
         {
-            if (File.Exists(filepath))
-            {
-                _fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
-                _streamReader = new BinaryStreamReader(_fileStream);
-                _binaryReader = new BinaryEndianReader(EndianUtils.GetEndian(EEndian.Little), _streamReader);
-                return true;
-            }
+            if (!File.Exists(filepath)) return false;
 
-            return false;
+            _fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
+            _streamReader = new BinaryStreamReader(_fileStream);
+            _binaryReader = new BinaryEndianReader(ArchitectureUtils.GetLittleEndianArchitecture(), _streamReader);
+            return true;
+
         }
 
         public void Close()
         {
-            if (_fileStream != null)
-            {
-                _binaryReader.Close();
-                _fileStream.Close();
-            }
+            if (_fileStream == null) return;
+
+            _binaryReader.Close();
+            _fileStream.Close();
         }
+
+        public IArchitecture Architecture => _binaryReader.Architecture;
 
         public long Position
         {

@@ -5,10 +5,10 @@ namespace GameCore
 {
     #region Endian Classes
 
-    public interface IEndian
+    public interface IArchitecture
     {
-        bool little { get; }
-        bool big { get; }
+        bool IsLittle{ get; }
+        bool Is64Bit { get; }
 
         int Write(byte v, byte[] buffer, int offset);
         int Write(sbyte v, byte[] buffer, int offset);
@@ -33,49 +33,43 @@ namespace GameCore
         double ReadDouble(byte[] buffer, int index);
     }
 
-    public enum EEndian
+    public static class ArchitectureUtils
     {
-        Little,
-        Big,
-    }
-
-    public static class EndianUtils
-    {
-        public static EEndian GetPlatformEndian(EPlatform platform)
+        public static IArchitecture GetPlatformArchitecture(EPlatform platform)
         {
             return platform switch
             {
-                EPlatform.Win32 => EEndian.Little,
-                EPlatform.Win64 => EEndian.Little,
-                EPlatform.Mac => EEndian.Little,
-                EPlatform.XboxOne => EEndian.Little,
-                EPlatform.XboxOneX => EEndian.Little,
-                EPlatform.PS4 => EEndian.Little,
-                EPlatform.PS4Pro => EEndian.Little,
-                EPlatform.XboxSeriesS => EEndian.Little,
-                EPlatform.XboxSeriesX => EEndian.Little,
-                EPlatform.PS5 => EEndian.Little,
-                EPlatform.NintendoSwitch => EEndian.Little,
-                _ => EEndian.Little
+                EPlatform.Win32 => LittleArchitecture,
+                EPlatform.Win64 => LittleArchitecture,
+                EPlatform.Mac => LittleArchitecture,
+                EPlatform.XboxOne => LittleArchitecture,
+                EPlatform.XboxOneX => LittleArchitecture,
+                EPlatform.PS4 => LittleArchitecture,
+                EPlatform.PS4Pro => LittleArchitecture,
+                EPlatform.XboxSeriesS => LittleArchitecture,
+                EPlatform.XboxSeriesX => LittleArchitecture,
+                EPlatform.PS5 => LittleArchitecture,
+                EPlatform.NintendoSwitch => LittleArchitecture,
+                _ => LittleArchitecture
             };
         }
 
-        public static readonly IEndian sLittleEndian = new LittleEndian();
-        public static readonly IEndian sBigEndian = new BigEndian();
+        public static readonly IArchitecture LittleArchitecture = new LittleArchitecture64();
+        public static readonly IArchitecture BigArchitecture = new BigArchitecture64();
 
-        public static IEndian GetEndian(EEndian endian)
+        public static IArchitecture GetLittleEndianArchitecture()
         {
-            return endian switch
-            {
-                EEndian.Little => sLittleEndian,
-                EEndian.Big => sBigEndian,
-                _ => sLittleEndian
-            };
+            return LittleArchitecture;
         }
 
-        public static IEndian GetEndianForPlatform(EPlatform platform)
+        public static IArchitecture GetBigEndianArchitecture()
         {
-            return GetEndian(GetPlatformEndian(platform));
+            return BigArchitecture;
+        }
+
+        public static IArchitecture GetEndianForPlatform(EPlatform platform)
+        {
+            return GetPlatformArchitecture(platform);
         }
 
         public static bool IsPlatform64Bit(EPlatform platform)
@@ -86,27 +80,27 @@ namespace GameCore
         public static IBinaryStreamReader CreateBinaryReader(Stream s, EPlatform platform)
         {
             var bs = new BinaryStreamReader(s);
-            return (new BinaryEndianReader(EndianUtils.GetEndian(EndianUtils.GetPlatformEndian(platform)), bs));
+            return new BinaryEndianReader(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
         }
 
         public static IBinaryStreamWriter CreateBinaryWriter(Stream s, EPlatform platform)
         {
             var bs = new BinaryStreamWriter(s);
-            return (new BinaryEndianWriter(EndianUtils.GetEndian(EndianUtils.GetPlatformEndian(platform)), bs));
+            return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
         }
 
         public static IBinaryStreamWriter CreateBinaryWriter(string filepath, EPlatform platform)
         {
             Stream s = new FileStream(filepath, FileMode.Create, FileAccess.Write);
             BinaryStreamWriter bs = new(s);
-            return (new BinaryEndianWriter(EndianUtils.GetEndian(EndianUtils.GetPlatformEndian(platform)), bs));
+            return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
         }
     }
 
-    public class LittleEndian : IEndian
+    public class LittleArchitecture64 : IArchitecture
     {
-        public bool little => true;
-        public bool big => false;
+        public bool IsLittle => true;
+        public bool Is64Bit => true;
 
         public int Write(sbyte v, byte[] buffer, int offset)
         {
@@ -220,10 +214,10 @@ namespace GameCore
 
     }
 
-    public class BigEndian : IEndian
+    public class BigArchitecture64 : IArchitecture
     {
-        public bool little => false;
-        public bool big => true;
+        public bool IsLittle => false;
+        public bool Is64Bit => true;
 
         public int Write(sbyte v, byte[] buffer, int offset)
         {

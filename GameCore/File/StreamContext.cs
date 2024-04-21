@@ -10,51 +10,38 @@ namespace GameCore
     /// </summary>
     public sealed class StreamContext
     {
-        #region Fields
-
-        private Int64 mOffsetOfReferenceInStream = StreamOffset.Empty.Offset;
-        private readonly List<Int64> mReferencesOfReferenceInStream = new List<Int64>();
-
-        #endregion
-        #region Properties
-
-        public EPlatform Platform { get; set; }
+        private Int64 _offsetOfReferenceInStream = StreamOffset.Empty.Offset;
+        private readonly List<Int64> _referencesOfReferenceInStream = new ();
 
         public Int64 Offset
         {
-            get => mOffsetOfReferenceInStream;
-            set => mOffsetOfReferenceInStream = value;
+            get => _offsetOfReferenceInStream;
+            set => _offsetOfReferenceInStream = value;
         }
 
-        public int Count => mReferencesOfReferenceInStream.Count;
+        public int Count => _referencesOfReferenceInStream.Count;
 
-        public Int64 this[int index] => mReferencesOfReferenceInStream[index];
+        public Int64 this[int index] => _referencesOfReferenceInStream[index];
 
-        #endregion
-        #region Constructor
-
-        public StreamContext(EPlatform platform)
+        public StreamContext()
         {
-            Platform = platform;
-        }
 
-        #endregion
-        #region Methods
+        }
 
         public void Add(Int64 offset)
         {
-            mReferencesOfReferenceInStream.Add(offset);
+            _referencesOfReferenceInStream.Add(offset);
         }
 
         public void ResolveToNull(IBinaryStreamWriter writer)
         {
-            if (mReferencesOfReferenceInStream.Count > 0)
+            if (_referencesOfReferenceInStream.Count > 0)
             {
-                if (!EndianUtils.IsPlatform64Bit(Platform))
+                if (!writer.Architecture.Is64Bit)
                 {
                     const Int32 NULL = 0;
                     var currentOffset =  (writer.Position);
-                    foreach (var o in mReferencesOfReferenceInStream)
+                    foreach (var o in _referencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.Empty.Offset);
                         writer.Seek(o);
@@ -67,7 +54,7 @@ namespace GameCore
                 {
                     const Int64 NULL = 0;
                     var currentOffset = (writer.Position);
-                    foreach (var o in mReferencesOfReferenceInStream)
+                    foreach (var o in _referencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.Empty.Offset);
                         writer.Seek(o);
@@ -81,47 +68,46 @@ namespace GameCore
 
         public bool Resolve(IBinaryStreamWriter writer)
         {
-            if (mReferencesOfReferenceInStream.Count > 0)
+            if (_referencesOfReferenceInStream.Count <= 0) return true;
+
+            if (_offsetOfReferenceInStream == StreamOffset.Empty.Offset)
             {
-                if (mOffsetOfReferenceInStream == StreamOffset.Empty.Offset)
+                // Encountered a StreamContext holding references that could not be resolved!
+                //
+                // Explanation:
+                //     This means that the data is writing references but not the actual
+                //     DataBlock or Marker of that reference.
+                //
+                return false;
+            }
+
+            if (!writer.Architecture.Is64Bit)
+            {
+                Int32 offsetToWrite = (Int32)_offsetOfReferenceInStream;
+                var currentOffset = writer.Position;
+                foreach (var o in _referencesOfReferenceInStream)
                 {
-                    // Encountered a StreamContext holding references that could not be resolved!
-                    //
-                    // Explanation:
-                    //     This means that the data is writing references but not the actual
-                    //     DataBlock or Marker of that reference.
-                    //
-                    return false;
+                    Debug.Assert(o != StreamOffset.Empty.Offset);
+                    writer.Seek(o);
+                    writer.Write(offsetToWrite);
                 }
 
-                if (!EndianUtils.IsPlatform64Bit(Platform))
+                writer.Seek(currentOffset);
+            }
+            else // 64-bit pointers
+            {
+                Int64 offsetToWrite = (Int64)_offsetOfReferenceInStream;
+                var currentOffset = writer.Position;
+                foreach (var o in _referencesOfReferenceInStream)
                 {
-                    Int32 offsetToWrite = (Int32)mOffsetOfReferenceInStream;
-                    var currentOffset = writer.Position;
-                    foreach (var o in mReferencesOfReferenceInStream)
-                    {
-                        Debug.Assert(o != StreamOffset.Empty.Offset);
-                        writer.Seek(o);
-                        writer.Write(offsetToWrite);
-                    }
-
-                    writer.Seek(currentOffset);
+                    Debug.Assert(o != StreamOffset.Empty.Offset);
+                    writer.Seek(o);
+                    writer.Write(offsetToWrite);
                 }
-                else // EArch.Arch64, 64-bit pointers
-                {
-                    Int64 offsetToWrite = (Int64)mOffsetOfReferenceInStream;
-                    var currentOffset = writer.Position;
-                    foreach (var o in mReferencesOfReferenceInStream)
-                    {
-                        Debug.Assert(o != StreamOffset.Empty.Offset);
-                        writer.Seek(o);
-                        writer.Write(offsetToWrite);
-                    }
-                    writer.Seek(currentOffset);
-                }
+                writer.Seek(currentOffset);
             }
             return true;
         }
-        #endregion
+
     }
 }

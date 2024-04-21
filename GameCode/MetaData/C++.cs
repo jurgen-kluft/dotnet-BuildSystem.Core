@@ -84,10 +84,10 @@ namespace GameData
             // Finalize the DataStream by writing the data to a file
             var dataFileInfo = new FileInfo(dataFilename);
             var dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
-            var dataFileStreamWriter = EndianUtils.CreateBinaryWriter(dataFileStream, platform);
+            var dataFileStreamWriter = ArchitectureUtils.CreateBinaryWriter(dataFileStream, platform);
             var relocationFileInfo = new FileInfo(relocationFilename);
             var relocationFileStream = new FileStream(relocationFileInfo.FullName, FileMode.Create);
-            var relocationFileStreamWriter = EndianUtils.CreateBinaryWriter(relocationFileStream, platform);
+            var relocationFileStreamWriter = ArchitectureUtils.CreateBinaryWriter(relocationFileStream, platform);
             dataStream.Finalize(dataFileStreamWriter, relocationFileStreamWriter);
             dataFileStreamWriter.Close();
             dataFileStream.Close();

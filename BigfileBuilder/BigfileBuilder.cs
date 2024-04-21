@@ -37,14 +37,14 @@ namespace DataBuildSystem
         {
             // Simulation:
             // Compute the file Id
-            for (int i = 0; i < bigFiles.Count; i++)
+            for (var i = 0; i < bigFiles.Count; i++)
             {
-                Bigfile bigfile = bigFiles[i];
+                var bigfile = bigFiles[i];
 
                 s64 fileId = 0;
-                for (int j = 0; j < bigfile.Files.Count; j++)
+                for (var j = 0; j < bigfile.Files.Count; j++)
                 {
-                    BigfileFile bigfileFile = bigfile.Files[j];
+                    var bigfileFile = bigfile.Files[j];
                     if (bigfileFile.FileId == -1)
                     {
                         bigfileFile.FileId = fileId;
@@ -59,15 +59,15 @@ namespace DataBuildSystem
             // Simulation:
             // Compute the file size and offset for each BigfileFile
             StreamOffset currentOffset = new(0);
-            for (int i = 0; i < bigFiles.Count; i++)
+            for (var i = 0; i < bigFiles.Count; i++)
             {
-                Bigfile bigfile = bigFiles[i];
+                var bigfile = bigFiles[i];
 
-                for (int j = 0; j < bigfile.Files.Count; j++)
+                for (var j = 0; j < bigfile.Files.Count; j++)
                 {
-                    BigfileFile bigfileFile = bigfile.Files[j];
+                    var bigfileFile = bigfile.Files[j];
 
-                    FileInfo fileInfo = new(Path.Join(dstPath, bigfileFile.Filename));
+                    var fileInfo = new FileInfo(Path.Join(dstPath, bigfileFile.Filename));
                     if (fileInfo.Exists)
                     {
                         bigfileFile.FileOffset = new(currentOffset);
@@ -92,7 +92,7 @@ namespace DataBuildSystem
         /// <returns>True if build was successful</returns>
         public bool Save(string pubPath, string dstPath, string mainBigfileFilename, List<Bigfile> bigFiles)
         {
-            BigfileWriter writer = new ();
+            var writer = new BigfileWriter();
 
             // Opening the Bigfile
             if (!writer.Open(Path.Join(pubPath, mainBigfileFilename)))
@@ -101,15 +101,15 @@ namespace DataBuildSystem
                 return false;
             }
 
-            Int64 bigfileSize = Simulate(dstPath, bigFiles);
+            var bigfileSize = Simulate(dstPath, bigFiles);
             writer.SetLength(bigfileSize);
 
             // Write all files to the Bigfile Archive
-            for (int i = 0; i < bigFiles.Count; i++)
+            for (var i = 0; i < bigFiles.Count; i++)
             {
-                Bigfile bigfile = bigFiles[i];
+                var bigfile = bigFiles[i];
 
-                for (int j = 0; j < bigfile.Files.Count; j++)
+                for (var j = 0; j < bigfile.Files.Count; j++)
                 {
                     BigfileFile bigfileFile = bigfile.Files[i];
                     Int64 offset = writer.Save(Path.Join(dstPath, bigfileFile.Filename));
@@ -119,8 +119,8 @@ namespace DataBuildSystem
 
             writer.Close();
 
-            BigfileToc bft = new ();
-            string mainBigfileTocFilename = Path.ChangeExtension(mainBigfileFilename, BigfileConfig.BigFileTocExtension);
+            var bft = new BigfileToc();
+            var mainBigfileTocFilename = Path.ChangeExtension(mainBigfileFilename, BigfileConfig.BigFileTocExtension);
             if (!bft.Save(Path.Join(pubPath, mainBigfileTocFilename), Platform, bigFiles))
             {
                 Console.WriteLine("Error saving BigFileToc: {0}", mainBigfileTocFilename);
@@ -158,9 +158,9 @@ namespace DataBuildSystem
             return true;
         }
 
-        private bool Save2(string pubPath, string dstPath, string bigfileFilename, List<Bigfile> bigfiles)
+        private bool Save2(string pubPath, string dstPath, string bigfileFilename, List<Bigfile> bigFiles)
         {
-            BigfileWriter writer = new();
+            var writer = new BigfileWriter();
 
             // Opening the Bigfile
             if (!writer.Open(Path.Join(pubPath, bigfileFilename)))
@@ -170,11 +170,11 @@ namespace DataBuildSystem
             }
 
             // Write all files to the Bigfile
-            foreach(var bf in bigfiles)
+            foreach(var bf in bigFiles)
             {
                 foreach(var bff in bf.Files)
                 {
-                    Int64 offset = writer.Save(Path.Join(dstPath, bff.Filename));
+                    var offset = writer.Save(Path.Join(dstPath, bff.Filename));
                     bff.FileOffset = new StreamOffset(offset);
                     if (offset < 0)
                     {
@@ -187,28 +187,25 @@ namespace DataBuildSystem
             writer.Close();
 
             // Write the TOC
-            BigfileToc bft = new();
-            string bftFilePath = Path.Join(pubPath, Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
-            if (!bft.Save(bftFilePath, Platform, bigfiles))
-            {
-                Console.WriteLine("Error saving {0}", bftFilePath);
-                return false;
-            }
+            var bft = new BigfileToc();
+            var bftFilePath = Path.Join(pubPath, Path.ChangeExtension(bigfileFilename, BigfileConfig.BigFileTocExtension));
+            if (bft.Save(bftFilePath, Platform, bigFiles)) return true;
 
-            return true;
+            Console.WriteLine("Error saving {0}", bftFilePath);
+            return false;
+
         }
 
         /// <summary>
         /// Reorder the current Bigfile by writing the files to a new Bigfile using the reordering map
         /// </summary>
-        /// <param name="srcFilename">The filename of the source Bigfile</param>
         /// <param name="dataPath">The path of where the data is</param>
-        /// <param name="srcBigfileFiles">The BigfileFiles of the source Bigfile</param>
+        /// <param name="srcFilename">The filename of the source Bigfile</param>
         /// <param name="dstFilename">The filename of the destination Bigfile</param>
         /// <param name="remap">The order in which to write the source BigfileFiles (may contain duplicates)</param>
-        /// <param name="endian">The BigfileToc needs to know the endian</param>
+        /// <param name="littleEndian">The BigfileToc needs to know the endian</param>
         /// <returns>True if all went ok</returns>
-        public static bool Reorder(string dataPath, string srcFilename, string dstFilename, List<int> remap, EEndian endian)
+        public static bool Reorder(string dataPath, string srcFilename, string dstFilename, List<int> remap, bool littleEndian)
         {
             BigfileToc bigfileToc = new();
             List<BigfileFile> dstBigfileFiles = new();

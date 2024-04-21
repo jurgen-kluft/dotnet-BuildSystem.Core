@@ -178,7 +178,7 @@ namespace DataBuildSystem
         public void Save(string dstPath)
         {
             var filepath = Path.Join(dstPath, "GameDataUnits.log");
-            var writer = EndianUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
 
             writer.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
             writer.Write(DataUnits.Count);

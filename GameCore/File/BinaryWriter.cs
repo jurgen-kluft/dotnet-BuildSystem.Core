@@ -22,6 +22,8 @@ namespace GameCore
 
     public interface IBinaryStream
     {
+        IArchitecture Architecture { get; }
+
         long Position { get; set; }
         long Length { get; set; }
 
@@ -39,201 +41,203 @@ namespace GameCore
 
     public class BinaryStreamWriter : IBinaryStreamWriter
     {
-        private Stream mStream;
-        private byte[] mBuffer = new byte[32];
+        private readonly Stream _stream;
+        private readonly byte[] _buffer = new byte[32];
 
         public BinaryStreamWriter(Stream stream)
         {
-            mStream = stream;
+            _stream = stream;
         }
 
         public void Write(sbyte v)
         {
-            mStream.WriteByte((byte)v);
+            _stream.WriteByte((byte)v);
         }
 
         public void Write(byte v)
         {
-            mStream.WriteByte(v);
+            _stream.WriteByte(v);
         }
 
         public void Write(short v)
         {
-            mBuffer[0] = (byte)v;
-            mBuffer[1] = (byte)(v >> 8);
-            mStream.Write(mBuffer, 0, 2);
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _stream.Write(_buffer, 0, 2);
         }
 
         public void Write(ushort v)
         {
-            mBuffer[0] = (byte)v;
-            mBuffer[1] = (byte)(v >> 8);
-            mStream.Write(mBuffer, 0, 2);
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _stream.Write(_buffer, 0, 2);
         }
 
         public void Write(int v)
         {
-            mBuffer[0] = (byte)v;
-            mBuffer[1] = (byte)(v >> 8);
-            mBuffer[2] = (byte)(v >> 16);
-            mBuffer[3] = (byte)(v >> 24);
-            mStream.Write(mBuffer, 0, 4);
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _stream.Write(_buffer, 0, 4);
         }
 
         public void Write(uint v)
         {
-            mBuffer[0] = (byte)v;
-            mBuffer[1] = (byte)(v >> 8);
-            mBuffer[2] = (byte)(v >> 16);
-            mBuffer[3] = (byte)(v >> 24);
-            mStream.Write(mBuffer, 0, 4);
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _stream.Write(_buffer, 0, 4);
         }
 
         public void Write(long v)
         {
-            mBuffer[0] = (byte)v;
-            mBuffer[1] = (byte)(v >> 8);
-            mBuffer[2] = (byte)(v >> 16);
-            mBuffer[3] = (byte)(v >> 24);
-            mBuffer[4] = (byte)(v >> 32);
-            mBuffer[5] = (byte)(v >> 40);
-            mBuffer[6] = (byte)(v >> 48);
-            mBuffer[7] = (byte)(v >> 56);
-            mStream.Write(mBuffer, 0, 8);
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _buffer[4] = (byte)(v >> 32);
+            _buffer[5] = (byte)(v >> 40);
+            _buffer[6] = (byte)(v >> 48);
+            _buffer[7] = (byte)(v >> 56);
+            _stream.Write(_buffer, 0, 8);
         }
 
         public void Write(ulong v)
         {
-            mBuffer[0] = (byte)v;
-            mBuffer[1] = (byte)(v >> 8);
-            mBuffer[2] = (byte)(v >> 16);
-            mBuffer[3] = (byte)(v >> 24);
-            mBuffer[4] = (byte)(v >> 32);
-            mBuffer[5] = (byte)(v >> 40);
-            mBuffer[6] = (byte)(v >> 48);
-            mBuffer[7] = (byte)(v >> 56);
-            mStream.Write(mBuffer, 0, 8);
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _buffer[4] = (byte)(v >> 32);
+            _buffer[5] = (byte)(v >> 40);
+            _buffer[6] = (byte)(v >> 48);
+            _buffer[7] = (byte)(v >> 56);
+            _stream.Write(_buffer, 0, 8);
         }
 
         public void Write(float v)
         {
-            if (BitConverter.TryWriteBytes(mBuffer, v))
-                mStream.Write(mBuffer, 0, 4);
+            if (BitConverter.TryWriteBytes(_buffer, v))
+                _stream.Write(_buffer, 0, 4);
         }
 
         public void Write(double v)
         {
-            if (BitConverter.TryWriteBytes(mBuffer, v))
-                mStream.Write(mBuffer, 0, 8);
+            if (BitConverter.TryWriteBytes(_buffer, v))
+                _stream.Write(_buffer, 0, 8);
         }
 
         public void Write(byte[] data)
         {
-            mStream.Write(data, 0, data.Length);
+            _stream.Write(data, 0, data.Length);
         }
 
         public void Write(byte[] data, int index, int count)
         {
-            mStream.Write(data, index, count);
+            _stream.Write(data, index, count);
         }
 
         public void Write(string v)
         {
             var data = System.Text.Encoding.UTF8.GetBytes(v);
-            Write(data.Length+1);
+            Write(data.Length + 1);
             Write(data);
             Write((byte)0);
         }
 
+        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture;
+
         public long Position
         {
-            get => mStream.Position;
-            set => mStream.Position = value;
+            get => _stream.Position;
+            set => _stream.Position = value;
         }
 
         public long Length
         {
-            get => mStream.Length;
-            set => mStream.SetLength(value);
+            get => _stream.Length;
+            set => _stream.SetLength(value);
         }
 
         public long Seek(long offset)
         {
-            return mStream.Seek(offset, SeekOrigin.Begin);
+            return _stream.Seek(offset, SeekOrigin.Begin);
         }
 
         public void Close()
         {
-            mStream.Close();
+            _stream.Close();
         }
     }
 
     public class BinaryStreamReader : IBinaryStreamReader
     {
-        private Stream mStream;
-        private byte[] mBuffer = new byte[32];
+        private readonly Stream _stream;
+        private readonly byte[] _buffer = new byte[32];
 
         public BinaryStreamReader(Stream stream)
         {
-            mStream = stream;
+            _stream = stream;
         }
 
         public sbyte ReadInt8()
         {
-            return (sbyte)mStream.ReadByte();
+            return (sbyte)_stream.ReadByte();
         }
 
         public byte ReadUInt8()
         {
-            return (byte)mStream.ReadByte();
+            return (byte)_stream.ReadByte();
         }
 
         public short ReadInt16()
         {
-            mStream.Read(mBuffer, 0, 2);
-            return (short)(mBuffer[0] | (mBuffer[1] << 8));
+            _stream.Read(_buffer, 0, 2);
+            return (short)(_buffer[0] | (_buffer[1] << 8));
         }
 
         public ushort ReadUInt16()
         {
-            mStream.Read(mBuffer, 0, 2);
-            return (ushort)(mBuffer[0] | (mBuffer[1] << 8));
+            _stream.Read(_buffer, 0, 2);
+            return (ushort)(_buffer[0] | (_buffer[1] << 8));
         }
 
         public int ReadInt32()
         {
-            mStream.Read(mBuffer, 0, 4);
-            return mBuffer[0] | (mBuffer[1] << 8) | (mBuffer[2] << 16) | (mBuffer[3] << 24);
+            _stream.Read(_buffer, 0, 4);
+            return _buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24);
         }
 
         public uint ReadUInt32()
         {
-            mStream.Read(mBuffer, 0, 4);
-            return (uint)(mBuffer[0] | (mBuffer[1] << 8) | (mBuffer[2] << 16) | (mBuffer[3] << 24));
+            _stream.Read(_buffer, 0, 4);
+            return (uint)(_buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24));
         }
 
         public long ReadInt64()
         {
-            mStream.Read(mBuffer, 0, 8);
-            return (long)mBuffer[0] | ((long)mBuffer[1] << 8) | ((long)mBuffer[2] << 16) | ((long)mBuffer[3] << 24) | ((long)mBuffer[4] << 32) | ((long)mBuffer[5] << 40) | ((long)mBuffer[6] << 48) | ((long)mBuffer[7] << 56);
+            _stream.Read(_buffer, 0, 8);
+            return (long)_buffer[0] | ((long)_buffer[1] << 8) | ((long)_buffer[2] << 16) | ((long)_buffer[3] << 24) | ((long)_buffer[4] << 32) | ((long)_buffer[5] << 40) | ((long)_buffer[6] << 48) | ((long)_buffer[7] << 56);
         }
 
         public ulong ReadUInt64()
         {
-            mStream.Read(mBuffer, 0, 8);
-            return ((ulong)mBuffer[0] | ((ulong)mBuffer[1] << 8) | ((ulong)mBuffer[2] << 16) | ((ulong)mBuffer[3] << 24) | ((ulong)mBuffer[4] << 32) | ((ulong)mBuffer[5] << 40) | ((ulong)mBuffer[6] << 48) | ((ulong)mBuffer[7] << 56));
+            _stream.Read(_buffer, 0, 8);
+            return ((ulong)_buffer[0] | ((ulong)_buffer[1] << 8) | ((ulong)_buffer[2] << 16) | ((ulong)_buffer[3] << 24) | ((ulong)_buffer[4] << 32) | ((ulong)_buffer[5] << 40) | ((ulong)_buffer[6] << 48) | ((ulong)_buffer[7] << 56));
         }
 
         public float ReadFloat()
         {
-            mStream.Read(mBuffer, 0, 4);
-            return BitConverter.ToSingle(mBuffer, 0);
+            _stream.Read(_buffer, 0, 4);
+            return BitConverter.ToSingle(_buffer, 0);
         }
 
         public double ReadDouble()
         {
-            mStream.Read(mBuffer, 0, 8);
-            return BitConverter.ToDouble(mBuffer, 0);
+            _stream.Read(_buffer, 0, 8);
+            return BitConverter.ToDouble(_buffer, 0);
         }
 
         public string ReadString()
@@ -246,7 +250,7 @@ namespace GameCore
 
         public int Read(byte[] data, int index, int count)
         {
-            return mStream.Read(data, index, count);
+            return _stream.Read(data, index, count);
         }
 
         public bool SkipBytes(long numBytes)
@@ -256,26 +260,28 @@ namespace GameCore
             return (Position - pos) == numBytes;
         }
 
+        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture;
+
         public long Position
         {
-            get => mStream.Position;
-            set => mStream.Position = value;
+            get => _stream.Position;
+            set => _stream.Position = value;
         }
 
         public long Length
         {
-            get => mStream.Length;
-            set => mStream.SetLength(value);
+            get => _stream.Length;
+            set => _stream.SetLength(value);
         }
 
         public long Seek(long offset)
         {
-            return mStream.Seek(offset, SeekOrigin.Begin);
+            return _stream.Seek(offset, SeekOrigin.Begin);
         }
 
         public void Close()
         {
-            mStream.Close();
+            _stream.Close();
         }
     }
 
@@ -287,7 +293,7 @@ namespace GameCore
     {
         #region Fields
 
-        private readonly IEndian _endian;
+        private readonly IArchitecture _architecture;
         private readonly IBinaryStreamWriter _writer;
         private readonly byte[] _buffer = new byte[8];
 
@@ -295,9 +301,9 @@ namespace GameCore
 
         #region Constructor
 
-        public BinaryEndianWriter(IEndian endian, IBinaryStreamWriter writer)
+        public BinaryEndianWriter(IArchitecture architecture, IBinaryStreamWriter writer)
         {
-            _endian = endian;
+            _architecture = architecture;
             _writer = writer;
         }
 
@@ -319,61 +325,61 @@ namespace GameCore
 
         public void Write(sbyte v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(byte v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(short v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(ushort v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(int v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(uint v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(long v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(ulong v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(float v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
         public void Write(double v)
         {
-            var n = _endian.Write(v, _buffer, 0);
+            var n = _architecture.Write(v, _buffer, 0);
             Write(_buffer, 0, n);
         }
 
@@ -384,6 +390,8 @@ namespace GameCore
             Write(data);
             Write((byte)0);
         }
+
+        public IArchitecture Architecture => _architecture;
 
         public long Position
         {
@@ -418,11 +426,11 @@ namespace GameCore
         private BinaryStreamWriter _binaryStreamWriter;
         private Stream mStream;
 
-        public void Open(Stream s, IEndian endian)
+        public void Open(Stream s, IArchitecture architecture)
         {
             mStream = s;
             _binaryStreamWriter = new(mStream);
-            _binaryWriter = new(endian, _binaryStreamWriter);
+            _binaryWriter = new(architecture, _binaryStreamWriter);
         }
 
         #region IBinaryWriter Members
@@ -524,84 +532,84 @@ namespace GameCore
 
     public class BinaryMemoryWriter : IBinaryStreamWriter
     {
-        private BinaryEndianWriter mBinaryWriter;
-        private BinaryStreamWriter _mBinaryStreamWriter;
-        private MemoryStream mStream;
+        private BinaryEndianWriter _binaryWriter;
+        private BinaryStreamWriter _binaryStreamWriter;
+        private MemoryStream _stream;
 
-        public bool Open(MemoryStream ms, IEndian endian)
+        public bool Open(MemoryStream ms, IArchitecture architecture)
         {
-            mStream = ms;
-            _mBinaryStreamWriter = new(ms);
-            mBinaryWriter = new(endian, _mBinaryStreamWriter);
+            _stream = ms;
+            _binaryStreamWriter = new(ms);
+            _binaryWriter = new(architecture, _binaryStreamWriter);
             return true;
         }
 
         public void Reset()
         {
-            mStream.Position = 0;
+            _stream.Position = 0;
         }
 
         #region IBinaryWriter Members
 
         public void Write(byte[] data)
         {
-            mBinaryWriter.Write(data, 0, data.Length);
+            _binaryWriter.Write(data, 0, data.Length);
         }
 
         public void Write(byte[] data, int index, int count)
         {
             Debug.Assert((index + count) <= data.Length);
-            mBinaryWriter.Write(data, index, count);
+            _binaryWriter.Write(data, index, count);
         }
 
         public void Write(sbyte v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(byte v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(short v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(ushort v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(int v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(uint v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(long v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(ulong v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(float v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(double v)
         {
-            mBinaryWriter.Write(v);
+            _binaryWriter.Write(v);
         }
 
         public void Write(string s)
@@ -612,27 +620,29 @@ namespace GameCore
             Write((byte)0);
         }
 
+        public IArchitecture Architecture => _binaryStreamWriter.Architecture;
+
         public long Position
         {
-            get => _mBinaryStreamWriter.Position;
-            set => _mBinaryStreamWriter.Position = value;
+            get => _binaryStreamWriter.Position;
+            set => _binaryStreamWriter.Position = value;
         }
 
         public long Length
         {
-            get => _mBinaryStreamWriter.Length;
-            set => _mBinaryStreamWriter.Length = (value);
+            get => _binaryStreamWriter.Length;
+            set => _binaryStreamWriter.Length = (value);
         }
 
         public long Seek(long offset)
         {
-            return _mBinaryStreamWriter.Seek(offset);
+            return _binaryStreamWriter.Seek(offset);
         }
 
         public void Close()
         {
-            _mBinaryStreamWriter.Close();
-            mStream.Close();
+            _binaryStreamWriter.Close();
+            _stream.Close();
         }
 
         #endregion
@@ -640,27 +650,33 @@ namespace GameCore
 
     public class BinaryMemoryBlock : IBinaryDataStream
     {
-        public void Setup(byte[] memory, int offset, int length, IEndian endian)
+        public void Setup(byte[] memory, int offset, int length, IArchitecture architecture)
         {
             _memory = memory;
             _begin = offset;
             _end = offset + length;
-            _endian = endian;
+            _architecture = architecture;
             Position = offset;
         }
 
         public void Setup(byte[] memory, int offset, int length)
         {
-            Setup(memory, offset, length, EndianUtils.sLittleEndian);
+            Setup(memory, offset, length, ArchitectureUtils.LittleArchitecture);
         }
 
         private byte[] _memory;
         private int _begin;
         private int _end;
         private int _position;
-        private IEndian _endian;
+        private IArchitecture _architecture;
 
-        public long Position { get => _position; set => _position = (int)value; }
+        public IArchitecture Architecture => _architecture;
+
+        public long Position
+        {
+            get => _position;
+            set => _position = (int)value;
+        }
 
         public long Length
         {
@@ -676,7 +692,6 @@ namespace GameCore
 
         public void Close()
         {
-
         }
 
         public ReadOnlyMemory<byte> GetMemory(int offset, int length)
@@ -696,7 +711,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadInt8(_memory, _position);
+            var v = _architecture.ReadInt8(_memory, _position);
             Position += 1;
             return v;
         }
@@ -705,7 +720,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadUInt8(_memory, _position);
+            var v = _architecture.ReadUInt8(_memory, _position);
             Position += 1;
             return v;
         }
@@ -714,7 +729,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadInt16(_memory, _position);
+            var v = _architecture.ReadInt16(_memory, _position);
             Position += 2;
             return v;
         }
@@ -723,7 +738,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadUInt16(_memory, _position);
+            var v = _architecture.ReadUInt16(_memory, _position);
             Position += 2;
             return v;
         }
@@ -732,7 +747,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadInt32(_memory, _position);
+            var v = _architecture.ReadInt32(_memory, _position);
             Position += 4;
             return v;
         }
@@ -741,7 +756,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadUInt32(_memory, _position);
+            var v = _architecture.ReadUInt32(_memory, _position);
             Position += 4;
             return v;
         }
@@ -750,7 +765,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadInt64(_memory, _position);
+            var v = _architecture.ReadInt64(_memory, _position);
             Position += 8;
             return v;
         }
@@ -759,7 +774,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadUInt64(_memory, _position);
+            var v = _architecture.ReadUInt64(_memory, _position);
             Position += 8;
             return v;
         }
@@ -768,7 +783,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadFloat(_memory, _position);
+            var v = _architecture.ReadFloat(_memory, _position);
             Position += 4;
             return v;
         }
@@ -777,7 +792,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return 0;
-            var v = _endian.ReadDouble(_memory, _position);
+            var v = _architecture.ReadDouble(_memory, _position);
             Position += 8;
             return v;
         }
@@ -794,7 +809,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 1;
         }
 
@@ -802,7 +817,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 1;
         }
 
@@ -810,7 +825,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 2;
         }
 
@@ -818,7 +833,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 2;
         }
 
@@ -826,7 +841,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 4;
         }
 
@@ -834,7 +849,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 4;
         }
 
@@ -842,7 +857,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 8;
         }
 
@@ -850,7 +865,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 8;
         }
 
@@ -858,7 +873,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 4;
         }
 
@@ -866,7 +881,7 @@ namespace GameCore
         {
             if (Position >= _end)
                 return;
-            _endian.Write(v, _memory, _position);
+            _architecture.Write(v, _memory, _position);
             _position += 8;
         }
 

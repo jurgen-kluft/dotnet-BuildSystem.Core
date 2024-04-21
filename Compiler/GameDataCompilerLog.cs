@@ -82,7 +82,7 @@ namespace DataBuildSystem
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream, EndianUtils.GetEndianForPlatform(Platform)))
+            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
             {
                 foreach (var cl in compilers)
                 {
@@ -112,7 +112,7 @@ namespace DataBuildSystem
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream, EndianUtils.GetEndianForPlatform(Platform)))
+            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
             {
                 foreach (var cl in compilers)
                 {
@@ -185,12 +185,12 @@ namespace DataBuildSystem
 
         public Result Save(List<IDataCompiler> cl)
         {
-            var writer = EndianUtils.CreateBinaryWriter(FilePath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateBinaryWriter(FilePath, LocalizerConfig.Platform);
             if (writer == null) return Result.Error;
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream, EndianUtils.GetEndianForPlatform(Platform)))
+            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
             {
                 foreach (var compiler in cl)
                 {
