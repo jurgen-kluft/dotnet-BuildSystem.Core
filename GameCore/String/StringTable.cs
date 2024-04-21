@@ -27,12 +27,18 @@ namespace GameCore
             _utf8 = new byte[longestUtf8StrLen];
 
             Reference = StreamReference.NewReference;
+            HashesReference = StreamReference.NewReference;
+            OffsetsReference = StreamReference.NewReference;
+            StringsReference = StreamReference.NewReference;
         }
 
         #endregion
         #region Properties
 
-        public StreamReference Reference { get; init; }
+        public StreamReference Reference { get;  }
+        private StreamReference  HashesReference { get;  }
+        private StreamReference  OffsetsReference { get;  }
+        private StreamReference  StringsReference { get;  }
 
         private int Count => _strings.Count;
 
@@ -118,27 +124,6 @@ namespace GameCore
             }
         }
 
-        public void Write(IBinaryStreamWriter writer, Dictionary<StreamReference, long> dataOffsetDataBase)
-        {
-            SortByHash();
-
-            var offset = writer.Position;
-
-            // Write strings and assign them a StreamReference and StreamOffset
-            for (var i = 0; i < _strings.Count; ++i)
-            {
-                var r = _references[i];
-                dataOffsetDataBase.Add(r, offset);
-
-                var s = _strings[i];
-                var utf8Len = _encoding.GetBytes(s, 0, s.Length, _utf8, 0);
-                _utf8[utf8Len] = 0; // Do include a terminating zero
-                writer.Write(_utf8, 0, utf8Len + 1);
-
-                offset += utf8Len + 1;
-            }
-        }
-
         public void Write(IDataWriter writer)
         {
             SortByHash();
@@ -151,29 +136,26 @@ namespace GameCore
             foreach (var s in _lengths)
                 stringsSize += s;
 
-            var mainSize = sizeof(long) + sizeof(ulong) + sizeof(ulong);
+            var mainSize = sizeof(int) + sizeof(int) + sizeof(ulong) + sizeof(ulong) + sizeof(ulong);
 
             // Write StringTable
-            var mainReference = StreamReference.NewReference;
-            var hashesReference = StreamReference.NewReference;
-            var offsetsReference = StreamReference.NewReference;
-            var stringsReference = StreamReference.NewReference;
 
-            writer.NewBlock(mainReference, 8, mainSize);
-            writer.NewBlock(hashesReference, 8, hashesSize);
-            writer.NewBlock(offsetsReference, 8, offsetsSize);
-            writer.NewBlock(stringsReference, 8, stringsSize);
+            writer.NewBlock(Reference, 8, mainSize);
+            writer.NewBlock(HashesReference, 8, hashesSize);
+            writer.NewBlock(OffsetsReference, 8, offsetsSize);
+            writer.NewBlock(StringsReference, 8, stringsSize);
 
-            writer.OpenBlock(mainReference);
+            writer.OpenBlock(Reference);
             {
                 writer.Write(StringTools.Encode_32_5('S','T','R','T','B'));
                 writer.Write(Count);
-                writer.Write(hashesReference);
-                writer.Write(offsetsReference);
-                writer.Write(stringsReference);
+                writer.Write(HashesReference);
+                writer.Write(OffsetsReference);
+                writer.Write(StringsReference);
+                writer.CloseBlock();
 
                 // String Hashes
-                writer.OpenBlock(hashesReference);
+                writer.OpenBlock(HashesReference);
                 {
                     for (var i = 0; i < _strings.Count; ++i)
                     {
@@ -184,7 +166,7 @@ namespace GameCore
                 }
 
                 // String Offsets
-                writer.OpenBlock(offsetsReference);
+                writer.OpenBlock(OffsetsReference);
                 {
                     var offset = 0;
                     for (var i = 0; i < _strings.Count; ++i)
@@ -196,7 +178,7 @@ namespace GameCore
                 }
 
                 // String Data
-                writer.OpenBlock(stringsReference);
+                writer.OpenBlock(StringsReference);
                 {
                     for (var i = 0; i < _strings.Count; ++i)
                     {
@@ -204,13 +186,12 @@ namespace GameCore
                         var r = _references[i];
                         var utf8Len = _encoding.GetBytes(s, 0, s.Length, _utf8, 0);
                         _utf8[utf8Len] = 0; // Do include a terminating zero
-                        writer.Mark(r); // Mark the reference in the data stream
+                        writer.Mark(r); // Mark a reference to the position in the data stream
                         writer.Write(_utf8, 0, utf8Len + 1);
                     }
                     writer.CloseBlock();
                 }
             }
-            writer.CloseBlock();
         }
 
         #endregion

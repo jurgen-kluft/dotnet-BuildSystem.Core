@@ -160,7 +160,7 @@ namespace GameCore
 
             _fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
             _streamReader = new BinaryStreamReader(_fileStream);
-            _binaryReader = new BinaryEndianReader(ArchitectureUtils.GetLittleEndianArchitecture(), _streamReader);
+            _binaryReader = new BinaryEndianReader(ArchitectureUtils.LittleArchitecture64, _streamReader);
             return true;
 
         }

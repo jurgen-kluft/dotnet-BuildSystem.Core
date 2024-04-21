@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace GameCore
 {
     [DebuggerDisplay("ID: {Id}")]
-    public struct StreamReference
+    public readonly struct StreamReference
     {
         #region Fields
 
@@ -19,20 +19,16 @@ namespace GameCore
             Id = id;
         }
 
-        public StreamReference(StreamReference r)
-        {
-            Id = r.Id;
-        }
-
         #endregion
         #region Properties
 
-        private static uint UniqueId { get; set; }
+        private static uint UniqueId { get; set; } = 0;
+        public static StreamReference NewReference => new() { Id = ++UniqueId };
 
         public uint Id
         {
             get;
-            private set;
+            private init;
         }
 
         #endregion
@@ -65,16 +61,6 @@ namespace GameCore
 
         #endregion
         #region Methods
-
-        public static StreamReference NewReference
-        {
-            get
-            {
-                StreamReference sr = new(UniqueId);
-                ++UniqueId;
-                return sr;
-            }
-        }
 
         public override bool Equals(object obj)
         {

@@ -1,6 +1,4 @@
-using System;
 using System.Globalization;
-using System.IO;
 using GameCore;
 
 namespace DataBuildSystem
@@ -79,77 +77,63 @@ namespace DataBuildSystem
     {
         #region Fields
 
-        private static EPlatform _sPlatform = EPlatform.Win64;
-        private static EPlatform _sTarget = EPlatform.Win64;
-        private static ETerritory _sTerritory = ETerritory.Europe;
-
-        private static string _sName = string.Empty;
-        private static Filename _sConfigFilename = Filename.Empty;
-        private static Dirname _sSrcPath;
-        private static string _sExcel0 = string.Empty;
-        private static Dirname _sDstPath;
-        private static Dirname _sSubPath;
-        private static Dirname _sDepPath;
-        private static Dirname _sPublishPath;
-        private static Dirname _sToolPath;
-
         private static IBuildSystemLocalizerConfig _sConfig = new BuildSystemLocalizerDefaultConfig();
 
         #endregion
 
         #region Properties
 
-        public static bool PlatformPc => _sPlatform == EPlatform.Win64;
+        public static bool PlatformPc => Platform == EPlatform.Win64;
 
-        public static bool PlatformXboxOne => _sPlatform == EPlatform.XboxOne;
+        public static bool PlatformXboxOne => Platform == EPlatform.XboxOne;
 
-        public static bool PlatformXboxOneX => _sPlatform == EPlatform.XboxOneX;
+        public static bool PlatformXboxOneX => Platform == EPlatform.XboxOneX;
 
-        public static bool PlatformPs4 => _sPlatform == EPlatform.PS4;
+        public static bool PlatformPlaystation4 => Platform == EPlatform.Playstation4;
 
-        public static bool PlatformPs4Pro => _sPlatform == EPlatform.PS4Pro;
+        public static bool PlatformPlaystation4Pro => Platform == EPlatform.Playstation4Pro;
 
-        public static bool TargetPc => _sTarget == EPlatform.Win64;
+        public static bool TargetPc => Target == EPlatform.Win64;
 
-        public static bool TargetXboxOne => _sTarget == EPlatform.XboxOne;
+        public static bool TargetXboxOne => Target == EPlatform.XboxOne;
 
-        public static bool TargetXboxOneX => _sTarget == EPlatform.XboxOneX;
+        public static bool TargetXboxOneX => Target == EPlatform.XboxOneX;
 
-        public static bool TargetPs4 => _sTarget == EPlatform.PS4;
+        public static bool TargetPlaystation4 => Target == EPlatform.Playstation4;
 
-        public static bool TargetPs4Pro => _sTarget == EPlatform.PS4Pro;
+        public static bool TargetPlaystation4Pro => Target == EPlatform.Playstation4Pro;
 
-        public static string Name => _sName;
+        public static string Name { get; private set; } = string.Empty;
 
         public static bool LittleEndian => _sConfig.LittleEndian;
 
-        public static EPlatform Platform => _sPlatform;
+        public static EPlatform Platform { get; private set; } = EPlatform.Win64;
 
-        public static Filename ConfigFilename => _sConfigFilename;
+        public static Filename ConfigFilename { get; private set; } = Filename.Empty;
 
-        public static string PlatformName => _sPlatform.ToString();
+        public static string PlatformName => Platform.ToString();
 
-        public static EPlatform Target => _sTarget;
+        public static EPlatform Target { get; private set; } = EPlatform.Win64;
 
-        public static string TargetName => _sTarget.ToString();
+        public static string TargetName => Target.ToString();
 
-        public static ETerritory Territory => _sTerritory;
+        public static ETerritory Territory { get; private set; } = ETerritory.Europe;
 
-        public static string TerritoryName => _sTerritory.ToString();
+        public static string TerritoryName => Territory.ToString();
 
-        public static Dirname SrcPath => _sSrcPath;
+        public static Dirname SrcPath { get; private set; }
 
-        public static string Excel0 => _sExcel0;
+        public static string Excel0 { get; private set; } = string.Empty;
 
-        public static Dirname DstPath => _sDstPath;
+        public static Dirname DstPath { get; private set; }
 
-        public static Dirname SubPath => _sSubPath;
+        public static Dirname SubPath { get; private set; }
 
-        public static Dirname DepPath => _sDepPath;
+        public static Dirname DepPath { get; private set; }
 
-        public static Dirname PublishPath => _sPublishPath;
+        public static Dirname PublishPath { get; private set; }
 
-        public static Dirname ToolPath => _sToolPath;
+        public static Dirname ToolPath { get; private set; }
 
         public static string SubDepFileExtension => _sConfig.SubDepFileExtension;
 
@@ -171,7 +155,7 @@ namespace DataBuildSystem
                 return true;
             if (folder.EndsWith(".svn", true, CultureInfo.InvariantCulture))
                 return true;
-            if (String.Compare(folder, PlatformName, true, CultureInfo.InvariantCulture) == 0)
+            if (string.Compare(folder, PlatformName, true, CultureInfo.InvariantCulture) == 0)
                 return true;
 
             return false;
@@ -179,21 +163,18 @@ namespace DataBuildSystem
 
         public static bool FileFilter(string file)
         {
-            string filename = Path.GetFileNameWithoutExtension(file);
-            string platformStr = Path.GetExtension(filename).TrimStart('.');
+            var filename = Path.GetFileNameWithoutExtension(file);
+            var platformStr = Path.GetExtension(filename).TrimStart('.');
 
             // Name.%PLATFORM%.cs
-            EPlatform platform = FromString(platformStr, Platform);
-            if (platform != Platform)
-                return true;
-
-            return false;
+            var platform = FromString(platformStr, Platform);
+            return platform != Platform;
         }
 
         public static bool Init(string name, string platform, string territory, string configFilename, string srcPath, string excel0, string dstPath, string depPath, string publishPath, string toolPath)
         {
-            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(platform) || String.IsNullOrEmpty(territory) || String.IsNullOrEmpty(configFilename) || String.IsNullOrEmpty(srcPath) || String.IsNullOrEmpty(excel0) || String.IsNullOrEmpty(dstPath) ||
-                String.IsNullOrEmpty(depPath))
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(platform) || string.IsNullOrEmpty(territory) || string.IsNullOrEmpty(configFilename) || string.IsNullOrEmpty(srcPath) || string.IsNullOrEmpty(excel0) || string.IsNullOrEmpty(dstPath) ||
+                string.IsNullOrEmpty(depPath))
                 return false;
 
             GameCore.Environment.addVariable("NAME", name);
@@ -202,21 +183,21 @@ namespace DataBuildSystem
             GameCore.Environment.addVariable("TERRITORY", territory);
             GameCore.Environment.addVariable("SRCPATH", GameCore.Environment.expandVariables(srcPath));
 
-            _sName = name;
-            _sPlatform = FromString(platform, EPlatform.Win64);
-            _sTarget = FromString(platform, EPlatform.Win32);
-            _sTerritory = FromString(territory, ETerritory.Europe);
+            Name = name;
+            Platform = FromString(platform, EPlatform.Win64);
+            Target = FromString(platform, EPlatform.Win32);
+            Territory = FromString(territory, ETerritory.Europe);
 
-            _sConfigFilename = new Filename(GameCore.Environment.expandVariables(configFilename));
+            ConfigFilename = new Filename(GameCore.Environment.expandVariables(configFilename));
 
-            _sExcel0 = new Filename(GameCore.Environment.expandVariables(excel0));
+            Excel0 = new Filename(GameCore.Environment.expandVariables(excel0));
 
-            _sSrcPath = new Dirname(GameCore.Environment.expandVariables(srcPath));
-            _sSubPath = Dirname.Empty;
-            _sDstPath = new Dirname(GameCore.Environment.expandVariables(dstPath));
-            _sDepPath = new Dirname(GameCore.Environment.expandVariables(depPath));
-            _sToolPath = new Dirname(GameCore.Environment.expandVariables(toolPath));
-            _sPublishPath = new Dirname(GameCore.Environment.expandVariables(publishPath));
+            SrcPath = new Dirname(GameCore.Environment.expandVariables(srcPath));
+            SubPath = Dirname.Empty;
+            DstPath = new Dirname(GameCore.Environment.expandVariables(dstPath));
+            DepPath = new Dirname(GameCore.Environment.expandVariables(depPath));
+            ToolPath = new Dirname(GameCore.Environment.expandVariables(toolPath));
+            PublishPath = new Dirname(GameCore.Environment.expandVariables(publishPath));
 
             return true;
         }
@@ -233,7 +214,7 @@ namespace DataBuildSystem
             var name = string.Empty;
             foreach (var p in names)
             {
-                if (string.Compare(p, @string, true) == 0)
+                if (string.Compare(p, @string, StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     name = p;
                     break;

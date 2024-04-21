@@ -39,33 +39,23 @@ namespace GameCore
         {
             return platform switch
             {
-                EPlatform.Win32 => LittleArchitecture,
-                EPlatform.Win64 => LittleArchitecture,
-                EPlatform.Mac => LittleArchitecture,
-                EPlatform.XboxOne => LittleArchitecture,
-                EPlatform.XboxOneX => LittleArchitecture,
-                EPlatform.PS4 => LittleArchitecture,
-                EPlatform.PS4Pro => LittleArchitecture,
-                EPlatform.XboxSeriesS => LittleArchitecture,
-                EPlatform.XboxSeriesX => LittleArchitecture,
-                EPlatform.PS5 => LittleArchitecture,
-                EPlatform.NintendoSwitch => LittleArchitecture,
-                _ => LittleArchitecture
+                EPlatform.Win32 => LittleArchitecture64,
+                EPlatform.Win64 => LittleArchitecture64,
+                EPlatform.Mac => LittleArchitecture64,
+                EPlatform.XboxOne => LittleArchitecture64,
+                EPlatform.XboxOneX => LittleArchitecture64,
+                EPlatform.Playstation4 => LittleArchitecture64,
+                EPlatform.Playstation4Pro => LittleArchitecture64,
+                EPlatform.XboxSeriesS => LittleArchitecture64,
+                EPlatform.XboxSeriesX => LittleArchitecture64,
+                EPlatform.Playstation5 => LittleArchitecture64,
+                EPlatform.NintendoSwitch => LittleArchitecture64,
+                _ => LittleArchitecture64
             };
         }
 
-        public static readonly IArchitecture LittleArchitecture = new LittleArchitecture64();
-        public static readonly IArchitecture BigArchitecture = new BigArchitecture64();
-
-        public static IArchitecture GetLittleEndianArchitecture()
-        {
-            return LittleArchitecture;
-        }
-
-        public static IArchitecture GetBigEndianArchitecture()
-        {
-            return BigArchitecture;
-        }
+        public static readonly IArchitecture LittleArchitecture64 = new LittleArchitecture64();
+        public static readonly IArchitecture BigArchitecture64 = new BigArchitecture64();
 
         public static IArchitecture GetEndianForPlatform(EPlatform platform)
         {

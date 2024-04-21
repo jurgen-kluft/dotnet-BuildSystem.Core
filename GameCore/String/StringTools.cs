@@ -8,17 +8,17 @@ namespace GameCore
     #region String Formatting Documentation
     // <summary>
     // The {0} in the string above is replaced with the value of nError, but what
-    // if you want to specify the number of digits to use? Or the base (hexadecimal etc)? 
+    // if you want to specify the number of digits to use? Or the base (hexadecimal etc)?
     // The framework supports all this, but where it seemd confusing is that it's not
     // the String.Format function that does the string formatting, but rather the types
-    // themselves. Every object has a method called ToString that returns a string 
-    // representation of the object. The ToString method can accept a string parameter, 
-    // which tells the object how to format itself - in the String.Format call, the 
+    // themselves. Every object has a method called ToString that returns a string
+    // representation of the object. The ToString method can accept a string parameter,
+    // which tells the object how to format itself - in the String.Format call, the
     // formatting string is passed after the position, for example, "{0:##}"
     // </summary>
-    // 
-    // The text inside the curly braces is {index[,alignment][:formatString]}. If 
-    // alignment is positive, the text is right-aligned in a field the given number 
+    //
+    // The text inside the curly braces is {index[,alignment][:formatString]}. If
+    // alignment is positive, the text is right-aligned in a field the given number
     // of spaces; if it's negative, it's left-aligned.
     //
     // Strings
@@ -30,11 +30,11 @@ namespace GameCore
     //     String.Format(" ->{1,10}<-", "Hello");		| Hello|
     //	    String.Format(" ->{1,-10}<-", "Hello"); 	|Hello |
     // code
-    // 
+    //
     // Numbers
-    // 
+    //
     // Basic number formatting specifiers:
-    // 
+    //
     // Specifier 	Type 								Format 	Output (Passed Double 1.42) 	Output (Passed Int -12400)
     // c 			Currency							{0:c} 	$1.42 							-$12,400
     // d 			Decimal	(Whole number) 				{0:d} 	System.FormatException 			-12400
@@ -44,28 +44,28 @@ namespace GameCore
     // n 			Number with commas for thousands 	{0:n} 	1.42 							-12,400
     // r 			Round trippable 					{0:r} 	1.42 							System.FormatException
     // v 			Hexadecimal 						{0:x4} 	System.FormatException 			cf90
-    // 
+    //
     // Custom number formatting:
-    // 
+    //
     // Specifier 	Type 					Example 		Output (Passed Double 1500.42) 		Note
     // 0 			Zero placeholder 		{0:00.0000} 	1500.4200 							Pads with zeroes.
-    // # 			Digit placeholder 		{0:(#).##} 		(1500).42 							
-    // . 			Decimal point 			{0:0.0} 		1500.4 	
+    // # 			Digit placeholder 		{0:(#).##} 		(1500).42
+    // . 			Decimal point 			{0:0.0} 		1500.4
     // , 			Thousand separator 		{0:0,0} 		1,500 								Must be between two zeroes.
     // ,. 			Number scaling 			{0:0,.} 		2 									Comma adjacent to Period scales by 1000.
     // % 			Percent 				{0:0%} 			150042% 							Multiplies by 100, adds % sign.
     // e 			Exponent placeholder 	{0:00e+0} 		15e+2 								Many exponent formats available.
-    // ; 			Group separator 	see below 		
-    /// 
-    // The group separator is especially useful for formatting currency values which 
-    // require that negative values be enclosed in parentheses. This currency formatting 
+    // ; 			Group separator 	see below
+    ///
+    // The group separator is especially useful for formatting currency values which
+    // require that negative values be enclosed in parentheses. This currency formatting
     // example at the bottom of this document makes it obvious:
-    // 
+    //
     // Dates
-    // 
+    //
     // Note that date formatting is especially dependant on the system's regional settings; the
     // example strings here are from my local locale.
-    // 
+    //
     // Specifier 	Type 								Example (Passed System.DateTime.Now)
     // d 			Short date 							10/12/2002
     // D 			Long date 							December 10, 2002
@@ -81,9 +81,9 @@ namespace GameCore
     // u 			Universal sortable, local time 		2002-12-10 22:13:50Z
     // U 			Universal sortable, GMT 			December 11, 2002 3:13:50 AM
     // Y 			Year month pattern 					December, 2002
-    // 
+    //
     // The 'U' specifier seems broken; that string certainly isn't sortable.
-    // 
+    //
     // Custom date formatting:
     // Specifier 		Type 						Example 		Example Output
     // dd 				Day 						{0:dd} 			10
@@ -105,27 +105,27 @@ namespace GameCore
     // zzz 			    Full timezone offset 		{0:zzz} 		-05:00
     // : 				Separator 					{0:hh:mm:ss} 	10:43:20
     // / 				Separator 					{0:dd/MM/yyyy} 	10/12/2002
-    // 
+    //
     // Enumerations
-    // 
+    //
     // Specifier 	Type
     // g 			Default (Flag names if available, otherwise decimal)
     // f 			Flags always
     // d 			Integer always
     // v 			Eight digit hex.
-    // 
+    //
     // Some Useful Examples
-    // 
+    //
     // String.Format("{0:$#,##0.00;($#,##0.00);Zero}", value);
-    // 
+    //
     //     This will output "$1,240.00" if passed 1243.50. It will output the same
-    //		format but in parentheses if the number is negative, and will output the 
+    //		format but in parentheses if the number is negative, and will output the
     //		string "Zero" if the number is zero.
-    // 
+    //
     // String.Format("{0:(###) ###-####}", 8005551212);
-    // 
+    //
     //     This will output "(800) 555-1212".
-    // 
+    //
     // </summary>
 
     #endregion
@@ -136,40 +136,43 @@ namespace GameCore
 
     public static class StringTools
     {
-        public static int CharToIndex(char c)
+        private static int CharToIndex(char c)
         {
-            if (c >= '0' && c <= '9') return (c - '0');
-            else if (c >= 'a' && c <= 'z') return 10 + (c - 'a');
-            else if (c >= 'A' && c <= 'Z') return 10 + 26 + (c - 'A');
-            else if (c == '.') return 10 + 26 + 26;
-            return 63;
+            return c switch
+            {
+                >= '0' and <= '9' => (c - '0'),
+                >= 'a' and <= 'z' => 10 + (c - 'a'),
+                >= 'A' and <= 'Z' => 10 + 26 + (c - 'A'),
+                '.' => 10 + 26 + 26,
+                _ => 63
+            };
         }
 
-        public static int Encode_32_5(params char[] _characters)
+        public static int Encode_32_5(params char[] characters)
         {
-            int h = 0;
-            foreach (char c in _characters)
+            var h = 0;
+            foreach (var c in characters)
             {
-                int i = CharToIndex(c);
+                var i = CharToIndex(c);
                 h = (h << 6) | (i & 0x3F);
             }
             return h;
         }
-        public static Int64 Encode_64_10(params char[] _characters)
+        public static Int64 Encode_64_10(params char[] characters)
         {
-            Int64 h = 0;
-            foreach (char c in _characters)
+            var h = (long)0;
+            foreach (var c in characters)
             {
-                Int64 i = CharToIndex(c);
+                var i = (long)CharToIndex(c);
                 h = (h << 6) | (i & 0x3F);
             }
             return h;
         }
-        private static Regex NullStringRegex = new Regex("\0");
+        private static readonly Regex sNullStringRegex = new Regex("\0");
 
         public static bool Contains(string text, string fragment)
         {
-            return text.IndexOf(fragment) > -1;
+            return text.IndexOf(fragment, StringComparison.Ordinal) > -1;
         }
 
         public static bool EqualsIgnoreCase(string a, string b)
@@ -179,16 +182,16 @@ namespace GameCore
 
         public static string JoinUnique(string delimiter, params string[][] fragmentArrays)
         {
-            SortedList list = new SortedList();
-            foreach (string[] fragmentArray in fragmentArrays)
+            var list = new SortedList();
+            foreach (var fragmentArray in fragmentArrays)
             {
-                foreach (string fragment in fragmentArray)
+                foreach (var fragment in fragmentArray)
                 {
                     if (!list.Contains(fragment))
                         list.Add(fragment, fragment);
                 }
             }
-            StringBuilder buffer = new StringBuilder();
+            var buffer = new StringBuilder();
             foreach (string value in list.Values)
             {
                 if (buffer.Length > 0)
@@ -202,8 +205,8 @@ namespace GameCore
 
         public static int GenerateHashCode(params string[] values)
         {
-            int hashcode = 0;
-            foreach (string value in values)
+            var hashcode = 0;
+            foreach (var value in values)
             {
                 if (value != null)
                 {
@@ -213,45 +216,40 @@ namespace GameCore
             return hashcode;
         }
 
-        public static string LastWord(string input)
-        {
-            return LastWord(input, " .,;!?:");
-        }
-
-        public static string LastWord(string input, string separators)
+        public static string LastWord(string input, string separators = " .,;!?:")
         {
             if (input == null)
             {
                 return null;
             }
-            string[] tokens = input.Split(separators.ToCharArray());
-            for (int i = tokens.Length - 1; i >= 0; i--)
+            var tokens = input.Split(separators.ToCharArray());
+            for (var i = tokens.Length - 1; i >= 0; i--)
             {
                 if (IsWhitespace(tokens[i]) == false)
                 {
                     return tokens[i].Trim();
                 }
             }
-            return String.Empty;
+            return string.Empty;
         }
 
         public static bool IsBlank(string input)
         {
-            return (input == null || input.Length == 0);
+            return string.IsNullOrEmpty(input);
         }
 
         public static bool IsWhitespace(string input)
         {
-            return (input == null || input.Length == 0 || input.Trim().Length == 0);
+            return (string.IsNullOrEmpty(input) || input.Trim().Length == 0);
         }
 
         public static string Strip(string input, params string[] removals)
         {
-            string revised = input;
-            foreach (string removal in removals)
+            var revised = input;
+            foreach (var removal in removals)
             {
-                int i = 0;
-                while ((i = revised.IndexOf(removal)) > -1)
+                var i = 0;
+                while ((i = revised.IndexOf(removal, StringComparison.Ordinal)) > -1)
                 {
                     revised = revised.Remove(i, removal.Length);
                 }
@@ -261,62 +259,57 @@ namespace GameCore
 
         public static string[] Insert(string[] input, string insert, int index)
         {
-            ArrayList list = new ArrayList(input);
+            var list = new ArrayList(input);
             list.Insert(index, insert);
             return (string[])list.ToArray(typeof(string));
         }
 
         public static string Join(string separator, params string[] strings)
         {
-            StringBuilder builder = new StringBuilder();
-            foreach (string s in strings)
+            var builder = new StringBuilder();
+            foreach (var s in strings)
             {
                 if (IsBlank(s))
                     continue;
                 if (builder.Length > 0)
                     builder.Append(separator);
 
-                builder.Append(s.ToString());
+                builder.Append(s);
             }
             return builder.ToString();
         }
 
         public static string RemoveNulls(string s)
         {
-            return NullStringRegex.Replace(s, string.Empty).TrimStart();
+            return sNullStringRegex.Replace(s, string.Empty).TrimStart();
         }
 
         public static string StripQuotes(string filename)
         {
-            return filename == null ? null : filename.Trim('"');
+            return filename?.Trim('"');
         }
 
-        public static string SurroundInQuotesIfContainsSpace(string value, string quote)
+        public static string SurroundInQuotesIfContainsSpace(string value, string quote = "\"")
         {
-            if (!StringTools.IsBlank(value) && value.IndexOf(' ') >= 0)
+            if (!IsBlank(value) && value.IndexOf(' ') >= 0)
                 return string.Format(@"{0}{1}{0}", quote, value);
 
             return value;
         }
 
-        public static string SurroundInQuotesIfContainsSpace(string value)
-        {
-            return SurroundInQuotesIfContainsSpace(value, "\"");
-        }
-
         public static bool IsNumber(char c)
         {
-            return (c >= '0' && c <= '9');
+            return c is >= '0' and <= '9';
         }
 
         public static bool IsHexNumber(char c)
         {
-            return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+            return c is >= '0' and <= '9' or >= 'A' and <= 'F' or >= 'a' and <= 'f';
         }
 
         public static bool IsDecimalNumber(string str)
         {
-            foreach (char c in str)
+            foreach (var c in str)
             {
                 if (!IsNumber(c))
                     return false;
@@ -326,13 +319,13 @@ namespace GameCore
 
         public static byte HexToNibble(char c)
         {
-            byte b = 0;
-            if (c >= '0' && c <= '9')
-                b = (byte)(c - '0');
-            else if (c >= 'a' && c <= 'f')
-                b = (byte)(10 + (c - 'a'));
-            else if (c >= 'A' && c <= 'F')
-                b = (byte)(10 + (c - 'A'));
+            byte b = c switch
+            {
+                >= '0' and <= '9' => (byte)(c - '0'),
+                >= 'a' and <= 'f' => (byte)(10 + (c - 'a')),
+                >= 'A' and <= 'F' => (byte)(10 + (c - 'A')),
+                _ => 0
+            };
             return b;
         }
 
@@ -341,19 +334,19 @@ namespace GameCore
             if (str.StartsWith("0x"))
                 str = str.Substring(2);
 
-            Int32 value = 0;
-            foreach (char c in str)
+            var value = 0;
+            foreach (var c in str)
             {
                 if (value == 0 && c == '0')
                     continue;
 
-                byte b = 0;
-                if (c >= '0' && c <= '9')
-                    b = (byte)(c - '0');
-                else if (c >= 'a' && c <= 'f')
-                    b = (byte)(10 + (c - 'a'));
-                else if (c >= 'A' && c <= 'F')
-                    b = (byte)(10 + (c - 'A'));
+                byte b = c switch
+                {
+                    >= '0' and <= '9' => (byte)(c - '0'),
+                    >= 'a' and <= 'f' => (byte)(10 + (c - 'a')),
+                    >= 'A' and <= 'F' => (byte)(10 + (c - 'A')),
+                    _ => 0
+                };
                 value = value << 4;
                 value = value | b;
             }
@@ -366,18 +359,18 @@ namespace GameCore
                 str = str.Substring(2);
 
             Int64 value = 0;
-            foreach (char c in str)
+            foreach (var c in str)
             {
                 if (value == 0 && c == '0')
                     continue;
 
-                byte b = 0;
-                if (c >= '0' && c <= '9')
-                    b = (byte)(c - '0');
-                else if (c >= 'a' && c <= 'f')
-                    b = (byte)(10 + (c - 'a'));
-                else if (c >= 'A' && c <= 'F')
-                    b = (byte)(10 + (c - 'A'));
+                byte b = c switch
+                {
+                    >= '0' and <= '9' => (byte)(c - '0'),
+                    >= 'a' and <= 'f' => (byte)(10 + (c - 'a')),
+                    >= 'A' and <= 'F' => (byte)(10 + (c - 'A')),
+                    _ => 0
+                };
                 value = value << 4;
                 value = value | b;
             }
@@ -386,12 +379,12 @@ namespace GameCore
 
         public static char NibbleToHex(byte b)
         {
-            if (b >= 0 && b <= 9)
-                return (char)('0' + b);
-            else if (b >= 10 && b <= 15)
-                return (char)('A' - 10 + b);
-            else
-                return '?';
+            return b switch
+            {
+                <= 9 => (char)('0' + b),
+                >= 10 and <= 15 => (char)('A' - 10 + b),
+                _ => '?'
+            };
         }
 
         /// <summary>
@@ -401,22 +394,21 @@ namespace GameCore
         /// <returns>True if string contains a hexadecimal number</returns>
         public static bool IsHexadecimalNumber(string str, bool header)
         {
-            int i = 0;
-            foreach (char c in str)
+            var i = 0;
+            foreach (var c in str)
             {
                 if (header)
                 {
-                    if (i == 0)
+                    switch (i)
                     {
-                        if (c != '0')
+                        case 0 when c != '0':
                             return false;
-                        continue;
-                    }
-                    else if (i == 1)
-                    {
-                        if (c != 'x')
+                        case 0:
+                            continue;
+                        case 1 when c != 'x':
                             return false;
-                        continue;
+                        case 1:
+                            continue;
                     }
                 }
                 if (!IsHexNumber(c))
@@ -429,12 +421,12 @@ namespace GameCore
             return true;
         }
 
-        public static string MultiToSingle(string[] _strings)
+        public static string MultiToSingle(string[] strings)
         {
-            string str = string.Empty;
-            foreach (string s in _strings)
+            var str = string.Empty;
+            foreach (var s in strings)
             {
-                if (String.IsNullOrEmpty(str))
+                if (string.IsNullOrEmpty(str))
                 {
                     str = s;
                 }
@@ -448,9 +440,9 @@ namespace GameCore
 
         public static string MultiToSingle(string s, char charToReplace, char replacementChar)
         {
-            StringBuilder sb = new StringBuilder(s.Length);
-            bool skipped = false;
-            foreach (char c in s)
+            var sb = new StringBuilder(s.Length);
+            var skipped = false;
+            foreach (var c in s)
             {
                 if (c == charToReplace)
                 {
@@ -474,16 +466,16 @@ namespace GameCore
             return sb.ToString();
         }
 
-        public static string[] SingleToMulti(string _strings)
+        public static string[] SingleToMulti(string strings)
         {
-            string[] str = _strings.Split(new string[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var str = strings.Split(new string[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             return str;
         }
 
         public static string SingleToMulti(string s, char charToReplace, char replacementChar, int replacementCount)
         {
-            StringBuilder sb = new StringBuilder(s.Length);
-            foreach (char c in s)
+            var sb = new StringBuilder(s.Length);
+            foreach (var c in s)
             {
                 if (c == charToReplace)
                 {
@@ -508,14 +500,14 @@ namespace GameCore
             if (strings.Length == 0)
                 return string.Empty;
 
-            int totalLength = 0;
-            foreach (string s in strings)
+            var totalLength = 0;
+            foreach (var s in strings)
                 totalLength += s.Length;
 
-            StringBuilder sb = new StringBuilder(totalLength + (strings.Length * delimiter.Length));
-            string str = strings[0];
+            var sb = new StringBuilder(totalLength + (strings.Length * delimiter.Length));
+            var str = strings[0];
             sb.Append(str);
-            for (int i = 1; i < strings.Length; ++i)
+            for (var i = 1; i < strings.Length; ++i)
             {
                 sb.Append(delimiter);
                 sb.Append(strings[i]);
@@ -582,10 +574,10 @@ namespace GameCore
         /// <returns>A copy of a string without the specified characters</returns>
         public static string Remove(string inString, char[] inRemove)
         {
-            string s = inString;
-            foreach (char c in inRemove)
+            var s = inString;
+            foreach (var c in inRemove)
             {
-                int i = s.IndexOf(c);
+                var i = s.IndexOf(c);
                 if (i >= 0)
                     s = s.Remove(i, 1);
             }
@@ -603,8 +595,8 @@ namespace GameCore
         /// is replaced with <paramref name="inReplacementString"/></returns>
         public static string Replace(string inString, int inStartIndex, int inLength, string inReplacementString)
         {
-            int endIndex = inStartIndex + inLength;
-            string str = inString.Substring(0, inStartIndex) + inReplacementString + inString.Substring(endIndex, inString.Length - endIndex);
+            var endIndex = inStartIndex + inLength;
+            var str = inString.Substring(0, inStartIndex) + inReplacementString + inString.Substring(endIndex, inString.Length - endIndex);
             return str;
         }
 
@@ -616,8 +608,8 @@ namespace GameCore
         /// <returns>String to the left of c, or the entire string.</returns>
         public static string LeftOf(string src, char c)
         {
-            string ret = src;
-            int idx = src.IndexOf(c);
+            var ret = src;
+            var idx = src.IndexOf(c);
             if (idx != -1)
             {
                 ret = src.Substring(0, idx);
@@ -633,8 +625,8 @@ namespace GameCore
         /// <returns>String to the left of c, or the entire string.</returns>
         public static string LeftOf(string src, string c)
         {
-            string ret = src;
-            int idx = src.IndexOf(c);
+            var ret = src;
+            var idx = src.IndexOf(c, StringComparison.Ordinal);
             if (idx != -1)
             {
                 ret = src.Substring(0, idx);
@@ -651,8 +643,8 @@ namespace GameCore
         /// <returns>String to the left of c, or the entire string if not found or n is 0.</returns>
         public static string LeftOf(string src, char c, int n)
         {
-            string ret = src;
-            int idx = -1;
+            var ret = src;
+            var idx = -1;
             while (n > 0)
             {
                 idx = src.IndexOf(c, idx + 1);
@@ -678,8 +670,8 @@ namespace GameCore
         /// <returns>String to the left of <paramref name="c"/>, or the entire string if not found or <paramref name="n"/> is 0.</returns>
         public static string LeftOf(string src, string c, int n)
         {
-            string ret = src;
-            int idx = -1;
+            var ret = src;
+            var idx = -1;
             while (n > 0)
             {
                 idx = src.IndexOf(c, idx + 1);
@@ -704,7 +696,7 @@ namespace GameCore
         /// <returns>Returns everything to the right of c, or an empty string if c is not found.</returns>
         public static string RightOf(string src, char c)
         {
-            int idx = src.IndexOf(c);
+            var idx = src.IndexOf(c);
             if (idx != -1)
                 return src.Substring(idx + 1);
             return string.Empty;
@@ -718,7 +710,7 @@ namespace GameCore
         /// <returns>Returns everything to the right of c, or an empty string if c is not found.</returns>
         public static string RightOf(string src, string c)
         {
-            int idx = src.IndexOf(c);
+            var idx = src.IndexOf(c, StringComparison.Ordinal);
             if (idx != -1)
                 return src.Substring(idx + 1);
             return string.Empty;
@@ -733,8 +725,8 @@ namespace GameCore
         /// <returns>Returns everything to the right of c, or an empty string if c is not found.</returns>
         public static string RightOf(string src, char c, int n)
         {
-            string ret = string.Empty;
-            int idx = -1;
+            var ret = string.Empty;
+            var idx = -1;
             while (n > 0)
             {
                 idx = src.IndexOf(c, idx + 1);
@@ -761,8 +753,8 @@ namespace GameCore
         /// <returns>Everything to the left of the rightmost char c, or the entire string.</returns>
         public static string LeftOfRightmostOf(string src, char c)
         {
-            string ret = src;
-            int idx = src.LastIndexOf(c);
+            var ret = src;
+            var idx = src.LastIndexOf(c);
             if (idx != -1)
             {
                 ret = src.Substring(0, idx);
@@ -778,8 +770,8 @@ namespace GameCore
         /// <returns>Returns everything to the right of the rightmost search char, or an empty string.</returns>
         public static string RightOfRightmostOf(string src, char c)
         {
-            string ret = string.Empty;
-            int idx = src.LastIndexOf(c);
+            var ret = string.Empty;
+            var idx = src.LastIndexOf(c);
             if (idx != -1)
             {
                 ret = src.Substring(idx + 1);
@@ -796,9 +788,9 @@ namespace GameCore
         /// <returns>The string between the start and stop chars, or an empty string if not found.</returns>
         public static string[] Between(string src, char start, char end)
         {
-            int numStartEndOccurences = 0;
-            int startEndOpen = 0;
-            foreach (char c in src)
+            var numStartEndOccurences = 0;
+            var startEndOpen = 0;
+            foreach (var c in src)
             {
                 if (c == start)
                 {
@@ -814,13 +806,13 @@ namespace GameCore
                     }
                 }
             }
-            string[] ret = new string[numStartEndOccurences];
+            var ret = new string[numStartEndOccurences];
 
             numStartEndOccurences = 0;
 
-            int index = 0;
-            int startIndex = 0;
-            foreach (char c in src)
+            var index = 0;
+            var startIndex = 0;
+            foreach (var c in src)
             {
                 if (c == start)
                 {
@@ -852,8 +844,8 @@ namespace GameCore
         /// <returns>The # of times the char occurs in the search string.</returns>
         public static int Count(string src, char find)
         {
-            int ret = 0;
-            foreach (char s in src)
+            var ret = 0;
+            foreach (var s in src)
             {
                 if (s == find)
                 {
@@ -870,7 +862,7 @@ namespace GameCore
         /// <returns>The rightmost char, or '\0' if the source has zero length.</returns>
         public static char Rightmost(string src)
         {
-            char c = '\0';
+            var c = '\0';
             if (src.Length > 0)
             {
                 c = src[src.Length - 1];
@@ -885,7 +877,7 @@ namespace GameCore
         /// <returns>The rightmost char, or '\0' if the source has zero length.</returns>
         public static string RemoveUntil(string src, int index, char stop)
         {
-            int i = index;
+            var i = index;
             while (src[i] != stop) { ++i; }
             src = src.Remove(index, i);
             return src;

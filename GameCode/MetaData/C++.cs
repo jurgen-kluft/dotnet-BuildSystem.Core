@@ -63,9 +63,9 @@ namespace GameData
             }
 
             // Sort the members on every class so that we do not have to consider member alignment
-            // NOTE
-            // In the list of classes we have many 'duplicates', classes of the same type that are emitted
-            // multiple times. We need to make sure the sorting of members is stable and predictable.
+            // Note:
+            //   In the list of classes we have many 'duplicates', classes of the same type that are emitted
+            //   multiple times. We need to make sure the sorting of members is stable and predictable.
             var memberSortPredicate = new MetaCode.MetaCode2.SortMembersPredicate(metaCode);
             for (var i = 0; i < 2; ++i)
             {

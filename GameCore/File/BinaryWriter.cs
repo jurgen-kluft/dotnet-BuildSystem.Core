@@ -147,7 +147,7 @@ namespace GameCore
             Write((byte)0);
         }
 
-        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture;
+        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture64;
 
         public long Position
         {
@@ -260,7 +260,7 @@ namespace GameCore
             return (Position - pos) == numBytes;
         }
 
-        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture;
+        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture64;
 
         public long Position
         {
@@ -661,7 +661,7 @@ namespace GameCore
 
         public void Setup(byte[] memory, int offset, int length)
         {
-            Setup(memory, offset, length, ArchitectureUtils.LittleArchitecture);
+            Setup(memory, offset, length, ArchitectureUtils.LittleArchitecture64);
         }
 
         private byte[] _memory;
