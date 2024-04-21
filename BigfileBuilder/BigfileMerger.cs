@@ -11,17 +11,9 @@ namespace DataBuildSystem
 
     public sealed class BigfileMerger
     {
-        #region Fields
-
-        #endregion
-        #region Constructor
-
         public BigfileMerger()
         {
         }
-
-        #endregion
-        #region Public Methods
 
         /// <summary>
         /// Merge 1 or more Bigfiles and BigfileTocs to one Bigfile and one BigfileToc
@@ -38,7 +30,6 @@ namespace DataBuildSystem
 
         }
 
-        #endregion
     }
 }
 

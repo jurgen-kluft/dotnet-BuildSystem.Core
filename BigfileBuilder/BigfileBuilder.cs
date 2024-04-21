@@ -58,7 +58,7 @@ namespace DataBuildSystem
 
             // Simulation:
             // Compute the file size and offset for each BigfileFile
-            StreamOffset currentOffset = new(0);
+            var currentOffset = new StreamOffset(0);
             for (var i = 0; i < bigFiles.Count; i++)
             {
                 var bigfile = bigFiles[i];
@@ -111,8 +111,8 @@ namespace DataBuildSystem
 
                 for (var j = 0; j < bigfile.Files.Count; j++)
                 {
-                    BigfileFile bigfileFile = bigfile.Files[i];
-                    Int64 offset = writer.Save(Path.Join(dstPath, bigfileFile.Filename));
+                    var bigfileFile = bigfile.Files[i];
+                    var offset = writer.Save(Path.Join(dstPath, bigfileFile.Filename));
                     bigfileFile.FileOffset = new StreamOffset(offset);
                 }
             }

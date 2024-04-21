@@ -51,7 +51,7 @@ namespace DataBuildSystem
             try
             {
                 FileStream inputStream = new(filepath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                Int64 fileOffset = Write(inputStream, inputStream.Length);
+                var fileOffset = Write(inputStream, inputStream.Length);
                 inputStream.Close();
                 return fileOffset;
             }
@@ -137,32 +137,25 @@ namespace DataBuildSystem
 
     public sealed class Bigfile
     {
-        #region Fields
-
         public List<BigfileFile> Files {get;set;} = new();
         public int Index { get; set; }
 
-        #endregion
-
-        #region Methods
-
         public void WriteTo(BigfileWriter writer)
         {
-            Int64 additionalLength = 0;
-            foreach(var bff in Files)
+            var additionalLength = (long)0;
+            foreach (var bff in Files)
             {
                 additionalLength += bff.FileSize;
                 additionalLength = CMath.Align(additionalLength, BigfileConfig.FileAlignment);
             }
+
             writer.SetLength(writer.Position + additionalLength);
 
-            foreach(var bff in Files)
+            foreach (var bff in Files)
             {
-                Int64 fileOffset = writer.Save(bff.Filename);
+                var fileOffset = writer.Save(bff.Filename);
                 bff.FileOffset = new StreamOffset(fileOffset);
             }
         }
-
-        #endregion
     }
 }

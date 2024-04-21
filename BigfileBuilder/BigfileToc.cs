@@ -35,17 +35,13 @@ namespace DataBuildSystem
 
         public interface ITocEntry
         {
-            #region Properties
-
             StreamOffset FileOffset { get; set; }
-            Int32 FileSize { get; set; }
+            Int64 FileSize { get; set; }
             bool IsCompressed { get; set; }
             string Filename { get; set; }
             Int64 FileId { get; set; }
             Hash160 FileContentHash { get; set; }
             List<ITocEntry> Children { get; set; }
-
-            #endregion
         }
 
         /// <summary>
@@ -53,14 +49,12 @@ namespace DataBuildSystem
         /// </summary>
         private static class Factory
         {
-            #region Create
-
             public static ITocEntry Create()
             {
                 return new TocEntry();
             }
 
-            public static ITocEntry Create(Int64 fileId, StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public static ITocEntry Create(Int64 fileId, StreamOffset fileOffset, Int64 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 return new TocEntry(fileId, fileOffset, fileSize, filename, type, contentHash);
             }
@@ -99,15 +93,11 @@ namespace DataBuildSystem
             {
                 return new WriteHdbContext(sections, entries);
             }
-
-            #endregion
         }
 
 
         public sealed class TocSection
         {
-            #region Properties
-
             public Int32 TocOffset { get; set; }
 
             public Int32 TocCount
@@ -118,8 +108,6 @@ namespace DataBuildSystem
             public Int32 TocExtraCount { get; set; }
             public Int64 DataOffset { get; set; }
             public List<ITocEntry> Toc { get; set; } = new();
-
-            #endregion
         }
 
         /// <summary>
@@ -132,8 +120,6 @@ namespace DataBuildSystem
         /// </summary>
         private sealed class TocEntry : ITocEntry
         {
-            #region Constructor
-
             public TocEntry()
                 : this(Int64.MaxValue, StreamOffset.Empty, -1, String.Empty, ECompressed.No, Hash160.Empty)
             {
@@ -154,7 +140,7 @@ namespace DataBuildSystem
             {
             }
 
-            public TocEntry(Int64 fileId, StreamOffset fileOffset, Int32 fileSize, string filename, ECompressed type, Hash160 contentHash)
+            public TocEntry(Int64 fileId, StreamOffset fileOffset, Int64 fileSize, string filename, ECompressed type, Hash160 contentHash)
             {
                 FileOffset = fileOffset;
                 Filename = filename;
@@ -164,16 +150,12 @@ namespace DataBuildSystem
                 IsCompressed = (type == ECompressed.Yes);
             }
 
-            #endregion
-
-            #region Properties
-
             public static Int32 BinarySize => (sizeof(Int32) + sizeof(Int32));
 
             public TocSection Section { get; set; }
             public Int64 FileId { get; set; }
             public StreamOffset FileOffset { get; set; }
-            public Int32 FileSize { get; set; }
+            public Int64 FileSize { get; set; }
             public string Filename { get; set; }
             public Hash160 FileContentHash { get; set; }
             public bool IsCompressed { get; set; }
@@ -185,10 +167,6 @@ namespace DataBuildSystem
                     return (Int32)(fileSize | 0x80000000);
                 return fileSize & 0x7fffffff;
             }
-
-            #endregion
-
-            #region TocEntryFileIdComparer (IComparer<ITocEntry>)
 
             public class TocEntryFileIdComparer : IComparer<ITocEntry>
             {
@@ -202,7 +180,6 @@ namespace DataBuildSystem
                 }
             }
 
-            #endregion
         }
 
         // <summary>
@@ -510,18 +487,12 @@ namespace DataBuildSystem
         // </summary>
         private sealed class WriteToc32Context : IWriteContext
         {
-            #region Fields
-
             private int Iteration { get; set; }
             private int Index { get; set; }
             private int Offset { get; set; }
 
             private IReadOnlyList<TocSection> Sections { get; set; }
             private IReadOnlyList<ITocEntry> Entries { get; set; }
-
-            #endregion
-
-            #region IWriteContext Members
 
             public WriteToc32Context(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
@@ -553,9 +524,9 @@ namespace DataBuildSystem
                 return e.Children.Count > 0;
             }
 
-            private static Int32 MarkHasChildrenInFileSize(Int32 value)
+            private static Int64 MarkHasChildrenInFileSize(Int64 value)
             {
-                return (Int32)((UInt32)value | (UInt32)0x80000000);
+                return (Int64)((UInt64)value | ((UInt64)0x40000000 << 6));
             }
 
             public int Begin(int block, IBinaryStreamWriter writer)
@@ -591,7 +562,7 @@ namespace DataBuildSystem
                                 var section = Sections[block / 2];
                                 var e = section.Toc[item];
 
-                                var offset = (Int32)(e.FileOffset.Offset >> 5);
+                                var offset = e.FileOffset.Offset;
                                 var size = e.FileSize;
                                 if (HasChildren(e))
                                 {
@@ -602,8 +573,8 @@ namespace DataBuildSystem
                                     size = MarkHasChildrenInFileSize(size);
                                 }
 
-                                writer.Write(offset); // 32-bit
-                                writer.Write(size); // 32-bit
+                                writer.Write((uint)(offset >> 6)); // 32-bit, all files are aligned in the bigfile to 64 bytes
+                                writer.Write((uint)(size >> 6)); // 32-bit, all files are size aligned to 64 bytes
                             }
                             else
                             {
@@ -628,8 +599,6 @@ namespace DataBuildSystem
             {
                 return block < (2 * Sections.Count);
             }
-
-            #endregion
         }
 
         // <summary>
