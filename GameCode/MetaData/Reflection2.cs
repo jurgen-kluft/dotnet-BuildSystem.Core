@@ -6,15 +6,9 @@ namespace GameData
 {
     public class Reflector2
     {
-        #region Fields
-
         private readonly MetaCode2 _metaCode2;
         private readonly IMemberFactory2 _memberFactory;
         private readonly ITypeInformation _typeInformation;
-
-        #endregion
-
-        #region Constructor
 
         public Reflector2(MetaCode2 metaCode2, IMemberFactory2 memberFactory, ITypeInformation typeInformation)
         {
@@ -22,10 +16,6 @@ namespace GameData
             _memberFactory = memberFactory;
             _typeInformation = typeInformation;
         }
-
-        #endregion
-
-        #region AddMember
 
         // A delegate that can process a member
         private delegate void ProcessDelegate(MemberProcess m);
@@ -248,10 +238,6 @@ namespace GameData
             }
         }
 
-        #endregion
-
-        #region GetFieldInfoList
-
         private static int CompareFieldInfo(FieldInfo x, FieldInfo y)
         {
             return string.CompareOrdinal(x.GetType().Name, y.GetType().Name);
@@ -264,10 +250,6 @@ namespace GameData
             sortedFields.Sort(CompareFieldInfo);
             return sortedFields;
         }
-
-        #endregion
-
-        #region Analyze
 
         public void Analyze(object root)
         {
@@ -300,7 +282,5 @@ namespace GameData
                 m.Process(m);
             }
         }
-
-        #endregion
     }
 }

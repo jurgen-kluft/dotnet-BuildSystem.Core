@@ -1,12 +1,11 @@
 using GameCore;
-using StreamWriter = System.IO.StreamWriter;
 
 namespace GameData
 {
     using MetaCode;
 
     // CodeStream for generating C++ header file(s) containing structs that map to 'data'
-    public class CppCodeStream
+    public static class CppCodeStream
     {
         // Save binary data and C code for mapping to the data
 
@@ -37,24 +36,20 @@ namespace GameData
         // uint/int     -> 4 byte
         // ushort/short -> 2 byte
         // byte         -> 1 byte
-        // bool         -> 1 byte (although many booleans are packed together
-
-        // We will use a ResourceDataWriter for writing the resource data as binary data
-        // Exporting every class as a struct in C/C++ using a ClassWriter providing enough
-        // functionality to write any kind of class, function and member.
+        // bool         -> 1 byte (Note: 8 booleans are packed together in one byte)
 
         public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename, string relocationFilename)
         {
             // Use string table in MetaCode
             var stringTable = new StringTable();
-            var metaCode = new MetaCode.MetaCode2(stringTable, 8192);
+            var metaCode = new MetaCode2(stringTable, 8192);
             var metaMemberFactory = new MetaMemberFactory(metaCode);
             var typeInformation = new GenericTypeInformation();
 
             var reflector = new Reflector2(metaCode, metaMemberFactory, typeInformation);
             reflector.Analyze(data);
 
-            // In every class combine booleans into bitsets
+            // In every class combine booleans into a set of bits
             for (var ci = 0; ci < metaCode.Count; ++ci)
             {
                 var mt = metaCode.MembersType[ci];
@@ -66,7 +61,7 @@ namespace GameData
             // Note:
             //   In the list of classes we have many 'duplicates', classes of the same type that are emitted
             //   multiple times. We need to make sure the sorting of members is stable and predictable.
-            var memberSortPredicate = new MetaCode.MetaCode2.SortMembersPredicate(metaCode);
+            var memberSortPredicate = new MetaCode2.SortMembersPredicate(metaCode);
             for (var i = 0; i < 2; ++i)
             {
                 for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
@@ -98,7 +93,7 @@ namespace GameData
             var codeFileInfo = new FileInfo(codeFilename);
             var codeFileStream = codeFileInfo.Create();
             var codeFileStreamWriter = new StreamWriter(codeFileStream);
-            var codeWriter = new CppCodeWriter2(metaCode);
+            var codeWriter = new CppCodeWriter2() { MetaCode = metaCode };
             codeWriter.WriteEnums(codeFileStreamWriter);
             codeWriter.WriteClasses(codeFileStreamWriter);
             codeFileStreamWriter.Close();

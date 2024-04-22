@@ -331,14 +331,13 @@ namespace GameData
                 }
 
                 // We can combine booleans into a byte
-                // Number of booleans at the end of the member list
                 var s = sizeof(byte) * 8;
                 var n = MembersCount[classIndex] - (end - MembersStart[classIndex]);
                 var i = 0;
                 while (n > 0)
                 {
-                    // Duplicate all the boolean members to make room for this bitset member but also to have the bitset member be able to
-                    // have its own range of MetaMembers.
+                    // Duplicate all the boolean members to make room for this byte member but also
+                    // to have the bitset member be able to have its own range of MetaMembers.
                     var numBits = (n <= s) ? n : s;
                     var startIndex = MembersCount.Count;
                     mi = end + (i * s);
@@ -389,12 +388,9 @@ namespace GameData
             }
         }
 
-        #region C++ Code writer
-
         public class CppCodeWriter2
         {
-            private readonly MetaCode2 _metaCode2;
-
+            public MetaCode2 MetaCode { get; init; }
 
             private static string GetMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
@@ -758,12 +754,7 @@ namespace GameData
                 writer.WriteLine($"\tdict_t<{keyTypeString}, {valueTypeString}> m_{memberName};");
             }
 
-
-            public CppCodeWriter2(MetaCode2 metaCode2)
-            {
-                _metaCode2 = metaCode2;
-            }
-
+            
             private void WriteEnum(Type e, TextStreamWriter writer)
             {
                 writer.WriteLine($"enum {e.Name}");
@@ -781,11 +772,11 @@ namespace GameData
             public void WriteEnums(TextStreamWriter writer)
             {
                 HashSet<string> writtenEnums = new();
-                for (var i = 0; i < _metaCode2.MembersType.Count; ++i)
+                for (var i = 0; i < MetaCode.MembersType.Count; ++i)
                 {
-                    var mt = _metaCode2.MembersType[i];
+                    var mt = MetaCode.MembersType[i];
                     if (!mt.IsEnum) continue;
-                    var enumInstance = _metaCode2.MembersObject[i];
+                    var enumInstance = MetaCode.MembersObject[i];
                     if (writtenEnums.Contains(enumInstance.GetType().Name)) continue;
                     WriteEnum(enumInstance.GetType(), writer);
                     writtenEnums.Add(enumInstance.GetType().Name);
@@ -796,11 +787,11 @@ namespace GameData
 
             private void WriteClass(int memberIndex, TextStreamWriter writer, EOption option)
             {
-                var msi = _metaCode2.MembersStart[memberIndex];
-                var count = _metaCode2.MembersCount[memberIndex];
-                var mt = _metaCode2.MembersType[memberIndex];
+                var msi = MetaCode.MembersStart[memberIndex];
+                var count = MetaCode.MembersCount[memberIndex];
+                var mt = MetaCode.MembersType[memberIndex];
 
-                var className = _metaCode2.MembersObject[memberIndex].GetType().Name;
+                var className = MetaCode.MembersObject[memberIndex].GetType().Name;
 
                 writer.WriteLine($"class {className}");
                 writer.WriteLine("{");
@@ -809,8 +800,8 @@ namespace GameData
                 // write public member getter functions
                 for (var i = msi; i < msi + count; ++i)
                 {
-                    var mmt = _metaCode2.MembersType[i];
-                    sWriteGetterDelegates[mmt.Index](i, writer, _metaCode2, option);
+                    var mmt = MetaCode.MembersType[i];
+                    sWriteGetterDelegates[mmt.Index](i, writer, MetaCode, option);
                 }
 
                 writer.WriteLine();
@@ -819,8 +810,8 @@ namespace GameData
                 // write private members
                 for (var i = msi; i < msi + count; ++i)
                 {
-                    var mmt = _metaCode2.MembersType[i];
-                    sWriteMemberDelegates[mmt.Index](i, writer, _metaCode2, EOption.None);
+                    var mmt = MetaCode.MembersType[i];
+                    sWriteMemberDelegates[mmt.Index](i, writer, MetaCode, EOption.None);
                 }
 
                 writer.WriteLine("};");
@@ -832,11 +823,11 @@ namespace GameData
                 // Forward declares ?
                 writer.WriteLine("// Forward declares");
                 HashSet<string> writtenClasses = new();
-                for (var i = 0; i < _metaCode2.MembersType.Count; ++i)
+                for (var i = 0; i < MetaCode.MembersType.Count; ++i)
                 {
-                    var mt = _metaCode2.MembersType[i];
+                    var mt = MetaCode.MembersType[i];
                     if (!mt.IsClass) continue;
-                    var cn = _metaCode2.MembersObject[i].GetType().Name;
+                    var cn = MetaCode.MembersObject[i].GetType().Name;
                     if (writtenClasses.Contains(cn)) continue;
                     writer.WriteLine($"class {cn};");
                     writtenClasses.Add(cn);
@@ -845,11 +836,11 @@ namespace GameData
                 writer.WriteLine();
 
                 writtenClasses.Clear();
-                for (var i = _metaCode2.MembersType.Count - 1; i >= 0; --i)
+                for (var i = MetaCode.MembersType.Count - 1; i >= 0; --i)
                 {
-                    var mt = _metaCode2.MembersType[i];
+                    var mt = MetaCode.MembersType[i];
                     if (!mt.IsClass) continue;
-                    var cn = _metaCode2.MembersObject[i].GetType().Name;
+                    var cn = MetaCode.MembersObject[i].GetType().Name;
                     if (writtenClasses.Contains(cn)) continue;
                     WriteClass(i, writer, EOption.None);
                     writtenClasses.Add(cn);
@@ -858,10 +849,6 @@ namespace GameData
                 writer.WriteLine();
             }
         }
-
-        #endregion
-
-        #region Meta Member Factory
 
         public class MetaMemberFactory : IMemberFactory2
         {
@@ -982,10 +969,6 @@ namespace GameData
                 return _metaCode2.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content);
             }
         }
-
-        #endregion
-
-        #region Class and ClassMember data writer
 
         public static class CppDataStreamWriter2
         {
@@ -1389,12 +1372,8 @@ namespace GameData
             }
         }
 
-        #endregion
-
         public class CppDataStream2 : IDataWriter
         {
-            #region Fields
-
             private int _current;
             private int _offset;
             private readonly EPlatform _platform;
@@ -1404,10 +1383,6 @@ namespace GameData
             private readonly StringTable _stringTable;
             private readonly MemoryStream _memoryStream;
             private readonly IBinaryStreamWriter _dataWriter;
-
-            #endregion
-
-            #region Constructor
 
             public CppDataStream2(EPlatform platform, StringTable strTable)
             {
@@ -1421,10 +1396,6 @@ namespace GameData
                 _memoryStream = new();
                 _dataWriter = ArchitectureUtils.CreateBinaryWriter(_memoryStream, _platform);
             }
-
-            #endregion
-
-            #region DataBlock
 
             private class DataBlock
             {
@@ -1617,11 +1588,7 @@ namespace GameData
                     }
                 }
             }
-
-            #endregion
-
-            #region Methods
-
+            
             public void Align(int align)
             {
                 var offset = _dataWriter.Position;
@@ -1936,9 +1903,7 @@ namespace GameData
                     DataBlock.WriteTo(db, memoryStream, dataWriter, relocationDataWriter, dataOffsetDataBase, readWriteBuffer);
                 }
             }
-
-            #endregion
-
+            
             public IArchitecture Architecture => _dataWriter.Architecture;
 
             public long Position
