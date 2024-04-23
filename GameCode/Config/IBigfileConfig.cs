@@ -5,8 +5,6 @@ namespace DataBuildSystem
 {
     public interface IBigfileConfig
     {
-        #region Methods & Properties
-
         /// <summary>
         /// The name of the big file
         /// </summary>
@@ -57,14 +55,10 @@ namespace DataBuildSystem
         /// The size of the write buffer (cache) for writing to the Bigfile
         /// </summary>
         UInt32 WriteBufferSize { get; }
-
-        #endregion
     }
 
     public sealed class BigfileDefaultConfig : IBigfileConfig
     {
-        #region Methods & Properties
-
         public string BigfileName => "Game";
         public string BigFileExtension => ".gda";
         public string BigFileTocExtension => ".gdt";
@@ -73,29 +67,19 @@ namespace DataBuildSystem
         public EPlatform Platform => EPlatform.Win64;
         public Int64 FileAlignment => 256;
         public bool AllowDuplicateFiles => false;
-        public UInt32 ReadBufferSize => 8 * 1024 * 1024;
-        public UInt32 WriteBufferSize => 8 * 1024 * 1024;
-
-        #endregion
+        public UInt32 ReadBufferSize => 1 * 1024 * 1024;
+        public UInt32 WriteBufferSize => 1 * 1024 * 1024;
     }
 
 
     public static class BigfileConfig
     {
-        #region Fields
-
         private static IBigfileConfig _Config = new BigfileDefaultConfig();
-
-        #endregion
-        #region Init
 
         public static void Init(IBigfileConfig config)
         {
             _Config = config;
         }
-
-        #endregion
-        #region Methods & Properties
 
         public static string BigfileName => _Config.BigfileName;
         public static string BigFileExtension => _Config.BigFileExtension;
@@ -107,7 +91,5 @@ namespace DataBuildSystem
         public static bool AllowDuplicateFiles => _Config.AllowDuplicateFiles;
         public static UInt32 ReadBufferSize => _Config.ReadBufferSize;
         public static UInt32 WriteBufferSize => _Config.WriteBufferSize;
-
-        #endregion
     }
 }

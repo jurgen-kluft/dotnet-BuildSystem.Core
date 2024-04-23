@@ -23,8 +23,9 @@ These are now following the same layout as mentioned above containing multiple s
 ## Bigfile Organization
 
 So during development we will have multiple loose Bigfiles and only for a final release we will merge them into one Bigfile.
-Every Bigfile has an associated `index`, and each FileId is composed of a Bigfile `index` and a BigfileFile `index`.
+Every Bigfile has an associated `index`, and each FileId that is written in the game data is composed of a Bigfile `index` 
+and a BigfileFile `index`.
 
 There is one Bigfile per DataUnit.
 
-Do we care about de-duplication, not at the moment, but we could add it later.
+Note: At this moment we do not care about de-duplication, we could add it later.

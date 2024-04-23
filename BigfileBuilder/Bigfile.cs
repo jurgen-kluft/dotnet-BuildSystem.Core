@@ -8,16 +8,14 @@ namespace DataBuildSystem
         private FileStream FileStream { get; set; }
         private byte[] ReadCache { get; set; }
 
-        public Int64 Position { get; private set; }
-
         public BigfileWriter()
         {
             ReadCache = new byte[BigfileConfig.ReadBufferSize];
         }
 
-        public void SetLength(Int64 length)
+        public void AddSize(Int64 length)
         {
-            FileStream.SetLength(length);
+            FileStream.SetLength(FileStream.Position + length);
         }
 
         public bool Open(string filepath)
@@ -41,8 +39,8 @@ namespace DataBuildSystem
         }
 
         /// <summary>
-        /// Save all BigfileFiles into the Bigfile, this uses a different approach. It allocates
-        /// the full size of the Bigfile first and uses seek to write all the BigfileFiles.
+        /// Save all BigfileFiles into the Bigfile, allocate the full size of the Bigfile first
+        /// and then use seek to write all the BigfileFiles.
         /// </summary>
         /// <param name="filepath">The name of the bigfile</param>
         /// <returns>True if successful</returns>
@@ -50,7 +48,7 @@ namespace DataBuildSystem
         {
             try
             {
-                FileStream inputStream = new(filepath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                FileStream inputStream = new(filepath, FileMode.Open, FileAccess.Read, FileShare.Read, (int)BigfileConfig.ReadBufferSize);
                 var fileOffset = Write(inputStream, inputStream.Length);
                 inputStream.Close();
                 return fileOffset;
@@ -70,17 +68,15 @@ namespace DataBuildSystem
 
             Debug.Assert(fileSize < Int32.MaxValue);
 
-            if (fileSize <= BigfileConfig.ReadBufferSize)
+            var sizeToWrite = fileSize;
+            while (sizeToWrite > 0)
             {
-                readStream.Read(ReadCache, 0, (Int32)fileSize);
-                FileStream.Write(ReadCache, 0, (Int32)fileSize);
+                var sizeToRead = (int)Math.Min(sizeToWrite, ReadCache.Length);
+                var actualRead = readStream.Read(ReadCache, 0, sizeToRead);
+                FileStream.Write(ReadCache, 0, actualRead);
+                sizeToWrite -= actualRead;
             }
-            else
-            {
-                int br;
-                while ((br = readStream.Read(ReadCache, 0, ReadCache.Length)) > 0)
-                    FileStream.Write(ReadCache, 0, br);
-            }
+
             return position;
         }
 
@@ -106,7 +102,7 @@ namespace DataBuildSystem
                 Close();
 
                 var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
-                FileInfo bigfileInfo = new(bigfileFilepath);
+                var bigfileInfo = new FileInfo(bigfileFilepath);
 
                 _fileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
                 _binaryReader = new(_fileStream);
@@ -137,19 +133,18 @@ namespace DataBuildSystem
 
     public sealed class Bigfile
     {
-        public List<BigfileFile> Files {get;set;} = new();
-        public int Index { get; set; }
+        public List<BigfileFile> Files { get; } = new();
 
-        public void WriteTo(BigfileWriter writer)
+        public void Write(BigfileWriter writer)
         {
-            var additionalLength = (long)0;
+            var additionalSize = (long)0;
             foreach (var bff in Files)
             {
-                additionalLength += bff.FileSize;
-                additionalLength = CMath.Align(additionalLength, BigfileConfig.FileAlignment);
+                additionalSize += bff.FileSize;
+                additionalSize = CMath.Align(additionalSize, BigfileConfig.FileAlignment);
             }
 
-            writer.SetLength(writer.Position + additionalLength);
+            writer.AddSize(additionalSize);
 
             foreach (var bff in Files)
             {
