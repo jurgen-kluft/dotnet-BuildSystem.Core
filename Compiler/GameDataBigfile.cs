@@ -1,26 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using GameData;
+﻿using GameData;
 
 namespace DataBuildSystem
 {
 	internal sealed class GameDataBigfile
 	{
-        /// <summary>
-        /// A file to add to the data archive
-        /// </summary>
-        private static void Add(Int64 fileId, string[] filenames, Bigfile bigfile, List<BigfileFile> children)
+        private static void Add(Bigfile bigfile, long fileId, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
         {
-            BigfileFile mainBigfileFile = new(filenames[0]);
-            for (var i = 1; i < filenames.Length; ++i)
+            var mainBigfileFile = new BigfileFile(filenames[0]);
+            for (var i = 1; i < filenames.Count; ++i)
             {
                 var filename = filenames[i];
-                BigfileFile bigfileFile = new(filename);
-                bigfileFile.FileId = -1;
+                var bigfileFile = new BigfileFile(filename)
+                {
+                    FileId = -1
+                };
                 mainBigfileFile.Children.Add(bigfileFile);
                 children.Add(bigfileFile);
             }
@@ -33,12 +26,12 @@ namespace DataBuildSystem
 		{
 			var bfb = new BigfileBuilder(BigfileConfig.Platform);
 
-            Bigfile bigfile = new();
-            List<BigfileFile> children = new();
-            Int64 fileId = 0;
+            var bigfile = new Bigfile();
+            var children = new List<BigfileFile>();
+            var fileId = (long)0;
             foreach (var o in gdClOutput)
 			{
-				Add(fileId++, o.Filenames, bigfile, children);
+				Add(bigfile, fileId++, o.Filenames, children);
 			}
             foreach(var c in children)
 			{
@@ -46,7 +39,7 @@ namespace DataBuildSystem
                 bigfile.Files.Add(c);
 			}
 
-            List<Bigfile> bigFiles = new() { bigfile };
+            var bigFiles = new List<Bigfile>() { bigfile };
             bfb.Save(BuildSystemCompilerConfig.PubPath, BuildSystemCompilerConfig.DstPath, filename, bigFiles);
 		}
 	}

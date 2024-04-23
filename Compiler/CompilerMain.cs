@@ -1,21 +1,12 @@
-using System;
-using System.IO;
 using System.Reflection;
-using System.Collections.Generic;
 using System.Runtime.Loader;
 
 using GameCore;
-using GameData;
 
 namespace DataBuildSystem
 {
-    using Int8 = SByte;
-    using UInt8 = Byte;
-
     class Program
     {
-        #region Error & Success
-
         static int Error()
         {
             return 1;
@@ -26,9 +17,6 @@ namespace DataBuildSystem
             return 0;
         }
 
-        #endregion
-        #region Main
-
         // -name track3 -platform PC -target PC -territory Europe -srcpath i:\Data\Assets -gddpath i:\Data\Gdd -subpath Tracks\Track3 -dstpath i:\Data\Bin.PC -pubpath i:\Data\Publish.PC -toolpath i:\Data\Tools
         // -name MJ -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
 
@@ -36,7 +24,7 @@ namespace DataBuildSystem
         // -name "MJ" -platform "MAC" -territory "Europe" -basepath "/Users/obnosis1" -srcpath "/Users/obnosis1/Data/Assets" -gddpath "/Users/obnosis1/Data/GameData" -pubpath "/Users/obnosis1/Data/Publish.%PLATFORM%" -dstpath "/Users/obnosis1/Data/Bin.%PLATFORM%" -toolpath "/Users/obnosis1/Data/Tools"
         static int Main(string[] args)
         {
-            CommandLine cmdLine = new CommandLine(args);
+            var cmdLine = new CommandLine(args);
 
             // On the command-line we have:
             // - platform     PC                                            (PS4/PS5/XBOXONE/XSX/PC)
@@ -106,7 +94,7 @@ namespace DataBuildSystem
             }
 
             // Bigfile configuration
-            IBigfileConfig[] configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(gameDataRootAssembly);
+            var configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(gameDataRootAssembly);
             if (configsForBigfileBuilder.Length > 0)
             {
                 foreach (var config in configsForBigfileBuilder)
@@ -129,7 +117,7 @@ namespace DataBuildSystem
             // NOTES
             //       We should be able to generate the .sln and .csproj/Directory.Build.props files, so that we do not have to manage them
             //       and track them in source control.
-            //       This does mean that each 'folder' in the Data folder is going to be a project or how else do we know where the generate
+            //       This does mean that each 'folder' in the Data folder is going to be a project or how else do we know where to generate
             //       a project?
 
             var gdus = new GameDataUnits();
@@ -151,8 +139,6 @@ namespace DataBuildSystem
 
             return Success();
         }
-
-        #endregion
     }
 }
 

@@ -1,8 +1,6 @@
 
 namespace GameCore
 {
-    #region IBinaryReader and IStreamReader
-
     public interface IBinaryReader
     {
         int Read(byte[] buffer, int offset, int count);
@@ -20,15 +18,122 @@ namespace GameCore
     }
 
 
-    #endregion
-
-    #region BinaryReader (Endian)
-
-
     public interface IBinaryStreamReader : IBinaryStream, IBinaryReader
     {
     }
 
+    public class BinaryStreamReader : IBinaryStreamReader
+    {
+        private readonly Stream _stream;
+        private readonly byte[] _buffer = new byte[32];
+
+        public BinaryStreamReader(Stream stream)
+        {
+            _stream = stream;
+        }
+
+        public sbyte ReadInt8()
+        {
+            return (sbyte)_stream.ReadByte();
+        }
+
+        public byte ReadUInt8()
+        {
+            return (byte)_stream.ReadByte();
+        }
+
+        public short ReadInt16()
+        {
+            _stream.Read(_buffer, 0, 2);
+            return (short)(_buffer[0] | (_buffer[1] << 8));
+        }
+
+        public ushort ReadUInt16()
+        {
+            _stream.Read(_buffer, 0, 2);
+            return (ushort)(_buffer[0] | (_buffer[1] << 8));
+        }
+
+        public int ReadInt32()
+        {
+            _stream.Read(_buffer, 0, 4);
+            return _buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24);
+        }
+
+        public uint ReadUInt32()
+        {
+            _stream.Read(_buffer, 0, 4);
+            return (uint)(_buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24));
+        }
+
+        public long ReadInt64()
+        {
+            _stream.Read(_buffer, 0, 8);
+            return (long)_buffer[0] | ((long)_buffer[1] << 8) | ((long)_buffer[2] << 16) | ((long)_buffer[3] << 24) | ((long)_buffer[4] << 32) | ((long)_buffer[5] << 40) | ((long)_buffer[6] << 48) | ((long)_buffer[7] << 56);
+        }
+
+        public ulong ReadUInt64()
+        {
+            _stream.Read(_buffer, 0, 8);
+            return ((ulong)_buffer[0] | ((ulong)_buffer[1] << 8) | ((ulong)_buffer[2] << 16) | ((ulong)_buffer[3] << 24) | ((ulong)_buffer[4] << 32) | ((ulong)_buffer[5] << 40) | ((ulong)_buffer[6] << 48) | ((ulong)_buffer[7] << 56));
+        }
+
+        public float ReadFloat()
+        {
+            _stream.Read(_buffer, 0, 4);
+            return BitConverter.ToSingle(_buffer, 0);
+        }
+
+        public double ReadDouble()
+        {
+            _stream.Read(_buffer, 0, 8);
+            return BitConverter.ToDouble(_buffer, 0);
+        }
+
+        public string ReadString()
+        {
+            var length = ReadInt32();
+            var data = new byte[length + 1]; // There is also a null terminator in the stream
+            Read(data, 0, length + 1);
+            return System.Text.Encoding.UTF8.GetString(data, 0, length);
+        }
+
+        public int Read(byte[] data, int index, int count)
+        {
+            return _stream.Read(data, index, count);
+        }
+
+        public bool SkipBytes(long numBytes)
+        {
+            var pos = Position + numBytes;
+            Position = pos;
+            return (Position - pos) == numBytes;
+        }
+
+        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture64;
+
+        public long Position
+        {
+            get => _stream.Position;
+            set => _stream.Position = value;
+        }
+
+        public long Length
+        {
+            get => _stream.Length;
+            set => _stream.SetLength(value);
+        }
+
+        public long Seek(long offset)
+        {
+            return _stream.Seek(offset, SeekOrigin.Begin);
+        }
+
+        public void Close()
+        {
+            _stream.Close();
+        }
+    }
 
     public sealed class BinaryEndianReader : IBinaryReader, IBinaryStreamReader
     {
@@ -138,8 +243,7 @@ namespace GameCore
             var len = ReadInt32();
             var data = new byte[len + 1];
             Read(data, 0, len + 1);
-            var s = System.Text.Encoding.UTF8.GetString(data, 0, len);
-            return s;
+            return System.Text.Encoding.UTF8.GetString(data, 0, len);
         }
 
         public void Close()
@@ -257,8 +361,4 @@ namespace GameCore
             return _binaryReader.ReadString();
         }
     }
-
-    #endregion
-
-
 }

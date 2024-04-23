@@ -1,50 +1,26 @@
-﻿using System;
-using System.IO;
-using System.Diagnostics;
-using GameCore;
+﻿using GameCore;
 
-// BuildTools: Just Another Bigfile Builder, given a list of files like described
-//             below it will process these and output a BigFile and BigfileToc.
-//
 namespace DataBuildSystem
 {
-    using u64 = UInt64;
-    using s64 = Int64;
-
     public sealed class BigfileBuilder
     {
-        #region Fields
-
-        #endregion
-        #region Constructor
-
         public BigfileBuilder(EPlatform platform)
         {
             Platform = platform;
         }
 
-        #endregion
-        #region Properties
-
         private EPlatform Platform { get; }
 
-        #endregion
-        #region Methods
-
-
         // Returns the size of the final Bigfile
-        private Int64 Simulate(string dstPath, List<Bigfile> bigFiles)
+        private Int64 Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
         {
             // Simulation:
             // Compute the file Id
-            for (var i = 0; i < bigFiles.Count; i++)
+            foreach (var bigfile in bigFiles)
             {
-                var bigfile = bigFiles[i];
-
-                s64 fileId = 0;
-                for (var j = 0; j < bigfile.Files.Count; j++)
+                var fileId = (Int64)0;
+                foreach (var bigfileFile in bigfile.Files)
                 {
-                    var bigfileFile = bigfile.Files[j];
                     if (bigfileFile.FileId == -1)
                     {
                         bigfileFile.FileId = fileId;
@@ -59,14 +35,10 @@ namespace DataBuildSystem
             // Simulation:
             // Compute the file size and offset for each BigfileFile
             var currentOffset = new StreamOffset(0);
-            for (var i = 0; i < bigFiles.Count; i++)
+            foreach (var bigfile in bigFiles)
             {
-                var bigfile = bigFiles[i];
-
-                for (var j = 0; j < bigfile.Files.Count; j++)
+                foreach (var bigfileFile in bigfile.Files)
                 {
-                    var bigfileFile = bigfile.Files[j];
-
                     var fileInfo = new FileInfo(Path.Join(dstPath, bigfileFile.Filename));
                     if (fileInfo.Exists)
                     {
@@ -86,10 +58,7 @@ namespace DataBuildSystem
             return currentOffset.Offset;
         }
 
-        /// <summary>
-        /// Build the big file and TOC
-        /// </summary>
-        /// <returns>True if build was successful</returns>
+        // return true if build was successful
         public bool Save(string pubPath, string dstPath, string mainBigfileFilename, List<Bigfile> bigFiles)
         {
             var writer = new BigfileWriter();
@@ -101,17 +70,15 @@ namespace DataBuildSystem
                 return false;
             }
 
+            // Run the simulation so that we know the final file size of the Bigfile
             var bigfileSize = Simulate(dstPath, bigFiles);
             writer.SetLength(bigfileSize);
 
             // Write all files to the Bigfile Archive
-            for (var i = 0; i < bigFiles.Count; i++)
+            foreach (var bigfile in bigFiles)
             {
-                var bigfile = bigFiles[i];
-
-                for (var j = 0; j < bigfile.Files.Count; j++)
+                foreach (var bigfileFile in bigfile.Files)
                 {
-                    var bigfileFile = bigfile.Files[i];
                     var offset = writer.Save(Path.Join(dstPath, bigfileFile.Filename));
                     bigfileFile.FileOffset = new StreamOffset(offset);
                 }
@@ -130,23 +97,22 @@ namespace DataBuildSystem
             return true;
         }
 
-        public bool Load(string pubPath, string dstPath, string bigfileFilename, List<Bigfile> bigfiles)
+        public bool Load(string pubPath, string dstPath, string bigfileFilename, List<Bigfile> bigFiles)
         {
             BigfileReader reader = new();
             reader.Open(Path.Join(pubPath, bigfileFilename));
 
             BigfileToc bigFileToc = new();
-            if (bigFileToc.Load(Path.Join(pubPath, bigfileFilename), Platform, bigfiles))
+            if (bigFileToc.Load(Path.Join(pubPath, bigfileFilename), Platform, bigFiles))
             {
-                foreach(var bf in bigfiles)
+                foreach(var bf in bigFiles)
                 {
                     foreach(var bff in bf.Files)
                     {
-                        if (bff.FileOffset == StreamOffset.Empty)
-                        {
-                            Console.WriteLine("No data for file {0} with id {1}", dstPath + bff.Filename, bff.FileId);
-                            return false;
-                        }
+                        if (bff.FileOffset != StreamOffset.Empty) continue;
+
+                        Console.WriteLine("No data for file {0} with id {1}", dstPath + bff.Filename, bff.FileId);
+                        return false;
                     }
                 }
             }
@@ -175,15 +141,15 @@ namespace DataBuildSystem
                 foreach(var bff in bf.Files)
                 {
                     var offset = writer.Save(Path.Join(dstPath, bff.Filename));
-                    bff.FileOffset = new StreamOffset(offset);
                     if (offset < 0)
                     {
                         Console.WriteLine("Error saving Bigfile: {0}", bigfileFilename);
                         return false;
                     }
+                    bff.FileOffset = new StreamOffset(offset);
                 }
             }
-            // Close the Bigfile
+
             writer.Close();
 
             // Write the TOC
@@ -215,6 +181,5 @@ namespace DataBuildSystem
             return false;
         }
 
-        #endregion
     }
 }

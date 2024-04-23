@@ -2,8 +2,6 @@ using System.Diagnostics;
 
 namespace GameCore
 {
-    #region IBinaryWriter and IBinaryStream
-
     public interface IBinaryWriter
     {
         void Write(sbyte v);
@@ -172,144 +170,17 @@ namespace GameCore
         }
     }
 
-    public class BinaryStreamReader : IBinaryStreamReader
-    {
-        private readonly Stream _stream;
-        private readonly byte[] _buffer = new byte[32];
-
-        public BinaryStreamReader(Stream stream)
-        {
-            _stream = stream;
-        }
-
-        public sbyte ReadInt8()
-        {
-            return (sbyte)_stream.ReadByte();
-        }
-
-        public byte ReadUInt8()
-        {
-            return (byte)_stream.ReadByte();
-        }
-
-        public short ReadInt16()
-        {
-            _stream.Read(_buffer, 0, 2);
-            return (short)(_buffer[0] | (_buffer[1] << 8));
-        }
-
-        public ushort ReadUInt16()
-        {
-            _stream.Read(_buffer, 0, 2);
-            return (ushort)(_buffer[0] | (_buffer[1] << 8));
-        }
-
-        public int ReadInt32()
-        {
-            _stream.Read(_buffer, 0, 4);
-            return _buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24);
-        }
-
-        public uint ReadUInt32()
-        {
-            _stream.Read(_buffer, 0, 4);
-            return (uint)(_buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24));
-        }
-
-        public long ReadInt64()
-        {
-            _stream.Read(_buffer, 0, 8);
-            return (long)_buffer[0] | ((long)_buffer[1] << 8) | ((long)_buffer[2] << 16) | ((long)_buffer[3] << 24) | ((long)_buffer[4] << 32) | ((long)_buffer[5] << 40) | ((long)_buffer[6] << 48) | ((long)_buffer[7] << 56);
-        }
-
-        public ulong ReadUInt64()
-        {
-            _stream.Read(_buffer, 0, 8);
-            return ((ulong)_buffer[0] | ((ulong)_buffer[1] << 8) | ((ulong)_buffer[2] << 16) | ((ulong)_buffer[3] << 24) | ((ulong)_buffer[4] << 32) | ((ulong)_buffer[5] << 40) | ((ulong)_buffer[6] << 48) | ((ulong)_buffer[7] << 56));
-        }
-
-        public float ReadFloat()
-        {
-            _stream.Read(_buffer, 0, 4);
-            return BitConverter.ToSingle(_buffer, 0);
-        }
-
-        public double ReadDouble()
-        {
-            _stream.Read(_buffer, 0, 8);
-            return BitConverter.ToDouble(_buffer, 0);
-        }
-
-        public string ReadString()
-        {
-            var length = ReadInt32();
-            var data = new byte[length];
-            Read(data, 0, length);
-            return System.Text.Encoding.UTF8.GetString(data, 0, length);
-        }
-
-        public int Read(byte[] data, int index, int count)
-        {
-            return _stream.Read(data, index, count);
-        }
-
-        public bool SkipBytes(long numBytes)
-        {
-            var pos = Position + numBytes;
-            Position = pos;
-            return (Position - pos) == numBytes;
-        }
-
-        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture64;
-
-        public long Position
-        {
-            get => _stream.Position;
-            set => _stream.Position = value;
-        }
-
-        public long Length
-        {
-            get => _stream.Length;
-            set => _stream.SetLength(value);
-        }
-
-        public long Seek(long offset)
-        {
-            return _stream.Seek(offset, SeekOrigin.Begin);
-        }
-
-        public void Close()
-        {
-            _stream.Close();
-        }
-    }
-
-    #endregion
-
-    #region BinaryWriter (Endian)
-
     public sealed class BinaryEndianWriter : IBinaryStreamWriter
     {
-        #region Fields
-
         private readonly IArchitecture _architecture;
         private readonly IBinaryStreamWriter _writer;
         private readonly byte[] _buffer = new byte[8];
-
-        #endregion
-
-        #region Constructor
 
         public BinaryEndianWriter(IArchitecture architecture, IBinaryStreamWriter writer)
         {
             _architecture = architecture;
             _writer = writer;
         }
-
-        #endregion
-
-        #region IBinaryWriter Members
 
         public void Write(byte[] data)
         {
@@ -414,11 +285,7 @@ namespace GameCore
         {
             _writer.Close();
         }
-
-        #endregion
     }
-
-    #endregion
 
     public sealed class BinaryFileWriter : IBinaryWriter
     {
@@ -432,8 +299,6 @@ namespace GameCore
             _binaryStreamWriter = new(mStream);
             _binaryWriter = new(architecture, _binaryStreamWriter);
         }
-
-        #region IBinaryWriter Members
 
         public void Write(byte[] data)
         {
@@ -526,8 +391,6 @@ namespace GameCore
             _binaryStreamWriter.Close();
             mStream.Close();
         }
-
-        #endregion
     }
 
     public class BinaryMemoryWriter : IBinaryStreamWriter
@@ -548,8 +411,6 @@ namespace GameCore
         {
             _stream.Position = 0;
         }
-
-        #region IBinaryWriter Members
 
         public void Write(byte[] data)
         {
@@ -644,8 +505,6 @@ namespace GameCore
             _binaryStreamWriter.Close();
             _stream.Close();
         }
-
-        #endregion
     }
 
     public class BinaryMemoryBlock : IBinaryDataStream

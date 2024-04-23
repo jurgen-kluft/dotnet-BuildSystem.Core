@@ -20,3 +20,11 @@ A TOC Section layout:
 
 These are now following the same layout as mentioned above containing multiple sections.
 
+## Bigfile Organization
+
+So during development we will have multiple loose Bigfiles and only for a final release we will merge them into one Bigfile.
+Every Bigfile has an associated `index`, and each FileId is composed of a Bigfile `index` and a BigfileFile `index`.
+
+There is one Bigfile per DataUnit.
+
+Do we care about de-duplication, not at the moment, but we could add it later.

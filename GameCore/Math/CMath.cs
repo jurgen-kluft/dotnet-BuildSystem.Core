@@ -7,10 +7,6 @@ namespace GameCore
 	/// Provides standard mathematical functions for the library types.
      public static partial class CMath
     {
-        #region Delegates
-
-        #region Delegates - Boolean Functions
-
         /// <summary>
         /// Functor that takes no arguments and returns a boolean.
         /// </summary>
@@ -25,10 +21,6 @@ namespace GameCore
         /// Functor that takes two booleans and returns a boolean.
         /// </summary>
         public delegate bool BooleanBinaryFunction(bool b1, bool b2);
-
-        #endregion
-
-        #region Delegates - Double Functions
 
         /// <summary>
         /// Functor that takes no arguments and returns a double.
@@ -50,10 +42,6 @@ namespace GameCore
         /// </summary>
         public delegate double DoubleTernaryFunction(double x, double y, double z);
 
-        #endregion
-
-        #region Delegates - Float Functions
-
         /// <summary>
         /// Functor that takes no arguments and returns a float.
         /// </summary>
@@ -73,10 +61,6 @@ namespace GameCore
         /// Functor that takes three floats and returns a float.
         /// </summary>
         public delegate float FloatTernaryFunction(float x, float y, float z);
-
-        #endregion
-
-        #region Delegates - Integet Functions
 
         /// <summary>
         /// Functor that takes no arguments and returns an integer.
@@ -98,10 +82,6 @@ namespace GameCore
         /// </summary>
         public delegate int IntTernaryFunction(int x, int y, int z);
 
-        #endregion
-
-        #region Delegates - Object Functions
-
         /// <summary>
         /// Functor that takes no arguments and returns an object.
         /// </summary>
@@ -121,10 +101,6 @@ namespace GameCore
         /// Functor that takes three objects and returns an object.
         /// </summary>
         public delegate object ObjectTernaryFunction(object obj1, object obj2, object obj3);
-
-        #endregion
-
-        #region Delegates - String Functions
 
         /// <summary>
         /// Functor that takes no arguments and returns a string.
@@ -146,12 +122,6 @@ namespace GameCore
         /// </summary>
         public delegate string StringTernaryFunction(string s1, string s2, string s3);
 
-        #endregion
-
-        #endregion
-
-        #region Enums
-
         public enum Sign
         {
             /// <summary>
@@ -169,10 +139,6 @@ namespace GameCore
             /// </summary>
             Positive = 1
         }
-
-        #endregion
-
-        #region Constants
 
         public static class Constants
         {
@@ -215,10 +181,6 @@ namespace GameCore
             public readonly static double EpsilonD = 8.8817841970012523233891E-16;
         }
 
-        #endregion
-
-        #region Abs Functions
-
         public static class Absolute
         {
             /// <summary>
@@ -236,9 +198,6 @@ namespace GameCore
             /// </summary>
             public static readonly IntUnaryFunction IntAbsFunction = new IntUnaryFunction(CMath.Abs);
         }
-
-        #endregion
-		#region Interpolation Functions
 
         public static class Interpolation
         {
@@ -273,9 +232,7 @@ namespace GameCore
             public static readonly FloatTernaryFunction FloatCubicInterpolationFunction = new FloatTernaryFunction(CubicInterpolation);
         }
 
-        #endregion
-		#region Abs
-		/// <summary>
+        /// <summary>
 		/// Calculates the absolute value of an integer.
 		/// </summary>
 		/// <param name="x">An integer.</param>
@@ -398,9 +355,8 @@ namespace GameCore
 
 			return result;
 		}
-		#endregion
-		#region AbsSum
-		/// <summary>
+
+        /// <summary>
 		/// Calculates the sum of the absolute value of a given array's elements.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -484,9 +440,8 @@ namespace GameCore
 
 			return sum;
 		}
-		#endregion
-		#region Sum
-		/// <summary>
+
+        /// <summary>
 		/// Calculates the sum of a given array's elements.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -570,10 +525,8 @@ namespace GameCore
 
 			return sum;
 		}
-		#endregion
-		#region Square and SumOfSquares
 
-		public static int Squared(int inValue) { return inValue * inValue; }
+        public static int Squared(int inValue) { return inValue * inValue; }
 		public static float Squared(float inValue) { return inValue * inValue; }
 		public static double Squared(double inValue) { return inValue * inValue; }
 
@@ -661,9 +614,8 @@ namespace GameCore
 
 			return SumOfSquares;
 		}
-		#endregion
-		#region Sqrt
-		/// <summary>
+
+        /// <summary>
 		/// Returns the square root of a specified number.
 		/// </summary>
 		/// <param name="value">A double-precision floating point number.</param>
@@ -699,10 +651,8 @@ namespace GameCore
 		{
 			return ComplexF.Sqrt(value);
 		}
-		#endregion
-		#region Clamp
 
-		public static int Clamp(int inValue, int inMin, int inMax)
+        public static int Clamp(int inValue, int inMin, int inMax)
 		{
 			if (inValue < inMin)
 				return inMin;
@@ -729,9 +679,7 @@ namespace GameCore
 			return inValue;
 		}
 
-		#endregion
-		#region MinValue
-		/// <summary>
+        /// <summary>
 		/// Calculates the minimum value of a given array's elements.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -851,9 +799,8 @@ namespace GameCore
 
 			return value;
 		}
-		#endregion
-		#region MaxValue
-		/// <summary>
+
+        /// <summary>
 		/// Calculates the maximum value of a given array's elements.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -973,10 +920,8 @@ namespace GameCore
 
 			return value;
 		}
-		#endregion
-		#region MinMax
 
-		/// <summary>
+        /// <summary>
 		/// Return the smallest and largest of two numbers
 		/// </summary>
 		/// <param name="outMin"></param>
@@ -1002,9 +947,7 @@ namespace GameCore
 			outMax = Max(inValue, inG);
 		}
 
-		#endregion
-		#region MinAbsValue
-		/// <summary>
+        /// <summary>
 		/// Calculates the minimum value of a given array's elements absolute values.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -1124,9 +1067,8 @@ namespace GameCore
 
 			return value;
 		}
-		#endregion
-		#region MaxAbsValue
-		/// <summary>
+
+        /// <summary>
 		/// Calculates the maximum value of a given array's elements absolute values.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -1246,9 +1188,8 @@ namespace GameCore
 
 			return value;
 		}
-		#endregion
-		#region Mean
-		/// <summary>
+
+        /// <summary>
 		/// Calculates the mean of a given array's elements.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -1302,9 +1243,8 @@ namespace GameCore
 		{
 			return Sum(array) / array.Count;
 		}
-		#endregion
-		#region Variance
-		/// <summary>
+
+        /// <summary>
 		/// Calculates the variance of the given array.
 		/// </summary>
 		/// <param name="array">An array of double-precision floating point values.</param>
@@ -1422,9 +1362,7 @@ namespace GameCore
 			return variance;
 		}
 
-		#endregion
-		#region CountPositives
-		/// <summary>
+        /// <summary>
 		/// Calculates the number of positive values in the given array.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -1513,9 +1451,8 @@ namespace GameCore
 			}
 			return count;
 		}
-		#endregion
-		#region CountNegatives
-		/// <summary>
+
+        /// <summary>
 		/// Calculates the number of negative values in the given array.
 		/// </summary>
 		/// <param name="array">An array of integers.</param>
@@ -1605,9 +1542,8 @@ namespace GameCore
 			}
 			return count;
 		}
-		#endregion
-		#region GetSign
-		public static Sign GetSign(int i)
+
+        public static Sign GetSign(int i)
 		{
 			return (Sign)System.Math.Sign(i);
 		}
@@ -1644,9 +1580,7 @@ namespace GameCore
 			return	Sign.Zero;
 		}
 
-		#endregion
-		#region Comparison
-		public static bool IsZero(float a)
+        public static bool IsZero(float a)
 		{
 			return a == 0.0f;
 		}
@@ -1727,10 +1661,8 @@ namespace GameCore
 		{
 			return (CMath.Abs(a-b) <= tolerance);
 		}
-		#endregion
-		#region Range
 
-		public static bool InRange(int inValue, int inMin, int inMax)
+        public static bool InRange(int inValue, int inMin, int inMax)
 		{
 			return (inValue >= inMin && inValue <= inMax);
 		}
@@ -1745,9 +1677,7 @@ namespace GameCore
 			return (inValue >= inMin && inValue <= inMax);
 		}
 
-		#endregion
-		#region Swap
-		/// <summary>
+        /// <summary>
 		/// Swaps two values.
 		/// </summary>
 		/// <param name="a">A double-precision floating point number.</param>
@@ -1881,9 +1811,7 @@ namespace GameCore
 			b = c;
 		}
 
-		#endregion
-		#region Max
-		/// <summary>
+        /// <summary>
 		/// Max of  two values.
 		/// </summary>
 		/// <param name="a">A double-precision floating point number.</param>
@@ -2021,9 +1949,8 @@ namespace GameCore
 			a = b;
 			b = c;
 		}
-		#endregion
-		#region Min
-		/// <summary>
+
+        /// <summary>
 		/// Min of  two values.
 		/// </summary>
 		/// <param name="a">A double-precision floating point number.</param>
@@ -2137,15 +2064,9 @@ namespace GameCore
 			b = c;
 		}
 
-		#endregion
-		#region Mod
-
-		public static float Mod(float inA, float inMod) { return inA % inMod; }
+        public static float Mod(float inA, float inMod) { return inA % inMod; }
 		public static double Mod(double inA, double inMod) { return inA % inMod; }
 		public static int Mod(int inA, int inMod) { return inA % inMod; }
-
-		#endregion
-        #region Floor and Ceil
 
         public static float Floor(float inDegree) { return (float)System.Math.Floor(inDegree); }
         public static double Floor(double inDegree) { return System.Math.Floor(inDegree); }
@@ -2153,17 +2074,11 @@ namespace GameCore
         public static float Ceil(float inDegree) { return (float)System.Math.Ceiling(inDegree); }
         public static double Ceil(double inDegree) { return System.Math.Ceiling(inDegree); }
 
-        #endregion
-        #region Angle conversion
-
         public static float DegreesToRadians(float inDegree) { return (inDegree * Constants.OnePI) / 180.0f; }
 		public static double DegreesToRadians(double inDegree) { return (inDegree * Constants.OnePI) / 180.0; }
 
 		public static float RadiansToDegrees(float inRadian) { return (inRadian * 180.0f) / Constants.OnePI; }
 		public static double RadiansToDegrees(double inRadian) { return (inRadian * Constants.DOnePI) / Constants.DOnePI; }
-
-		#endregion
-		#region Math functions
 
         public static float Log(float inValue) { return (float)System.Math.Log(inValue); }
         public static double Log(double inValue) { return System.Math.Log(inValue); }
@@ -2202,9 +2117,7 @@ namespace GameCore
 		public static float ComputeBlend(float value, float min, float max) { return (value - min) / (max - min); }
 		public static double ComputeBlend(double value, double min, double max) { return (value - min) / (max - min); }
 
-		#endregion
-		#region Linear Interpolation
-		/// <summary>
+        /// <summary>
 		/// Interpolate two values using linear interpolation.
 		/// </summary>
 		/// <param name="a">A double-precision floating point number representing the first point.</param>
@@ -2226,9 +2139,8 @@ namespace GameCore
 		{
 			return a*(1-x) + b*x;
 		}
-		#endregion
-		#region Cosine Interpolation
-		/// <summary>
+
+        /// <summary>
 		/// Interpolate two values using cosine interpolation.
 		/// </summary>
 		/// <param name="a">A double-precision floating point number representing the first point.</param>
@@ -2254,9 +2166,8 @@ namespace GameCore
 			float f = (1.0f - Cos(ft)) * 0.5f;
 			return a*(1-f) + b*f;
 		}
-		#endregion
-		#region Cubic Interpolation
-		/// <summary>
+
+        /// <summary>
 		/// Interpolate two values using cubic interpolation.
 		/// </summary>
 		/// <param name="a">A double-precision floating point number representing the first point.</param>
@@ -2284,9 +2195,8 @@ namespace GameCore
 
 			return a*fac1 + b*fac2; //add the weighted factors
 		}
-		#endregion
-		#region Primes
-		/// <summary>
+
+        /// <summary>
 		/// Checks if the given value is a prime number.
 		/// </summary>
 		/// <param name="value">The number to check.</param>
@@ -2303,6 +2213,5 @@ namespace GameCore
 
 			return true;
 		}
-		#endregion
-	}
+    }
 }

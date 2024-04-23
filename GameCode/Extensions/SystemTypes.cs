@@ -28,6 +28,16 @@ namespace GameData
             return (v & 1) == 1;
         }
 
+        public static Int64 AlignUp(this Int64 v, int alignment)
+        {
+            return (v + alignment - 1) & ~(alignment - 1);
+        }
+
+        public static Int64 AlignDown(this Int64 v, int alignment)
+        {
+            return v & ~(alignment - 1);
+        }
+
         public static Int32 Lower32(this Int64 v)
         {
             return (Int32)(v);
