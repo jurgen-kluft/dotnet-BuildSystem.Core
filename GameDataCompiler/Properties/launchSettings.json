@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Compiler": {
+      "commandName": "Project",
+      "commandLineArgs": "-name MJ -platform PC -territory Europe -srcpath E:\\GameData\\Assets -gddpath E:\\GameData\\Dlls -dstpath E:\\GameData\\Bin.%PLATFORM% -pubPath E:\\GameData\\Publish.%PLATFORM% -toolpath E:\\GameData\\Tools"
+    }
+  }
+}

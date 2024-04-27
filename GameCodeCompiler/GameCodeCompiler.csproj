@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <RootNamespace>Compiler</RootNamespace>
+    <LangVersion>10</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,15 +18,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
   </ItemGroup>
 
-  <Target Name="CopyMetaTestDLL" AfterTargets="Build">
+  <Target Name="CopyGameCodeCompilerDLL" AfterTargets="Build">
     <ItemGroup>
       <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />
     </ItemGroup>
 
     <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\GameData.Compiled" SkipUnchangedFiles="true" />
   </Target>
-
+  
 </Project>

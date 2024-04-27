@@ -202,9 +202,9 @@ namespace DataBuildSystem
                     var compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
 
                     // byte[4]: Length of Block
-                    // byte[20]: Compiler Type Signature
-                    // byte[20]: Compiler Signature
-                    // byte[]: Compiler Property Data
+                    // byte[20]: GameDataCompiler Type Signature
+                    // byte[20]: GameDataCompiler Signature
+                    // byte[]: GameDataCompiler Property Data
 
                     memoryWriter.Reset();
                     compilerTypeSignature.WriteTo(memoryWriter);

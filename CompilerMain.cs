@@ -56,7 +56,7 @@ namespace DataBuildSystem
             }
 
             var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            Console.WriteLine("------ DataBuildSystem.NET - Compiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemCompilerConfig.PlatformName, BuildSystemCompilerConfig.TargetName);
+            Console.WriteLine("------ DataBuildSystem.NET - GameDataCompiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemCompilerConfig.PlatformName, BuildSystemCompilerConfig.TargetName);
 
             // Record the total build time
             DateTime buildStart = DateTime.Now;

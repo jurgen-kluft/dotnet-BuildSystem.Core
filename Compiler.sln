@@ -1,7 +1,9 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compiler", "Compiler\Compiler.csproj", "{3BCBF79F-6428-420E-9834-DE5F66ABF462}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCodeCompiler", "GameCodeCompiler\GameCodeCompiler.csproj", "{3BCBF79F-6428-420E-9834-DE5F66ABF463}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameDataCompiler", "GameDataCompiler\GameDataCompiler.csproj", "{3BCBF79F-6428-420E-9834-DE5F66ABF462}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCode", "GameCode\GameCode.csproj", "{0D650D9F-F2C1-4266-8B4E-0F2AD6BB1C60}"
 EndProject
@@ -19,6 +21,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3BCBF79F-6428-420E-9834-DE5F66ABF463}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BCBF79F-6428-420E-9834-DE5F66ABF463}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BCBF79F-6428-420E-9834-DE5F66ABF463}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BCBF79F-6428-420E-9834-DE5F66ABF463}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3BCBF79F-6428-420E-9834-DE5F66ABF462}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3BCBF79F-6428-420E-9834-DE5F66ABF462}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BCBF79F-6428-420E-9834-DE5F66ABF462}.Release|Any CPU.ActiveCfg = Release|Any CPU

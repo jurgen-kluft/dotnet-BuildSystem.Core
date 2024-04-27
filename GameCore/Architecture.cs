@@ -7,7 +7,7 @@ namespace GameCore
 
     public interface IArchitecture
     {
-        bool IsLittle{ get; }
+        bool IsLittle { get; }
         bool Is64Bit { get; }
 
         int Write(byte v, byte[] buffer, int offset);
@@ -94,13 +94,13 @@ namespace GameCore
 
         public int Write(sbyte v, byte[] buffer, int offset)
         {
-            BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
+            buffer[offset] = (byte)v;
             return 1;
         }
 
         public int Write(byte v, byte[] buffer, int offset)
         {
-            BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
+            buffer[offset] = v;
             return 1;
         }
 
@@ -201,7 +201,6 @@ namespace GameCore
         {
             return BitConverter.ToDouble(buffer, index);
         }
-
     }
 
     public class BigArchitecture64 : IArchitecture
@@ -211,13 +210,13 @@ namespace GameCore
 
         public int Write(sbyte v, byte[] buffer, int offset)
         {
-            BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
+            buffer[offset] = (byte)v;
             return 1;
         }
 
         public int Write(byte v, byte[] buffer, int offset)
         {
-            BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
+            buffer[offset] = v;
             return 1;
         }
 

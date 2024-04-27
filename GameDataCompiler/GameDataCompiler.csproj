@@ -4,9 +4,11 @@
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <RootNamespace>Compiler</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BigfileBuilder\BigfileBuilder.csproj" />
     <ProjectReference Include="..\GameCode\GameCode.csproj" />
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
   </ItemGroup>
@@ -14,17 +16,5 @@
   <ItemGroup>
     <Compile Include="*.cs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
-  </ItemGroup>
-
-  <Target Name="CopyMetaTestDLL" AfterTargets="Build">
-    <ItemGroup>
-      <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\GameData.Compiled" SkipUnchangedFiles="true" />
-  </Target>
 
 </Project>
