@@ -9,13 +9,14 @@ namespace gamelogic
 
         public static Float3 Add(Float3 a, Float3 b) => new Float3() { X = a.X + b.X, Y = a.Y + b.Y, Z = a.Z + b.Z };
 
-        public static Float3x3 Float3x3_Identity = new Float3x3() { M0 = new Float3() { X = 1, Y = 0, Z = 0 }, M1 = new Float3() { X = 0, Y = 1, Z = 0 }, M2 = new Float3() { X = 0, Y = 0, Z = 1 } };
-        public static Float4x4 Float4x4_Identity = new Float4x4() { M0 = new Float4() { X = 1, Y = 0, Z = 0, W = 0 }, M1 = new Float4() { X = 0, Y = 1, Z = 0, W = 0 }, M2 = new Float4() { X = 0, Y = 0, Z = 1, W = 0 }, M3 = new Float4() { X = 0, Y = 0, Z = 0, W = 1 } };
+        public static Float3x3 Identity3x3 = new Float3x3() { M0 = new Float3() { X = 1, Y = 0, Z = 0 }, M1 = new Float3() { X = 0, Y = 1, Z = 0 }, M2 = new Float3() { X = 0, Y = 0, Z = 1 } };
+        public static Float4x4 Identity4x4 = new Float4x4() { M0 = new Float4() { X = 1, Y = 0, Z = 0, W = 0 }, M1 = new Float4() { X = 0, Y = 1, Z = 0, W = 0 }, M2 = new Float4() { X = 0, Y = 0, Z = 1, W = 0 }, M3 = new Float4() { X = 0, Y = 0, Z = 0, W = 1 } };
     }
 
     public interface IEngineSystem {}
 
     public interface IEntityResource {}
+    
     public struct EntityId { public long Id; }
 
     // An Entity System is responsible for creating, updating and destroying specific type of entities.
@@ -27,7 +28,6 @@ namespace gamelogic
         public void UpdateDynamics(float deltaTime);
         public void UpdateLogic(float deltaTime);
     }
-
 
     public interface IRenderSystem : IEntitySystem
     {
@@ -317,7 +317,7 @@ namespace gamelogic
         public ExplosiveResourceId ExplosiveResource; // The explosive to spawn upon impact
     }
 
-    public class Missile : IEntity
+    public class MissileEntity : IEntity
     {
         public MotionComponent Motion;
         public TransformComponent Transform;
@@ -333,31 +333,38 @@ namespace gamelogic
         public T GetResource<T>(EntityResourceId resourceId);
     }
 
-    // An Entity Component System is the back-end, or storage, for creating, updating and destroying entities.
+    // An Entity Component System is the back-end/storage/owner, for entities, components and systems.
     public interface IEntityComponentSystem : IEngineSystem
     {
         public EntityId CreateEntity();
         public void DestroyEntity(EntityId entityId);
 
         public T AddComponent<T>(EntityId entityId);
+        public bool HasComponent<T>(EntityId entityId);
         public T GetComponent<T>(EntityId entityId);
         public void RemoveComponent<T>(EntityId entity);
+        
         public T AddFlag<T>(EntityId entity);
+        public bool HasFlag<T>(EntityId entity);
+        public bool GetFlag<T>(EntityId entity);
         public void RemoveFlag<T>(EntityId entity);
 
         public void AddSystem(IEntitySystem system);
         public void RemoveSystem(IEntitySystem system);
 
+        public void UpdateCreate(float deltaTime);
+        public void UpdateDynamics(float deltaTime);
+        public void UpdateLogic(float deltaTime);
     }
 
-    public class MissileSystem : IEntitySystem
+    public class MissileEntitySystem : IEntitySystem
     {
         private IEntityComponentSystem _ecs; // The EntityComponentSystem
         private IEntityResourceSystem _ers; // The EntityResourceSystem
         private List<EntityId> _missileLaunchers = new List<EntityId>();
         private List<EntityId> _missiles = new List<EntityId>();
 
-        public MissileSystem(IEntityComponentSystem ecs, IEntityResourceSystem ers)
+        public MissileEntitySystem(IEntityComponentSystem ecs, IEntityResourceSystem ers)
         {
             _ecs = ecs;
             _ers = ers;
@@ -381,7 +388,7 @@ namespace gamelogic
             motion.Direction = direction;
             motion.Velocity = speed;
 
-            transform.Transform = Math.Float3x3_Identity;
+            transform.Transform = Math.Identity3x3;
             // need to set the position on the transform
 
             properties.Resource = missileResource;
@@ -433,7 +440,7 @@ namespace gamelogic
 
         public void UpdateCreate(float deltaTime)
         {
-            // Create the missile launchers
+            // Handle any create requests
         }
 
         public void UpdateDynamics(float deltaTime)
@@ -468,13 +475,20 @@ namespace gamelogic
         public VisualFxResourceId VisualFxResourceId; // Visual Effect to Spawn upon firing
         public Float3 Size; // Size of the missile launcher
     }
+    
+    public class MissileLauncherComponent : IEntityComponent
+    {
+        public RenderInstanceId _meshInstanceId;
+        public SoundInstanceId _soundInstanceId;
+        public RenderInstanceId _visualFxInstanceId;
+        public MissileResource _missileResource; // The missile resource to use for spawning missiles
+        public MissileLauncherResource _resource;
+    }
 
     // A Missile Launcher has a position, orientation and can fire missiles
-    public class MissileLauncher : IEntity
+    public class MissileLauncherEntity : IEntity
     {
-        public TransformComponent Transform;
-        public MissileLauncherResource Properties;
-        public MissileResource MissileResourceId; // The missile resource to use for spawning missiles
-
+        public TransformComponent _transform;
+        public MissileLauncherComponent _properties;
     }
 }
