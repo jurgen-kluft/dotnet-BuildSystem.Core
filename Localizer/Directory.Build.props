@@ -6,7 +6,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>    
     <!-- SolutionDir is not defined when building projects explicitly -->
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <SolutionDir Condition=" '$(SolutionDir)' == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), GameDataCompiler.sln))\</SolutionDir>
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), Compiler.sln))\</SolutionDir>
     <!-- Output paths -->
     <BaseIntermediateOutputPath>$(SolutionDir)target\obj\$(MSBuildProjectName)\$(Configuration)\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(SolutionDir)target\obj\$(MSBuildProjectName)\$(Configuration)\</IntermediateOutputPath>

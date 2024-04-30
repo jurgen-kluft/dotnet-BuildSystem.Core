@@ -3,11 +3,24 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GameCode\GameCode.csproj" />
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="**/*.cs" />
+  </ItemGroup>
+
+  <Target Name="CopyMetaTestDLL" AfterTargets="Build">
+    <ItemGroup>
+      <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\GameData.Compiled" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
