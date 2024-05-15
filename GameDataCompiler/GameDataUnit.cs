@@ -5,6 +5,13 @@ using GameData;
 
 namespace DataBuildSystem
 {
+    // A GameDataUnit is a single .dll file that contains compiled C# code structured as data.
+    // Classes can contain FileId objects that hold a IDataCompiler, these compilers need to
+    // be tracked. When such a compiler is out-of-date, the GameDataCompilerLog will be updated
+    // and the GameDataBigfile and GameDataData will be rebuilt.
+
+    // 
+
     public class GameDataUnits
     {
         private List<GameDataUnit> DataUnits { get; set; } = new();
