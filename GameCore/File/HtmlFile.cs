@@ -66,7 +66,7 @@ namespace GameCore
         public bool Begin(System.IO.StreamWriter writer, HtmlAttribute[] attrs)
         {
             writer.Write(String.Format("<{0}", mName));
-            foreach (HtmlAttribute attr in attrs)
+            foreach (var attr in attrs)
                 attr.Write(writer);
             writer.Write(">");
             return false;
@@ -255,7 +255,7 @@ namespace GameCore
 
         public void Write(params IHtmlTag[] tags)
         {
-            foreach (IHtmlTag t in tags)
+            foreach (var t in tags)
                 Write(t);
         }
 

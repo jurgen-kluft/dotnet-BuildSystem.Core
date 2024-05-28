@@ -28,11 +28,11 @@ namespace Net.SourceForge.Koogra.Storage
 		/// <returns></returns>
 		public DirectoryEntry Find(string name)
 		{
-			DirectoryEntryNameComparer comparer = new DirectoryEntryNameComparer();
-			DirectoryEntry child = _child;
+			var comparer = new DirectoryEntryNameComparer();
+			var child = _child;
 			while(child != null)
 			{
-				int c = comparer.Compare(name, child.Name);
+				var c = comparer.Compare(name, child.Name);
 				if(c == 0)
 					break;
 				else if(c < 0)

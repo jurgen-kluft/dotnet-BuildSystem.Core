@@ -13,8 +13,8 @@ namespace GameData
         {
             try
             {
-                string path = inPath;
-                DirectoryInfo dirInfo = new DirectoryInfo(path);
+                var path = inPath;
+                var dirInfo = new DirectoryInfo(path);
                 if (!dirInfo.Exists)
                     dirInfo.Create();
             }
@@ -30,7 +30,7 @@ namespace GameData
         {
             try
             {
-                string f = Path.Join(basePath, filename);
+                var f = Path.Join(basePath, filename);
                 DirUtils.Create(f);
             }
             catch (Exception e)
@@ -45,17 +45,17 @@ namespace GameData
         {
             try
             {
-                FileInfo srcFileInfo = new FileInfo(Path.Combine(srcPath,srcFilename));
+                var srcFileInfo = new FileInfo(Path.Combine(srcPath,srcFilename));
                 if (!srcFileInfo.Exists)
                 {
                     Console.WriteLine("Error: Cannot copy non existing file {0}.", srcFilename);
                     return false;
                 }
 
-                FileInfo dstFileInfo = new FileInfo(Path.Combine(dstPath, dstFilename));
+                var dstFileInfo = new FileInfo(Path.Combine(dstPath, dstFilename));
 
                 // Directory exists at destination ?
-                DirectoryInfo dstDirInfo = new DirectoryInfo(Path.GetDirectoryName(dstFileInfo.FullName));
+                var dstDirInfo = new DirectoryInfo(Path.GetDirectoryName(dstFileInfo.FullName));
                 if (!dstDirInfo.Exists)
                     dstDirInfo.Create();
 
@@ -72,8 +72,8 @@ namespace GameData
 
         public static bool Copy(string srcPath, string dstPath, List<string> dstFilenames)
         {
-            bool result = true;
-            foreach(string filename in dstFilenames)
+            var result = true;
+            foreach(var filename in dstFilenames)
                 if (!CopyFromTo(srcPath, filename, dstPath, filename))
                     result = false;
             return result;

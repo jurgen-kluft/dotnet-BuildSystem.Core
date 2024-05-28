@@ -22,6 +22,7 @@ namespace GameData
 		BigFileToc = 5,
 		BigFileFilenames = 6,
 		BigFileHashes = 7,
+		Count = 8,
 	}
 
 	public static class GameDataPath
@@ -48,7 +49,7 @@ namespace GameData
 			return unit switch
 			{
 				EGameData.GameDataDll => ".dll",
-				EGameData.GameDataCompilerLog => ".gdcl",
+				EGameData.GameDataCompilerLog => ".gdl",
 				EGameData.GameDataData => BuildSystemCompilerConfig.DataFileExtension,
 				EGameData.GameDataRelocation => BuildSystemCompilerConfig.DataRelocFileExtension,
 				EGameData.BigFileData => BigfileConfig.BigFileExtension,
@@ -60,9 +61,9 @@ namespace GameData
 		}
 		public static string GetFilePathFor(string name, EGameData unit)
 		{
-			EGameDataPath path = GetPathFor(unit);
-			string dirpath = GetPath(path);
-			return Path.Join(dirpath, name + GetExtFor(unit));
+			var path = GetPathFor(unit);
+			var dirPath = GetPath(path);
+			return Path.Join(dirPath, name + GetExtFor(unit));
 		}
 	}
 }

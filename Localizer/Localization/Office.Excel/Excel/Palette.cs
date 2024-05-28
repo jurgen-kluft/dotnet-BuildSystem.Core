@@ -43,8 +43,8 @@ namespace Net.Office.Excel
 			_others[0x7FFF] = new PaletteEntry(wb, Color.FromKnownColor(KnownColor.WindowText));
 
 			_colors = new PaletteEntry[64];
-			int idx = 0;
-			foreach(int c in _defaultPaletteExcel2003)
+			var idx = 0;
+			foreach(var c in _defaultPaletteExcel2003)
                 _colors[idx++] = new PaletteEntry(wb, Color.FromArgb((int)((uint)0xFF000000 | (uint)c)));
 		}
 
@@ -52,9 +52,9 @@ namespace Net.Office.Excel
 		{
 			int idx = _minUserDefined;
 
-			foreach(int c in p.Colors)
+			foreach(var c in p.Colors)
 			{
-				PaletteEntry pe = _colors[idx++];
+				var pe = _colors[idx++];
 
 				if(pe != null)
 					pe.Color = Color.FromArgb(c);
@@ -78,7 +78,7 @@ namespace Net.Office.Excel
 
 			if(entry == null)
 			{
-				int entryIndex = index - _minUserDefined;
+				var entryIndex = index - _minUserDefined;
 
 				if(entryIndex >= 0 && entryIndex < _colors.Length)
 					entry = _colors[entryIndex];

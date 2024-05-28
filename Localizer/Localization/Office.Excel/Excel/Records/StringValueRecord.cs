@@ -22,7 +22,7 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.String)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 				_value = Reader.ReadComplexString(reader);
 			}
 			else

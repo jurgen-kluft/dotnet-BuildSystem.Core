@@ -182,8 +182,8 @@ namespace GameCore
 		/// <returns>A <see cref="FVector4"/> that represents the vector specified by the <paramref name="s"/> parameter.</returns>
 		public static FVector4 Parse(string s)
 		{
-			Regex r = new Regex(@"\((?<x>.*),(?<y>.*),(?<z>.*),(?<w>.*)\)", RegexOptions.None);
-			Match m = r.Match(s);
+			var r = new Regex(@"\((?<x>.*),(?<y>.*),(?<z>.*),(?<w>.*)\)", RegexOptions.None);
+			var m = r.Match(s);
 			if (m.Success)
 			{
 				return new FVector4(
@@ -531,7 +531,7 @@ namespace GameCore
 		/// </summary>
 		public void Normalize()
 		{
-			float length = Length();
+			var length = Length();
 			if (length == 0)
 			{
 				throw new DivideByZeroException("Trying to normalize a vector with length of zero.");
@@ -548,7 +548,7 @@ namespace GameCore
 		/// <returns></returns>
 		public bool IsNormalized(float inEpsilon)
 		{
-			float l = Length();
+			var l = Length();
 			return CMath.IsNear(l, 1.0f, inEpsilon);
 		}
 		/// <summary>
@@ -596,7 +596,7 @@ namespace GameCore
 		{
 			if (obj is FVector4)
 			{
-				FVector4 v = (FVector4)obj;
+				var v = (FVector4)obj;
 				return (mX == v.X) && (mY == v.Y) && (mZ == v.Z) && (mW == v.W);
 			}
 			return false;
@@ -898,7 +898,7 @@ namespace GameCore
 		/// <returns>An array of single-precision floating point values.</returns>
 		public static explicit operator float[](FVector4 v)
 		{
-			float[] array = new float[4];
+			var array = new float[4];
 			array[0] = v.X;
 			array[1] = v.Y;
 			array[2] = v.Z;
@@ -912,7 +912,7 @@ namespace GameCore
 		/// <returns>An array of single-precision floating point values.</returns>
         public static explicit operator List<float>(FVector4 v)
 		{
-            List<float> array = new List<float>(4);
+            var array = new List<float>(4);
 			array[0] = v.X;
 			array[1] = v.Y;
 			array[2] = v.Z;

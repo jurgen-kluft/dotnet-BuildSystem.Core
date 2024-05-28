@@ -24,7 +24,7 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Format)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
 				_index = reader.ReadUInt16();
 				_format = Reader.ReadComplexString(reader);

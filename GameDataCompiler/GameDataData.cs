@@ -25,14 +25,14 @@ namespace DataBuildSystem
                 while (compounds.Count > 0)
                 {
                     compound = compounds.Pop();
-                    Type compoundTypeInfo = compound.GetType();
+                    var compoundTypeInfo = compound.GetType();
 
                     if (ood(compound))
                         continue;
 
                     if (compound is GameData.IExternalObjectProvider)
                     {
-                        GameData.IExternalObjectProvider externalObjectProvider = compound as GameData.IExternalObjectProvider;
+                        var externalObjectProvider = compound as GameData.IExternalObjectProvider;
                         compounds.Push(externalObjectProvider.extobject);
                         continue;
                     }
@@ -43,15 +43,15 @@ namespace DataBuildSystem
                     if (compoundTypeInfo.IsArray)
                     {
                         // Analyze element type
-                        Type elementType = compoundTypeInfo.GetElementType();
+                        var elementType = compoundTypeInfo.GetElementType();
                         if (!elementType.IsPrimitive && !compoundTypeInfo.IsEnum)
                         {
-                            Array objectArray = compound as Array;
+                            var objectArray = compound as Array;
                             if (objectArray != null)
                             {
-                                for (int i = 0; i < objectArray.Length; i++)
+                                for (var i = 0; i < objectArray.Length; i++)
                                 {
-                                    object e = objectArray.GetValue(i);
+                                    var e = objectArray.GetValue(i);
                                     if (e != null)
                                         compounds.Push(e);
                                 }
@@ -60,31 +60,31 @@ namespace DataBuildSystem
                     }
                     else
                     {
-                        FieldInfo[] fields = compoundTypeInfo.GetFields(
+                        var fields = compoundTypeInfo.GetFields(
                             BindingFlags.Public
                                 | BindingFlags.NonPublic
                                 | BindingFlags.Instance
                                 | BindingFlags.GetField
                         );
-                        foreach (FieldInfo f in fields)
+                        foreach (var f in fields)
                         {
-                            object o = f.GetValue(compound);
+                            var o = f.GetValue(compound);
                             if (o == null)
                                 continue;
 
-                            Type objectTypeInfo = o.GetType();
+                            var objectTypeInfo = o.GetType();
                             if (objectTypeInfo.IsArray)
                             {
                                 // Analyze element type
-                                Type elementType = objectTypeInfo.GetElementType();
+                                var elementType = objectTypeInfo.GetElementType();
                                 if (!elementType.IsPrimitive && !compoundTypeInfo.IsEnum)
                                 {
-                                    Array objectArray = o as Array;
+                                    var objectArray = o as Array;
                                     if (objectArray != null)
                                     {
-                                        for (int i = 0; i < objectArray.Length; i++)
+                                        for (var i = 0; i < objectArray.Length; i++)
                                         {
-                                            object e = objectArray.GetValue(i);
+                                            var e = objectArray.GetValue(i);
                                             if (e != null)
                                                 compounds.Push(e);
                                         }
@@ -177,7 +177,7 @@ namespace DataBuildSystem
                 // - Bigfile providers
                 ObjectTreeWalker.Walk(mRoot, delegate (object compound)
                     {
-                        Type compoundType = compound.GetType();
+                        var compoundType = compound.GetType();
                         if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
                             return true;
 
@@ -185,7 +185,7 @@ namespace DataBuildSystem
 
                         if (compound is IDataCompiler)
                         {
-                            IDataCompiler c = compound as IDataCompiler;
+                            var c = compound as IDataCompiler;
                             compilers.Add(c);
                             return true;
                         }
@@ -238,17 +238,17 @@ namespace DataBuildSystem
         {
             mFilesProviders.Clear();
 
-            bool ok = ObjectTreeWalker.Walk(mRoot, delegate (object compound)
+            var ok = ObjectTreeWalker.Walk(mRoot, delegate (object compound)
                 {
-                    Type compoundType = compound.GetType();
+                    var compoundType = compound.GetType();
 
                     if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
                         return true;
 
-                    bool handled = false;
+                    var handled = false;
                     if (compound is IFileIdProvider)
                     {
-                        IFileIdProvider f = compound as IFileIdProvider;
+                        var f = compound as IFileIdProvider;
                         mFilesProviders.Add(f);
                         handled = true;
                     }
@@ -302,8 +302,8 @@ namespace DataBuildSystem
         public bool Save(string filepath)
         {
             //generateCppCodeAndData(root, fullNameWithoutExtension + ".rdf", fullNameWithoutExtension + ".rcf", fullNameWithoutExtension + ".rrf");
-            string dataFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataFileExtension);
-            string relocFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataRelocFileExtension);
+            var dataFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataFileExtension);
+            var relocFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataRelocFileExtension);
 
             GameData.FileCommander.createDirectoryOnDisk(Path.GetDirectoryName(dataFilename));
 

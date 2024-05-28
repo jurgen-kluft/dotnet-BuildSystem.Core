@@ -16,7 +16,7 @@ namespace Net.SourceForge.Koogra.Storage.Sectors
 		/// <param name="stream"></param>
 		public StorageSector(Stream stream)
 		{
-			int read = stream.Read(_data, 0, _data.Length);
+			var read = stream.Read(_data, 0, _data.Length);
 			if(read < _data.Length)
 				throw new IOException("The amount of data read was shorted than expected.");
 		}

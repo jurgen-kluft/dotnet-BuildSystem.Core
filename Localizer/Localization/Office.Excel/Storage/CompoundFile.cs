@@ -29,12 +29,12 @@ namespace Net.SourceForge.Koogra.Storage
 			Debug.Assert((stream.Length % 512) == 0);
 			
 			// read in the first sector
-			StorageSector sector = new StorageSector(stream);
+			var sector = new StorageSector(stream);
 			// interpret sector as header sector
-			HeaderSector header = new HeaderSector(sector.GetStream());
+			var header = new HeaderSector(sector.GetStream());
 
 			// read in all remaining sectors
-			SectorCollection sectors = new SectorCollection((int)(stream.Length / Constants.SECTOR_SIZE));
+			var sectors = new SectorCollection((int)(stream.Length / Constants.SECTOR_SIZE));
 			while(stream.Position != stream.Length)
 			{
 				sector = new StorageSector(stream);
@@ -42,15 +42,15 @@ namespace Net.SourceForge.Koogra.Storage
 			}
 
 			// build the fat index
-			List<Sect> index = new List<Sect>((int)(Constants.MAX_SECT * header.SectFatCount));
+			var index = new List<Sect>((int)(Constants.MAX_SECT * header.SectFatCount));
 
 			// read first 109 fat entries
-			for(int i = 0; i < header.SectFat.Length; ++i)
+			for(var i = 0; i < header.SectFat.Length; ++i)
 			{
-				Sect fatSect = header.SectFat[i];
+				var fatSect = header.SectFat[i];
 				if(!fatSect.IsFree)
 				{
-					FatSector fat = new FatSector(((StorageSector)sectors[fatSect]).GetStream());
+					var fat = new FatSector(((StorageSector)sectors[fatSect]).GetStream());
 					index.AddRange(fat.SectFat);
 					sectors[fatSect] = fat;
 				}
@@ -63,16 +63,16 @@ namespace Net.SourceForge.Koogra.Storage
 				!difIndex.IsEndOfChain && difCount < header.SectDifCount; 
 				++difCount)
 			{
-				DifSector dif = new DifSector(((StorageSector)sectors[difIndex]).GetStream());
+				var dif = new DifSector(((StorageSector)sectors[difIndex]).GetStream());
 				sectors[difIndex] = dif;
 
-				for(int i = 0; i < dif.SectFat.Length; ++i)
+				for(var i = 0; i < dif.SectFat.Length; ++i)
 				{
-					Sect fatSect = dif.SectFat[i];
+					var fatSect = dif.SectFat[i];
 
 					if(!fatSect.IsFree)
 					{
-						FatSector fat = new FatSector(((StorageSector)sectors[fatSect]).GetStream());
+						var fat = new FatSector(((StorageSector)sectors[fatSect]).GetStream());
 						index.AddRange(fat.SectFat);
 						sectors[fatSect] = fat;
 					}
@@ -86,7 +86,7 @@ namespace Net.SourceForge.Koogra.Storage
 			Debug.Assert(index.Count == (header.SectFatCount * Constants.MAX_SECT));
 			Debug.Assert(index.Capacity == index.Count);
 
-			Sect[] fatSects = index.ToArray();
+			var fatSects = index.ToArray();
 
 			Sect miniFatSect;
 			int miniFatCount;
@@ -94,22 +94,22 @@ namespace Net.SourceForge.Koogra.Storage
 				!miniFatSect.IsEndOfChain && miniFatCount < header.SectMiniFatCount;
 				miniFatSect = fatSects[miniFatSect.ToInt()], ++miniFatCount)
 			{
-				MiniFatSector miniFat = new MiniFatSector(((StorageSector)sectors[miniFatSect]).GetStream());
+				var miniFat = new MiniFatSector(((StorageSector)sectors[miniFatSect]).GetStream());
 				sectors[miniFatSect] = miniFat;
 			}
 
 			Debug.Assert(miniFatCount == header.SectMiniFatCount);
 
 			// read in directory sectors
-			DirectorySectorEntryCollection dirs = new DirectorySectorEntryCollection();
+			var dirs = new DirectorySectorEntryCollection();
 
-			for(Sect dirSect = header.SectDirStart;
+			for(var dirSect = header.SectDirStart;
 				!dirSect.IsEndOfChain;
 				dirSect = fatSects[dirSect.ToInt()])
 			{
-				DirectorySector dir = new DirectorySector(((StorageSector)sectors[dirSect]).GetStream());
+				var dir = new DirectorySector(((StorageSector)sectors[dirSect]).GetStream());
 				
-				foreach(DirectorySectorEntry entry in dir.Entries)
+				foreach(var entry in dir.Entries)
 					dirs.Add(entry);
 
 				sectors[dirSect] = dir;
@@ -126,7 +126,7 @@ namespace Net.SourceForge.Koogra.Storage
 		/// <exception cref="IOException">Exception is thrown if the stream does not exist.</exception>
 		public Stream OpenStream(string name)
 		{
-			DirectoryEntry entry = _directory.Root.Find(name);
+			var entry = _directory.Root.Find(name);
 			if(entry != null && entry is StreamEntry)
 				return new MemoryStream(((StreamEntry)entry).Data);
 

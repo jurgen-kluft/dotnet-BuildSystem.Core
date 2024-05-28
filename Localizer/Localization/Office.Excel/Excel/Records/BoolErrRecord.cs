@@ -22,12 +22,12 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.BoolErr)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
 				ReadRowColXf(reader);
 				
-				byte boolErr = reader.ReadByte();
-				byte error = reader.ReadByte();
+				var boolErr = reader.ReadByte();
+				var error = reader.ReadByte();
 				_value = new BoolErrValue(boolErr, error);
 			}
 			else

@@ -268,8 +268,8 @@ namespace GameCore
         /// <returns>A new <see cref="List<int>"/> whose values are the result of applying the absolute function to each element in <paramref name="array"/></returns>
 		public static List<int> Abs(List<int> array)
 		{
-			List<int> result = new List<int>(array.Count);
-			for (int i = 0; i < array.Count; i++)
+			var result = new List<int>(array.Count);
+			for (var i = 0; i < array.Count; i++)
 			{
 				result[i] = Abs(array[i]);
 			}
@@ -284,8 +284,8 @@ namespace GameCore
         /// <returns>A new <see cref="List"/> whose values are the result of applying the absolute function to each element in <paramref name="array"/></returns>
 		public static List<float> Abs(List<float> array)
 		{
-			List<float> result = new List<float>(array.Count);
-			for (int i = 0; i < array.Count; i++)
+			var result = new List<float>(array.Count);
+			for (var i = 0; i < array.Count; i++)
 			{
 				result[i] = Abs(array[i]);
 			}
@@ -300,8 +300,8 @@ namespace GameCore
 		/// <returns>A new <see cref="ArrayList<double>"/> whose values are the result of applying the absolute function to each element in <paramref name="array"/></returns>
 		public static List<double> Abs(List<double> array)
 		{
-			List<double> result = new List<double>(array.Count);
-			for (int i = 0; i < array.Count; i++)
+			var result = new List<double>(array.Count);
+			for (var i = 0; i < array.Count; i++)
 			{
 				result[i] = Abs(array[i]);
 			}
@@ -316,8 +316,8 @@ namespace GameCore
 		/// <returns>A new <see cref="ArrayList<int>"/> whose values are the result of applying the absolute function to each element in <paramref name="array"/></returns>
 		public static int[] Abs(int[] array)
 		{
-			int[] result = new int[array.Length];
-			for (int i = 0; i < array.Length; i++)
+			var result = new int[array.Length];
+			for (var i = 0; i < array.Length; i++)
 			{
 				result[i] = Abs(array[i]);
 			}
@@ -331,8 +331,8 @@ namespace GameCore
 		/// <returns>A new <see cref="FloatArrayList"/> whose values are the result of applying the absolute function to each element in <paramref name="array"/></returns>
 		public static float[] Abs(float[] array)
 		{
-			float[] result = new float[array.Length];
-			for (int i = 0; i < array.Length; i++)
+			var result = new float[array.Length];
+			for (var i = 0; i < array.Length; i++)
 			{
 				result[i] = Abs(array[i]);
 			}
@@ -347,8 +347,8 @@ namespace GameCore
 		/// <returns>A new <see cref="ArrayList<double>"/> whose values are the result of applying the absolute function to each element in <paramref name="array"/></returns>
 		public static double[] Abs(double[] array)
 		{
-			double[] result = new double[array.Length];
-			for (int i = 0; i < array.Length; i++)
+			var result = new double[array.Length];
+			for (var i = 0; i < array.Length; i++)
 			{
 				result[i] = Abs(array[i]);
 			}
@@ -364,8 +364,8 @@ namespace GameCore
 		/// <remarks>sum = abs(array[0]) + abs(array[1])...</remarks>
 		public static int AbsSum(int[] array)
 		{
-			int sum = 0;
-			foreach (int i in array)
+			var sum = 0;
+			foreach (var i in array)
 				sum += Abs(i);
 
 			return sum;
@@ -378,8 +378,8 @@ namespace GameCore
 		/// <remarks>sum = abs(array[0]) + abs(array[1])...</remarks>
 		public static int AbsSum(List<int> array)
 		{
-			int sum = 0;
-			foreach (int i in array)
+			var sum = 0;
+			foreach (var i in array)
 				sum += Abs(i);
 
 			return sum;
@@ -393,7 +393,7 @@ namespace GameCore
 		public static float AbsSum(float[] array)
 		{
 			float sum = 0;
-			foreach (float f in array)
+			foreach (var f in array)
 				sum += Abs(f);
 
 			return sum;
@@ -407,7 +407,7 @@ namespace GameCore
 		public static float AbsSum(List<float> array)
 		{
 			float sum = 0;
-			foreach (float f in array)
+			foreach (var f in array)
 				sum += Abs(f);
 
 			return sum;
@@ -421,7 +421,7 @@ namespace GameCore
 		public static double AbsSum(double[] array)
 		{
 			double sum = 0;
-			foreach (double d in array)
+			foreach (var d in array)
 				sum += Abs(d);
 
 			return sum;
@@ -435,7 +435,7 @@ namespace GameCore
 		public static double AbsSum(List<double> array)
 		{
 			double sum = 0;
-			foreach (double d in array)
+			foreach (var d in array)
 				sum += Abs(d);
 
 			return sum;
@@ -449,8 +449,8 @@ namespace GameCore
 		/// <remarks>sum = array[0] + array[1]...</remarks>
 		public static int Sum(int[] array)
 		{
-			int sum = 0;
-			foreach (int i in array)
+			var sum = 0;
+			foreach (var i in array)
 				sum += i;
 
 			return sum;
@@ -463,8 +463,8 @@ namespace GameCore
 		/// <remarks>sum = array[0] + array[1]...</remarks>
 		public static int Sum(List<int> array)
 		{
-			int sum = 0;
-			foreach (int i in array)
+			var sum = 0;
+			foreach (var i in array)
 				sum += i;
 
 			return sum;
@@ -478,7 +478,7 @@ namespace GameCore
 		public static float Sum(float[] array)
 		{
 			float sum = 0;
-			foreach (float f in array)
+			foreach (var f in array)
 				sum += f;
 
 			return sum;
@@ -492,7 +492,7 @@ namespace GameCore
 		public static float Sum(List<float> array)
 		{
 			float sum = 0;
-			foreach (float f in array)
+			foreach (var f in array)
 				sum += f;
 
 			return sum;
@@ -506,7 +506,7 @@ namespace GameCore
 		public static double Sum(double[] array)
 		{
 			double sum = 0;
-			foreach (double d in array)
+			foreach (var d in array)
 				sum += d;
 
 			return sum;
@@ -520,7 +520,7 @@ namespace GameCore
 		public static double Sum(List<double> array)
 		{
 			double sum = 0;
-			foreach (double d in array)
+			foreach (var d in array)
 				sum += d;
 
 			return sum;
@@ -538,8 +538,8 @@ namespace GameCore
 		/// <remarks>sum = array[0]^2 + array[1]^2 ...</remarks>
 		public static int SumOfSquares(int[] array)
 		{
-			int SumOfSquares = 0;
-			foreach (int i in array)
+			var SumOfSquares = 0;
+			foreach (var i in array)
 				SumOfSquares += i*i;
 
 			return SumOfSquares;
@@ -552,8 +552,8 @@ namespace GameCore
 		/// <remarks>sum = array[0]^2 + array[1]^2 ...</remarks>
 		public static int SumOfSquares(List<int> array)
 		{
-			int SumOfSquares = 0;
-			foreach (int i in array)
+			var SumOfSquares = 0;
+			foreach (var i in array)
 				SumOfSquares += i*i;
 
 			return SumOfSquares;
@@ -567,7 +567,7 @@ namespace GameCore
 		public static float SumOfSquares(float[] array)
 		{
 			float SumOfSquares = 0;
-			foreach (float f in array)
+			foreach (var f in array)
 				SumOfSquares += f*f;
 
 			return SumOfSquares;
@@ -581,7 +581,7 @@ namespace GameCore
 		public static float SumOfSquares(List<float> array)
 		{
 			float SumOfSquares = 0;
-			foreach (float f in array)
+			foreach (var f in array)
 				SumOfSquares += f*f;
 
 			return SumOfSquares;
@@ -595,7 +595,7 @@ namespace GameCore
 		public static double SumOfSquares(double[] array)
 		{
 			double SumOfSquares = 0;
-			foreach (double d in array)
+			foreach (var d in array)
 				SumOfSquares += d*d;
 
 			return SumOfSquares;
@@ -609,7 +609,7 @@ namespace GameCore
 		public static double SumOfSquares(List<double> array)
 		{
 			double SumOfSquares = 0;
-			foreach (double d in array)
+			foreach (var d in array)
 				SumOfSquares += d*d;
 
 			return SumOfSquares;
@@ -690,8 +690,8 @@ namespace GameCore
 			if (array.Length == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (i < value)
 					value = i;
@@ -710,8 +710,8 @@ namespace GameCore
 			if (array.Count == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (i < value)
 					value = i;
@@ -730,8 +730,8 @@ namespace GameCore
 			if (array.Length == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (f < value)
 					value = f;
@@ -750,8 +750,8 @@ namespace GameCore
 			if (array.Count == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (f < value)
 					value = f;
@@ -770,8 +770,8 @@ namespace GameCore
 			if (array.Length == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (d < value)
 					value = d;
@@ -790,8 +790,8 @@ namespace GameCore
 			if (array.Count == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (d < value)
 					value = d;
@@ -811,8 +811,8 @@ namespace GameCore
 			if (array.Length == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (i > value)
 					value = i;
@@ -831,8 +831,8 @@ namespace GameCore
 			if (array.Count == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (i > value)
 					value = i;
@@ -851,8 +851,8 @@ namespace GameCore
 			if (array.Length == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (f > value)
 					value = f;
@@ -871,8 +871,8 @@ namespace GameCore
 			if (array.Count == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (f > value)
 					value = f;
@@ -891,8 +891,8 @@ namespace GameCore
 			if (array.Length == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (d > value)
 					value = d;
@@ -911,8 +911,8 @@ namespace GameCore
 			if (array.Count == 0)
 				throw new ArgumentException("Array has zero elements.", "array");
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (d > value)
 					value = d;
@@ -958,8 +958,8 @@ namespace GameCore
 			//if (array.Length == 0)
 			//	throw new InvalidArgumentException();
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (Abs(i) < value)
 					value = i;
@@ -978,8 +978,8 @@ namespace GameCore
 			//if (ArrayList<int>.Count == 0)
 			//	throw new InvalidArgumentException();
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (Abs(i) < value)
 					value = i;
@@ -998,8 +998,8 @@ namespace GameCore
 			//if (array.Length == 0)
 			//	throw new InvalidArgumentException();
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (Abs(f) < value)
 					value = f;
@@ -1018,8 +1018,8 @@ namespace GameCore
 			//if (ArrayList<int>.Count == 0)
 			//	throw new InvalidArgumentException();
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (Abs(f) < value)
 					value = f;
@@ -1038,8 +1038,8 @@ namespace GameCore
 			//if (array.Length == 0)
 			//	throw new InvalidArgumentException();
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (Abs(d) < value)
 					value = d;
@@ -1058,8 +1058,8 @@ namespace GameCore
 			//if (ArrayList<int>.Count == 0)
 			//	throw new InvalidArgumentException();
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (Abs(d) < value)
 					value = d;
@@ -1079,8 +1079,8 @@ namespace GameCore
 			//if (array.Length == 0)
 			//	throw new InvalidArgumentException();
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (Abs(i) > value)
 					value = i;
@@ -1099,8 +1099,8 @@ namespace GameCore
 			//if (ArrayList<int>.Count == 0)
 			//	throw new InvalidArgumentException();
 
-			int value = array[0];
-			foreach(int i in array)
+			var value = array[0];
+			foreach(var i in array)
 			{
 				if (Abs(i) > value)
 					value = i;
@@ -1119,8 +1119,8 @@ namespace GameCore
 			//if (array.Length == 0)
 			//	throw new InvalidArgumentException();
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (Abs(f) > value)
 					value = f;
@@ -1139,8 +1139,8 @@ namespace GameCore
 			//if (ArrayList<int>.Count == 0)
 			//	throw new InvalidArgumentException();
 
-			float value = array[0];
-			foreach(float f in array)
+			var value = array[0];
+			foreach(var f in array)
 			{
 				if (Abs(f) > value)
 					value = f;
@@ -1159,8 +1159,8 @@ namespace GameCore
 			//if (array.Length == 0)
 			//	throw new InvalidArgumentException();
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (Abs(d) > value)
 					value = d;
@@ -1179,8 +1179,8 @@ namespace GameCore
 			//if (ArrayList<int>.Count == 0)
 			//	throw new InvalidArgumentException();
 
-			double value = array[0];
-			foreach(double d in array)
+			var value = array[0];
+			foreach(var d in array)
 			{
 				if (Abs(d) > value)
 					value = d;
@@ -1253,9 +1253,9 @@ namespace GameCore
 		{
 			float variance = 0;
 			float delta = 0;
-			float mean = Mean(array);
+			var mean = Mean(array);
 
-			for (int i = 0; i < array.Length; i++)
+			for (var i = 0; i < array.Length; i++)
 			{
 				delta = array[i] - mean;
 				variance += (delta*delta - variance) / (i+1);
@@ -1273,9 +1273,9 @@ namespace GameCore
 		{
 			float variance = 0;
 			float delta = 0;
-			float mean = Mean(array);
+			var mean = Mean(array);
 
-			for (int i = 0; i < array.Count; i++)
+			for (var i = 0; i < array.Count; i++)
 			{
 				delta = array[i] - mean;
 				variance += (delta*delta - variance) / (i+1);
@@ -1292,9 +1292,9 @@ namespace GameCore
 		{
 			float variance = 0;
 			float delta = 0;
-			float mean = Mean(array);
+			var mean = Mean(array);
 
-			for (int i = 0; i < array.Length; i++)
+			for (var i = 0; i < array.Length; i++)
 			{
 				delta = array[i] - mean;
 				variance += (delta*delta - variance) / (i+1);
@@ -1312,9 +1312,9 @@ namespace GameCore
 		{
 			float variance = 0;
 			float delta = 0;
-			float mean = Mean(array);
+			var mean = Mean(array);
 
-			for (int i = 0; i < array.Count; i++)
+			for (var i = 0; i < array.Count; i++)
 			{
 				delta = array[i] - mean;
 				variance += (delta*delta - variance) / (i+1);
@@ -1331,9 +1331,9 @@ namespace GameCore
 		{
 			double variance = 0;
 			double delta = 0;
-			double mean = Mean(array);
+			var mean = Mean(array);
 
-			for (int i = 0; i < array.Length; i++)
+			for (var i = 0; i < array.Length; i++)
 			{
 				delta = array[i] - mean;
 				variance += (delta*delta - variance) / (i+1);
@@ -1351,9 +1351,9 @@ namespace GameCore
 		{
 			double variance = 0;
 			double delta = 0;
-			double mean = Mean(array);
+			var mean = Mean(array);
 
-			for (int i = 0; i < array.Count; i++)
+			for (var i = 0; i < array.Count; i++)
 			{
 				delta = array[i] - mean;
 				variance += (delta*delta - variance) / (i+1);
@@ -1369,8 +1369,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountPositives(int[] array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Length; i++)
+			var count = 0;
+			for (var i = 0; i < array.Length; i++)
 			{
 				if (array[i] > 0)
 					count++;
@@ -1384,8 +1384,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountPositives(List<int> array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Count; i++)
+			var count = 0;
+			for (var i = 0; i < array.Count; i++)
 			{
 				if (array[i] > 0)
 					count++;
@@ -1399,8 +1399,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountPositives(float[] array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Length; i++)
+			var count = 0;
+			for (var i = 0; i < array.Length; i++)
 			{
 				if (array[i] > 0)
 					count++;
@@ -1413,8 +1413,8 @@ namespace GameCore
 		/// <param name="array">An array of single-precision floating point numbers.</param>
 		public static int CountPositives(List<float> array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Count; i++)
+			var count = 0;
+			for (var i = 0; i < array.Count; i++)
 			{
 				if (array[i] > 0)
 					count++;
@@ -1428,8 +1428,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountPositives(double[] array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Length; i++)
+			var count = 0;
+			for (var i = 0; i < array.Length; i++)
 			{
 				if (array[i] > 0)
 					count++;
@@ -1443,8 +1443,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountPositives(List<double> array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Count; i++)
+			var count = 0;
+			for (var i = 0; i < array.Count; i++)
 			{
 				if (array[i] > 0)
 					count++;
@@ -1459,8 +1459,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountNegatives(int[] array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Length; i++)
+			var count = 0;
+			for (var i = 0; i < array.Length; i++)
 			{
 				if (array[i] < 0)
 					count++;
@@ -1474,8 +1474,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountNegatives(List<int> array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Count; i++)
+			var count = 0;
+			for (var i = 0; i < array.Count; i++)
 			{
 				if (array[i] < 0)
 					count++;
@@ -1489,8 +1489,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountNegatives(float[] array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Length; i++)
+			var count = 0;
+			for (var i = 0; i < array.Length; i++)
 			{
 				if (array[i] < 0)
 					count++;
@@ -1504,8 +1504,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountNegatives(List<float> array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Count; i++)
+			var count = 0;
+			for (var i = 0; i < array.Count; i++)
 			{
 				if (array[i] < 0)
 					count++;
@@ -1519,8 +1519,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountNegatives(double[] array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Length; i++)
+			var count = 0;
+			for (var i = 0; i < array.Length; i++)
 			{
 				if (array[i] < 0)
 					count++;
@@ -1534,8 +1534,8 @@ namespace GameCore
 		/// <returns>The number of positive values in the array</returns>
 		public static int CountNegatives(List<double> array)
 		{
-			int count = 0;
-			for (int i = 0; i < array.Count; i++)
+			var count = 0;
+			for (var i = 0; i < array.Count; i++)
 			{
 				if (array[i] < 0)
 					count++;
@@ -1684,7 +1684,7 @@ namespace GameCore
 		/// <param name="b">A double-precision floating point number.</param>
 		public static void Swap(ref double a, ref double b)
 		{
-			double c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1695,7 +1695,7 @@ namespace GameCore
 		/// <param name="b">A single-precision floating point number.</param>
 		public static void Swap(ref float a, ref float b)
 		{
-			float c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1706,7 +1706,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="decimal"/> value.</param>
 		public static void Swap(ref decimal a, ref decimal b)
 		{
-			decimal c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1717,7 +1717,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="sbyte"/> value.</param>
 		public static void Swap(ref sbyte a, ref sbyte b)
 		{
-			sbyte c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1728,7 +1728,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="byte"/> value.</param>
 		public static void Swap(ref byte a, ref byte b)
 		{
-			byte c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1739,7 +1739,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="char"/> value.</param>
 		public static void Swap(ref char a, ref char b)
 		{
-			char c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1750,7 +1750,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="short"/> value.</param>
 		public static void Swap(ref short a, ref short b)
 		{
-			short c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1761,7 +1761,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="ushort"/> value.</param>
 		public static void Swap(ref ushort a, ref ushort b)
 		{
-			ushort c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1772,7 +1772,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="int"/> value.</param>
 		public static void Swap(ref int a, ref int b)
 		{
-			int c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1783,7 +1783,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="uint"/> value.</param>
 		public static void Swap(ref uint a, ref uint b)
 		{
-			uint c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1795,7 +1795,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="long"/> value.</param>
 		public static void Swap(ref long a, ref long b)
 		{
-			long c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1806,7 +1806,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="ulong"/> value.</param>
 		public static void Swap(ref ulong a, ref ulong b)
 		{
-			ulong c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1934,7 +1934,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="long"/> value.</param>
 		public static void Max(ref long a, ref long b)
 		{
-			long c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -1945,7 +1945,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="ulong"/> value.</param>
 		public static void Max(ref ulong a, ref ulong b)
 		{
-			ulong c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -2048,7 +2048,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="long"/> value.</param>
 		public static void Min(ref long a, ref long b)
 		{
-			long c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -2059,7 +2059,7 @@ namespace GameCore
 		/// <param name="b">A <see cref="ulong"/> value.</param>
 		public static void Min(ref ulong a, ref ulong b)
 		{
-			ulong c = a;
+			var c = a;
 			a = b;
 			b = c;
 		}
@@ -2149,8 +2149,8 @@ namespace GameCore
 		/// <returns></returns>
 		public static double CosineInterpolation(double a, double b, double x)
 		{
-			double ft = (double)(x * Constants.DOnePI);
-			double f = (1 - CMath.Cos(ft)) * 0.5;
+			var ft = (double)(x * Constants.DOnePI);
+			var f = (1 - CMath.Cos(ft)) * 0.5;
 			return a*(1-f) + b*f;
 		}
 		/// <summary>
@@ -2162,8 +2162,8 @@ namespace GameCore
 		/// <returns></returns>
 		public static float CosineInterpolation(float a, float b, float x)
 		{
-			float ft = (x * Constants.OnePI);
-			float f = (1.0f - Cos(ft)) * 0.5f;
+			var ft = (x * Constants.OnePI);
+			var f = (1.0f - Cos(ft)) * 0.5f;
 			return a*(1-f) + b*f;
 		}
 
@@ -2176,8 +2176,8 @@ namespace GameCore
 		/// <returns></returns>
 		public static double CubicInterpolation(double a, double b, double x)
 		{
-			double fac1 = 3*CMath.Pow(1-x, 2) - 2*CMath.Pow(1-x,3);
-			double fac2 = 3*CMath.Pow(x, 2) - 2*CMath.Pow(x, 3);
+			var fac1 = 3*CMath.Pow(1-x, 2) - 2*CMath.Pow(1-x,3);
+			var fac2 = 3*CMath.Pow(x, 2) - 2*CMath.Pow(x, 3);
 
 			return a*fac1 + b*fac2; //add the weighted factors
 		}
@@ -2190,8 +2190,8 @@ namespace GameCore
 		/// <returns></returns>
 		public static float CubicInterpolation(float a, float b, float x)
 		{
-			float fac1 = 3*(float)CMath.Pow(1-x, 2) - 2*(float)CMath.Pow(1-x,3);
-			float fac2 = 3*(float)CMath.Pow(x, 2) - 2*(float)CMath.Pow(x, 3);
+			var fac1 = 3*(float)CMath.Pow(1-x, 2) - 2*(float)CMath.Pow(1-x,3);
+			var fac2 = 3*(float)CMath.Pow(x, 2) - 2*(float)CMath.Pow(x, 3);
 
 			return a*fac1 + b*fac2; //add the weighted factors
 		}
@@ -2203,9 +2203,9 @@ namespace GameCore
 		/// <returns><c>True</c> if the number is a prime; otherwise, <c>False</c>.</returns>
 		public static bool IsPrime(long value)
 		{
-			int sqrtValue = (int)CMath.Sqrt(value);
+			var sqrtValue = (int)CMath.Sqrt(value);
 
-			for (int i = 2; i <= sqrtValue; i++)
+			for (var i = 2; i <= sqrtValue; i++)
 			{
 				if ((value % i) == 0)
 					return false;

@@ -30,7 +30,7 @@ namespace Net.Office.Excel.Records
 			if(l.Length != r.Length)
 				return false;
 
-			for(int n = 0; n < l.Length; ++n)
+			for(var n = 0; n < l.Length; ++n)
 			{
 				if(l[n] != r[n])
 					return false;
@@ -60,7 +60,7 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Hyperlink)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
 				_firstRow = reader.ReadUInt16();
 				_lastRow = reader.ReadUInt16();
@@ -69,7 +69,7 @@ namespace Net.Office.Excel.Records
 
 				_guid = reader.ReadBytes(16);
 
-				uint unknown = reader.ReadUInt32();
+				var unknown = reader.ReadUInt32();
 
 				_options = new HyperLinkOptions(reader.ReadUInt32());
 
@@ -101,21 +101,21 @@ namespace Net.Office.Excel.Records
 						{
 							int uplevelCount = reader.ReadUInt16();
 
-							int shortFileLen = reader.ReadInt32();
+							var shortFileLen = reader.ReadInt32();
 
-							string shortFile = Reader.ReadSimpleAsciiString(reader, shortFileLen);
+							var shortFile = Reader.ReadSimpleAsciiString(reader, shortFileLen);
 
-							byte[] unknownBytes = reader.ReadBytes(24);
+							var unknownBytes = reader.ReadBytes(24);
 
-							int fileLinkLen = reader.ReadInt32();
+							var fileLinkLen = reader.ReadInt32();
 
 							if(fileLinkLen > 0)
 							{
-								int extendedFileLen = reader.ReadInt32();
+								var extendedFileLen = reader.ReadInt32();
 
-								byte[] unknownBytes2 = reader.ReadBytes(2);
+								var unknownBytes2 = reader.ReadBytes(2);
 
-								string extendedFile = Reader.ReadSimpleUnicodeString(reader, extendedFileLen);
+								var extendedFile = Reader.ReadSimpleUnicodeString(reader, extendedFileLen);
 
 								_link = extendedFile;
 							}

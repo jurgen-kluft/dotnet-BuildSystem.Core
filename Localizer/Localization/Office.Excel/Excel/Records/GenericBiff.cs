@@ -24,7 +24,7 @@ namespace Net.Office.Excel.Records
 		/// <param name="stream">The stream to read the record data from.</param>
 		public GenericBiff(Stream stream)
 		{
-			BinaryReader reader = new BinaryReader(stream);
+			var reader = new BinaryReader(stream);
 			_id = reader.ReadUInt16();
 			_length = reader.ReadUInt16();
 			_data = reader.ReadBytes(_length);

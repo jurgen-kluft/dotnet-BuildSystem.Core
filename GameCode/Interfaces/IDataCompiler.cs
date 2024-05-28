@@ -19,7 +19,7 @@ namespace GameData
             SrcMissing = 0x0004,
             DstChanged = 0x0008,
             DstMissing = 0x0010,
-            VerChanged = 0x0100, // Version has changed
+            VerChanged = 0x0100, // Version of the compiler has changed
             Error      = 0x8000,
         }
 
@@ -31,13 +31,17 @@ namespace GameData
     }
 
     /// <summary>
-    /// The data compiler interface
+    /// The data compiler interface.
+    ///
+    /// A data compiler is a class that takes one or more source files and compiles it into one or more destination files.
+    /// The resulting FileId is the identifier and references one or more (compiled) files in the Bigfile.
+    /// 
     /// </summary>
     public interface IDataCompiler
     {
         ///<summary>
         /// A signature is generated from the 'stable' properties of a DataCompiler.
-        /// For example: for the CopyCompiler should write SrcFilename and DstFilename into the Writer stream.
+        /// For example: The CopyCompiler should write SrcFilename and DstFilename into the Writer stream.
         ///</summary>
         void CompilerSignature(IBinaryWriter writer);
 
@@ -62,11 +66,7 @@ namespace GameData
         IFileIdProvider CompilerFileIdProvider { get; }
 
         ///<summary>
-        /// Execute the compiler and add the destination filenames to @dst_relative_filepaths using ctx.StringDb
-        /// - return 0 if src and dst are up-to-date
-        /// - return 1 if execution was successful and dst files where updated
-        /// - return 2 if execution was successful and dst files where updated and compiler version changes where detected
-        /// - return -1 if execution failed
+        /// Execute the compiler and return the result as a DataCompilerOutput struct
         ///</summary>
         DataCompilerOutput CompilerExecute();
     }

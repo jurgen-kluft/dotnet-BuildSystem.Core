@@ -116,8 +116,8 @@ namespace GameCore
 		/// <returns>A <see cref="ComplexF"/> that represents the vector specified by the <paramref name="s"/> parameter.</returns>
 		public static ComplexF Parse(string s)
 		{
-			Regex r = new Regex(@"\((?<real>.*),(?<imaginary>.*)\)", RegexOptions.None);
-			Match m = r.Match(s);
+			var r = new Regex(@"\((?<real>.*),(?<imaginary>.*)\)", RegexOptions.None);
+			var m = r.Match(s);
 			if (m.Success)
 			{
 				return new ComplexF(
@@ -321,14 +321,14 @@ namespace GameCore
 		{
 			float	x = a.Real,	y = a.Imaginary;
 			float	u = b.Real,	v = b.Imaginary;
-			float	modulusSquared = u*u + v*v;
+			var	modulusSquared = u*u + v*v;
 
 			if( modulusSquared == 0 )
 			{
 				throw new DivideByZeroException();
 			}
 
-			float invModulusSquared = 1 / modulusSquared;
+			var invModulusSquared = 1 / modulusSquared;
 
 			return new ComplexF(
 				( x*u + y*v ) * invModulusSquared,
@@ -376,14 +376,14 @@ namespace GameCore
 		{
 			float	x = a.Real,	y = a.Imaginary;
 			float	u = b.Real,	v = b.Imaginary;
-			float	modulusSquared = u*u + v*v;
+			var	modulusSquared = u*u + v*v;
 
 			if( modulusSquared == 0 )
 			{
 				throw new DivideByZeroException();
 			}
 
-			float invModulusSquared = 1 / modulusSquared;
+			var invModulusSquared = 1 / modulusSquared;
 
 			result.Real = ( x*u + y*v ) * invModulusSquared;
 			result.Imaginary = ( y*u - x*v ) * invModulusSquared;
@@ -459,7 +459,7 @@ namespace GameCore
 		#region Public Static Complex Special Functions
 		public static ComplexF Sqrt(ComplexF a)
 		{
-			ComplexF result = ComplexF.Zero;
+			var result = ComplexF.Zero;
 
 			if ((a.Real == 0.0f) && (a.Imaginary == 0.0f))
 			{
@@ -472,7 +472,7 @@ namespace GameCore
 			}
 			else
 			{
-				float modulus = a.GetModulus();
+				var modulus = a.GetModulus();
 
 				result.Real		= (float)System.Math.Sqrt(0.5 * (modulus + a.Real));
 				result.Imaginary= (float)System.Math.Sqrt(0.5 * (modulus + a.Real));
@@ -484,7 +484,7 @@ namespace GameCore
 		}
 		public static ComplexF Log(ComplexF a)
 		{
-			ComplexF result = ComplexF.Zero;
+			var result = ComplexF.Zero;
 
 			if ((a.Real > 0.0f) && (a.Imaginary == 0.0f))
 			{
@@ -514,8 +514,8 @@ namespace GameCore
 		}
 		public static ComplexF Exp(ComplexF a)
 		{
-			ComplexF result = ComplexF.Zero;
-			float r = (float)System.Math.Exp(a.Real);
+			var result = ComplexF.Zero;
+			var r = (float)System.Math.Exp(a.Real);
 			result.Real		= (float)(r * (float)System.Math.Cos(a.Imaginary));
 			result.Imaginary= (float)(r * (float)System.Math.Sin(a.Imaginary));
 
@@ -559,7 +559,7 @@ namespace GameCore
 		/// </summary>
 		public void Normalize()
 		{
-			float modulus = this.GetModulus();
+			var modulus = this.GetModulus();
 			if(modulus == 0)
 			{
 				throw new DivideByZeroException( "Can not normalize a complex number that is zero." );
@@ -589,7 +589,7 @@ namespace GameCore
 		{
 			if(obj is ComplexF)
 			{
-				ComplexF c = (ComplexF)obj;
+				var c = (ComplexF)obj;
 				return (this.Real == c.Real) && (this.Imaginary == c.Imaginary);
 			}
 			return false;

@@ -142,8 +142,8 @@ namespace GameCore
 		/// <returns>A <see cref="FVector2"/> that represents the vector specified by the <paramref name="s"/> parameter.</returns>
 		public static FVector2 Parse(string s)
 		{
-			Regex r = new Regex(@"\((?<x>.*),(?<y>.*)\)", RegexOptions.None);
-			Match m = r.Match(s);
+			var r = new Regex(@"\((?<x>.*),(?<y>.*)\)", RegexOptions.None);
+			var m = r.Match(s);
 			if (m.Success)
 			{
 				return new FVector2(
@@ -458,7 +458,7 @@ namespace GameCore
 		/// </summary>
 		public void Normalize()
 		{
-			float length = GetLength();
+			var length = GetLength();
 			if (length == 0)
 			{
 				throw new DivideByZeroException("Trying to normalize a vector with length of zero.");
@@ -505,7 +505,7 @@ namespace GameCore
 		{
 			if (obj is FVector2)
 			{
-				FVector2 v = (FVector2)obj;
+				var v = (FVector2)obj;
 				return (mX == v.X) && (mY == v.Y);
 			}
 			return false;
@@ -798,7 +798,7 @@ namespace GameCore
 		/// <returns>An array of single-precision floating point values.</returns>
 		public static explicit operator float[](FVector2 v)
 		{
-			float[] array = new float[2];
+			var array = new float[2];
 			array[0] = v.X;
 			array[1] = v.Y;
 			return array;
@@ -810,7 +810,7 @@ namespace GameCore
 		/// <returns>An array of single-precision floating point values.</returns>
         public static explicit operator List<float>(FVector2 v)
 		{
-            List<float> array = new List<float>(2);
+            var array = new List<float>(2);
 			array[0] = v.X;
 			array[1] = v.Y;
 			return array;

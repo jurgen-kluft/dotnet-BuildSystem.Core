@@ -19,14 +19,14 @@ namespace GameCore
         }
         public static string expandVariables(string str)
         {
-            foreach(KeyValuePair<string,string> v in sVariables)
+            foreach(var v in sVariables)
 			    str = str.Replace(String.Format("%{0}%", v.Key), v.Value);
             return str;
         }
 
         public static string[] GetCommandLineArgs()
 		{
-            string[] args = System.Environment.GetCommandLineArgs();
+            var args = System.Environment.GetCommandLineArgs();
             return args;
 		}
 

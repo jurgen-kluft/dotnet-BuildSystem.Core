@@ -43,7 +43,7 @@ namespace GameCore
             try
             {
 			    mInfo.Arguments = arguments;
-                ProcessResult pr = mExecutor.Execute(mInfo);
+                var pr = mExecutor.Execute(mInfo);
                 return pr;
             }
             catch (Exception e)

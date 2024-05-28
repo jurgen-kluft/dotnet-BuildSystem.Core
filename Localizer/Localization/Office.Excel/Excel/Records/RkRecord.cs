@@ -22,7 +22,7 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Rk)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
 				ReadRowColXf(reader);
 				_value = new RkValue(reader.ReadInt32());

@@ -113,11 +113,11 @@ namespace DataBuildSystem
 
         public static bool FileFilter(string file)
         {
-            string filename = Path.GetFileNameWithoutExtension(file);
-            string platformStr = Path.GetExtension(filename).TrimStart('.');
+            var filename = Path.GetFileNameWithoutExtension(file);
+            var platformStr = Path.GetExtension(filename).TrimStart('.');
 
             // Name.%PLATFORM%.cs
-            EPlatform platform = FromString(platformStr, Platform);
+            var platform = FromString(platformStr, Platform);
             if (platform != Platform)
                 return true;
 
@@ -183,9 +183,9 @@ namespace DataBuildSystem
 
         private static T FromString<T>(string @string, T @default)
         {
-            string[] names = Enum.GetNames(typeof(T));
-            string name = string.Empty;
-            foreach (string p in names)
+            var names = Enum.GetNames(typeof(T));
+            var name = string.Empty;
+            foreach (var p in names)
             {
                 if (string.Compare(p, @string, StringComparison.OrdinalIgnoreCase) != 0) continue;
                 name = p;

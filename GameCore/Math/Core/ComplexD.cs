@@ -117,8 +117,8 @@ namespace GameCore
 		/// <returns>A <see cref="ComplexD"/> that represents the vector specified by the <paramref name="s"/> parameter.</returns>
 		public static ComplexD Parse(string s)
 		{
-			Regex r = new Regex(@"\((?<real>.*),(?<imaginary>.*)\)", RegexOptions.None);
-			Match m = r.Match(s);
+			var r = new Regex(@"\((?<real>.*),(?<imaginary>.*)\)", RegexOptions.None);
+			var m = r.Match(s);
 			if (m.Success)
 			{
 				return new ComplexD(
@@ -322,14 +322,14 @@ namespace GameCore
 		{
 			double	x = a.Real,	y = a.Imaginary;
 			double	u = b.Real,	v = b.Imaginary;
-			double	modulusSquared = u*u + v*v;
+			var	modulusSquared = u*u + v*v;
 
 			if( modulusSquared == 0 )
 			{
 				throw new DivideByZeroException();
 			}
 
-			double invModulusSquared = 1 / modulusSquared;
+			var invModulusSquared = 1 / modulusSquared;
 
 			return new ComplexD(
 				( x*u + y*v ) * invModulusSquared,
@@ -377,14 +377,14 @@ namespace GameCore
 		{
 			double	x = a.Real,	y = a.Imaginary;
 			double	u = b.Real,	v = b.Imaginary;
-			double	modulusSquared = u*u + v*v;
+			var	modulusSquared = u*u + v*v;
 
 			if( modulusSquared == 0 )
 			{
 				throw new DivideByZeroException();
 			}
 
-			double invModulusSquared = 1 / modulusSquared;
+			var invModulusSquared = 1 / modulusSquared;
 
 			result.Real = ( x*u + y*v ) * invModulusSquared;
 			result.Imaginary = ( y*u - x*v ) * invModulusSquared;
@@ -460,7 +460,7 @@ namespace GameCore
 		#region Public Static Complex Special Functions
 		public static ComplexD Sqrt(ComplexD a)
 		{
-			ComplexD result = ComplexD.Zero;
+			var result = ComplexD.Zero;
 
 			if ((a.Real == 0.0) && (a.Imaginary == 0.0))
 			{
@@ -473,7 +473,7 @@ namespace GameCore
 			}
 			else
 			{
-				double modulus = a.GetModulus();
+				var modulus = a.GetModulus();
 
 				result.Real		= System.Math.Sqrt(0.5 * (modulus + a.Real));
 				result.Imaginary= System.Math.Sqrt(0.5 * (modulus + a.Real));
@@ -485,7 +485,7 @@ namespace GameCore
 		}
 		public static ComplexD Log(ComplexD a)
 		{
-			ComplexD result = ComplexD.Zero;
+			var result = ComplexD.Zero;
 
 			if ((a.Real > 0.0) && (a.Imaginary == 0.0))
 			{
@@ -515,8 +515,8 @@ namespace GameCore
 		}
 		public static ComplexD Exp(ComplexD a)
 		{
-			ComplexD result = ComplexD.Zero;
-			double r = System.Math.Exp(a.Real);
+			var result = ComplexD.Zero;
+			var r = System.Math.Exp(a.Real);
 			result.Real		= r * System.Math.Cos(a.Imaginary);
 			result.Imaginary= r * System.Math.Sin(a.Imaginary);
 
@@ -527,7 +527,7 @@ namespace GameCore
 		#region Public Static Complex Trigonometry
 		public static ComplexD Sin(ComplexD a)
 		{
-			ComplexD result = ComplexD.Zero;
+			var result = ComplexD.Zero;
 
 			if (a.Imaginary == 0.0)
 			{
@@ -544,7 +544,7 @@ namespace GameCore
 		}
 		public static ComplexD Cos(ComplexD a)
 		{
-			ComplexD result = ComplexD.Zero;
+			var result = ComplexD.Zero;
 
 			if (a.Imaginary == 0.0)
 			{
@@ -561,7 +561,7 @@ namespace GameCore
 		}
 		public static ComplexD Tan(ComplexD a)
 		{
-			ComplexD result = ComplexD.Zero;
+			var result = ComplexD.Zero;
 
 			if (a.Imaginary == 0.0)
 			{
@@ -570,9 +570,9 @@ namespace GameCore
 			}
 			else
 			{
-				double real2 = 2*a.Real;
-				double imag2 = 2*a.Imaginary;
-				double denom = System.Math.Cos(real2) + System.Math.Cosh(real2);
+				var real2 = 2*a.Real;
+				var imag2 = 2*a.Imaginary;
+				var denom = System.Math.Cos(real2) + System.Math.Cosh(real2);
 
 				result.Real		 = System.Math.Sin(real2) / denom;
 				result.Imaginary = System.Math.Sinh(imag2) / denom;
@@ -618,7 +618,7 @@ namespace GameCore
 		/// </summary>
 		public void Normalize()
 		{
-			double modulus = this.GetModulus();
+			var modulus = this.GetModulus();
 			if(modulus == 0)
 			{
 				throw new DivideByZeroException( "Can not normalize a complex number that is zero." );
@@ -648,7 +648,7 @@ namespace GameCore
 		{
 			if(obj is ComplexD)
 			{
-				ComplexD c = (ComplexD)obj;
+				var c = (ComplexD)obj;
 				return (this.Real == c.Real) && (this.Imaginary == c.Imaginary);
 			}
 			return false;

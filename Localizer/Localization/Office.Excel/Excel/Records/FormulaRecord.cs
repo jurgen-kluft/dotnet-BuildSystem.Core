@@ -27,11 +27,11 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Formula)
 			{
-				Stream stream = biff.GetDataStream();
-				BinaryReader reader = new BinaryReader(stream);
+				var stream = biff.GetDataStream();
+				var reader = new BinaryReader(stream);
 				
 				ReadRowColXf(reader);
-				FormulaValue val = new FormulaValue(reader.ReadDouble());
+				var val = new FormulaValue(reader.ReadDouble());
 				
 				_options = reader.ReadUInt16();
 				_reserved = reader.ReadUInt32();
@@ -40,13 +40,13 @@ namespace Net.Office.Excel.Records
 
 				if(val.StringFollows)
 				{
-					GenericBiff r = new GenericBiff(recordsStream);
+					var r = new GenericBiff(recordsStream);
 					while(r.Id != (ushort)RecordType.String)
 					{
 						r = new GenericBiff(recordsStream);
 					}
 
-					StringValueRecord stringValue = new StringValueRecord(r);
+					var stringValue = new StringValueRecord(r);
 					_value = stringValue.Value;
 				}
 				else

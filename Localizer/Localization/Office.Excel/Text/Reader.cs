@@ -20,7 +20,7 @@ namespace Net.SourceForge.Koogra.Text
 		/// <returns>Returns a string.</returns>
 		public static string ReadSimpleUnicodeString(BinaryReader reader)
 		{
-			ushort len = reader.ReadUInt16();
+			var len = reader.ReadUInt16();
 			return ReadSimpleUnicodeString(reader, len);
 		}
 
@@ -53,7 +53,7 @@ namespace Net.SourceForge.Koogra.Text
 		/// <returns>Returns a string.</returns>
 		public static string ReadComplexString(BinaryReader reader)
 		{
-			ushort len = reader.ReadUInt16();
+			var len = reader.ReadUInt16();
 			return ReadComplexString(reader, len);
 		}
 
@@ -65,8 +65,8 @@ namespace Net.SourceForge.Koogra.Text
 		/// <returns>Returns a string.</returns>
 		public static string ReadComplexString(BinaryReader reader, int len)
 		{
-			byte options = reader.ReadByte();
-			bool compressed = (options & 0x01) == 0;
+			var options = reader.ReadByte();
+			var compressed = (options & 0x01) == 0;
 
 			Encoding enc;
 			if(compressed)
@@ -77,7 +77,7 @@ namespace Net.SourceForge.Koogra.Text
 				enc = _unicodeEncoder;
 			}
 
-			string retVal = enc.GetString(reader.ReadBytes(len));
+			var retVal = enc.GetString(reader.ReadBytes(len));
 
 			return retVal;
 		}

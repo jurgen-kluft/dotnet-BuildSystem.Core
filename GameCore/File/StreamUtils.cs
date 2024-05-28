@@ -17,7 +17,7 @@ namespace GameCore
         }
         public static bool IsAligned(Int64 position, Int64 alignment)
         {
-            Int64 newpos = (position + (alignment - 1)) & ~(alignment - 1);
+            var newpos = (position + (alignment - 1)) & ~(alignment - 1);
             return newpos == position;
         }
 
@@ -59,7 +59,7 @@ namespace GameCore
 
         public bool Open(EMode mode)
         {
-            bool success = false;
+            var success = false;
             FileStream stream = null;
             try
             {
@@ -128,7 +128,7 @@ namespace GameCore
 
         public bool Open(EMode mode)
         {
-            bool success = false;
+            var success = false;
             FileStream stream = null;
             try
             {

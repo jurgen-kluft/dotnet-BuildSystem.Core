@@ -83,7 +83,7 @@ namespace GameCore
 
             if (!writer.Architecture.Is64Bit)
             {
-                Int32 offsetToWrite = (Int32)_offsetOfReferenceInStream;
+                var offsetToWrite = (Int32)_offsetOfReferenceInStream;
                 var currentOffset = writer.Position;
                 foreach (var o in _referencesOfReferenceInStream)
                 {
@@ -96,7 +96,7 @@ namespace GameCore
             }
             else // 64-bit pointers
             {
-                Int64 offsetToWrite = (Int64)_offsetOfReferenceInStream;
+                var offsetToWrite = (Int64)_offsetOfReferenceInStream;
                 var currentOffset = writer.Position;
                 foreach (var o in _referencesOfReferenceInStream)
                 {

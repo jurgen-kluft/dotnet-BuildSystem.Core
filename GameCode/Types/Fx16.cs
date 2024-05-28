@@ -38,9 +38,9 @@ namespace GameData
 
         static public Fx16[] SArray(params float[] values)
         {
-            Fx16[] array = new Fx16[values.Length];
-            int i = 0;
-            foreach (float f in values)
+            var array = new Fx16[values.Length];
+            var i = 0;
+            foreach (var f in values)
             {
                 array[i++] = Fx16.SFromFloat(f);
             }
@@ -50,9 +50,9 @@ namespace GameData
 
         static public Fx16[] SArray(params double[] values)
         {
-            Fx16[] array = new Fx16[values.Length];
-            int i = 0;
-            foreach (double f in values)
+            var array = new Fx16[values.Length];
+            var i = 0;
+            foreach (var f in values)
             {
                 array[i++] = Fx16.SFromDouble(f);
             }

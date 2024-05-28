@@ -76,7 +76,7 @@ namespace GameData
 
         public string Arguments(string filename, string appendToCmdLine)
         {
-            string a = Arguments(filename);
+            var a = Arguments(filename);
             a += " " + appendToCmdLine;
             return a;
         }

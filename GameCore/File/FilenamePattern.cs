@@ -53,16 +53,16 @@ namespace GameCore
 
         public bool Matches(Filename inFilename)
         {
-            string filename = inFilename.Name;
+            var filename = inFilename.Name;
 
-            int patternCharIndex = 0;
-            int filenameCharIndex = 0;
+            var patternCharIndex = 0;
+            var filenameCharIndex = 0;
 
             // Scan until first '*' in pattern
             while (filenameCharIndex < filename.Length && (mPattern[patternCharIndex] != '*'))
             {
-                char p = mPattern[patternCharIndex];
-                char c = filename[filenameCharIndex];
+                var p = mPattern[patternCharIndex];
+                var c = filename[filenameCharIndex];
                 if (mIgnoreCase)
                 {
                     p = Char.ToLower(p);
@@ -76,12 +76,12 @@ namespace GameCore
                 filenameCharIndex++;
             }
 
-            int currentPatternCharIndex = 0;
-            int currentFilenameCharIndex = 0;
+            var currentPatternCharIndex = 0;
+            var currentFilenameCharIndex = 0;
             while (filenameCharIndex < filename.Length && patternCharIndex < mPattern.Length)
             {
-                char p = mPattern[patternCharIndex];
-                char c = filename[filenameCharIndex];
+                var p = mPattern[patternCharIndex];
+                var c = filename[filenameCharIndex];
                 if (mIgnoreCase)
                 {
                     p = Char.ToLower(p);

@@ -138,16 +138,16 @@ namespace DataBuildSystem
                 PipeTypes = new List<EActorState>() { EActorState.READ_ST, EActorState.WRITE_ST, EActorState.GATHER_ST, EActorState.END, EActorState.WORK_MT };
 
                 Pipes = new BlockingCollection<ActorObject>[PipeTypes.Count];
-                for (int i = 0; i < PipeTypes.Count; ++i)
+                for (var i = 0; i < PipeTypes.Count; ++i)
                     Pipes[i] = new BlockingCollection<ActorObject>(new ConcurrentQueue<ActorObject>(), 128);
 
                 PipeTypes.Remove(EActorState.END);
                 PipeTypes.Remove(EActorState.WORK_MT);
-                for (int i = 0; i < workers; ++i)
+                for (var i = 0; i < workers; ++i)
                     PipeTypes.Add(EActorState.WORK_MT);
 
                 Threads = new Worker[PipeTypes.Count];
-                for (int i = 0; i < PipeTypes.Count; ++i)
+                for (var i = 0; i < PipeTypes.Count; ++i)
                 {
                     Threads[i] = new Worker(PipeTypes[i].ToString(), PipeTypes[i], Pipes);
                 }
@@ -155,33 +155,33 @@ namespace DataBuildSystem
 
             public void Execute(List<IActor> actors)
             {
-                foreach (Worker thread in Threads)
+                foreach (var thread in Threads)
                     thread.Start();
 
                 /// Push the actors on the flows
-                foreach (IActor actor in actors)
+                foreach (var actor in actors)
                 {
-                    ActorObject actorobj = new ActorObject();
+                    var actorobj = new ActorObject();
                     actorobj.Actor = actor;
                     actorobj.Pipes = Pipes;
                     Threads[(int)actor.Transition].Work.Add(actorobj);
                 }
 
                 /// Wait until all actors have arrived in END
-                int num_actors = actors.Count;
-                for (int i = 0; i < num_actors; ++i)
+                var num_actors = actors.Count;
+                for (var i = 0; i < num_actors; ++i)
                 {
                     ActorObject actor;
                     Pipes[(int)EActorState.END].TryTake(out actor, Timeout.Infinite);
                 }
 
-                for (int i = 0; i < PipeTypes.Count; ++i)
+                for (var i = 0; i < PipeTypes.Count; ++i)
                 {
-                    int p = (int)PipeTypes[i];
+                    var p = (int)PipeTypes[i];
                     Pipes[p].Add(null);
                 }
 
-                foreach (Worker thread in Threads)
+                foreach (var thread in Threads)
                     thread.Stop();
             }
         }

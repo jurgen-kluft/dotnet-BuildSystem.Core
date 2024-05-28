@@ -17,8 +17,8 @@ namespace Net.Office.Excel.ValueTypes
 		{
 			_value = 0;
 
-			bool div100 = (rk & 0x01) != 0;
-			bool isInteger = (rk & 0x02) != 0;
+			var div100 = (rk & 0x01) != 0;
+			var isInteger = (rk & 0x02) != 0;
 
 			if(!isInteger)
 			{
@@ -38,8 +38,8 @@ namespace Net.Office.Excel.ValueTypes
 
 		private double ToDouble(int n)
 		{
-			byte[] doubleBytes = new byte[8];
-			byte[] uintBytes = BitConverter.GetBytes(n);
+			var doubleBytes = new byte[8];
+			var uintBytes = BitConverter.GetBytes(n);
 			Array.Copy(uintBytes, 0, doubleBytes, doubleBytes.Length - uintBytes.Length, uintBytes.Length);
 
 			return BitConverter.ToDouble(doubleBytes, 0);

@@ -38,11 +38,11 @@ namespace GameCore
 
 		public static void DuplicateFolderStructure(string srcPath, string dstPath)
 		{
-			List<string> dirs = new List<string>();
+			var dirs = new List<string>();
 			foreach (var path in EnumerateDirs(srcPath, "**", SearchOption.AllDirectories))
 			{
 				var srcRelativePath = path.Slice(srcPath.Length);
-				string dstDir = Path.Join(dstPath, srcRelativePath.ToString());
+				var dstDir = Path.Join(dstPath, srcRelativePath.ToString());
 				dirs.Add(dstDir);
 			}
 			CreateDirectories(dirs);
@@ -51,23 +51,23 @@ namespace GameCore
 		public static void CreateDirectories(List<string> directories)
 		{
 			// Create the directories first, smartly
-			int max_depth = 0;
+			var max_depth = 0;
 			Dictionary<int, HashSet<string>> DirectoriesPerDepth = new ();
 			foreach (var path in directories)
 			{
-				int depth = 0;
+				var depth = 0;
 				
-				ReadOnlySpan<char> dir = path.AsSpan();
+				var dir = path.AsSpan();
 				while (!dir.IsEmpty)
 				{
-					int seperator_pos = dir.LastIndexOf(Path.DirectorySeparatorChar);
+					var seperator_pos = dir.LastIndexOf(Path.DirectorySeparatorChar);
 					if (seperator_pos == -1)
 						break;
 					++depth;
 					dir = dir.Slice(0, seperator_pos);
 				}
 
-				if (!DirectoriesPerDepth.TryGetValue(depth, out HashSet<string> dirs))
+				if (!DirectoriesPerDepth.TryGetValue(depth, out var dirs))
 				{
 					if (depth > max_depth)
 						max_depth = depth;
@@ -78,22 +78,22 @@ namespace GameCore
 			}
 
 			HashSet<string> CreatedDirectories = new ();
-			int actual_created_directories = 0;
-			for (int depth = max_depth; depth >= 0; --depth)
+			var actual_created_directories = 0;
+			for (var depth = max_depth; depth >= 0; --depth)
 			{
-				if (DirectoriesPerDepth.TryGetValue(depth, out HashSet<string> dirs))
+				if (DirectoriesPerDepth.TryGetValue(depth, out var dirs))
 				{
-					foreach (string path in dirs)
+					foreach (var path in dirs)
 					{
 						if (!CreatedDirectories.Contains(path))
 						{
 							Directory.CreateDirectory(path);
 							++actual_created_directories;
 
-							ReadOnlySpan<char> dir = path.AsSpan();
+							var dir = path.AsSpan();
 							while (!dir.IsEmpty)
 							{
-								int seperator_pos = dir.LastIndexOf(Path.DirectorySeparatorChar);
+								var seperator_pos = dir.LastIndexOf(Path.DirectorySeparatorChar);
 								if (seperator_pos == -1)
 									break;
 								dir = dir.Slice(0, seperator_pos);

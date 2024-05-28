@@ -18,11 +18,11 @@ namespace Net.Office.Excel.ValueTypes
 		{
 			_stringFollows = false;
 			_value = null;
-			byte[] bytes = BitConverter.GetBytes(value);
+			var bytes = BitConverter.GetBytes(value);
 			
 			if(BitConverter.ToUInt16(bytes, 6) == 0xFFFF)
 			{
-				byte type = bytes[0];
+				var type = bytes[0];
 
 				if(type == 0)
 				{

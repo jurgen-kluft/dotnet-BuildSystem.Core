@@ -66,11 +66,11 @@ namespace DataBuildSystem
                 return 1;
             }
 
-            string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             Console.WriteLine("------ DataBuildSystem.NET - Localizer: v{0} (Platform: {1}) ------", version, LocalizerConfig.PlatformName);
 
             // Referenced assemblies, we always include ourselves
-            List<Filename> referencedAssemblies = new List<Filename>();
+            var referencedAssemblies = new List<Filename>();
             cmdLine.CollectIndexedParams(0, true, "asm", delegate(string param) { referencedAssemblies.Add(new Filename(param)); });
             referencedAssemblies.Insert(0, new Filename(Assembly.GetExecutingAssembly().Location));
 
@@ -78,15 +78,15 @@ namespace DataBuildSystem
             Assembly configDataAssembly = null;
             if (!LocalizerConfig.ConfigFilename.IsEmpty)
             {
-                List<Filename> configSrcFiles = new List<Filename>();
+                var configSrcFiles = new List<Filename>();
                 configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(LocalizerConfig.ConfigFilename)));
-                Filename configAsmFilename = new Filename("Localizer" + "." + LocalizerConfig.ConfigFilename + ".dll");
-                Filename configAssemblyFilename = configAsmFilename;
+                var configAsmFilename = new Filename("Localizer" + "." + LocalizerConfig.ConfigFilename + ".dll");
+                var configAssemblyFilename = configAsmFilename;
                 configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], LocalizerConfig.SrcPath, LocalizerConfig.SubPath, LocalizerConfig.DstPath, LocalizerConfig.DepPath, referencedAssemblies.ToArray());
             }
 
             // Configuration for data build system compiler
-            IBuildSystemCompilerConfig configForBuildSystemCompiler = AssemblyUtil.Create1<IBuildSystemCompilerConfig>(configDataAssembly);
+            var configForBuildSystemCompiler = AssemblyUtil.Create1<IBuildSystemCompilerConfig>(configDataAssembly);
             if (configForBuildSystemCompiler != null)
                 BuildSystemCompilerConfig.Init(configForBuildSystemCompiler);
 
@@ -96,30 +96,30 @@ namespace DataBuildSystem
             //    DependencySystemConfig.Init(configForDependencySystem);
 
             // Configuration for localizer
-            IBuildSystemLocalizerConfig buildSystemLocalizerConfig = AssemblyUtil.Create1<IBuildSystemLocalizerConfig>(configDataAssembly) ?? new BuildSystemLocalizerDefaultConfig();
+            var buildSystemLocalizerConfig = AssemblyUtil.Create1<IBuildSystemLocalizerConfig>(configDataAssembly) ?? new BuildSystemLocalizerDefaultConfig();
             if (buildSystemLocalizerConfig!=null)
                 LocalizerConfig.SetConfig(buildSystemLocalizerConfig);
 
             // Manually supplied additional excel files
-            List<string> sourceFiles = new List<string>();
+            var sourceFiles = new List<string>();
             cmdLine.CollectIndexedParams(0, true, "excel", delegate(string param) { sourceFiles.Add(param); });
 
             // Manually supplied worksheet names for every excel files
-            List<string[]> worksheetNamesList = new List<string[]>();
-            cmdLine.CollectIndexedParams(0, true, "worksheets", delegate(string param) { string[] names = param.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries); worksheetNamesList.Add(names); });
+            var worksheetNamesList = new List<string[]>();
+            cmdLine.CollectIndexedParams(0, true, "worksheets", delegate(string param) { var names = param.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries); worksheetNamesList.Add(names); });
 
             // Every excel file has these outputs:
             // 1) "filename.xls.ids"
             // 2) for every language in the "filename.xls" file a "filename.%LANGUAGE%.loc" file (binary) is exported
             // 3) a "filename.xls.sdep" file with the "filename.xls" file as INPUT and "filename.ids", "filename.%LANGUAGE%.loc" files as OUTPUT
-            Localization.LocDatabase ldb = new Localization.LocDatabase();
+            var ldb = new Localization.LocDatabase();
             ldb.init(LocalizerConfig.Excel0);
 
-            Localization.Builder[] builders = new Localization.Builder[sourceFiles.Count];
+            var builders = new Localization.Builder[sourceFiles.Count];
 
-            bool result = true;
-            bool anyModified = false;
-            for (int i = 0; i < sourceFiles.Count; ++i)
+            var result = true;
+            var anyModified = false;
+            for (var i = 0; i < sourceFiles.Count; ++i)
             {
                 string[] worksheetNames;
                 if (i < worksheetNamesList.Count)
@@ -156,7 +156,7 @@ namespace DataBuildSystem
                     return Success();
 
                 // Some source has been rebuild, now we need to load all of them and save the combined stuff.
-                for (int i = 0; i < sourceFiles.Count; ++i)
+                for (var i = 0; i < sourceFiles.Count; ++i)
                 {
                     // Add all the data from the builders that where already up-to-date
                     // 1) load "filename.ids" file

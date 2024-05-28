@@ -61,12 +61,12 @@ namespace GameCore
 
         static internal string RemoveChars(string ioString, string inChars)
         {
-            int cc = 0;
-            int nn = 0;
-            Char[] str = ioString.ToCharArray();
-            for (int i = 0; i < ioString.Length; ++i)
+            var cc = 0;
+            var nn = 0;
+            var str = ioString.ToCharArray();
+            for (var i = 0; i < ioString.Length; ++i)
             {
-                Char c = str[nn];
+                var c = str[nn];
                 if (inChars.IndexOf(c) >= 0)
                 {
                     nn++;
@@ -88,7 +88,7 @@ namespace GameCore
 
         static internal bool ContainsChars(string inString, string inChars)
         {
-            foreach (Char c in inString)
+            foreach (var c in inString)
             {
                 if (inChars.IndexOf(c) != -1)
                     return true;
@@ -187,7 +187,7 @@ namespace GameCore
             {
                 if (!System.OperatingSystem.IsMacOS())
                 {
-                    string device = RemoveChars(value, sIllegalNameChars);
+                    var device = RemoveChars(value, sIllegalNameChars);
                     ChangeDevice(device);
                 }
             }
@@ -286,7 +286,7 @@ namespace GameCore
 
         private static void sConstructFull(string deviceName, bool isNetworkDevice, string path, out string outFull, out int outHashCode)
         {
-            string device = string.Empty;
+            var device = string.Empty;
             if (!System.OperatingSystem.IsMacOS())
             {
                 device = isNetworkDevice ? (sDoubleSlash + deviceName) : (deviceName + sSemi);
@@ -308,15 +308,15 @@ namespace GameCore
 
             // Device
             string device;
-            bool networkDevice = inFull.StartsWith(sDoubleSlash);
+            var networkDevice = inFull.StartsWith(sDoubleSlash);
             if (networkDevice)
             {
-                int slashIndex = inFull.IndexOf(sSlash, 2);
+                var slashIndex = inFull.IndexOf(sSlash, 2);
                 device = slashIndex >= 0 ? inFull.Substring(2, slashIndex - 2) : inFull.Substring(2);
             }
             else
             {
-                int semiSlashIndex = inFull.IndexOf(sSemiSlash);
+                var semiSlashIndex = inFull.IndexOf(sSemiSlash);
                 device = semiSlashIndex >= 0 ? inFull.Substring(0, semiSlashIndex) : string.Empty;
             }
 
@@ -340,11 +340,11 @@ namespace GameCore
         {
             // Documents\Music.Collection\Beatles.Album
             // Count levels
-            string[] folders = inFullWithoutDevice.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = inFullWithoutDevice.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
             outPath = string.Empty;
             outLevels = 0;
-            foreach (string folder in folders)
+            foreach (var folder in folders)
             {
                 if (!ContainsChars(folder, sIllegalNameChars))
                 {
@@ -366,7 +366,7 @@ namespace GameCore
             // Documents\Music.Collection\Beatles.Album
             // Count levels
             // Name of folder
-            string[] folders = outName.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = outName.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
             if (folders.Length > 0)
                 outName = folders[folders.Length - 1];
@@ -374,7 +374,7 @@ namespace GameCore
                 outName = string.Empty;
 
             outLevels = 0;
-            foreach (string folder in folders)
+            foreach (var folder in folders)
             {
                 if (!ContainsChars(folder, sIllegalNameChars))
                 {
@@ -389,7 +389,7 @@ namespace GameCore
             outPath = inPathWithDevice;
             if (inIsNetworkDevice)
             {
-                int slashIndex = inPathWithDevice.IndexOf(sSlash, 2);
+                var slashIndex = inPathWithDevice.IndexOf(sSlash, 2);
                 if (slashIndex >= 0)
                 {
                     outPath = inPathWithDevice.Substring(slashIndex + 1);
@@ -399,7 +399,7 @@ namespace GameCore
             {
                 if (!System.OperatingSystem.IsMacOS())
                 {
-                    int semiSlashIndex = inPathWithDevice.IndexOf(sSemiSlash);
+                    var semiSlashIndex = inPathWithDevice.IndexOf(sSemiSlash);
                     if (semiSlashIndex >= 0)
                     {
                         outPath = inPathWithDevice.Substring(semiSlashIndex + 2);
@@ -497,7 +497,7 @@ namespace GameCore
             int levelsR;
             sParseFull(path.Full, out deviceNameR, out isNetworkDeviceR, out pathR, out levelsR);
 
-            Dirname s = new Dirname();
+            var s = new Dirname();
             sConstructFull(deviceNameL, isNetworkDeviceL, (pathL.Length != 0 && pathR.Length != 0) ? (pathL + sSlash + pathR) : (pathL + pathR), out s.mFull, out s.mHashCode);
             return s;
         }
@@ -526,7 +526,7 @@ namespace GameCore
                     absolutePath += sSlash + path;
             }
 
-            Dirname newDirname = new Dirname(this);
+            var newDirname = new Dirname(this);
             newDirname.ChangeFull(absolutePath);
             return newDirname;
         }
@@ -552,7 +552,7 @@ namespace GameCore
             if (thisPath.Length == 0)
                 return new Dirname(this);
 
-            Dirname newDirname = new Dirname(this);
+            var newDirname = new Dirname(this);
             newDirname.ChangeFull(absolutePath);
 
             string newDeviceName;
@@ -561,7 +561,7 @@ namespace GameCore
             int newLevels;
             sParseFull(newDirname.mFull, out newDeviceName, out newIsNetworkDevice, out newPath, out newLevels);
 
-            bool sameDevice = true;
+            var sameDevice = true;
             if (String.Compare(thisDeviceName, newDeviceName, true) != 0)
                 sameDevice = false;
 
@@ -585,19 +585,19 @@ namespace GameCore
             {
                 if (sameDevice)
                 {
-                    string[] folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
-                    string[] inFolders = newPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+                    var folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+                    var inFolders = newPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
-                    bool samePath = true;
-                    for (int i = 0; i < inFolders.Length && samePath; i++)
+                    var samePath = true;
+                    for (var i = 0; i < inFolders.Length && samePath; i++)
                         samePath = String.Compare(inFolders[i], folders[i], sIgnoreCase) == 0;
 
                     newIsNetworkDevice = false;
                     newDeviceName = string.Empty;
                     if (samePath)
                     {
-                        string path = string.Empty;
-                        for (int i = newLevels; i < thisLevels; i++)
+                        var path = string.Empty;
+                        for (var i = newLevels; i < thisLevels; i++)
                         {
                             path = path + (path.Length == 0 ? folders[i] : (sSlash + folders[i]));
                         }
@@ -632,10 +632,10 @@ namespace GameCore
             if (thisPath.Length == 0)
                 return;
 
-            string[] folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
             thisPath = string.Empty;
-            for (int i = 0; i < (folders.Length - 1); i++)
+            for (var i = 0; i < (folders.Length - 1); i++)
             {
                 thisPath = thisPath + (thisPath.Length == 0 ? folders[i] : (sSlash + folders[i]));
             }
@@ -653,15 +653,15 @@ namespace GameCore
             if (thisPath.Length == 0)
                 return new Dirname(this);
 
-            string[] folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
             thisPath = string.Empty;
-            for (int i = 0; i < (folders.Length - 1); i++)
+            for (var i = 0; i < (folders.Length - 1); i++)
             {
                 thisPath = thisPath + (thisPath.Length == 0 ? folders[i] : (sSlash + folders[i]));
             }
 
-            Dirname f = new Dirname();
+            var f = new Dirname();
             sConstructFull(thisDeviceName, thisIsNetworkDevice, thisPath, out f.mFull, out f.mHashCode);
             return f;
         }
@@ -695,7 +695,7 @@ namespace GameCore
 
             thisPath = thisPath + (thisPath.Length == 0 ? folder : (sSlash + folder));
 
-            Dirname f = new Dirname();
+            var f = new Dirname();
             sConstructFull(thisDeviceName, thisIsNetworkDevice, thisPath, out f.mFull, out f.mHashCode);
             return f;
         }
@@ -711,7 +711,7 @@ namespace GameCore
         {
             if (o is Dirname)
             {
-                Dirname other = (Dirname)o;
+                var other = (Dirname)o;
                 return string.Compare(Full, other.Full, sIgnoreCase) == 0;
             }
             return false;
@@ -759,10 +759,10 @@ namespace GameCore
 
         public static bool UnitTest()
         {
-            Dirname test1 = new Dirname(@"C:\Temp\Test\Movies");
-            Dirname test2 = new Dirname(@"\\cnshaw235\Temp\Test\Movies");
-            Dirname test3 = new Dirname(@"Movies");
-            Dirname test4 = new Dirname(@"Test\Movies");
+            var test1 = new Dirname(@"C:\Temp\Test\Movies");
+            var test2 = new Dirname(@"\\cnshaw235\Temp\Test\Movies");
+            var test3 = new Dirname(@"Movies");
+            var test4 = new Dirname(@"Test\Movies");
 
             test2 = test2.MakeAbsolute();
             test3 = test3.MakeAbsolute(@"C:\Temp\Test");

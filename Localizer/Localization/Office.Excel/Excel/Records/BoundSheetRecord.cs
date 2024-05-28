@@ -26,13 +26,13 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Boundsheet)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 				_bofPos = reader.ReadUInt32();
 				_visibility = (VisibilityType)reader.ReadByte();
 				_type = (SheetType)reader.ReadByte();
 
-				ushort nameLen = reader.ReadUInt16();
-				StringBuilder nb = new StringBuilder(nameLen);
+				var nameLen = reader.ReadUInt16();
+				var nb = new StringBuilder(nameLen);
 				nb.Append(new string(reader.ReadChars(nameLen)));
 				
 				_name = nb.ToString();

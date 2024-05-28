@@ -17,12 +17,12 @@ namespace GameCore
             hash = 0;
             if (data.Length == count)
             {
-                foreach (byte b in data)
+                foreach (var b in data)
                     hash = hash * 65599 + b;
             }
             else
             {
-                for (int i = 0; i < count; ++i)
+                for (var i = 0; i < count; ++i)
                     hash = hash * 65599 + data[i];
             }
             hash = hash ^ (hash >> 16);
@@ -64,7 +64,7 @@ namespace GameCore
         public static uint Compute_ASCII(string str)
         {
             uint hash = 0;
-            byte[] data = System.Text.Encoding.Default.GetBytes(str);
+            var data = System.Text.Encoding.Default.GetBytes(str);
             InternalHash(data, data.Length, ref hash);
             return hash;
         }
@@ -72,7 +72,7 @@ namespace GameCore
         public static uint Compute_ASCII(string str, int count)
         {
             uint hash = 0;
-            byte[] data = System.Text.Encoding.Default.GetBytes(str);
+            var data = System.Text.Encoding.Default.GetBytes(str);
             InternalHash(data, count, ref hash);
             return hash;
         }
@@ -91,14 +91,14 @@ namespace GameCore
 
         public static uint Compute_ASCII(string str, ref uint hash)
         {
-            byte[] data = System.Text.Encoding.Default.GetBytes(str);
+            var data = System.Text.Encoding.Default.GetBytes(str);
             InternalHash(data, data.Length, ref hash);
             return hash;
         }
 
         public static uint Compute_ASCII(string str, int count, ref uint hash)
         {
-            byte[] data = System.Text.Encoding.Default.GetBytes(str);
+            var data = System.Text.Encoding.Default.GetBytes(str);
             InternalHash(data, count, ref hash);
             return hash;
         }
@@ -108,17 +108,17 @@ namespace GameCore
 
         public static bool UnitTest()
         {
-            string q = "This is the time for all good men to come to the aid of their country...";
-            string qq = "xThis is the time for all good men to come to the aid of their country...";
-            string qqq = "xxThis is the time for all good men to come to the aid of their country...";
-            string qqqq = "xxxThis is the time for all good men to come to the aid of their country...";
+            var q = "This is the time for all good men to come to the aid of their country...";
+            var qq = "xThis is the time for all good men to come to the aid of their country...";
+            var qqq = "xxThis is the time for all good men to come to the aid of their country...";
+            var qqqq = "xxxThis is the time for all good men to come to the aid of their country...";
 
-            uint qh = Compute_ASCII(q);
-            uint qqh = Compute_ASCII(qq);
-            uint qqqh = Compute_ASCII(qqq);
-            uint qqqqh = Compute_ASCII(qqqq);
+            var qh = Compute_ASCII(q);
+            var qqh = Compute_ASCII(qq);
+            var qqqh = Compute_ASCII(qqq);
+            var qqqqh = Compute_ASCII(qqqq);
 
-            int ghs = q.GetHashCode();
+            var ghs = q.GetHashCode();
 
             if (qh != 0x7ee23d2f)
                 return false;
@@ -165,15 +165,15 @@ namespace GameCore
             const int r = 24;
             const uint seed = 0;
 
-            uint h = (uint)(seed ^ str.Length);
+            var h = (uint)(seed ^ str.Length);
 
-            uint len4 = (uint)(str.Length / 4);
-            for (int i = 0; i < len4; i++)
+            var len4 = (uint)(str.Length / 4);
+            for (var i = 0; i < len4; i++)
             {
-                byte b1 = (byte)str[i];
-                byte b2 = (byte)str[i + 1];
-                byte b3 = (byte)str[i + 2];
-                byte b4 = (byte)str[i + 3];
+                var b1 = (byte)str[i];
+                var b2 = (byte)str[i + 1];
+                var b3 = (byte)str[i + 2];
+                var b4 = (byte)str[i + 3];
 
                 uint k = b1;
                 k |= (uint)(b2 << 8);
@@ -188,7 +188,7 @@ namespace GameCore
                 h ^= k;
             }
 
-            uint len = (uint)(str.Length & 3);
+            var len = (uint)(str.Length & 3);
             if (len == 3)
             {
                 h ^= (uint)((byte)str[str.Length - 3] << 16);

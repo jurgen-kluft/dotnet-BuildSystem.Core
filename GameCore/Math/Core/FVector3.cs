@@ -187,8 +187,8 @@ namespace GameCore
 		/// <returns>A <see cref="FVector3"/> that represents the vector specified by the <paramref name="s"/> parameter.</returns>
 		public static FVector3 Parse(string s)
 		{
-			Regex r = new Regex(@"\((?<x>.*),(?<y>.*),(?<z>.*)\)", RegexOptions.None);
-			Match m = r.Match(s);
+			var r = new Regex(@"\((?<x>.*),(?<y>.*),(?<z>.*)\)", RegexOptions.None);
+			var m = r.Match(s);
 			if (m.Success)
 			{
 				return new FVector3(
@@ -527,8 +527,8 @@ namespace GameCore
 		/// <returns></returns>
 		public EAxis GetLeastSignificantAxis()
 		{
-			int s = 0;
-			for (int c=1; c<3; c++)
+			var s = 0;
+			for (var c=1; c<3; c++)
 				if (CMath.Abs(this[c]) < CMath.Abs(this[s]))
 					s = c;
 			return (EAxis)s;
@@ -539,8 +539,8 @@ namespace GameCore
 		/// <returns></returns>
 		public EAxis GetMostSignificantAxis()
 		{
-			int s = 0;
-			for (int c=1; c<3; c++)
+			var s = 0;
+			for (var c=1; c<3; c++)
 				if (CMath.Abs(this[c]) > CMath.Abs(this[s]))
 					s = c;
 			return (EAxis)s;
@@ -551,7 +551,7 @@ namespace GameCore
 		/// </summary>
 		public void Normalize()
 		{
-			float length = Length();
+			var length = Length();
 			if (length == 0)
 			{
 				throw new DivideByZeroException("Trying to normalize a vector with length of zero.");
@@ -563,13 +563,13 @@ namespace GameCore
 		}
 		public FVector3 Normalized()
 		{
-			float length = Length();
+			var length = Length();
 			if (length == 0)
 			{
 				throw new DivideByZeroException("Trying to normalize a vector with length of zero.");
 			}
 
-			FVector3 vector = new FVector3();
+			var vector = new FVector3();
 			vector.mX = mX / length;
 			vector.mY = mY / length;
 			vector.mZ = mZ / length;
@@ -629,7 +629,7 @@ namespace GameCore
 		{
 			if (obj is FVector3)
 			{
-				FVector3 v = (FVector3)obj;
+				var v = (FVector3)obj;
 				return (mX == v.X) && (mY == v.Y) && (mZ == v.Z);
 			}
 			return false;
@@ -916,7 +916,7 @@ namespace GameCore
 		/// <returns>An array of single-precision floating point values.</returns>
 		public static explicit operator float[](FVector3 v)
 		{
-			float[] array = new float[3];
+			var array = new float[3];
 			array[0] = v.X;
 			array[1] = v.Y;
 			array[2] = v.Z;
@@ -929,7 +929,7 @@ namespace GameCore
 		/// <returns>An array of single-precision floating point values.</returns>
         public static explicit operator List<float>(FVector3 v)
 		{
-            List<float> array = new List<float>(3);
+            var array = new List<float>(3);
 			array[0] = v.X;
 			array[1] = v.Y;
 			array[2] = v.Z;

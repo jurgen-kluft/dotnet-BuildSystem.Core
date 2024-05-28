@@ -49,15 +49,15 @@ namespace GameCore
 			targets = null;
 			try
 			{
-				ArrayList targetMatchGroups = new ArrayList();
-				ArrayList targetTypes = new ArrayList();
+				var targetMatchGroups = new ArrayList();
+				var targetTypes = new ArrayList();
 
-				string matchingPattern = "";
+				var matchingPattern = "";
 				Regex reggie = null;
 				MatchCollection matches = null;
 
 				//masterPattern is going to hold a "big" regex pattern that will be ran against the original text
-				string masterPattern = fieldSpecification.Trim();
+				var masterPattern = fieldSpecification.Trim();
 				matchingPattern =  @"(\S+)";
 				masterPattern = Regex.Replace(masterPattern,matchingPattern,"($1)");		//insert grouping parens
 
@@ -65,16 +65,16 @@ namespace GameCore
 				matchingPattern = @"(\([\w\d\S]+\))";
 				reggie = new Regex(matchingPattern);
 				matches = reggie.Matches(masterPattern);
-				for(int i = 0; i < matches.Count; i++)
+				for(var i = 0; i < matches.Count; i++)
 				{
-					Match m = matches[i];
-					string sVal = m.Groups[1].Captures[0].Value;
+					var m = matches[i];
+					var sVal = m.Groups[1].Captures[0].Value;
 
 					//is this value a {n} value. We will determine this by checking for {
 					if(sVal.IndexOf('{') >= 0)
 					{
 						targetMatchGroups.Add(i);
-						string p = @"\(\{(\w*)\}\)";	//pull out the type
+						var p = @"\(\{(\w*)\}\)";	//pull out the type
 						sVal = Regex.Replace(sVal,p,"$1");
 						targetTypes.Add(sVal);
 					}
@@ -107,15 +107,15 @@ namespace GameCore
                 if (targetMatchGroups.Count > 0)
                 {
                     targets = new object[targetMatchGroups.Count];
-                    for (int x = 0; x < targetMatchGroups.Count; x++)
+                    for (var x = 0; x < targetMatchGroups.Count; x++)
                     {
-                        int i = (int)targetMatchGroups[x];
-                        string tName = (string)targetTypes[x];
+                        var i = (int)targetMatchGroups[x];
+                        var tName = (string)targetTypes[x];
                         if (i < matches[0].Groups.Count)
                         {
                             //add 1 to i because i is a result of serveral matches each resulting in one group.
                             //this query is one match resulting in serveral groups.
-                            string sValue = matches[0].Groups[i + 1].Captures[0].Value;
+                            var sValue = matches[0].Groups[i + 1].Captures[0].Value;
                             targets[x] = ReturnValue(tName, sValue);
                         }
                     }
@@ -148,14 +148,14 @@ namespace GameCore
 		{
 			try
 			{
-				ArrayList targetMatchGroups = new ArrayList();
+				var targetMatchGroups = new ArrayList();
 
-				string matchingPattern = "";
+				var matchingPattern = "";
 				Regex reggie = null;
 				MatchCollection matches = null;
 
 				//masterPattern is going to hold a "big" regex pattern that will be ran against the original text
-				string masterPattern = fieldSpecification.Trim();
+				var masterPattern = fieldSpecification.Trim();
 				matchingPattern =  @"(\S+)";
 				masterPattern = Regex.Replace(masterPattern,matchingPattern,"($1)");		//insert grouping parens
 
@@ -163,10 +163,10 @@ namespace GameCore
 				matchingPattern = @"(\([\w\d\S]+\))";
 				reggie = new Regex(matchingPattern);
 				matches = reggie.Matches(masterPattern);
-				for(int i = 0; i < matches.Count; i++)
+				for(var i = 0; i < matches.Count; i++)
 				{
-					Match m = matches[i];
-					string sVal = m.Groups[1].Captures[0].Value;
+					var m = matches[i];
+					var sVal = m.Groups[1].Captures[0].Value;
 
 					//is this value a {n} value. We will determine this by checking for {
 					if(sVal.IndexOf('{') >= 0)
@@ -179,16 +179,16 @@ namespace GameCore
 				reggie = new Regex(matchingPattern);
 				matches = reggie.Matches(masterPattern);
 
-				for(int i = 0; i < targets.Length && i < matches.Count; i++)
+				for(var i = 0; i < targets.Length && i < matches.Count; i++)
 				{
 					//string groupID = String.Format("${0}",(i+1));
-					string innerPattern = "";
+					var innerPattern = "";
 
-					Type t = targets[i].GetType();
+					var t = targets[i].GetType();
 					innerPattern = ReturnPattern(t.Name);
 
 					//replace the {n} with the type's pattern
-					string groupPattern = "\\{" + i + "\\}";
+					var groupPattern = "\\{" + i + "\\}";
 					masterPattern = Regex.Replace(masterPattern,groupPattern,innerPattern);
 				}
 
@@ -199,15 +199,15 @@ namespace GameCore
 				matches = reggie.Matches(text);
                 if (matches.Count > 0)
                 {
-                    for (int x = 0; x < targetMatchGroups.Count; x++)
+                    for (var x = 0; x < targetMatchGroups.Count; x++)
                     {
-                        int i = (int)targetMatchGroups[x];
+                        var i = (int)targetMatchGroups[x];
                         if (i < matches[0].Groups.Count)
                         {
                             //add 1 to i because i is a result of serveral matches each resulting in one group.
                             //this query is one match resulting in serveral groups.
-                            string sValue = matches[0].Groups[i + 1].Captures[0].Value;
-                            Type t = targets[x].GetType();
+                            var sValue = matches[0].Groups[i + 1].Captures[0].Value;
+                            var t = targets[x].GetType();
                             targets[x] = ReturnValue(t.Name, sValue);
                         }
                     }
@@ -301,7 +301,7 @@ namespace GameCore
 		/// <returns></returns>
         private static string ReturnPattern(string typeName)
 		{
-			string innerPattern = "";
+			var innerPattern = "";
 			switch(typeName)
 			{
 				case "Int16":
@@ -366,22 +366,22 @@ namespace GameCore
 		private static void PrintMatches(MatchCollection matches)
 		{
 			Console.WriteLine("===---===---===---===");
-			int matchCount = 0;
+			var matchCount = 0;
 			Console.WriteLine("Match Count = " + matches.Count);
 			foreach(Match m in matches)
 			{
 				if(m == Match.Empty) Console.WriteLine("Empty match");
                 Console.WriteLine("Match" + (++matchCount));
-				for (int i = 0; i < m.Groups.Count; i++) 
+				for (var i = 0; i < m.Groups.Count; i++) 
 				{
-					Group g = m.Groups[i];
+					var g = m.Groups[i];
                     Console.WriteLine("Group" + i + "='" + g + "'");
-					CaptureCollection cc = g.Captures;
-					for (int j = 0; j < cc.Count; j++) 
+					var cc = g.Captures;
+					for (var j = 0; j < cc.Count; j++) 
 					{
-						Capture c = cc[j];
+						var c = cc[j];
 						Console.Write("Capture"+j+"='" + c + "', Position="+c.Index + "   <");
-						for(int k = 0; k < c.ToString().Length; k++)
+						for(var k = 0; k < c.ToString().Length; k++)
 						{
                             Console.Write(((Int32)(c.ToString()[k])));
 						}

@@ -49,10 +49,10 @@ namespace Net.Office.Excel
 		public static string Format(object str, string format, int firstDay, int firstWeek, uint flags)
 		{
 			// initilize our return value.
-			string output = "";
+			var output = "";
 
 			// format the value
-			int ret = VarFormat(ref str, format, firstDay, firstWeek, flags, ref output);
+			var ret = VarFormat(ref str, format, firstDay, firstWeek, flags, ref output);
 
 			// check for errors, similar to the c++ macro FAILED(hr)
 			if(ret < 0)
@@ -103,7 +103,7 @@ namespace Net.Office.Excel
 		public string FormattedValue()
 		{
 			// initialize the return value
-			string ret = "";
+			var ret = "";
 
 			// check if there is a value and a style
 			if(_value != null && _style != null)
@@ -112,11 +112,11 @@ namespace Net.Office.Excel
 				ret = _value.ToString();
 
 				// retrieve the format if any
-				Format format = _style.Format;
+				var format = _style.Format;
 				if(format != null)
 				{
 					// get the format string
-					string formatString = format.FormatValue;
+					var formatString = format.FormatValue;
 
 					if(formatString != null && formatString != "")
 					{

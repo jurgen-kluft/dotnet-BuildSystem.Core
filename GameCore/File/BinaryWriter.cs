@@ -363,7 +363,7 @@ namespace GameCore
 
         public void Write(string s)
         {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            var data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
             Write((byte)0);
@@ -475,7 +475,7 @@ namespace GameCore
 
         public void Write(string s)
         {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(s);
+            var data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
             Write((byte)0);

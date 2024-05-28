@@ -15,12 +15,12 @@ namespace DataBuildSystem
 
             public static bool ValidateString(string inColumnName, ref string text)
             {
-                char[] temp = text.ToCharArray();
-                bool valid = true;
-                for (int i = 0; i < text.Length; i++)
+                var temp = text.ToCharArray();
+                var valid = true;
+                for (var i = 0; i < text.Length; i++)
                 {
-                    char c = text[i];
-                    foreach (CharConversion conversion in Settings.mCharConversions)
+                    var c = text[i];
+                    foreach (var conversion in Settings.mCharConversions)
                     {
                         if (c == conversion.from)
                         {
@@ -158,7 +158,7 @@ namespace DataBuildSystem
                 mStrings.Add(inString);
                 mStringOffsets.Add(mOffset);
                 mStringHashes.Add(Hashing64.ComputeMurmur64(inString));
-                UTF8Encoding utf8 = new UTF8Encoding();
+                var utf8 = new UTF8Encoding();
                 utf8.GetBytes(inString);
                 mOffset += (uint)(inString.Length + 1);
             }
@@ -184,11 +184,11 @@ namespace DataBuildSystem
             public List<int> Consolidate()
             {
                 List<int> map = new();
-                List<string> strings = mStrings;
+                var strings = mStrings;
                 Clear();
 
-                int c = 0;
-                foreach (string s in strings)
+                var c = 0;
+                foreach (var s in strings)
                 {
                     if (s != string.Empty)
                     {
@@ -203,10 +203,10 @@ namespace DataBuildSystem
 
             public bool Consolidate(List<int> map)
             {
-                List<string> strings = mStrings;
+                var strings = mStrings;
                 Clear();
 
-                foreach (int i in map)
+                foreach (var i in map)
                 {
                     Add(strings[i]);
                 }
@@ -216,8 +216,8 @@ namespace DataBuildSystem
 
             public bool SuperImpose(StringTable master)
             {
-                int c = 0;
-                for (int i = 0; i < mStrings.Count; i++)
+                var c = 0;
+                for (var i = 0; i < mStrings.Count; i++)
                 {
                     if (mStrings[i] == string.Empty)
                     {
@@ -228,10 +228,10 @@ namespace DataBuildSystem
 
                 if (c > 0)
                 {
-                    List<string> strings = mStrings;
+                    var strings = mStrings;
                     Clear();
 
-                    foreach (string s in strings)
+                    foreach (var s in strings)
                         Add(s);
                 }
 
@@ -257,9 +257,9 @@ namespace DataBuildSystem
 
             public void GetRemap(out List<int> outRemap)
             {
-                int i = 0;
+                var i = 0;
                 List<KeyValuePair<UInt64, Int32>> hashes = new(Count);
-                foreach (UInt64 hash in mStringHashes)
+                foreach (var hash in mStringHashes)
                     hashes.Add(new KeyValuePair<UInt64, Int32>(hash, i++));
 
                 // Sort by hash
@@ -267,19 +267,19 @@ namespace DataBuildSystem
 
                 // Fill remap
                 outRemap = new List<int>(Count);
-                foreach (KeyValuePair<UInt64, Int32> hash_idx in hashes)
+                foreach (var hash_idx in hashes)
                 {
-                    int index = hash_idx.Value;
+                    var index = hash_idx.Value;
                     outRemap.Add(index);
                 }
             }
 
             public void Remap(List<int> remap)
             {
-                List<string> strings = mStrings;
+                var strings = mStrings;
                 Clear();
 
-                foreach (int i in remap)
+                foreach (var i in remap)
                     Add(strings[i]);
             }
 
@@ -287,19 +287,19 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    int count = reader.ReadInt32();
+                    var count = reader.ReadInt32();
 
                     // Hashes
-                    for (int i = 0; i < count; ++i)
+                    for (var i = 0; i < count; ++i)
                         reader.ReadUInt64();
                     // Offsets
-                    for (int i = 0; i < count; ++i)
+                    for (var i = 0; i < count; ++i)
                         reader.ReadInt32();
 
                     // Strings
-                    for (int i = 0; i < count; ++i)
+                    for (var i = 0; i < count; ++i)
                     {
-                        string str = reader.ReadString();
+                        var str = reader.ReadString();
                         Add(str);
                     }
                 }
@@ -317,11 +317,11 @@ namespace DataBuildSystem
                 {
                     writer.Write(Count);
 
-                    foreach (UInt64 hash in mStringHashes)
+                    foreach (var hash in mStringHashes)
                         writer.Write(hash);
-                    foreach (uint offset in mStringOffsets)
+                    foreach (var offset in mStringOffsets)
                         writer.Write(offset);
-                    foreach (string s in mStrings)
+                    foreach (var s in mStrings)
                         writer.Write(s);
                 }
                 catch (Exception)
@@ -429,10 +429,10 @@ namespace DataBuildSystem
 
             public bool ValidateUsedCharacters()
             {
-                bool valid = true;
-                for (int i = 0; i < mStringTable.All.Count; i++)
+                var valid = true;
+                for (var i = 0; i < mStringTable.All.Count; i++)
                 {
-                    string str = mStringTable.All[i];
+                    var str = mStringTable.All[i];
                     valid = valid && Validation.ValidateString(mName, ref str);
                     mStringTable.All[i] = str;
                 }
@@ -452,15 +452,15 @@ namespace DataBuildSystem
             public bool ReadColumn(Excel.Worksheet worksheet, int columnNumber, int rowStart, int rowEnd, out List<string> columnText)
             {
                 columnText = new List<string>();
-                for (int r = rowStart; r < rowEnd; r++)
+                for (var r = rowStart; r < rowEnd; r++)
                 {
-                    Excel.Row row = worksheet.Rows[(ushort)r];
+                    var row = worksheet.Rows[(ushort)r];
                     if (row != null)
                     {
-                        Excel.Cell cell = row.Cells[(byte)columnNumber];
+                        var cell = row.Cells[(byte)columnNumber];
                         if (cell != null)
                         {
-                            string textcell = cell.FormattedValue();
+                            var textcell = cell.FormattedValue();
                             columnText.Add(textcell.Replace("\\n", "\n"));
                         }
                         else
@@ -473,14 +473,14 @@ namespace DataBuildSystem
 
             public bool Read(List<Excel.Worksheet> worksheets)
             {
-                List<string> columnTextList = new List<string>();
-                List<string> columnText = new List<string>();
+                var columnTextList = new List<string>();
+                var columnText = new List<string>();
 
-                foreach (Excel.Worksheet worksheet in worksheets)
+                foreach (var worksheet in worksheets)
                 {
                     if (ReadColumn(worksheet, mColumn, mRowRange[0], mRowRange[1], out columnText))
                     {
-                        foreach (string s in columnText)
+                        foreach (var s in columnText)
                             columnTextList.Add(s);
                     }
                     else
@@ -498,8 +498,8 @@ namespace DataBuildSystem
 
             private static StringTable ConvertToStringTable(List<string> columnText)
             {
-                StringTable strTable = new StringTable();
-                foreach (string s in columnText)
+                var strTable = new StringTable();
+                foreach (var s in columnText)
                     strTable.Add(s);
                 return strTable;
             }
@@ -526,14 +526,14 @@ namespace DataBuildSystem
                     writer.Write((Int32)(magic >> 32));
                     writer.Write((Int32)(magic));
 
-                    bool result = mStringTable.Write(writer);
+                    var result = mStringTable.Write(writer);
 
                     if (!result)
                     {
                         Console.WriteLine("Error occurred when writing language file \"" + Name + "\".");
                     }
 
-                    int size = (int)writer.Position;
+                    var size = (int)writer.Position;
 
                     fileStream.Close();
                     writer.Close();
@@ -615,13 +615,13 @@ namespace DataBuildSystem
 
             public void add(StringTable strTable)
             {
-                for (int i = 0; i < strTable.Count; ++i)
+                for (var i = 0; i < strTable.Count; ++i)
                     mStrTable.Add(strTable[i]);
             }
 
             public void add(IdFile idFile)
             {
-                for (int i = 0; i < idFile.mStrTable.Count; ++i)
+                for (var i = 0; i < idFile.mStrTable.Count; ++i)
                     mStrTable.Add(idFile.mStrTable[i]);
             }
 
@@ -643,7 +643,7 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    FileInfo fileinfoXlsIds = new FileInfo(mFolder + mFilename);
+                    var fileinfoXlsIds = new FileInfo(mFolder + mFilename);
                     if (fileinfoXlsIds.Exists)
                     {
                         mFileSize = fileinfoXlsIds.Length;
@@ -651,7 +651,7 @@ namespace DataBuildSystem
                         var filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
                         var filestreamXlsIdsReader = ArchitectureUtils.CreateBinaryReader(filestreamXlsIds, LocalizerConfig.Platform);
 
-                        Int64 magic = filestreamXlsIdsReader.ReadInt64();
+                        var magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);
 
                         filestreamXlsIdsReader.Close();
@@ -728,7 +728,7 @@ namespace DataBuildSystem
                     textStream.Writer.WriteLine(line);
                     textStream.Writer.WriteLine("");
 
-                    for (int i = 0; i < mStrTable.Count; ++i)
+                    for (var i = 0; i < mStrTable.Count; ++i)
                     {
                         line = String.Format("#define\t\t{0}\t\t\t{1}", mStrTable[i], i);
                         textStream.Writer.WriteLine(line);
@@ -819,13 +819,13 @@ namespace DataBuildSystem
 
             public void add(StringTable strTable)
             {
-                for (int i = 0; i < strTable.Count; ++i)
+                for (var i = 0; i < strTable.Count; ++i)
                     mStrTable.Add(strTable[i]);
             }
 
             public void add(LocFile locFile)
             {
-                for (int i = 0; i < locFile.mStrTable.Count; ++i)
+                for (var i = 0; i < locFile.mStrTable.Count; ++i)
                     mStrTable.Add(locFile.mStrTable[i]);
             }
 
@@ -845,7 +845,7 @@ namespace DataBuildSystem
                         var filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
                         var filestreamXlsIdsReader = ArchitectureUtils.CreateBinaryReader(filestreamXlsIds, Platform.Current);
 
-                        Int64 magic = filestreamXlsIdsReader.ReadInt64();
+                        var magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);
 
                         filestreamXlsIdsReader.Close();
@@ -964,7 +964,7 @@ namespace DataBuildSystem
                 LocFile newLocFile = null;
                 if (master)
                 {
-                    foreach (LocFile l in mMasterLocFiles)
+                    foreach (var l in mMasterLocFiles)
                         if (l.name == name)
                             return l;
                     newLocFile = newLoc(dstSubPath, name);
@@ -972,7 +972,7 @@ namespace DataBuildSystem
                 }
                 else
                 {
-                    foreach (LocFile l in mLocFiles)
+                    foreach (var l in mLocFiles)
                         if (l.name == name)
                             return l;
                     newLocFile = newLoc(dstSubPath, name);
@@ -984,7 +984,7 @@ namespace DataBuildSystem
 
             private IdFile newId(string dstSubPath, string name)
             {
-                IdFile newIdFile = new IdFile(name, Path.Join(dstSubPath, (name + ".ids")), LocalizerConfig.DstPath);
+                var newIdFile = new IdFile(name, Path.Join(dstSubPath, (name + ".ids")), LocalizerConfig.DstPath);
                 return newIdFile;
             }
 
@@ -993,7 +993,7 @@ namespace DataBuildSystem
                 IdFile newIdFile = null;
                 if (master)
                 {
-                    foreach (IdFile l in mMasterIDFiles)
+                    foreach (var l in mMasterIDFiles)
                     {
                         if (l.name == name)
                             return l;
@@ -1004,7 +1004,7 @@ namespace DataBuildSystem
                 }
                 else
                 {
-                    foreach (IdFile l in mIDFiles)
+                    foreach (var l in mIDFiles)
                     {
                         if (l.name == name)
                             return l;
@@ -1019,8 +1019,8 @@ namespace DataBuildSystem
 
             public bool saveIds(string dstSubPath, string name, StringTable ids, out string idsFilename)
             {
-                IdFile masterIdFile = openId(dstSubPath, "Localization", true);
-                IdFile localIdFile = newId(dstSubPath, name);
+                var masterIdFile = openId(dstSubPath, "Localization", true);
+                var localIdFile = newId(dstSubPath, name);
                 localIdFile.add(ids);
 
                 idsFilename = string.Empty;
@@ -1036,8 +1036,8 @@ namespace DataBuildSystem
 
             public bool saveLoc(string dstSubPath, string name, string language, StringTable ids, out string locFilename)
             {
-                LocFile masterLocFile = openLoc(dstSubPath, "Localization" + "." + language, true);
-                LocFile localLocFile = newLoc(dstSubPath, name + "." + language);
+                var masterLocFile = openLoc(dstSubPath, "Localization" + "." + language, true);
+                var localLocFile = newLoc(dstSubPath, name + "." + language);
                 localLocFile.add(ids);
 
                 locFilename = string.Empty;
@@ -1053,8 +1053,8 @@ namespace DataBuildSystem
 
             public bool loadIds(string dstSubPath, string name)
             {
-                IdFile masterIdFile = openId(dstSubPath, "Localization", true);
-                IdFile localIdFile = openId(dstSubPath, name, false);
+                var masterIdFile = openId(dstSubPath, "Localization", true);
+                var localIdFile = openId(dstSubPath, name, false);
                 if (localIdFile.load())
                 {
                     masterIdFile.add(localIdFile);
@@ -1068,8 +1068,8 @@ namespace DataBuildSystem
 
             public bool loadLoc(string dstSubPath, string name, string language)
             {
-                LocFile masterLocFile = openLoc(dstSubPath, "Localization" + "." + language, true);
-                LocFile localLocFile = openLoc(dstSubPath, name + "." + language, false);
+                var masterLocFile = openLoc(dstSubPath, "Localization" + "." + language, true);
+                var localLocFile = openLoc(dstSubPath, name + "." + language, false);
                 if (localLocFile.load())
                 {
                     masterLocFile.add(localLocFile);
@@ -1085,49 +1085,49 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    string allIdsFilename = LocalizerConfig.Excel0;
+                    var allIdsFilename = LocalizerConfig.Excel0;
                     allIdsFilename = Path.ChangeExtension(allIdsFilename, LocalizerConfig.MainLocFileExtension);
 
                     allIdsFilename = allIdsFilename + ".ids";
                     IdFile allIds = new(allIdsFilename, LocalizerConfig.DstPath);
-                    foreach (IdFile l in mMasterIDFiles)
+                    foreach (var l in mMasterIDFiles)
                         allIds.add(l);
 
                     // The main IdFile needs to be sorted by hash, and the remapping
                     // needs to be used to sort all LocFiles in the same order.
-                    allIds.getRemap(out List<int> remap);
+                    allIds.getRemap(out var remap);
                     allIds.remap(remap);
                     allIds.save(mMagic);
 
-                    foreach (LocFile l in mMasterLocFiles)
+                    foreach (var l in mMasterLocFiles)
                         l.remap(remap);
-                    foreach (LocFile l in mMasterLocFiles)
+                    foreach (var l in mMasterLocFiles)
                         l.save(mMagic);
 
                     Int64 maxFileSize = 0;
-                    foreach (LocFile l in mMasterLocFiles)
+                    foreach (var l in mMasterLocFiles)
                     {
                         if (l.filesize > maxFileSize)
                             maxFileSize = l.filesize;
                     }
 
-                    string languageFilesListFilename = allIds.filename + ".lst";
+                    var languageFilesListFilename = allIds.filename + ".lst";
                     TextStream fileWithListOfLanguageFiles = new(Path.Join(LocalizerConfig.DstPath, languageFilesListFilename));
                     fileWithListOfLanguageFiles.Open(TextStream.EMode.Write);
-                    foreach (LocFile l in mMasterLocFiles)
+                    foreach (var l in mMasterLocFiles)
                         fileWithListOfLanguageFiles.Writer.WriteLine(l.filename);
                     fileWithListOfLanguageFiles.Close();
 
                     allIds.saveHeaderFile((Int32)maxFileSize, mMagic);
 
                     // The dependency file
-                    DepFile depFile = DepFile.sCreate(mMainFilename, LocalizerConfig.SrcPath);
+                    var depFile = DepFile.sCreate(mMainFilename, LocalizerConfig.SrcPath);
                     depFile.extension = LocalizerConfig.MainDepFileExtension;
                     depFile.addOut(languageFilesListFilename, LocalizerConfig.DstPath, DepInfo.EDepRule.MUST_EXIST);
                     depFile.addOut(allIds.filename, allIds.folder, DepInfo.EDepRule.MUST_EXIST);
                     depFile.addOut(allIds.filename + ".h", allIds.folder, DepInfo.EDepRule.MUST_EXIST);
 
-                    foreach (LocFile l in mMasterLocFiles)
+                    foreach (var l in mMasterLocFiles)
                         depFile.addOut(l.filename, l.folder, DepInfo.EDepRule.MUST_EXIST);
 
                     return depFile.save(LocalizerConfig.DepPath);
@@ -1231,7 +1231,7 @@ namespace DataBuildSystem
                 mColumns = null;
 
                 mColumns = new List<Column>();
-                foreach (Column c in Settings.mColumns)
+                foreach (var c in Settings.mColumns)
                 {
                     if (c.Name == "ID")
                         mIDColumn = c;
@@ -1241,7 +1241,7 @@ namespace DataBuildSystem
 
                 mIsModified = true;
                 {
-                    DepFile depFile = new DepFile(mFilename, LocalizerConfig.SrcPath);
+                    var depFile = new DepFile(mFilename, LocalizerConfig.SrcPath);
                     depFile.extension = LocalizerConfig.SubDepFileExtension;
                     if (depFile.load(LocalizerConfig.DepPath))
                     {
@@ -1255,7 +1255,7 @@ namespace DataBuildSystem
             {
                 if (mIsModified)
                 {
-                    string[] sheetNames = mSheetNames;
+                    var sheetNames = mSheetNames;
 
                     FileInfo xlsFileInfo = new(LocalizerConfig.SrcPath + "\\" + mFilename);
                     if (!xlsFileInfo.Exists)
@@ -1266,9 +1266,9 @@ namespace DataBuildSystem
 
                     Excel.Workbook workbook = new(xlsFileInfo.FullName);
 
-                    foreach (Excel.Worksheet worksheet in workbook.Sheets)
+                    foreach (var worksheet in workbook.Sheets)
                     {
-                        foreach (string s in sheetNames)
+                        foreach (var s in sheetNames)
                         {
                             if (worksheet.Name.Equals(s))
                             {
@@ -1278,7 +1278,7 @@ namespace DataBuildSystem
                     }
 
                     // Compile
-                    foreach (Column c in Settings.mColumns)
+                    foreach (var c in Settings.mColumns)
                     {
                         if (null == mWorksheets)
                         {
@@ -1302,8 +1302,8 @@ namespace DataBuildSystem
                         return false;
                     }
 
-                    List<int> map = mIDColumn.Consolidate();
-                    foreach (Column c in mColumns)
+                    var map = mIDColumn.Consolidate();
+                    foreach (var c in mColumns)
                     {
                         if (!c.Consolidate(map))
                         {
@@ -1312,7 +1312,7 @@ namespace DataBuildSystem
                         }
                     }
 
-                    for (int i = 1; i < mColumns.Count; i++)
+                    for (var i = 1; i < mColumns.Count; i++)
                     {
                         if (!mColumns[i].SuperImpose(mColumns[i - 1]))
                         {
@@ -1321,7 +1321,7 @@ namespace DataBuildSystem
                         }
                     }
 
-                    for (int i = 0; i < mColumns.Count; i++)
+                    for (var i = 0; i < mColumns.Count; i++)
                     {
                         mColumns[i].ValidateUsedCharacters();
                     }
@@ -1336,7 +1336,7 @@ namespace DataBuildSystem
 
                     // Write "filename.ids" file
                     StringTable ids = new();
-                    for (int i = 0; i < mIDColumn.Count; i++)
+                    for (var i = 0; i < mIDColumn.Count; i++)
                         ids.Add(mIDColumn[i]);
 
                     string idsFilename;
@@ -1344,7 +1344,7 @@ namespace DataBuildSystem
                     depFile.addOut(idsFilename, LocalizerConfig.DstPath, DepInfo.EDepRule.MUST_EXIST);
 
                     // Write all "filename.%LANGUAGE%.loc" files
-                    foreach (Column c in mColumns)
+                    foreach (var c in mColumns)
                     {
                         string locFilename;
                         if (!db.saveLoc(Path.GetDirectoryName(mFilename), Path.GetFileName(mFilename), c.Name, c.Table, out locFilename))
@@ -1367,12 +1367,12 @@ namespace DataBuildSystem
                 if (!db.loadIds(Path.GetDirectoryName(mFilename), Path.GetFileName(mFilename)))
                     return false;
 
-                foreach (Column c in mColumns)
+                foreach (var c in mColumns)
                 {
                     if (c.Name == "ID")
                         continue;
 
-                    string language = c.Name;
+                    var language = c.Name;
                     if (!db.loadLoc(Path.GetDirectoryName(mFilename), Path.GetFileName(mFilename), language))
                         return false;
                 }
@@ -1386,7 +1386,7 @@ namespace DataBuildSystem
 
             private Column getColumn(string columnName)
             {
-                foreach (Column c in mColumns)
+                foreach (var c in mColumns)
                     if (c.Name == columnName)
                         return c;
                 return null;
@@ -1394,10 +1394,10 @@ namespace DataBuildSystem
 
             public bool has(string columnName, string cell)
             {
-                Column column = getColumn(columnName);
+                var column = getColumn(columnName);
                 if (column != null)
                 {
-                    int idx = column.IndexOf(cell);
+                    var idx = column.IndexOf(cell);
                     return idx >= 0;
                 }
 
@@ -1406,7 +1406,7 @@ namespace DataBuildSystem
 
             public int count(string columnName)
             {
-                Column column = getColumn(columnName);
+                var column = getColumn(columnName);
                 if (column != null)
                 {
                     return column.Count;
@@ -1417,10 +1417,10 @@ namespace DataBuildSystem
 
             public int get(string columnName, string cell)
             {
-                Column column = getColumn(columnName);
+                var column = getColumn(columnName);
                 if (column != null)
                 {
-                    int idx = column.IndexOf(cell);
+                    var idx = column.IndexOf(cell);
                     return idx;
                 }
 

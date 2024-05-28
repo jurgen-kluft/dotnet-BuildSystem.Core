@@ -43,12 +43,11 @@ namespace GameData
 
         public void CompilerConstruct(IDataCompiler dc)
         {
-            if (dc is CopyCompiler cc)
-            {
-                mSrcFilename = cc.mSrcFilename;
-                mDstFilename = cc.mDstFilename;
-                mDependency = cc.mDependency;
-            }
+            if (dc is not CopyCompiler cc) return;
+            
+            mSrcFilename = cc.mSrcFilename;
+            mDstFilename = cc.mDstFilename;
+            mDependency = cc.mDependency;
         }
 
         public IFileIdProvider CompilerFileIdProvider => this;
@@ -56,7 +55,7 @@ namespace GameData
 
         public DataCompilerOutput CompilerExecute()
         {
-            DataCompilerOutput.EResult result = DataCompilerOutput.EResult.None;
+            var result = DataCompilerOutput.EResult.None;
             if (mDependency == null)
             {
                 mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
@@ -65,27 +64,30 @@ namespace GameData
             }
             else
             {
-                if (!mDependency.Update(delegate (short id, State state) {
-                    if (state == State.Missing)
+                if (!mDependency.Update(delegate(short id, State state)
                     {
-                        switch (id)
+                        if (state == State.Missing)
                         {
-                            case 0: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.SrcMissing); break;
-                            case 1: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.DstMissing); break;
+                            result = id switch
+                            {
+                                0 => (result | DataCompilerOutput.EResult.SrcMissing),
+                                1 => (result | DataCompilerOutput.EResult.DstMissing),
+                                _ => result
+                            };
                         }
-                    }
-                    else if (state == State.Modified)
-                    {
-                        switch (id)
+                        else if (state == State.Modified)
                         {
-                            case 0: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.SrcChanged); break;
-                            case 1: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.DstChanged); break;
+                            result = id switch
+                            {
+                                0 => (result | DataCompilerOutput.EResult.SrcChanged),
+                                1 => (result | DataCompilerOutput.EResult.DstChanged),
+                                _ => result
+                            };
                         }
-                    }
-                }))
+                    }))
                 {
                     result = DataCompilerOutput.EResult.Ok;
-                    return new(result, new[] { mDstFilename });
+                    return new DataCompilerOutput(result, new[] { mDstFilename });
                 }
             }
 
@@ -103,7 +105,7 @@ namespace GameData
             }
 
             // The result returned here is the result that 'caused' this compiler to execute its action and not the 'new' state.
-            return new(result, new[] { mDstFilename });
+            return new DataCompilerOutput(result, new[] { mDstFilename });
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Net.Office.Excel.Records
 
 		private ContinueRecord ReadContinue(Stream stream)
 		{
-			GenericBiff biff = new GenericBiff(stream);
+			var biff = new GenericBiff(stream);
 			return new ContinueRecord(biff);
 		}
 
@@ -30,27 +30,27 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Sst)
 			{
-				Stream stream = biff.GetDataStream();
-				BinaryReader reader = new BinaryReader(stream);
-				uint totalStrings = reader.ReadUInt32();
-				uint totalUniqueStrings = reader.ReadUInt32();
+				var stream = biff.GetDataStream();
+				var reader = new BinaryReader(stream);
+				var totalStrings = reader.ReadUInt32();
+				var totalUniqueStrings = reader.ReadUInt32();
 
 				_strings = new string[totalUniqueStrings];
-				StringBuilder sb = new StringBuilder();
-				for(int i = 0; i < totalUniqueStrings; ++i)
+				var sb = new StringBuilder();
+				for(var i = 0; i < totalUniqueStrings; ++i)
 				{
 					if(stream.Position >= stream.Length)
 					{
-						ContinueRecord cont = ReadContinue(recordStream);
+						var cont = ReadContinue(recordStream);
 						stream = cont.GetDataStream();
 						reader = new BinaryReader(stream);
 					}
 
-					ushort len = reader.ReadUInt16();
-					byte options = reader.ReadByte();
-					bool compressed = (options & 0x01) == 0;
-					bool farEast = (options & 0x04) != 0;
-					bool richText = (options & 0x08) != 0;
+					var len = reader.ReadUInt16();
+					var options = reader.ReadByte();
+					var compressed = (options & 0x01) == 0;
+					var farEast = (options & 0x04) != 0;
+					var richText = (options & 0x08) != 0;
 					ushort rtSize = 0;
 					uint farEastSize = 0;
 
@@ -65,7 +65,7 @@ namespace Net.Office.Excel.Records
 					{
 						if(stream.Position >= stream.Length)
 						{
-							ContinueRecord cont = ReadContinue(recordStream);
+							var cont = ReadContinue(recordStream);
 							stream = cont.GetDataStream();
 							reader = new BinaryReader(stream);
 							compressed = (reader.ReadByte() & 0x01) == 0;
@@ -79,18 +79,18 @@ namespace Net.Office.Excel.Records
 					Debug.Assert(sb.Length == len);
 					_strings[i] = sb.ToString();
 
-					long skip = (rtSize * 4) + farEastSize;
+					var skip = (rtSize * 4) + farEastSize;
 
 					while(skip > 0)
 					{
 						if(stream.Position >= stream.Length)
 						{
-							ContinueRecord cont = ReadContinue(recordStream);
+							var cont = ReadContinue(recordStream);
 							stream = cont.GetDataStream();
 							reader = new BinaryReader(stream);
 						}
 
-						long actualSkip = Math.Min(stream.Length - stream.Position, skip);
+						var actualSkip = Math.Min(stream.Length - stream.Position, skip);
 
 						stream.Seek(actualSkip, SeekOrigin.Current);
 

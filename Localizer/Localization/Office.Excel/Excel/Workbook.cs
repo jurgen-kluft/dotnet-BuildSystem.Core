@@ -37,7 +37,7 @@ namespace Net.Office.Excel
 			long sstPos = 0;
 			
 			// record position dictionary
-			SortedList<long, Biff> records = new SortedList<long, Biff>();
+			var records = new SortedList<long, Biff>();
 			
 			_styles = new StyleCollection(this);
 			_formats = new FormatCollection(this);
@@ -48,10 +48,10 @@ namespace Net.Office.Excel
 			while(stream.Length - stream.Position >= GenericBiff.MinimumSize)
 			{
 				// capture the current stream position
-				long pos = stream.Position;
+				var pos = stream.Position;
 
 				// decode the record if possible
-				Biff record = GetCorrectRecord(new GenericBiff(stream), stream, sst);
+				var record = GetCorrectRecord(new GenericBiff(stream), stream, sst);
 
 				// capture 
 				// shared string table 
@@ -64,7 +64,7 @@ namespace Net.Office.Excel
 				// formatting records
 				else if(record is FormatRecord)
 				{
-					FormatRecord f = (FormatRecord)record;
+					var f = (FormatRecord)record;
 					_formats.Add(f.Index, new Format(this, f));
 				}
 				else if(record is FontRecord)
@@ -83,7 +83,7 @@ namespace Net.Office.Excel
 
 			// generate the worksheets
 			_sheets = new WorksheetCollection();
-			foreach(Biff record in records.Values)
+			foreach(var record in records.Values)
 			{
 				if(record is BoundSheetRecord)
 					_sheets.Add(new Worksheet(this, (BoundSheetRecord)record, records));
@@ -130,7 +130,7 @@ namespace Net.Office.Excel
 			switch(record.Id)
 			{
 				case (ushort)RecordType.Bof :
-					BofRecord bof = new BofRecord(record);
+					var bof = new BofRecord(record);
 					if(bof.Version < 0x0600)
 						throw new Exception("Versions below Excel 97/2000 are currently not supported.");
 

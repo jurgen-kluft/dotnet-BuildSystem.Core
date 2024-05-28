@@ -23,12 +23,12 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.DbCell)
 			{
-				Stream stream = biff.GetDataStream();
-				BinaryReader reader = new BinaryReader(stream);
+				var stream = biff.GetDataStream();
+				var reader = new BinaryReader(stream);
 				
 				_rowOffset = reader.ReadUInt32();
 
-				int noffsets = (int)(stream.Length - stream.Position) / 2;
+				var noffsets = (int)(stream.Length - stream.Position) / 2;
 				_streamOffsets = new ushort[noffsets];
 				noffsets = 0;
 				while(stream.Position < stream.Length)

@@ -21,7 +21,7 @@ namespace Net.Office.Excel
 		/// <remarks>Search is case sensitive.</remarks>
 		public Worksheet GetByName(string index)
 		{
-			foreach(Worksheet sheet in this)
+			foreach(var sheet in this)
 			{
 				if(string.Compare(sheet.Name, index, true) == 0)
 					return sheet;

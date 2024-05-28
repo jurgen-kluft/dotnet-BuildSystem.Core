@@ -48,16 +48,16 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Xf)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 				
 				_fontIdx = reader.ReadUInt16();
 				_formatIdx = reader.ReadUInt16();
 
-				ushort data = reader.ReadUInt16();
+				var data = reader.ReadUInt16();
 				_typeAndProtection = new TypeAndProtection(data & 0x000F);
 				_parentIdx = (ushort)((data & 0xFFF0) >> 8);
 
-				byte data2 = reader.ReadByte();
+				var data2 = reader.ReadByte();
 				_horizontalAlignment = (HorizontalAlignment)(data2 & 0x07);
 				_wrapped = (data & 0x088) != 0;
 				_verticalAlignment = (VerticalAlignment)((data2 & 0x70) >> 4);
@@ -71,7 +71,7 @@ namespace Net.Office.Excel.Records
 
 				_parentStyle = (ParentStyleAttributes)(reader.ReadByte());
 					
-				uint data3 = reader.ReadUInt32();
+				var data3 = reader.ReadUInt32();
 				_leftLineStyle = (LineStyle)(data3 & 0x0000000F);
 				_rightLineStyle = (LineStyle)((data3 & 0x000000F0) >> 1);
 				_topLineStyle = (LineStyle)((data3 & 0x00000F00) >> 2);

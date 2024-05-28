@@ -50,17 +50,17 @@ namespace GameCore
         {
             if (includeNonIndexedParam)
             {
-                string paramStr = String.Format("{0}", itemFormat);
+                var paramStr = String.Format("{0}", itemFormat);
                 if (HasParameter(paramStr))
                     handler(this[paramStr]);
             }
 
             // Extract from the command-line:
             // -file0, -file1, ..., -fileN
-            int idx = startIdx;
+            var idx = startIdx;
             while (true)
             {
-                string paramStr = String.Format("{0}{1}", itemFormat, idx++);
+                var paramStr = String.Format("{0}{1}", itemFormat, idx++);
                 if (!HasParameter(paramStr))
                     break;
                 handler(this[paramStr]);
@@ -76,19 +76,19 @@ namespace GameCore
             if (Args.Length > 0)
             {
                 mParameters = new StringDictionary();
-                Regex Spliter = new Regex(@"^-{1,2}|^/|=", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-                Regex Remover = new Regex(@"^['""]?(.*?)['""]?$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                var Spliter = new Regex(@"^-{1,2}|^/|=", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                var Remover = new Regex(@"^['""]?(.*?)['""]?$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
                 string parameterStr = null;
                 string[] Parts;
 
                 // Test for '@', which means that a file is used for an extended commandline
                 if (Args[0].StartsWith("@"))
                 {
-                    string filename = Args[0].Trim(' ', '@');
-                    FileInfo fileInfo = new FileInfo(filename);
+                    var filename = Args[0].Trim(' ', '@');
+                    var fileInfo = new FileInfo(filename);
                     if (fileInfo.Exists)
                     {
-                        System.IO.StreamReader reader = fileInfo.OpenText();
+                        var reader = fileInfo.OpenText();
                         Args[0] = reader.ReadToEnd();
                         reader.Close();
                     }
@@ -101,7 +101,7 @@ namespace GameCore
                 // Valid parameters forms:
                 // {-,/,--}param{ ,=,:}((",')value(",'))
                 // Examples: -param1 value1 --param2 /param3:"Test-:-work" /param4=happy -param5 '--=nice=--'
-                foreach (string Txt in Args)
+                foreach (var Txt in Args)
                 {
                     // Look for new parameters (-, / or --) and a possible enclosed value (=,:)
                     Parts = Spliter.Split(Txt, 3);

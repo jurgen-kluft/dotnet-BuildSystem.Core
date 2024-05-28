@@ -59,7 +59,7 @@ namespace DataBuildSystem
             Console.WriteLine("------ DataBuildSystem.NET - GameDataCompiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemCompilerConfig.PlatformName, BuildSystemCompilerConfig.TargetName);
 
             // Record the total build time
-            DateTime buildStart = DateTime.Now;
+            var buildStart = DateTime.Now;
 
             // Create the destination, gdd and publish output paths
             DirUtils.Create(BuildSystemCompilerConfig.DstPath);

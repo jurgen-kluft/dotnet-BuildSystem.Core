@@ -23,8 +23,8 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Array)
 			{
-				Stream stream = biff.GetDataStream();
-				BinaryReader reader = new BinaryReader(stream);
+				var stream = biff.GetDataStream();
+				var reader = new BinaryReader(stream);
 				
 				ReadRangeValues(reader);
 

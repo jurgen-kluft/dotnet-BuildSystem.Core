@@ -29,7 +29,7 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Row)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 				_rowNumber = reader.ReadUInt16();
 				_firstCol = reader.ReadUInt16();
 				_lastCol = reader.ReadUInt16();

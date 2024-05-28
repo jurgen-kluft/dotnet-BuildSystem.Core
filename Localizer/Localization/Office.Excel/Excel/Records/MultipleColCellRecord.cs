@@ -21,7 +21,7 @@ namespace Net.Office.Excel.Records
 			ReadRow(reader);
 			_firstCol = reader.ReadUInt16();
 
-			byte[] inBetween = reader.ReadBytes((int)(reader.BaseStream.Length - 6));
+			var inBetween = reader.ReadBytes((int)(reader.BaseStream.Length - 6));
 
 			_lastCol = reader.ReadUInt16();
 

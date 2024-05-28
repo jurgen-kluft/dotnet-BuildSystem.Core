@@ -19,7 +19,7 @@ namespace Net.SourceForge.Koogra.Storage.Sectors
 		{
 			Debug.Assert(stream.Length >= Constants.SECTOR_SIZE);
 
-			for(int i = 0; i < _entries.Length; ++i)
+			for(var i = 0; i < _entries.Length; ++i)
 				_entries[i] = new DirectorySectorEntry(stream);
 		}
 

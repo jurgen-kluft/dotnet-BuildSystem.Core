@@ -31,7 +31,7 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Font)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
 				_fontHeight = reader.ReadUInt16();
 				_options = (FontOptions)reader.ReadUInt16();
@@ -41,8 +41,8 @@ namespace Net.Office.Excel.Records
 				_underline = (FontUnderline)reader.ReadByte();
 				_fontFamily = (FontFamily)reader.ReadByte();
 				_characterSet = (FontCharacterSet)reader.ReadByte();
-				byte reserved = reader.ReadByte();
-				byte len = reader.ReadByte();
+				var reserved = reader.ReadByte();
+				var len = reader.ReadByte();
 				_fontName = Reader.ReadComplexString(reader, len);
 			}
 			else

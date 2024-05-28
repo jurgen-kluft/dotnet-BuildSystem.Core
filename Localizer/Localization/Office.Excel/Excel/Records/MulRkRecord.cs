@@ -21,15 +21,15 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.MulRk)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
 				reader = ReadRowColInfo(reader);
 
 				_values = new RkRec[reader.BaseStream.Length / 6];
-				for(int n = 0; n < _values.Length; ++n)
+				for(var n = 0; n < _values.Length; ++n)
 				{
-					ushort xf = reader.ReadUInt16();
-					int rk = reader.ReadInt32();
+					var xf = reader.ReadUInt16();
+					var rk = reader.ReadInt32();
 					_values[n] = new RkRec(xf, rk);
 				}
 			}

@@ -21,7 +21,7 @@ namespace Net.Office.Excel
 		/// <returns>Returns a HyperLinkRecord if a record is found, null if not.</returns>
 		public HyperLinkRecord FindHyperlink(ushort row, ushort col)
 		{
-			foreach(HyperLinkRecord h in this)
+			foreach(var h in this)
 			{
 				if(h.FirstRow >= row && h.LastRow <= row &&
 					h.FirstCol >= col && h.LastCol <= col)

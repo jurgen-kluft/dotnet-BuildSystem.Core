@@ -12,12 +12,12 @@ namespace DataBuildSystem
         {
             try
             {
-                TextStream ts = new TextStream(_csincludeFilename);
+                var ts = new TextStream(_csincludeFilename);
                 if (ts.Open(TextStream.EMode.Read))
                 {
                     while (!ts.Reader.EndOfStream)
                     {
-                        string filename = ts.Reader.ReadLine();
+                        var filename = ts.Reader.ReadLine();
                         collectedCsFiles.Add(new Filename(filename));
                     }
                     ts.Close();
@@ -31,21 +31,21 @@ namespace DataBuildSystem
 
         private static void Include(Filename[] _csincludeFilenames, List<Filename> collectedCsFiles)
         {
-            foreach (Filename f in _csincludeFilenames)
+            foreach (var f in _csincludeFilenames)
                 Include(f, collectedCsFiles);
         }
 
         public static Assembly Compile(Filename filenameOfAssembly, Filename[] files, Filename[] csincludes, Dirname srcPath, Dirname subPath, Dirname dstPath, Dirname depPath, Filename[] referencedAssemblies)
         {
-            List<Filename> collectedCsFiles = new List<Filename>();
+            var collectedCsFiles = new List<Filename>();
             Include(csincludes, collectedCsFiles);
 
-            DepFile depFile = new DepFile(subPath + filenameOfAssembly, dstPath);
-            bool isModified = true;
+            var depFile = new DepFile(subPath + filenameOfAssembly, dstPath);
+            var isModified = true;
             if (depFile.load(depPath))
             {
                 isModified = false;
-                foreach (Filename f in files)
+                foreach (var f in files)
                 {
                     if (!depFile.hasIn(srcPath + f))
                     {
@@ -55,7 +55,7 @@ namespace DataBuildSystem
                 }
                 if (!isModified)
                 {
-                    foreach (Filename f in csincludes)
+                    foreach (var f in csincludes)
                     {
                         if (!depFile.hasIn(srcPath + f))
                         {
@@ -66,7 +66,7 @@ namespace DataBuildSystem
                 }
                 if (!isModified)
                 {
-                    foreach (Filename f in collectedCsFiles)
+                    foreach (var f in collectedCsFiles)
                     {
                         if (!depFile.hasIn(srcPath + f))
                         {
@@ -78,7 +78,7 @@ namespace DataBuildSystem
 
                 if (!isModified)
                 {
-                    foreach (Filename f in referencedAssemblies)
+                    foreach (var f in referencedAssemblies)
                     {
                         if (!depFile.hasIn(f))
                         {
@@ -101,24 +101,24 @@ namespace DataBuildSystem
                 depFile = new DepFile(subPath + filenameOfAssembly, dstPath);
                 depFile.main.Rule = DepInfo.EDepRule.MUST_EXIST;             /// The main file must exist, if it doesn't we need to try and build it again!
 
-                foreach (Filename f in files)
+                foreach (var f in files)
                     depFile.addIn(f, srcPath);
-                foreach (Filename f in csincludes)
+                foreach (var f in csincludes)
                     depFile.addIn(f, srcPath);
-                foreach (Filename f in collectedCsFiles)
+                foreach (var f in collectedCsFiles)
                     depFile.addIn(f, srcPath);
 
                 // The referenced assemblies are using absolute paths
-                foreach (Filename f in referencedAssemblies)
+                foreach (var f in referencedAssemblies)
                     depFile.addIn(f, Dirname.Empty);
 
                 Console.WriteLine("Compiling assembly {0}.", filenameOfAssembly);
                 try
                 {
-                    List<Filename> sourceFilenames = new List<Filename>();
-                    foreach (Filename f in files)
+                    var sourceFilenames = new List<Filename>();
+                    foreach (var f in files)
                         sourceFilenames.Add(f);
-                    foreach (Filename f in collectedCsFiles)
+                    foreach (var f in collectedCsFiles)
                         sourceFilenames.Add(f);
 
                     // If this assembly did not change (dependency file?) then we do not need to build it
@@ -141,7 +141,7 @@ namespace DataBuildSystem
                 try
                 {
                     Console.WriteLine("Loading assembly {0}.", filenameOfAssembly);
-                    AssemblyName assemblyName = new AssemblyName();
+                    var assemblyName = new AssemblyName();
                     assemblyName.CodeBase = dstPath + subPath + filenameOfAssembly;
                     assembly = Assembly.Load(assemblyName);
                     if (assembly != null)

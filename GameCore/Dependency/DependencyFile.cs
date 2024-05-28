@@ -7,8 +7,6 @@ namespace GameCore
 {
     public class DepFile
     {
-        #region Fields
-
         private string mUserKey = string.Empty;
         private string mExtension = string.Empty;
         private readonly DepInfo mMain;             /// The key/main file
@@ -27,9 +25,6 @@ namespace GameCore
         private EDependencyState mState = EDependencyState.CREATED;
         private bool mUpdated = false;
 
-        #endregion
-        #region Constructors
-
         private DepFile() : this(string.Empty, string.Empty)
         {
         }
@@ -45,9 +40,6 @@ namespace GameCore
             mInMap = new Dictionary<string, int>();
             mOutMap = new Dictionary<string, int>();
         }
-
-        #endregion
-        #region Properties
 
         public DepInfo main
         {
@@ -119,17 +111,14 @@ namespace GameCore
             if (mMain.Status != DepInfo.EStatus.UNCHANGED)
                 return true;
 
-            foreach (DepInfo d in mIn)
+            foreach (var d in mIn)
                 if (d.Status != DepInfo.EStatus.UNCHANGED)
                     return true;
-            foreach (DepInfo d in mOut)
+            foreach (var d in mOut)
                 if (d.Status != DepInfo.EStatus.UNCHANGED)
                     return true;
             return false;
         }
-
-        #endregion
-        #region Private Methods
 
         private void addIn(DepInfo depInfoIN)
         {
@@ -162,7 +151,7 @@ namespace GameCore
                     writer.WriteLine("\tRULE={0}", mMain.Rule);
                     writer.WriteLine("\tHASH={0}", mMain.Hash);
 
-                    foreach (DepInfo d in mIn)
+                    foreach (var d in mIn)
                     {
                         writer.WriteLine("\tIN={");
                         writer.WriteLine("\t\tFILENAME={0}", d.Filename);
@@ -172,7 +161,7 @@ namespace GameCore
                         writer.WriteLine("\t\tHASH={0}", d.Hash);
                         writer.WriteLine("\t}");
                     }
-                    foreach (DepInfo d in mOut)
+                    foreach (var d in mOut)
                     {
                         writer.WriteLine("\tOUT={");
                         writer.WriteLine("\t\tFILENAME={0}", d.Filename);
@@ -194,23 +183,20 @@ namespace GameCore
             }
         }
 
-        #endregion
-        #region Public Methods
-
         public void addIn(string filename, string folder)
         {
-            DepInfo di = new DepInfo(0, filename, folder);
+            var di = new DepInfo(0, filename, folder);
             addIn(di);
         }
         public void addIn(string filename, string folder, DepInfo.EDepRule rule)
         {
-            DepInfo di = new DepInfo(0, filename, folder);
+            var di = new DepInfo(0, filename, folder);
             di.Rule = rule;
             addIn(di);
         }
         public void addIn(string filename, string folder, DepInfo.EDepMethod method)
         {
-            DepInfo di = new DepInfo(0, filename, folder, method);
+            var di = new DepInfo(0, filename, folder, method);
             addIn(di);
         }
 
@@ -222,18 +208,18 @@ namespace GameCore
 
         public void addOut(string filename, string folder)
         {
-            DepInfo di = new DepInfo(0, filename, folder);
+            var di = new DepInfo(0, filename, folder);
             addOut(di);
         }
         public void addOut(string filename, string folder, DepInfo.EDepRule rule)
         {
-            DepInfo di = new DepInfo(0, filename, folder);
+            var di = new DepInfo(0, filename, folder);
             di.Rule = rule;
             addOut(di);
         }
         public void addOut(string filename, string folder, DepInfo.EDepMethod method)
         {
-            DepInfo di = new DepInfo(0, filename, folder, method);
+            var di = new DepInfo(0, filename, folder, method);
             addOut(di);
         }
 
@@ -264,9 +250,9 @@ namespace GameCore
             try
             {
                 mMain.init();
-                foreach (DepInfo d in mIn)
+                foreach (var d in mIn)
                     d.init();
-                foreach (DepInfo d in mOut)
+                foreach (var d in mOut)
                     d.init();
             }
             catch (Exception e)
@@ -285,9 +271,9 @@ namespace GameCore
             {
                 mMain.update();
 
-                foreach (DepInfo d in mIn)
+                foreach (var d in mIn)
                     d.update();
-                foreach (DepInfo d in mOut)
+                foreach (var d in mOut)
                     d.update();
             }
             catch (Exception e)
@@ -304,7 +290,7 @@ namespace GameCore
         {
             try
             {
-                string depFilename = dstPath + "\\" + mMain.Filename + extension;
+                var depFilename = dstPath + "\\" + mMain.Filename + extension;
                 File.Delete(depFilename);
             }
             catch (Exception)
@@ -331,13 +317,13 @@ namespace GameCore
                     }
                 }
 
-                string depFilename = dstPath + mMain.Filename + extension;
+                var depFilename = dstPath + mMain.Filename + extension;
 
                 // Directory exists at destination ?
                 if (!Directory.Exists(depFilename))
                     Directory.CreateDirectory(depFilename);
 
-                TextStream ts = new TextStream(depFilename);
+                var ts = new TextStream(depFilename);
                 ts.Open(TextStream.EMode.Write);
                 save(ts.Writer);
                 ts.Close();
@@ -365,7 +351,7 @@ namespace GameCore
                 var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var reader = new System.IO.StreamReader(fileStream);
 
-                bool ok = false;
+                var ok = false;
                 try
                 {
                     ok = sReadSingle(reader, this);
@@ -403,13 +389,13 @@ namespace GameCore
             if (mOut.Count != other.mOut.Count)
                 return false;
 
-            foreach (DepInfo d in mIn)
+            foreach (var d in mIn)
             {
                 if (!other.mInMap.ContainsKey(d.Filename))
                     return false;
             }
 
-            foreach (DepInfo d in mOut)
+            foreach (var d in mOut)
             {
                 if (!other.mOutMap.ContainsKey(d.Filename))
                     return false;
@@ -417,9 +403,6 @@ namespace GameCore
 
             return true;
         }
-
-        #endregion
-        #region Operators
 
         public static bool operator ==(DepFile a, DepFile b)
         {
@@ -434,15 +417,15 @@ namespace GameCore
             if (a.main == null || b.main == null)
                 return false;
 
-            bool equal = false;
+            var equal = false;
             if (a.main == b.main)
             {
                 if (a.mIn.Count == b.mIn.Count)
                 {
                     equal = true;
-                    foreach (DepInfo ad in a.mIn)
+                    foreach (var ad in a.mIn)
                     {
-                        foreach (DepInfo bd in b.mIn)
+                        foreach (var bd in b.mIn)
                         {
                             if (ad != bd)
                             {
@@ -460,16 +443,13 @@ namespace GameCore
 
         public static bool operator !=(DepFile a, DepFile b)
         {
-            bool equal = (a == b);
+            var equal = (a == b);
             return !equal;
         }
 
-        #endregion
-        #region Public Static Methods
-
         public static DepFile sCreate(string filename, string folder)
         {
-            DepFile depFile = new DepFile(filename, folder);
+            var depFile = new DepFile(filename, folder);
             return depFile;
         }
 
@@ -480,7 +460,7 @@ namespace GameCore
 
         public static DepFile sCreate(string srcFilename, string srcFolder, string dstFilename, string dstFolder, string userKey)
         {
-            DepFile depFile = new DepFile(srcFilename, srcFolder);
+            var depFile = new DepFile(srcFilename, srcFolder);
             depFile.userKey = userKey;
             depFile.addOut(dstFilename, dstFolder);
             return depFile;
@@ -503,19 +483,19 @@ namespace GameCore
 
         public static DepFile sCreate(string MainFilename, string[] AdditionalInFilenames, string srcFolder, string[] OutFilenames, string dstFolder, string userKey)
         {
-            DepFile depFile = new DepFile(MainFilename, srcFolder);
+            var depFile = new DepFile(MainFilename, srcFolder);
             try
             {
                 depFile.userKey = userKey;
 
                 if (AdditionalInFilenames != null)
                 {
-                    foreach (string i in AdditionalInFilenames)
+                    foreach (var i in AdditionalInFilenames)
                         depFile.addIn(i, srcFolder);
                 }
                 if (OutFilenames != null)
                 {
-                    foreach (string i in OutFilenames)
+                    foreach (var i in OutFilenames)
                         depFile.addOut(i, dstFolder);
                 }
 
@@ -528,27 +508,24 @@ namespace GameCore
             }
         }
 
-        #endregion
-        #region Private Static Methods
-
         private static bool sReadSingle(System.IO.StreamReader reader, DepFile depfile)
         {
-            bool readOneDepFile = false;
+            var readOneDepFile = false;
 
-            string currentDepFile_filename = string.Empty;
-            string currentDepFile_folder = string.Empty;
+            var currentDepFile_filename = string.Empty;
+            var currentDepFile_folder = string.Empty;
 
-            bool currentDepInfoOpen = false;
-            bool currentDepInfoIsIn = false;
-            string currentDepInfo_filename = string.Empty;
-            string currentDepInfo_folder = string.Empty;
-            DepInfo.EDepMethod currentDepInfo_method = DepInfo.EDepMethod.TIMESTAMP;
-            DepInfo.EDepRule currentDepInfo_rule = DepInfo.EDepRule.ON_CHANGE;
-            Hash160 currentDepInfo_hash = Hash160.Empty;
+            var currentDepInfoOpen = false;
+            var currentDepInfoIsIn = false;
+            var currentDepInfo_filename = string.Empty;
+            var currentDepInfo_folder = string.Empty;
+            var currentDepInfo_method = DepInfo.EDepMethod.TIMESTAMP;
+            var currentDepInfo_rule = DepInfo.EDepRule.ON_CHANGE;
+            var currentDepInfo_hash = Hash160.Empty;
 
             while (!reader.EndOfStream && !readOneDepFile)
             {
-                string line = reader.ReadLine();
+                var line = reader.ReadLine();
                 line = line.Trim(' ', '\t');
 
                 if (line.StartsWith("FILE="))
@@ -567,10 +544,10 @@ namespace GameCore
                 }
                 else if (line.StartsWith("FILENAME="))
                 {
-                    string[] lineParts = line.Split('=');
+                    var lineParts = line.Split('=');
                     if (lineParts.Length == 2)
                     {
-                        string name = lineParts[1].TrimStart(' ', '\t');
+                        var name = lineParts[1].TrimStart(' ', '\t');
                         if (currentDepInfoOpen)
                         {
                             currentDepInfo_filename = new string(name);
@@ -583,21 +560,21 @@ namespace GameCore
                 }
                 else if (line.StartsWith("USERKEY="))
                 {
-                    string[] lineParts = line.Split('=');
+                    var lineParts = line.Split('=');
                     if (lineParts.Length == 2)
                     {
-                        string userKey = lineParts[1].TrimStart(' ', '\t');
+                        var userKey = lineParts[1].TrimStart(' ', '\t');
                         if (depfile != null)
                             depfile.userKey = userKey;
                     }
                 }
                 else if (line.StartsWith("METHOD="))
                 {
-                    string[] lineParts = line.Split('=');
+                    var lineParts = line.Split('=');
                     if (lineParts.Length == 2)
                     {
-                        string modeStr = lineParts[1].TrimStart(' ', '\t');
-                        DepInfo.EDepMethod method = (DepInfo.EDepMethod)Enum.Parse(typeof(DepInfo.EDepMethod), modeStr, true);
+                        var modeStr = lineParts[1].TrimStart(' ', '\t');
+                        var method = (DepInfo.EDepMethod)Enum.Parse(typeof(DepInfo.EDepMethod), modeStr, true);
                         if (currentDepInfoOpen)
                         {
                             currentDepInfo_method = method;
@@ -610,10 +587,10 @@ namespace GameCore
                 }
                 else if (line.StartsWith("FOLDER="))
                 {
-                    string[] lineParts = line.Split('=');
+                    var lineParts = line.Split('=');
                     if (lineParts.Length == 2)
                     {
-                        string name = lineParts[1].TrimStart(' ', '\t');
+                        var name = lineParts[1].TrimStart(' ', '\t');
                         if (currentDepInfoOpen)
                         {
                             currentDepInfo_folder = new string(name);
@@ -626,10 +603,10 @@ namespace GameCore
                 }
                 else if (line.StartsWith("HASH="))
                 {
-                    string[] lineParts = line.Split('=');
+                    var lineParts = line.Split('=');
                     if (lineParts.Length == 2)
                     {
-                        string hashStr = lineParts[1].Trim(' ', '\t');
+                        var hashStr = lineParts[1].Trim(' ', '\t');
                         if (currentDepInfoOpen)
                             currentDepInfo_hash = Hash160.FromString(hashStr);
                         else if (depfile != null)
@@ -638,11 +615,11 @@ namespace GameCore
                 }
                 else if (line.StartsWith("RULE="))
                 {
-                    string[] lineParts = line.Split('=');
+                    var lineParts = line.Split('=');
                     if (lineParts.Length == 2)
                     {
-                        string ruleStr = lineParts[1].Trim(' ', '\t');
-                        DepInfo.EDepRule rule = (DepInfo.EDepRule)Enum.Parse(typeof(DepInfo.EDepRule), ruleStr, true);
+                        var ruleStr = lineParts[1].Trim(' ', '\t');
+                        var rule = (DepInfo.EDepRule)Enum.Parse(typeof(DepInfo.EDepRule), ruleStr, true);
                         if (currentDepInfoOpen)
                             currentDepInfo_rule = rule;
                         else if (depfile != null)
@@ -654,7 +631,7 @@ namespace GameCore
                     if (currentDepInfoOpen)
                     {
                         currentDepInfoOpen = false;
-                        DepInfo depInfo = new DepInfo(0, currentDepInfo_filename, currentDepInfo_folder, currentDepInfo_method, currentDepInfo_hash);
+                        var depInfo = new DepInfo(0, currentDepInfo_filename, currentDepInfo_folder, currentDepInfo_method, currentDepInfo_hash);
                         depInfo.Rule = currentDepInfo_rule;
                         if (currentDepInfoIsIn)
                             depfile.addIn(depInfo);
@@ -685,10 +662,10 @@ namespace GameCore
 
         internal static List<DepFile> sReadMulti(System.IO.StreamReader reader)
         {
-            List<DepFile> readDepFiles = new List<DepFile>();
+            var readDepFiles = new List<DepFile>();
             while (!reader.EndOfStream)
             {
-                DepFile d = new DepFile();
+                var d = new DepFile();
                 if (!sReadSingle(reader, d))
                     break;
                 readDepFiles.Add(d);
@@ -700,17 +677,17 @@ namespace GameCore
         {
             try
             {
-                FileInfo fileInfo = new FileInfo(path + "\\" + filename + extension);
+                var fileInfo = new FileInfo(path + "\\" + filename + extension);
                 if (fileInfo.Exists == false)
                 {
                     depFiles = new DepFile[0];
                     return true;
                 }
 
-                FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                System.IO.StreamReader reader = new System.IO.StreamReader(fileStream);
+                var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var reader = new System.IO.StreamReader(fileStream);
 
-                List<DepFile> readDepFiles = sReadMulti(reader);
+                var readDepFiles = sReadMulti(reader);
                 depFiles = readDepFiles.ToArray();
 
                 reader.Close();
@@ -724,22 +701,20 @@ namespace GameCore
                 return false;
             }
         }
-        #endregion
-        #region Equals, GetHashCode
 
         public override bool Equals(object obj)
         {
-            DepFile depFile = (DepFile)obj;
+            var depFile = (DepFile)obj;
             if (depFile.main != main)
                 return false;
 
             if (mIn.Count != depFile.mIn.Count)
                 return false;
 
-            foreach (DepInfo d in mIn)
+            foreach (var d in mIn)
             {
-                bool equal = false;
-                foreach (DepInfo dd in depFile.mIn)
+                var equal = false;
+                foreach (var dd in depFile.mIn)
                 {
                     if (d == dd)
                     {
@@ -757,8 +732,6 @@ namespace GameCore
         {
             return main.GetHashCode();
         }
-
-        #endregion
     }
 
 }

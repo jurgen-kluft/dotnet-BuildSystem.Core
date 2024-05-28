@@ -24,7 +24,7 @@ namespace DataBuildSystem
         private Assembly LoadAssembly(string gameDataDllFilename)
         {
             mGameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            byte[] dllBytes = File.ReadAllBytes(Path.Join(BuildSystemCompilerConfig.GddPath, gameDataDllFilename));
+            var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemCompilerConfig.GddPath, gameDataDllFilename));
             mGameDataAssembly = mGameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
             return mGameDataAssembly;
         }
@@ -56,7 +56,7 @@ namespace DataBuildSystem
                     gdCl.Load(loadedCompilers);
 
                     // Execute all compilers, every compiler will thus check it's dependencies (source and destination files)
-                    var result = gdCl.Execute(loadedCompilers, out List<DataCompilerOutput> gdClOutput);
+                    var result = gdCl.Execute(loadedCompilers, out var gdClOutput);
                     if (result.IsNotOk)
                     {
                         // Some (or all) compilers reported a change, now we have to load the assembly and build the Bigfile and Game Data.
@@ -66,7 +66,7 @@ namespace DataBuildSystem
                         // We have to collect the data compilers from the gdd because we have to assign FileId's
                         // The number and order of data compilers should be identical with 'loaded_compilers'
                         var currentCompilers = gdd.CollectDataCompilers();
-                        gdCl.Merge(loadedCompilers, currentCompilers, out List<IDataCompiler> mergedCompilers);
+                        gdCl.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
                         gdCl.AssignFileId(gdu.Index, mergedCompilers);
 
                         // GameDataCompiler log is updated -> rebuild the Bigfile
@@ -92,9 +92,9 @@ namespace DataBuildSystem
 
                     var gdCl = new GameDataCompilerLog(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
                     gdCl.Load(loadedCompilers);
-                    gdCl.Merge(loadedCompilers, currentCompilers, out List<IDataCompiler> mergedCompilers);
+                    gdCl.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
 
-                    var result = gdCl.Execute(mergedCompilers, out List<DataCompilerOutput> gdClOutput);
+                    var result = gdCl.Execute(mergedCompilers, out var gdClOutput);
                     if (result.IsOk)
                     {
                         if (gduGameDataData.IsNotOk || gduBigfile.IsNotOk)
@@ -145,7 +145,7 @@ namespace DataBuildSystem
                 if (magic == StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'))
                 {
                     var numUnits = binaryFile.ReadInt32();
-                    for (int i = 0; i < numUnits; i++)
+                    for (var i = 0; i < numUnits; i++)
                     {
                         var gdu = GameDataUnit.Load(binaryFile);
 
@@ -195,13 +195,37 @@ namespace DataBuildSystem
         }
     }
 
+    // Each GameDataUnit consists of 8 files, these are:
+    //    GameDataDll
+    //    GameDataCompilerLog
+    //    GameDataData
+    //    GameDataRelocation
+    //    BigFileData
+    //    BigFileToc
+    //    BigFileFilenames
+    //    BigFileHashes
+    //
+    // The filename extension is different for each of the above file types, the GameDataDll is a .dll file etc..
+    // Most extensions are configurable, but the GameDataDll (.dll) and GameDataCompilerLog (.gdl) are fixed.
+    // 
+    // So for example, the GameDataUnit "Levels" should have the following files:
+    //    GameData.Levels.dll
+    //    GameData.Levels.gdl
+    //    GameData.Levels.gdd
+    //    GameData.Levels.gdr
+    //    GameData.Levels.gda
+    //    GameData.Levels.gdt
+    //    GameData.Levels.gdf
+    //    GameData.Levels.gdh
+    
+
     public class GameDataUnit
     {
         public string FilePath { get; private init; }
         public string Name { get; }
         public Hash160 Hash { get; private init; }
         public Int32 Index { get; private init; }
-        private State[] States { get; set; } = new State[8];
+        private State[] States { get; set; } = new State[(int)EGameData.Count];
         private Dependency Dep { get; set; }
 
         public State StateOf(EGameData u)
@@ -211,7 +235,7 @@ namespace DataBuildSystem
 
         public State StateOf(params EGameData[] pu)
         {
-            State s = new State();
+            var s = new State();
             foreach (var u in pu)
                 s.Merge(States[(int)u]);
             return s;

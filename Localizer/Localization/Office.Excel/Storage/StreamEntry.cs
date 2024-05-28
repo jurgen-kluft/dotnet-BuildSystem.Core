@@ -28,17 +28,17 @@ namespace Net.SourceForge.Koogra.Storage
 
 			if(!dataOffset.IsEndOfChain)
 			{
-				int left = (int)length;
-				MemoryStream stream = new MemoryStream(_data);
-				Sect sect = dataOffset;
+				var left = (int)length;
+				var stream = new MemoryStream(_data);
+				var sect = dataOffset;
 
 				do
 				{
 					try
 					{
-						StorageSector sector = (StorageSector)sectors[sect];
+						var sector = (StorageSector)sectors[sect];
 
-						int toWrite = Math.Min(sector.Data.Length, left);
+						var toWrite = Math.Min(sector.Data.Length, left);
 						Debug.Assert(toWrite <= 512);
 						stream.Write(sector.Data, 0, toWrite);
 						left -= toWrite;

@@ -21,9 +21,9 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Palette)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
-				ushort numColors = reader.ReadUInt16();
+				var numColors = reader.ReadUInt16();
 				_colors = new int[numColors];
 				for(ushort i = 0; i < numColors; ++i)
 				{

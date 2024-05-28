@@ -28,13 +28,13 @@ namespace GameCore
             if (processInfo.Verbose)
                 Console.WriteLine(string.Format("Executing process {0} {1} in {2}", processInfo.FileName, processInfo.Arguments, processInfo.WorkingDirectory));
 
-            using (SystemProcess process = Start(processInfo))
+            using (var process = Start(processInfo))
             {
                 using (ProcessReader standardOutput = new ProcessReader(process.StandardOutput), standardError = new ProcessReader(process.StandardError))
                 {
                     WriteToStandardInput(process, processInfo);
 
-                    bool hasExited = process.WaitForExit(processInfo.TimeOut);
+                    var hasExited = process.WaitForExit(processInfo.TimeOut);
                     if (hasExited)
                     {
                         standardOutput.WaitForExit();
@@ -51,14 +51,14 @@ namespace GameCore
 
         private SystemProcess Start(ProcessInfo processInfo)
         {
-            SystemProcess process = processInfo.CreateProcess();
+            var process = processInfo.CreateProcess();
 
             if (processInfo.Verbose)
                 Console.WriteLine(string.Format("Attempting to start process [{0}] in working directory [{1}] with arguments [{2}]", process.StartInfo.FileName, process.StartInfo.WorkingDirectory, process.StartInfo.Arguments));
 
             try
             {
-                bool isNewProcess = process.Start();
+                var isNewProcess = process.Start();
                 if (!isNewProcess)
                 {
                     if (processInfo.Verbose)
@@ -67,8 +67,8 @@ namespace GameCore
             }
             catch (Win32Exception e)
             {
-                string filename = Path.Combine(process.StartInfo.WorkingDirectory, process.StartInfo.FileName);
-                string msg = string.Format("Unable to execute file [{0}].  The file may not exist or may not be executable.", filename);
+                var filename = Path.Combine(process.StartInfo.WorkingDirectory, process.StartInfo.FileName);
+                var msg = string.Format("Unable to execute file [{0}].  The file may not exist or may not be executable.", filename);
                 throw new IOException(msg, e);
             }
             return process;
@@ -175,7 +175,7 @@ namespace GameCore
 
 		private void KillChildren(SystemProcess process, bool verbose)
 		{
-			TimeSpan timeout = new TimeSpan(0, 0, 15);
+			var timeout = new TimeSpan(0, 0, 15);
 			string stdout;
 			if (GameCore.Environment.IsWindows)
 			{

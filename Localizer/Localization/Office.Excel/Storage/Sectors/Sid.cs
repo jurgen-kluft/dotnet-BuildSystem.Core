@@ -152,7 +152,7 @@ namespace Net.SourceForge.Koogra.Storage.Sectors
 		/// <returns>Returns 0, &lt; 0 or &gt; 0 if obj is equal, less or greater than this Sid respectively.</returns>
 		public int CompareTo(object obj)
 		{
-			Sid l = (Sid)obj;
+			var l = (Sid)obj;
 
 			return _value.CompareTo(l.Value);
 		}

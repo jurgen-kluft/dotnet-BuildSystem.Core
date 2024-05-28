@@ -42,7 +42,7 @@ namespace GameCore
         {
             if (WorkingDirectory != null)
             {
-                string executableInWorkingDirectory = Path.Combine(WorkingDirectory, FileName);
+                var executableInWorkingDirectory = Path.Combine(WorkingDirectory, FileName);
                 if (File.Exists(executableInWorkingDirectory))
                 {
                     startInfo.FileName = executableInWorkingDirectory;
@@ -116,14 +116,14 @@ namespace GameCore
             if (!StringTools.IsBlank(WorkingDirectory) && !Directory.Exists(WorkingDirectory))
                 throw new DirectoryNotFoundException("Directory does not exist: " + WorkingDirectory);
 
-            SystemProcess process = new SystemProcess();
+            var process = new SystemProcess();
             process.StartInfo = startInfo;
             return process;
         }
 
         public override bool Equals(object obj)
         {
-            ProcessInfo otherProcessInfo = obj as ProcessInfo;
+            var otherProcessInfo = obj as ProcessInfo;
             if (otherProcessInfo == null)
             {
                 return false;

@@ -41,9 +41,9 @@ namespace Net.SourceForge.Koogra.Storage.Sectors
 		public HeaderSector(Stream stream) 
 		{
 			Debug.Assert(stream.Length >= Constants.SECTOR_SIZE);
-			BinaryReader reader = new BinaryReader(stream);
+			var reader = new BinaryReader(stream);
 
-			ulong magicNumber = reader.ReadUInt64();
+			var magicNumber = reader.ReadUInt64();
 			if(magicNumber != MAGIC_NUMBER)
 				throw new Exception("Invalid header magic number.");
 
@@ -65,7 +65,7 @@ namespace Net.SourceForge.Koogra.Storage.Sectors
 			_sectDifStart = new Sect(reader.ReadUInt32());
 			_sectDifCount = reader.ReadUInt32();
 
-			for(int i = 0; i < _sectFat.Length; ++i)
+			for(var i = 0; i < _sectFat.Length; ++i)
 				_sectFat[i] = new Sect(reader.ReadUInt32());
 		}
 

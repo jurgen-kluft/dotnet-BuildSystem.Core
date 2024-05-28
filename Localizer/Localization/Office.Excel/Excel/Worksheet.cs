@@ -18,46 +18,46 @@ namespace Net.Office.Excel
 		{
 			_name = sheet.Name;
 
-			int idx = records.IndexOfKey((long)sheet.BofPos);
+			var idx = records.IndexOfKey((long)sheet.BofPos);
 
 			_hyperlinks = new HyperLinkCollection(wb);
 
-			for(int i = idx + 1; i < records.Count; ++i)
+			for(var i = idx + 1; i < records.Count; ++i)
 			{
-				Biff biff = records.Values[i];
+				var biff = records.Values[i];
 				if(biff is HyperLinkRecord)
 					_hyperlinks.Add((HyperLinkRecord)biff);
 				else if(biff is EofRecord)
 					break;
 			}
 			
-			BofRecord bof = (BofRecord)records.Values[idx++];
+			var bof = (BofRecord)records.Values[idx++];
 
-			Biff seeker = records.Values[idx++];
+			var seeker = records.Values[idx++];
 
 			while(!(seeker is IndexRecord))
 				seeker = records.Values[idx++];
 
-			IndexRecord index = (IndexRecord)seeker;
+			var index = (IndexRecord)seeker;
 			
 			_rows = new RowCollection(wb);
-			foreach(uint indexPos in index.Rows)
+			foreach(var indexPos in index.Rows)
 			{
 				long dbCellPos = indexPos;
-				int dbCellIdx = records.IndexOfKey(dbCellPos);
-				DbCellRecord dbCell = (DbCellRecord)records[dbCellPos];
+				var dbCellIdx = records.IndexOfKey(dbCellPos);
+				var dbCell = (DbCellRecord)records[dbCellPos];
 
 				if(dbCell.RowOffset > 0)
 				{
-					long rowPos = dbCellPos - dbCell.RowOffset;
-					int recIndex = records.IndexOfKey(rowPos);
+					var rowPos = dbCellPos - dbCell.RowOffset;
+					var recIndex = records.IndexOfKey(rowPos);
 					Debug.Assert(recIndex != -1);
 
-					Biff record = records.Values[recIndex++];
+					var record = records.Values[recIndex++];
 					while(record is RowRecord)
 					{
-						RowRecord row = (RowRecord)record;
-						Row currentRow = new Row(Workbook, row);
+						var row = (RowRecord)record;
+						var currentRow = new Row(Workbook, row);
 						_rows.Add(row.RowNumber, currentRow);
 
 						record = records.Values[recIndex++];
@@ -71,20 +71,20 @@ namespace Net.Office.Excel
 							continue;
 						}
 
-						CellRecord thecell = (CellRecord)record;
-						Row currentRow = _rows[thecell.Row];
+						var thecell = (CellRecord)record;
+						var currentRow = _rows[thecell.Row];
 
 						if(thecell is SingleColCellRecord)
 						{
-							SingleColCellRecord cell = (SingleColCellRecord)thecell;
-							object val = cell.Value;
+							var cell = (SingleColCellRecord)thecell;
+							var val = cell.Value;
 				
-							Cell newCell = new Cell(Workbook, val);
+							var newCell = new Cell(Workbook, val);
 							if(cell is RowColXfCellRecord)
 							{
-								RowColXfCellRecord xfCell = (RowColXfCellRecord)cell;
+								var xfCell = (RowColXfCellRecord)cell;
 
-								Style style = Workbook.Styles[xfCell.Xf];
+								var style = Workbook.Styles[xfCell.Xf];
 								Debug.Assert(style != null);
 								newCell.Style = style;
 							}
@@ -92,19 +92,19 @@ namespace Net.Office.Excel
 						}
 						else
 						{
-							MultipleColCellRecord cells = (MultipleColCellRecord)thecell;
-							for(ushort i = cells.FirstCol; i <= cells.LastCol; ++i)
+							var cells = (MultipleColCellRecord)thecell;
+							for(var i = cells.FirstCol; i <= cells.LastCol; ++i)
 							{
-								object val = cells.GetValue(i);
+								var val = cells.GetValue(i);
 								if(val != null)
 								{
 									Cell newCell = null;
 									if(val is RkRec)
 									{
-										RkRec rk = (RkRec)val;
+										var rk = (RkRec)val;
 
 										newCell = new Cell(Workbook, rk.Value);
-										Style style = Workbook.Styles[rk.Xf];
+										var style = Workbook.Styles[rk.Xf];
 										Debug.Assert(style != null);
 										newCell.Style = style;
 									}

@@ -18,9 +18,9 @@ namespace Net.SourceForge.Koogra.Storage.Sectors
 		public MiniFatSector(Stream stream)
 		{
 			Debug.Assert(stream.Length >= Constants.SECTOR_SIZE);
-			BinaryReader reader = new BinaryReader(stream);
+			var reader = new BinaryReader(stream);
 
-			for(int i = 0; i < _sect.Length; ++i)
+			for(var i = 0; i < _sect.Length; ++i)
 				_sect[i] = new Sect(reader.ReadUInt32());
 		}
 

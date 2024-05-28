@@ -29,20 +29,20 @@ namespace Net.Office.Excel
 																  };
 		internal FormatCollection(Workbook wb) : base(wb)
 		{
-			CultureInfo culture = CultureInfo.CurrentCulture;
-			string currencySymbol = culture.NumberFormat.CurrencySymbol;
+			var culture = CultureInfo.CurrentCulture;
+			var currencySymbol = culture.NumberFormat.CurrencySymbol;
 
-			int idx = 0;
-			foreach(string format in _builtIn1)
+			var idx = 0;
+			foreach(var format in _builtIn1)
 			{
-				Format f = new Format(wb, format.Replace("\"$\"", currencySymbol));
+				var f = new Format(wb, format.Replace("\"$\"", currencySymbol));
 				BaseAdd(idx++, f);
 			}
 
 			idx = 37;
-			foreach(string format in _builtIn2)
+			foreach(var format in _builtIn2)
 			{
-				Format f = new Format(wb, format.Replace("\"$\"", currencySymbol));
+				var f = new Format(wb, format.Replace("\"$\"", currencySymbol));
 				BaseAdd(idx++, f);
 			}
 		}

@@ -58,7 +58,7 @@ namespace GameData
 
         public DataCompilerOutput CompilerExecute()
         {
-            DataCompilerOutput.EResult result = DataCompilerOutput.EResult.Ok;
+            var result = DataCompilerOutput.EResult.Ok;
             if (mDependency == null)
             {
                 mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
@@ -69,7 +69,7 @@ namespace GameData
                     ts.Open(TextStream.EMode.Read);
                     while (!ts.Reader.EndOfStream)
                     {
-                        string filename = ts.Reader.ReadLine();
+                        var filename = ts.Reader.ReadLine();
                         if (String.IsNullOrEmpty(filename))
                         {
                             mDstFilenames.Add(filename);

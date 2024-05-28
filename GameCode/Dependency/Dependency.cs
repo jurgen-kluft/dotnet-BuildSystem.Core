@@ -79,7 +79,6 @@ namespace DataBuildSystem
         {
             TimestampHash,
             ContentHash,
-            TimestampAndContentHash,
         }
 
         private int Count => Infos.Count;
@@ -130,7 +129,7 @@ namespace DataBuildSystem
 
         public void Add(short id, EGameDataPath p, string filepath)
         {
-            Infos.Add(new Info { Path = p, Id = id, Method = EMethod.TimestampHash });
+            Infos.Add(new Info { Path = p, Id = id, Method = EMethod.ContentHash });
             FilePaths.Add(filepath);
             Hashes.Add(Hash160.Empty);
         }

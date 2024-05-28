@@ -171,8 +171,8 @@ namespace GameCore
 		/// <returns>A <see cref="DVector4"/> that represents the vector specified by the <paramref name="s"/> parameter.</returns>
 		public static DVector4 Parse(string s)
 		{
-			Regex r = new Regex(@"\((?<x>.*),(?<y>.*),(?<z>.*),(?<w>.*)\)", RegexOptions.None);
-			Match m = r.Match(s);
+			var r = new Regex(@"\((?<x>.*),(?<y>.*),(?<z>.*),(?<w>.*)\)", RegexOptions.None);
+			var m = r.Match(s);
 			if (m.Success)
 			{
 				return new DVector4(
@@ -487,7 +487,7 @@ namespace GameCore
 		/// </summary>
 		public void Normalize()
 		{
-			double length = GetLength();
+			var length = GetLength();
 			if (length == 0)
 			{
 				throw new DivideByZeroException("Trying to normalize a vector with length of zero.");
@@ -535,7 +535,7 @@ namespace GameCore
 		{
 			if (obj is DVector4)
 			{
-				DVector4 v = (DVector4)obj;
+				var v = (DVector4)obj;
 				return (mX == v.X) && (mY == v.Y) && (mZ == v.Z) && (mW == v.W);
 			}
 			return false;
@@ -837,7 +837,7 @@ namespace GameCore
 		/// <returns>An array of double-precision floating point values.</returns>
 		public static explicit operator double[](DVector4 v)
 		{
-			double[] array = new double[4];
+			var array = new double[4];
 			array[0] = v.X;
 			array[1] = v.Y;
 			array[2] = v.Z;
@@ -851,7 +851,7 @@ namespace GameCore
 		/// <returns>An array of double-precision floating point values.</returns>
         public static explicit operator List<double>(DVector4 v)
 		{
-            List<double> array = new List<double>(4);
+            var array = new List<double>(4);
 			array[0] = v.X;
 			array[1] = v.Y;
 			array[2] = v.Z;

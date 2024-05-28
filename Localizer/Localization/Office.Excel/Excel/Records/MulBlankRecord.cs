@@ -21,11 +21,11 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.MulBlank)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 
 				reader = ReadRowColInfo(reader);
 				_xfIndex = new ushort[reader.BaseStream.Length / 2];
-				for(int n = 0; n < _xfIndex.Length; ++n)
+				for(var n = 0; n < _xfIndex.Length; ++n)
 					_xfIndex[n] = reader.ReadUInt16();
 
 			}

@@ -24,15 +24,15 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Index)
 			{
-				Stream stream = biff.GetDataStream();
-				BinaryReader reader = new BinaryReader(stream);
+				var stream = biff.GetDataStream();
+				var reader = new BinaryReader(stream);
 
-				uint reserved = reader.ReadUInt32();
+				var reserved = reader.ReadUInt32();
 				_firstRow = reader.ReadUInt32();
 				_lastRow = reader.ReadUInt32();
 				reserved = reader.ReadUInt32();
 
-				int nrows = (int)(stream.Length - stream.Position) / 4; 
+				var nrows = (int)(stream.Length - stream.Position) / 4; 
 				_rows = new uint[nrows];
 				nrows = 0;
 				while(stream.Position < stream.Length)

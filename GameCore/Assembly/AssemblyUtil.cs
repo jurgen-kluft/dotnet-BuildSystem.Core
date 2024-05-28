@@ -22,7 +22,7 @@ namespace GameCore
         {
             try
             {
-				bool success = false;
+				var success = false;
 
 				// Load .csproj file as text, extract:
 				// - all references
@@ -41,7 +41,7 @@ namespace GameCore
 
         public static Assembly Load(string filename)
         {
-            Assembly assembly = Assembly.LoadFile(filename);
+            var assembly = Assembly.LoadFile(filename);
             return assembly;
         }
 
@@ -54,23 +54,23 @@ namespace GameCore
         /// <returns></returns>
         public static Assembly BuildAssemblyDirectly(Filename sourceFilename)
         {
-            List<Filename> referencedAssemblies = new List<Filename>();
+            var referencedAssemblies = new List<Filename>();
             referencedAssemblies.Add(new Filename(Assembly.GetExecutingAssembly().Location));
-            List<Filename> sourceFilenames = new List<Filename>();
+            var sourceFilenames = new List<Filename>();
             sourceFilenames.Add(sourceFilename);
             return BuildAssemblyDirectly(Filename.Empty, sourceFilenames, referencedAssemblies, true);
         }
 
         public static Assembly BuildAssemblyDirectly(List<Filename> sourceFilenames)
         {
-            List<Filename> referencedAssemblies = new List<Filename>();
+            var referencedAssemblies = new List<Filename>();
             referencedAssemblies.Add(new Filename(Assembly.GetExecutingAssembly().Location));
             return BuildAssemblyDirectly(Filename.Empty, sourceFilenames, referencedAssemblies, true);
         }
 
         public static Assembly BuildAssemblyDirectly(Filename assemblyFilename, List<Filename> sourceFilenames)
         {
-            List<Filename> referencedAssemblies = new List<Filename>();
+            var referencedAssemblies = new List<Filename>();
             referencedAssemblies.Add(new Filename(Assembly.GetExecutingAssembly().Location));
             return BuildAssemblyDirectly(assemblyFilename, sourceFilenames, referencedAssemblies, false);
         }
@@ -84,16 +84,16 @@ namespace GameCore
         {
 			try
 			{
-				List<SyntaxTree> parsedCode = new List<SyntaxTree>(sourceFilenames.Count);
-				foreach (Filename csfile in sourceFilenames)
+				var parsedCode = new List<SyntaxTree>(sourceFilenames.Count);
+				foreach (var csfile in sourceFilenames)
 				{
                     string source_filename = csfile;
-                    string source_code = File.ReadAllText(source_filename);
-					SyntaxTree parsed_code = CSharpSyntaxTree.ParseText(source_code);
+                    var source_code = File.ReadAllText(source_filename);
+					var parsed_code = CSharpSyntaxTree.ParseText(source_code);
 					parsedCode.Add(parsed_code);
 				}
 
-				CSharpCompilationOptions compilerOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, reportSuppressedDiagnostics: true, optimizationLevel: OptimizationLevel.Release, generalDiagnosticOption: ReportDiagnostic.Error);
+				var compilerOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, reportSuppressedDiagnostics: true, optimizationLevel: OptimizationLevel.Release, generalDiagnosticOption: ReportDiagnostic.Error);
 
                 var references = new List<MetadataReference>();
                 references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
@@ -138,11 +138,11 @@ namespace GameCore
             {
                 Assembly assembly = null;
                 {
-                    List<Filename> filesAbsolutePath = new List<Filename>();
+                    var filesAbsolutePath = new List<Filename>();
                     files.ForEach(f => filesAbsolutePath.Add(srcPath + f));
 
-                    List<Filename> referencedAssembliesAbsolutePath = new List<Filename>();
-                    foreach(Filename f in referencedAssemblies)
+                    var referencedAssembliesAbsolutePath = new List<Filename>();
+                    foreach(var f in referencedAssemblies)
                     {
                         if (f.IsAbsolute)
                             referencedAssembliesAbsolutePath.Add(f);
@@ -169,8 +169,8 @@ namespace GameCore
 
         public static bool HasGenericInterface<T>(Type interfaceType) where T : class
         {
-            Type[] baseTypes = typeof(T).GetType().GetInterfaces();
-            foreach (Type t in baseTypes)
+            var baseTypes = typeof(T).GetType().GetInterfaces();
+            foreach (var t in baseTypes)
                 if (t == interfaceType)
                     return true;
             return false;
@@ -178,8 +178,8 @@ namespace GameCore
 
         public static bool HasGenericInterface(Type objectType, Type interfaceType)
         {
-            Type[] baseTypes = objectType.GetInterfaces();
-            foreach (Type t in baseTypes)
+            var baseTypes = objectType.GetInterfaces();
+            foreach (var t in baseTypes)
                 if (t == interfaceType)
                     return true;
             return false;
@@ -198,14 +198,14 @@ namespace GameCore
                 return null;
             try
             {
-                List<T> objects = new List<T>();
+                var objects = new List<T>();
 
-                Type[] types = assembly.GetTypes();
-                foreach (Type t in types)
+                var types = assembly.GetTypes();
+                foreach (var t in types)
                 {
                     if (HasGenericInterface(t, typeof(T)))
                     {
-                        T o = assembly.CreateInstance(t.FullName) as T;
+                        var o = assembly.CreateInstance(t.FullName) as T;
                         objects.Add(o);
                     }
                 }
@@ -229,14 +229,14 @@ namespace GameCore
                 return null;
             try
             {
-                List<T> objects = new List<T>();
+                var objects = new List<T>();
 
-                Type[] types = assembly.GetTypes();
-                foreach (Type t in types)
+                var types = assembly.GetTypes();
+                foreach (var t in types)
                 {
                     if (HasGenericInterface(t, typeof(T)))
                     {
-                        T o = assembly.CreateInstance(t.FullName) as T;
+                        var o = assembly.CreateInstance(t.FullName) as T;
                         return o;
                     }
                 }

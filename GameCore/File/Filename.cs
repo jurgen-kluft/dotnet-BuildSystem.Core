@@ -83,12 +83,12 @@ namespace GameCore
 
         static internal string RemoveChars(string ioString, string inChars)
         {
-            int cc = 0;
-            int nn = 0;
-            Char[] str = ioString.ToCharArray();
-            for (int i = 0; i < ioString.Length; ++i)
+            var cc = 0;
+            var nn = 0;
+            var str = ioString.ToCharArray();
+            for (var i = 0; i < ioString.Length; ++i)
             {
-                Char c = str[nn];
+                var c = str[nn];
                 if (inChars.IndexOf(c) >= 0)
                 {
                     nn++;
@@ -110,7 +110,7 @@ namespace GameCore
 
         static internal bool ContainsChars(string ioString, string inChars)
         {
-            foreach (char c in ioString)
+            foreach (var c in ioString)
             {
                 if (inChars.IndexOf(c) != -1)
                     return true;
@@ -221,7 +221,7 @@ namespace GameCore
             }
             set
             {
-                string device = RemoveChars(value, sIllegalNameChars);
+                var device = RemoveChars(value, sIllegalNameChars);
                 ChangeDevice(device);
             }
         }
@@ -291,7 +291,7 @@ namespace GameCore
                     return new Dirname((path.Length != 0) ? deviceName + sSemiSlash + path : deviceName);
                 }
 
-                Dirname dir = new Dirname(path);
+                var dir = new Dirname(path);
                 return dir.MakeAbsolute();
             }
             set
@@ -393,8 +393,8 @@ namespace GameCore
 
         private static void sConstructFull(string deviceName, bool isNetworkDevice, string path, string name, string extension, out string outFull, out int outHashCode)
         {
-            string relative = (path.Length != 0) ? (path + sSlash + name + extension) : name + extension;
-            string device = isNetworkDevice ? (sDoubleSlash + deviceName) : (deviceName + sSemi);
+            var relative = (path.Length != 0) ? (path + sSlash + name + extension) : name + extension;
+            var device = isNetworkDevice ? (sDoubleSlash + deviceName) : (deviceName + sSemi);
             outFull = (deviceName.Length != 0) ? (device + sSlashStr + relative) : relative;
             outHashCode = outFull.ToLower().GetHashCode();
         }
@@ -404,15 +404,15 @@ namespace GameCore
             string device;
 
             // Device
-            bool networkDevice = inFull.StartsWith(sDoubleSlash);
+            var networkDevice = inFull.StartsWith(sDoubleSlash);
             if (networkDevice)
             {
-                int slashIndex = inFull.IndexOf(sSlash, 2);
+                var slashIndex = inFull.IndexOf(sSlash, 2);
                 device = slashIndex >= 0 ? inFull.Substring(2, slashIndex - 2) : inFull.Substring(2);
             }
             else
             {
-                int semiSlashIndex = inFull.IndexOf(sSemiSlash);
+                var semiSlashIndex = inFull.IndexOf(sSemiSlash);
                 device = semiSlashIndex >= 0 ? inFull.Substring(0, semiSlashIndex) : string.Empty;
             }
 
@@ -436,11 +436,11 @@ namespace GameCore
         {
             // Documents\Music.Collection\Beatles.Album
             // Count levels
-            string[] folders = inFullWithoutDevice.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = inFullWithoutDevice.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
             outPath = string.Empty;
             outLevels = 0;
-            foreach (string folder in folders)
+            foreach (var folder in folders)
             {
                 if (!ContainsChars(folder, sIllegalNameChars))
                 {
@@ -459,7 +459,7 @@ namespace GameCore
             outPath = inPathWithDevice;
             if (inIsNetworkDevice)
             {
-                int slashIndex = inPathWithDevice.IndexOf(sSlash, 2);
+                var slashIndex = inPathWithDevice.IndexOf(sSlash, 2);
                 if (slashIndex >= 0)
                 {
                     outPath = inPathWithDevice.Substring(slashIndex + 1);
@@ -467,7 +467,7 @@ namespace GameCore
             }
             else
             {
-                int semiSlashIndex = inPathWithDevice.IndexOf(sSemiSlash);
+                var semiSlashIndex = inPathWithDevice.IndexOf(sSemiSlash);
                 if (semiSlashIndex >= 0)
                 {
                     outPath = inPathWithDevice.Substring(semiSlashIndex + 2);
@@ -477,13 +477,13 @@ namespace GameCore
 
         private static void sParseName(string inFull, out string outName, out string outExtension)
         {
-            int slashIndex = inFull.LastIndexOf(sSlash);
+            var slashIndex = inFull.LastIndexOf(sSlash);
             if (slashIndex == -1)
                 slashIndex = 0;
             else
                 slashIndex++;
 
-            int dotIndex = inFull.LastIndexOf(sDot);
+            var dotIndex = inFull.LastIndexOf(sDot);
             if (dotIndex == -1)
             {
                 // No extension
@@ -507,7 +507,7 @@ namespace GameCore
             //   - Documents\Music\Beatles\HeyJude.mp3
 
             // Path
-            int lastSlashIndex = inFullWithoutDevice.LastIndexOf(sSlash);
+            var lastSlashIndex = inFullWithoutDevice.LastIndexOf(sSlash);
             if (lastSlashIndex >= 0)
             {
                 outPath = inFullWithoutDevice.Substring(0, lastSlashIndex);
@@ -520,10 +520,10 @@ namespace GameCore
             }
 
             // Clean up the Path and count the number of folders (levels)
-            string[] folders = outPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = outPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
             outLevels = 0;
             outPath = string.Empty;
-            for (int i = 0; i < folders.Length; i++)
+            for (var i = 0; i < folders.Length; i++)
             {
                 outPath = outPath + (outPath.Length == 0 ? folders[i] : (sSlash + folders[i]));
                 ++outLevels;
@@ -646,7 +646,7 @@ namespace GameCore
 
         public void ChangeShortName(string inName)
         {
-            string name = RemoveChars(inName, sIllegalNameChars);
+            var name = RemoveChars(inName, sIllegalNameChars);
 
             string deviceName;
             bool isNetworkDevice;
@@ -660,7 +660,7 @@ namespace GameCore
 
         public void ChangeName(string inName)
         {
-            string name = RemoveChars(inName, sIllegalNameChars);
+            var name = RemoveChars(inName, sIllegalNameChars);
             string extension;
             sParseName(name, out name, out extension);
 
@@ -676,14 +676,14 @@ namespace GameCore
 
         public Filename ChangedName(string inName)
         {
-            Filename f = new Filename(this);
+            var f = new Filename(this);
             f.ChangeName(inName);
             return f;
         }
 
         public void ChangeExtension(string inExtension)
         {
-            string ext = RemoveChars(inExtension, sIllegalNameChars);
+            var ext = RemoveChars(inExtension, sIllegalNameChars);
             if (ext.StartsWith(sDotStr) && ext.Length > 1)
             {
 
@@ -710,7 +710,7 @@ namespace GameCore
 
         public Filename ChangedExtension(string inExtension)
         {
-            Filename f = new Filename(this);
+            var f = new Filename(this);
             f.ChangeExtension(inExtension);
             return f;
         }
@@ -720,7 +720,7 @@ namespace GameCore
             // ext = .doc
             // C:\Documents\Music\Beatles\HeyJude.mp3 --> C:\Documents\Music\Beatles\HeyJude.mp3.doc
             // Will promote the extension to be part of the current name and set @param ext as the real extension.
-            Filename f = new Filename(this);
+            var f = new Filename(this);
             if (ext.Length != 0)
             {
                 if (ext[0] != sDot)
@@ -746,7 +746,7 @@ namespace GameCore
 
         public Filename PoppedExtension()
         {
-            Filename f = new Filename(this);
+            var f = new Filename(this);
 
             string deviceName;
             bool isNetworkDevice;
@@ -758,10 +758,10 @@ namespace GameCore
 
             // C:\Documents\Music\Beatles\HeyJude.mp3.doc --> C:\Documents\Music\Beatles\HeyJude.mp3
             // Will promote a possible extension that is part of the current name as the real extension.
-            int dotIndex = name.LastIndexOf(sDot);
+            var dotIndex = name.LastIndexOf(sDot);
             if (dotIndex >= 0)
             {
-                string ext = name.Substring(dotIndex);
+                var ext = name.Substring(dotIndex);
                 name = dotIndex > 0 ? name.Substring(0, dotIndex) : string.Empty;
                 sConstructFull(deviceName, isNetworkDevice, path, name, ext, out f.mFull, out f.mHashCode);
             }
@@ -780,10 +780,10 @@ namespace GameCore
 
             // C:\Documents\Music\Beatles\HeyJude.mp3.doc --> C:\Documents\Music\Beatles\HeyJude.mp3
             // Will promote a possible extension that is part of the current name as the real extension.
-            int dotIndex = name.LastIndexOf(sDot);
+            var dotIndex = name.LastIndexOf(sDot);
             if (dotIndex >= 0)
             {
-                string ext = name.Substring(dotIndex);
+                var ext = name.Substring(dotIndex);
                 name = dotIndex > 0 ? name.Substring(0, dotIndex) : string.Empty;
                 sConstructFull(deviceName, isNetworkDevice, path, name, ext, out mFull, out mHashCode);
             }
@@ -820,7 +820,7 @@ namespace GameCore
                     absolutePath += sSlash + path;
             }
 
-            Filename newFilename = new Filename(this);
+            var newFilename = new Filename(this);
             newFilename.ChangeAbsolutePath(absolutePath);
             return newFilename;
         }
@@ -853,7 +853,7 @@ namespace GameCore
             if (thisPath.Length == 0)
                 return new Filename(this);
 
-            Filename newFilename = new Filename(this);
+            var newFilename = new Filename(this);
             newFilename.ChangeAbsolutePath(absolutePath);
 
             string newDeviceName;
@@ -864,7 +864,7 @@ namespace GameCore
             string newExtension;
             sParseFull(newFilename.mFull, out newDeviceName, out newIsNetworkDevice, out newPath, out newLevels, out newName, out newExtension);
 
-            bool sameDevice = true;
+            var sameDevice = true;
             if (String.Compare(thisDeviceName, newDeviceName, sIgnoreCase) != 0)
                 sameDevice = false;
 
@@ -888,19 +888,19 @@ namespace GameCore
             {
                 if (sameDevice)
                 {
-                    string[] folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
-                    string[] inFolders = newPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+                    var folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+                    var inFolders = newPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
-                    bool samePath = true;
-                    for (int i = 0; i < inFolders.Length && samePath; i++)
+                    var samePath = true;
+                    for (var i = 0; i < inFolders.Length && samePath; i++)
                         samePath = String.Compare(inFolders[i], folders[i], sIgnoreCase) == 0;
 
                     newIsNetworkDevice = false;
                     newDeviceName = string.Empty;
                     if (samePath)
                     {
-                        string path = string.Empty;
-                        for (int i = newLevels; i < thisLevels; i++)
+                        var path = string.Empty;
+                        for (var i = newLevels; i < thisLevels; i++)
                         {
                             path = path + (path.Length == 0 ? folders[i] : (sSlash + folders[i]));
                         }
@@ -937,10 +937,10 @@ namespace GameCore
             if (thisPath.Length == 0)
                 return;
 
-            string[] folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
             thisPath = string.Empty;
-            for (int i = 0; i < (folders.Length - 1); i++)
+            for (var i = 0; i < (folders.Length - 1); i++)
             {
                 thisPath = thisPath + (thisPath.Length == 0 ? folders[i] : (sSlash + folders[i]));
             }
@@ -960,15 +960,15 @@ namespace GameCore
             if (thisPath.Length == 0)
                 return new Filename(this);
 
-            string[] folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
+            var folders = thisPath.Split(new char[] { sSlash }, StringSplitOptions.RemoveEmptyEntries);
 
             thisPath = string.Empty;
-            for (int i = 0; i < (folders.Length - 1); i++)
+            for (var i = 0; i < (folders.Length - 1); i++)
             {
                 thisPath = thisPath + (thisPath.Length == 0 ? folders[i] : (sSlash + folders[i]));
             }
 
-            Filename f = new Filename();
+            var f = new Filename();
             sConstructFull(thisDeviceName, thisIsNetworkDevice, thisPath, thisName, thisExtension, out f.mFull, out f.mHashCode);
             return f;
         }
@@ -1006,7 +1006,7 @@ namespace GameCore
 
             thisPath = thisPath + (thisPath.Length == 0 ? folder : (sSlash + folder));
 
-            Filename f = new Filename();
+            var f = new Filename();
             sConstructFull(thisDeviceName, thisIsNetworkDevice, thisPath, thisName, thisExtension, out f.mFull, out f.mHashCode);
             return f;
         }
@@ -1024,7 +1024,7 @@ namespace GameCore
         {
             if (o is Filename)
             {
-                Filename other = (Filename)o;
+                var other = (Filename)o;
                 return (String.Compare(Full, other.Full, sIgnoreCase) == 0);
             }
 
@@ -1074,22 +1074,22 @@ namespace GameCore
 
         public static bool UnitTest()
         {
-            Filename test0 = new Filename(@"H:\Temp\Test\Movie");
+            var test0 = new Filename(@"H:\Temp\Test\Movie");
             Debug.Assert(test0.Name == "Movie");
             Debug.Assert(test0.Extension == "");
-            Filename test1 = new Filename(@"H:\Temp\Test\Movie.avi");
+            var test1 = new Filename(@"H:\Temp\Test\Movie.avi");
             Debug.Assert(test1.Name == "Movie.avi");
-            Filename test2 = new Filename(@"\\cnshaw235\Temp\Test\Movie.avi");
+            var test2 = new Filename(@"\\cnshaw235\Temp\Test\Movie.avi");
             Debug.Assert(test2.Name == "Movie.avi");
-            Filename test3 = new Filename(@"H:\Movie.avi");
+            var test3 = new Filename(@"H:\Movie.avi");
             Debug.Assert(test3.Name == "Movie.avi");
-            Filename test4 = new Filename(@"Temp\Test\Movie.avi");
+            var test4 = new Filename(@"Temp\Test\Movie.avi");
             Debug.Assert(test4.Name == "Movie.avi");
-            Filename test5 = new Filename(@"\\cnshaw235\Movie.avi");
+            var test5 = new Filename(@"\\cnshaw235\Movie.avi");
             Debug.Assert(test5.Name == "Movie.avi");
-            Filename test6 = new Filename(@"Movie.avi");
+            var test6 = new Filename(@"Movie.avi");
             Debug.Assert(test6.Name == "Movie.avi");
-            Filename test7 = new Filename(@"H:\Temp\\Test\Movie.avi");
+            var test7 = new Filename(@"H:\Temp\\Test\Movie.avi");
             Debug.Assert(test7.Name == "Movie.avi");
 
             test1 = test1.MakeRelative(@"H:\Temp");

@@ -65,7 +65,7 @@ namespace GameCore
 
         private StreamReference InternalReferenceOf(Int64 inItem)
         {
-            int index = InternalIndexOf(inItem);
+            var index = InternalIndexOf(inItem);
             if (index == -1)
                 return StreamReference.Empty;
             else
@@ -102,7 +102,7 @@ namespace GameCore
             writer.NewBlock(Reference, 8, 2 * sizeof(ulong));
             writer.OpenBlock(Reference);
             {
-                StreamReference idReference = StreamReference.NewReference;
+                var idReference = StreamReference.NewReference;
 
                 writer.Write((long)Count);
                 writer.Write(idReference);
@@ -110,9 +110,9 @@ namespace GameCore
                 writer.NewBlock(idReference, 8, mItems.Count * sizeof(long));
                 writer.OpenBlock(idReference);
                 {
-                    for (int i = 0; i < mItems.Count; ++i)
+                    for (var i = 0; i < mItems.Count; ++i)
                     {
-                        Int64 id = mItems[i];
+                        var id = mItems[i];
                         writer.Mark(mReferences[i]);
                         writer.Write(id);
                     }

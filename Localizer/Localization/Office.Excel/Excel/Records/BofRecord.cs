@@ -57,7 +57,7 @@ namespace Net.Office.Excel.Records
 		{
 			if(biff.Id == (ushort)RecordType.Bof)
 			{
-				BinaryReader reader = new BinaryReader(biff.GetDataStream());
+				var reader = new BinaryReader(biff.GetDataStream());
 				_version = reader.ReadUInt16();
 				_type = (SubstreamType)reader.ReadUInt16();
 				_buildId = reader.ReadUInt16();

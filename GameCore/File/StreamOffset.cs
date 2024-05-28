@@ -59,7 +59,7 @@ namespace GameCore
 
         public static StreamOffset operator -(StreamOffset a, StreamOffset b)
         {
-            Int64 c = a.Offset - b.Offset;
+            var c = a.Offset - b.Offset;
             if (c < 0)
                 c = -1;
             return new (c);

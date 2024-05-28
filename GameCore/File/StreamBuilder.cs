@@ -66,7 +66,7 @@ namespace GameCore
         {
             if (o is StreamFile)
             {
-                StreamFile other = (StreamFile)o;
+                var other = (StreamFile)o;
                 return this == other;
             }
 
@@ -106,9 +106,9 @@ namespace GameCore
         public Int64 ReadWriteProcess(List<StreamFile> files)
         {
             Int64 resultingSize = 0;
-            for (int fileIndex=0; fileIndex<files.Count; fileIndex++)
+            for (var fileIndex=0; fileIndex<files.Count; fileIndex++)
             {
-                StreamFile file = files[fileIndex];
+                var file = files[fileIndex];
                 mDstFilestream.Position = file.FileOffset.Offset;
                 if (File.Exists(file.Filename))
                 {
@@ -136,14 +136,14 @@ namespace GameCore
         public void Build(List<StreamFile> srcFiles, string dstFile)
         {
             Int64 offset = 0;
-            for (int fileIndex=0; fileIndex<srcFiles.Count; fileIndex++)
+            for (var fileIndex=0; fileIndex<srcFiles.Count; fileIndex++)
             {
-                StreamFile sfile = srcFiles[fileIndex];
+                var sfile = srcFiles[fileIndex];
                 sfile.FileOffset = new StreamOffset(offset);
                 srcFiles[fileIndex] = sfile;
                 offset = StreamAlign(offset + srcFiles[fileIndex].FileSize, Alignment);
             }
-            Int64 fileSize = offset;
+            var fileSize = offset;
 
             mDstFilestream = new FileStream(dstFile, FileMode.Create, FileAccess.Write, FileShare.Write, 8, FileOptions.WriteThrough | FileOptions.Asynchronous);
             mDstFilestream.SetLength(fileSize);

@@ -5,8 +5,6 @@ namespace GameCore
 {
     public class DepInfo
     {
-        #region Fields
-
         public static readonly DepInfo Empty = new DepInfo();
 
         public enum EStatus
@@ -28,9 +26,6 @@ namespace GameCore
             TIMESTAMP,
             HASH,
         }
-
-        #endregion
-        #region Constructors
 
         private DepInfo()
             : this(-1, string.Empty, string.Empty, EDepMethod.TIMESTAMP)
@@ -56,9 +51,6 @@ namespace GameCore
             Method = method;
         }
 
-        #endregion
-        #region Properties
-
         public int Index {get; set; }
         public string Filename {get; private set; }
         public string Folder {get; private set; }
@@ -67,9 +59,6 @@ namespace GameCore
         public EStatus Status {get; set; }= EStatus.UNINITIALIZED;
         public EDepMethod Method {get; set; }= EDepMethod.TIMESTAMP;
         public EDepRule Rule {get; set; }= EDepRule.ON_CHANGE;
-
-        #endregion
-        #region Methods
 
         internal void init()
         {
@@ -90,13 +79,13 @@ namespace GameCore
             {
                 case DepInfo.EDepMethod.HASH:
                     {
-                        FileInfo fileInfo = new FileInfo(fullFilename);
+                        var fileInfo = new FileInfo(fullFilename);
                         return fileInfo.Exists ? HashUtility.Compute(fileInfo) : Hash160.Empty;
                     }
 
                 case DepInfo.EDepMethod.TIMESTAMP:
                     {
-                        Hash160 hash = Hash160.Empty;
+                        var hash = Hash160.Empty;
                         if (File.Exists(fullFilename))
                             hash = Hash160.FromDateTime(File.GetLastWriteTime(fullFilename));
                         return hash;
@@ -109,7 +98,7 @@ namespace GameCore
 
         internal void update()
         {
-            Hash160 newHash = computeHash(Full, Method);
+            var newHash = computeHash(Full, Method);
             if (Rule == EDepRule.MUST_EXIST)
             {
                 if (newHash == Hash160.Empty || newHash != Hash)
@@ -148,9 +137,6 @@ namespace GameCore
             return (Full == other.Full);
         }
 
-        #endregion
-        #region Operators
-
         public static bool operator ==(DepInfo a, DepInfo b)
         {
             if ((object)a == null && (object)b == null)
@@ -165,12 +151,9 @@ namespace GameCore
             return !(a == b);
         }
 
-        #endregion
-        #region Equals, GetHashCode
-
         public override bool Equals(object obj)
         {
-            DepInfo depInfo = (DepInfo)obj;
+            var depInfo = (DepInfo)obj;
             return depInfo.Full == Full && depInfo.Hash == Hash;
         }
 
@@ -178,7 +161,5 @@ namespace GameCore
         {
             return Full.GetHashCode();
         }
-
-        #endregion
     }
 }

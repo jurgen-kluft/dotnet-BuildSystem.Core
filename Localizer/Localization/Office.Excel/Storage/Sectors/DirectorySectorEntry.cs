@@ -34,7 +34,7 @@ namespace Net.SourceForge.Koogra.Storage.Sectors
 		public DirectorySectorEntry(Stream stream)
 		{
 			Debug.Assert(stream.Length >= Constants.DIR_ENTRY_SIZE);
-			BinaryReader reader = new BinaryReader(stream);
+			var reader = new BinaryReader(stream);
 
 			_name = Reader.ReadSimpleUnicodeString(reader, 64);
 			_nameLength = reader.ReadUInt16();
