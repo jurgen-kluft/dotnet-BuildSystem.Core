@@ -50,7 +50,7 @@ namespace BigfileBuilder
             int ChildrenOffsetInBytes { get; } // Size of this in the data stream
         }
 
-        public sealed class TocEntryReader32 : ITocEntryReader
+        private sealed class TocEntryReader32 : ITocEntryReader
         {
             // The file offset is aligned to 64 to enable the BigFile size to be maximum 4 GB * 64 = 256 GB
             // Max file size = 2 GB
@@ -81,12 +81,12 @@ namespace BigfileBuilder
             public void ReadChildrenOffset(IBinaryStreamReader reader, ITocEntry entry)
             {
                 var childrenOffset = reader.ReadInt32();
-                entry.Flags |= (childrenOffset & 0x40000000) != 0 ? ETocFlags.HasChildren : 0;
-                entry.ChildrenOffset = new StreamOffset(childrenOffset & 0x3FFFFFFF);
+                entry.Flags |= (childrenOffset & 0x80000000) != 0 ? ETocFlags.HasChildren : 0;
+                entry.ChildrenOffset = new StreamOffset(childrenOffset & ~0x80000000);
             }
         }
 
-        public sealed class TocEntryWriter32 : ITocEntryWriter
+        private sealed class TocEntryWriter32 : ITocEntryWriter
         {
             public void WriteCount(IBinaryStreamWriter writer, int count)
             {
@@ -134,7 +134,7 @@ namespace BigfileBuilder
         {
             string Filename { get; set; }
             long FileId { get; set; }
-            StreamOffset EntryOffset { get; set; } // The offset of this entry in the stream
+            int EntryIndex { get; set; } // The index of this entry in the Section that it is part of
             StreamOffset FileOffset { get; set; }
             StreamOffset ChildrenOffset { get; set; }
             uint FileSize { get; set; }
@@ -211,7 +211,7 @@ namespace BigfileBuilder
 
             public TocEntry(long fileId, StreamOffset fileOffset, uint fileSize, string filename, ETocFlags tocFlags, Hash160 contentHash)
             {
-                EntryOffset = StreamOffset.sEmpty;
+                EntryIndex = -1;
                 FileOffset = fileOffset;
                 ChildrenOffset = StreamOffset.sEmpty;
                 Filename = filename;
@@ -223,7 +223,7 @@ namespace BigfileBuilder
 
             //public TocSection Section { get; set; }
             public long FileId { get; set; }
-            public StreamOffset EntryOffset { get; set; }
+            public int EntryIndex { get; set; }
             public StreamOffset FileOffset { get; set; }
             public StreamOffset ChildrenOffset { get; set; }
             public uint FileSize { get; set; }
@@ -262,8 +262,8 @@ namespace BigfileBuilder
                 if (block == -1)
                 {
                     // Read the header
-                    var totalNumberOfEntries = reader.ReadInt32();
-                    var numberOfSections = reader.ReadInt32();
+                    var totalNumberOfEntries = TocEntryReader.ReadCount(reader);
+                    var numberOfSections = TocEntryReader.ReadCount(reader);
 
                     Sections.Capacity = numberOfSections;
                     for (var j = 0; j < numberOfSections; ++j)
@@ -297,8 +297,8 @@ namespace BigfileBuilder
                 {
                     case -1:
                         var ts = Sections[item];
-                        ts.TocOffset = reader.ReadInt64();
-                        var numTocEntries = (int)reader.ReadInt64();
+                        ts.TocOffset = TocEntryReader.ReadOffset(reader);
+                        var numTocEntries = TocEntryReader.ReadCount(reader);
                         ts.Toc = new List<ITocEntry>(numTocEntries);
                         for (var j = 0; j < numTocEntries; ++j)
                         {
@@ -326,11 +326,11 @@ namespace BigfileBuilder
                             var e = Sections[sectionIndex].Toc[item];
                             if (e.Flags.HasFlag(ETocFlags.HasChildren))
                             {
-                                var numChildren = reader.ReadInt32();
+                                var numChildren = TocEntryReader.ReadCount(reader);
                                 for (var i = 0; i < numChildren; ++i)
                                 {
-                                    var childFileId = reader.ReadInt32();
-                                    var childEntry = Sections[sectionIndex].Toc[childFileId];
+                                    var childEntryIndex = TocEntryReader.ReadCount(reader);
+                                    var childEntry = Sections[sectionIndex].Toc[childEntryIndex];
                                     e.Children.Add(childEntry);
                                 }
                             }
@@ -533,8 +533,10 @@ namespace BigfileBuilder
 
                     // However we also have an 'extra' block where we are writing Children of TocEntry's that have them, and
                     // we need to compute the offset for each entry to the block of children
-                    foreach (var te in section.Toc)
+                    for (var i=0; i<section.TocCount; ++i)
                     {
+                        var te = section.Toc[i];
+                        te.EntryIndex = i;
                         if (HasChildren(te))
                         {
                             te.ChildrenOffset = new StreamOffset(offset);
@@ -591,7 +593,7 @@ namespace BigfileBuilder
                                 TocEntryWriter.WriteCount(writer, e.Children.Count);
                                 foreach (var ce in e.Children)
                                 {
-                                    TocEntryWriter.WriteOffset(writer, ce.EntryOffset.Offset);
+                                    TocEntryWriter.WriteCount(writer, ce.EntryIndex);
                                 }
                             }
 
