@@ -118,7 +118,7 @@ namespace DataBuildSystem
 
         public Assembly Assembly { get; }
 
-        public GameData.IDataRoot root
+        public IDataRoot Root
         {
             get { return mRoot; }
         }

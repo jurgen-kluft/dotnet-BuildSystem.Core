@@ -11,8 +11,6 @@ namespace DataBuildSystem
     {
         public static class Validation
         {
-            #region Methods
-
             public static bool ValidateString(string inColumnName, ref string text)
             {
                 var temp = text.ToCharArray();
@@ -49,14 +47,10 @@ namespace DataBuildSystem
 
                 return valid;
             }
-
-            #endregion
         }
 
         public static class Settings
         {
-            #region Fields
-
             private static readonly int mBeginRow = 15;
             private static readonly int mEndRow = 2048;
 
@@ -101,30 +95,18 @@ namespace DataBuildSystem
                 new CharConversion((char)0xBA, (char)0xB0), // replace little round by another similar round
                 new CharConversion((char)0x2019, (char)0x27)
             };
-
-            #endregion
         }
 
         public class CharConversion
         {
-            #region Fields
-
             private readonly char mFrom;
             private readonly char mTo;
-
-            #endregion
-
-            #region Constructor
 
             public CharConversion(char from, char to)
             {
                 mFrom = from;
                 mTo = to;
             }
-
-            #endregion
-
-            #region Properties
 
             public char from
             {
@@ -135,22 +117,14 @@ namespace DataBuildSystem
             {
                 get { return mTo; }
             }
-
-            #endregion
         }
 
         public class StringTable
         {
-            #region Fields
-
             private List<string> mStrings = new();
             private List<ulong> mStringHashes = new();
             private uint mOffset = 0;
             private List<uint> mStringOffsets = new();
-
-            #endregion
-
-            #region Methods
 
             public void Add(string inString)
             {
@@ -240,8 +214,6 @@ namespace DataBuildSystem
 
             class HashAndIndexPairComparer : IComparer<KeyValuePair<ulong, int>>
             {
-                #region IComparer<KeyValuePair<ulong,int>> Members
-
                 public int Compare(KeyValuePair<ulong, int> x, KeyValuePair<ulong, int> y)
                 {
                     if (x.Key < y.Key)
@@ -251,8 +223,6 @@ namespace DataBuildSystem
                     else
                         return 0;
                 }
-
-                #endregion
             }
 
             public void GetRemap(out List<int> outRemap)
@@ -332,10 +302,6 @@ namespace DataBuildSystem
                 return true;
             }
 
-            #endregion
-
-            #region Properties
-
             public int Count
             {
                 get { return mStrings.Count; }
@@ -350,22 +316,14 @@ namespace DataBuildSystem
             {
                 get { return mStrings[index]; }
             }
-
-            #endregion
         }
 
         public class Column
         {
-            #region Fields
-
             private readonly string mName;
             private readonly int mColumn;
             private readonly int[] mRowRange;
             private StringTable mStringTable = null;
-
-            #endregion
-
-            #region Constructor
 
             public Column(string name, int column, int[] rowRange)
             {
@@ -382,10 +340,6 @@ namespace DataBuildSystem
                 mRowRange[0] = rowBegin;
                 mRowRange[1] = rowEnd;
             }
-
-            #endregion
-
-            #region Properties
 
             public int Count
             {
@@ -406,10 +360,6 @@ namespace DataBuildSystem
             {
                 get { return mStringTable; }
             }
-
-            #endregion
-
-            #region Methods
 
             public List<int> Consolidate()
             {
@@ -444,10 +394,6 @@ namespace DataBuildSystem
             {
                 return mStringTable.IndexOf(cellContent);
             }
-
-            #endregion
-
-            #region Read
 
             public bool ReadColumn(Excel.Worksheet worksheet, int columnNumber, int rowStart, int rowEnd, out List<string> columnText)
             {
@@ -504,10 +450,6 @@ namespace DataBuildSystem
                 return strTable;
             }
 
-            #endregion
-
-            #region Save
-
             // Return the written data size
             public int Save(string filename, long magic)
             {
@@ -546,25 +488,15 @@ namespace DataBuildSystem
                     return 0;
                 }
             }
-
-            #endregion
         }
-
-        #region IdFile
 
         public class IdFile
         {
-            #region Fields
-
             private string mName = string.Empty;
             private string mFilename = string.Empty;
             private string mFolder = string.Empty;
             private long mFileSize = 0;
             private StringTable mStrTable = new StringTable();
-
-            #endregion
-
-            #region Constructors
 
             public IdFile(string filename, string folder)
             {
@@ -578,10 +510,6 @@ namespace DataBuildSystem
                 mFilename = filename;
                 mFolder = folder;
             }
-
-            #endregion
-
-            #region Properties
 
             public string filename
             {
@@ -602,10 +530,6 @@ namespace DataBuildSystem
             {
                 get { return mName; }
             }
-
-            #endregion
-
-            #region Methods
 
             public void clear()
             {
@@ -634,10 +558,6 @@ namespace DataBuildSystem
             {
                 mStrTable.Remap(remap);
             }
-
-            #endregion
-
-            #region load
 
             public bool load()
             {
@@ -669,10 +589,6 @@ namespace DataBuildSystem
                 }
             }
 
-            #endregion
-
-            #region save
-
             public bool save(long magic)
             {
                 try
@@ -701,42 +617,37 @@ namespace DataBuildSystem
                 }
             }
 
-            #endregion
-
-            #region C Header File
-
             public bool saveHeaderFile(int maxFileSize, long magic)
             {
                 try
                 {
-                    TextStream textStream = new(mFolder + Path.ChangeExtension(mFilename, (".h")));
-                    textStream.Open(TextStream.EMode.Write);
+                    var textStream = TextStream.OpenForWrite(mFolder + Path.ChangeExtension(mFilename, (".h")));
 
                     string line;
 
-                    textStream.Writer.WriteLine("#ifndef __LOCALIZATION_IDS_H__");
-                    textStream.Writer.WriteLine("#define __LOCALIZATION_IDS_H__");
-                    textStream.Writer.WriteLine("");
-                    textStream.Writer.WriteLine("");
+                    textStream.WriteLine("#ifndef __LOCALIZATION_IDS_H__");
+                    textStream.WriteLine("#define __LOCALIZATION_IDS_H__");
+                    textStream.WriteLine("");
+                    textStream.WriteLine("");
                     line = string.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_VERSION_H", (int)(magic >> 32));
-                    textStream.Writer.WriteLine(line);
+                    textStream.WriteLine(line);
                     line = string.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_VERSION_L", (int)(magic));
-                    textStream.Writer.WriteLine(line);
-                    textStream.Writer.WriteLine("");
-                    textStream.Writer.WriteLine("");
+                    textStream.WriteLine(line);
+                    textStream.WriteLine("");
+                    textStream.WriteLine("");
                     line = string.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_MAX_FILE_SIZE", maxFileSize);
-                    textStream.Writer.WriteLine(line);
-                    textStream.Writer.WriteLine("");
+                    textStream.WriteLine(line);
+                    textStream.WriteLine("");
 
                     for (var i = 0; i < mStrTable.Count; ++i)
                     {
                         line = string.Format("#define\t\t{0}\t\t\t{1}", mStrTable[i], i);
-                        textStream.Writer.WriteLine(line);
+                        textStream.WriteLine(line);
                     }
 
-                    textStream.Writer.WriteLine("");
-                    textStream.Writer.WriteLine("");
-                    textStream.Writer.WriteLine("#endif ///< __LOCALIZATION_IDS_H__");
+                    textStream.WriteLine("");
+                    textStream.WriteLine("");
+                    textStream.WriteLine("#endif ///< __LOCALIZATION_IDS_H__");
 
                     textStream.Close();
 
@@ -748,27 +659,15 @@ namespace DataBuildSystem
                     return false;
                 }
             }
-
-            #endregion
         }
-
-        #endregion
-
-        #region LocFile
 
         public class LocFile
         {
-            #region Fields
-
             private string mName = string.Empty;
             private string mFilename = string.Empty;
             private string mFolder = string.Empty;
             private long mFileSize = 0;
             private StringTable mStrTable = new StringTable();
-
-            #endregion
-
-            #region Constructors
 
             public LocFile(string filename, string folder)
             {
@@ -782,10 +681,6 @@ namespace DataBuildSystem
                 mFilename = filename;
                 mFolder = folder;
             }
-
-            #endregion
-
-            #region Properties
 
             public string filename
             {
@@ -807,10 +702,6 @@ namespace DataBuildSystem
                 get { return mName; }
             }
 
-            #endregion
-
-            #region Methods
-
             public void clear()
             {
                 mStrTable = new StringTable();
@@ -828,10 +719,6 @@ namespace DataBuildSystem
                 for (var i = 0; i < locFile.mStrTable.Count; ++i)
                     mStrTable.Add(locFile.mStrTable[i]);
             }
-
-            #endregion
-
-            #region load
 
             public bool load()
             {
@@ -863,18 +750,10 @@ namespace DataBuildSystem
                 }
             }
 
-            #endregion
-
-            #region Remap
-
             public void remap(List<int> map)
             {
                 mStrTable.Remap(map);
             }
-
-            #endregion
-
-            #region save
 
             public bool save(long magic)
             {
@@ -903,13 +782,7 @@ namespace DataBuildSystem
                     return false;
                 }
             }
-
-            #endregion
         }
-
-        #endregion
-
-        #region LocDatabase
 
         /// <summary>
         /// The main localization database.
@@ -1112,10 +985,9 @@ namespace DataBuildSystem
                     }
 
                     var languageFilesListFilename = allIds.filename + ".lst";
-                    TextStream fileWithListOfLanguageFiles = new(Path.Join(LocalizerConfig.DstPath, languageFilesListFilename));
-                    fileWithListOfLanguageFiles.Open(TextStream.EMode.Write);
+                    var fileWithListOfLanguageFiles = TextStream.OpenForWrite(Path.Join(LocalizerConfig.DstPath, languageFilesListFilename));
                     foreach (var l in mMasterLocFiles)
-                        fileWithListOfLanguageFiles.Writer.WriteLine(l.filename);
+                        fileWithListOfLanguageFiles.WriteLine(l.filename);
                     fileWithListOfLanguageFiles.Close();
 
                     allIds.saveHeaderFile((int)maxFileSize, mMagic);
@@ -1139,8 +1011,6 @@ namespace DataBuildSystem
             }
         }
 
-        #endregion
-
         /// <summary>
         /// The localization builder
         ///
@@ -1149,18 +1019,12 @@ namespace DataBuildSystem
         /// </summary>
         public class Builder
         {
-            #region Fields
-
             private readonly string[] mSheetNames = null;
             private readonly string mFilename = string.Empty;
             private bool mIsModified = false;
             private List<Excel.Worksheet> mWorksheets = new();
             private Column mIDColumn = null;
             private List<Column> mColumns = new();
-
-            #endregion
-
-            #region Exceptions
 
             /// <summary>Base class for all the library Exceptions.</summary>
             public class LocalizationBuilderException : Exception
@@ -1203,28 +1067,16 @@ namespace DataBuildSystem
                 }
             }
 
-            #endregion
-
-            #region Constructor
-
             public Builder(string excelFilename, string[] sheetNames)
             {
                 mSheetNames = sheetNames;
                 mFilename = excelFilename;
             }
 
-            #endregion
-
-            #region Properties
-
             public bool isModified
             {
                 get { return mIsModified; }
             }
-
-            #endregion
-
-            #region Methods
 
             public bool init(LocDatabase db)
             {
@@ -1380,10 +1232,6 @@ namespace DataBuildSystem
                 return true;
             }
 
-            #endregion
-
-            #region Column Methods
-
             private Column getColumn(string columnName)
             {
                 foreach (var c in mColumns)
@@ -1426,8 +1274,6 @@ namespace DataBuildSystem
 
                 return -1;
             }
-
-            #endregion
         }
     }
 }

@@ -10,7 +10,7 @@ namespace DataBuildSystem
     // be tracked. When such a compiler is out-of-date, the GameDataCompilerLog will be updated
     // and the GameDataBigfile and GameDataData will be rebuilt.
 
-    // 
+    //
 
     public class GameDataUnits
     {
@@ -55,7 +55,7 @@ namespace DataBuildSystem
                     var loadedCompilers = new List<IDataCompiler>();
                     gdCl.Load(loadedCompilers);
 
-                    // Execute all compilers, every compiler will thus check it's dependencies (source and destination files)
+                    // Execute all compilers, every compiler will thus check its dependencies (source and destination files)
                     var result = gdCl.Execute(loadedCompilers, out var gdClOutput);
                     if (result.IsNotOk)
                     {
@@ -207,7 +207,7 @@ namespace DataBuildSystem
     //
     // The filename extension is different for each of the above file types, the GameDataDll is a .dll file etc..
     // Most extensions are configurable, but the GameDataDll (.dll) and GameDataCompilerLog (.gdl) are fixed.
-    // 
+    //
     // So for example, the GameDataUnit "Levels" should have the following files:
     //    GameData.Levels.dll
     //    GameData.Levels.gdl
@@ -217,7 +217,7 @@ namespace DataBuildSystem
     //    GameData.Levels.gdt
     //    GameData.Levels.gdf
     //    GameData.Levels.gdh
-    
+
 
     public class GameDataUnit
     {
@@ -266,6 +266,7 @@ namespace DataBuildSystem
             Dep.Update(delegate (short idx, State state)
             {
                 States[idx] = state;
+                return DataCompilerResult.None;
             });
         }
 

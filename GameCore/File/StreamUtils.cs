@@ -6,26 +6,29 @@ namespace GameCore
 {
     public static partial class  CMath
     {
-        public static long Align(long position, long alignment)
+        public static long AlignUp(long position, long alignment)
         {
             return (position + (alignment - 1)) & ~(alignment - 1);
         }
-        public static bool TryAlign(long position, long alignment, out long aligned)
+        public static bool TryAlignUp(long position, long alignment, out long aligned)
         {
             aligned = (position + (alignment - 1)) & ~(alignment - 1);
             return aligned == position;
         }
         public static bool IsAligned(long position, long alignment)
         {
-            var newpos = (position + (alignment - 1)) & ~(alignment - 1);
-            return newpos == position;
+            var newPos = (position + (alignment - 1)) & ~(alignment - 1);
+            return newPos == position;
         }
-
-        public static int Align32(int position, int alignment)
+        public static int AlignUp32(int position, int alignment)
         {
             return (position + (alignment - 1)) & ~(alignment - 1);
         }
-        public static bool TryAlign32(int position, int alignment, out int aligned)
+        public static uint AlignUp32(uint position, uint alignment)
+        {
+            return (position + (alignment - 1)) & ~(alignment - 1);
+        }
+        public static bool TryAlignUp32(int position, int alignment, out int aligned)
         {
             aligned = (position + (alignment - 1)) & ~(alignment - 1);
             return aligned == position;
@@ -35,73 +38,38 @@ namespace GameCore
 
     public sealed class TextStream
     {
-        private FileStream mFileStream;
-
-        public TextStream(string filename)
+        public static StreamReader OpenForRead(string filename)
         {
-            Filename = filename;
-        }
-
-        public enum EMode
-        {
-            Read,
-            Write,
-        }
-
-        public string Filename { get; private set; }
-        public System.IO.StreamWriter Writer { get; private set; }
-        public System.IO.StreamReader Reader { get; private set; }
-
-        public bool Exists()
-        {
-            return File.Exists(Filename);
-        }
-
-        public bool Open(EMode mode)
-        {
-            var success = false;
-            FileStream stream = null;
+            if (!File.Exists(filename))
+                return null;
             try
             {
-                stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
-                switch (mode)
-                {
-                    case EMode.Write:
-                        Writer = new System.IO.StreamWriter(stream);
-                        break;
-                    case EMode.Read:
-                        Reader = new System.IO.StreamReader(stream);
-                        break;
-                    default:
-                        break;
-                }
+                var stream = new FileStream(filename, FileMode.Open, FileAccess.Read);
+                return new StreamReader(stream);
             }
-            finally
+            catch (Exception e)
             {
-                mFileStream = stream;
-                success = true;
+                // ignored
             }
 
-            return success;
+            return null;
         }
 
-        public void Close()
+        public static StreamWriter OpenForWrite(string filename)
         {
-            if (Writer != null)
+            if (File.Exists(filename))
             {
-                Writer.Flush();
-                Writer.Close();
-                mFileStream.Close();
+                try
+                {
+                    var stream = new FileStream(filename, FileMode.Create, FileAccess.Write);
+                    return new StreamWriter(stream);
+                }
+                catch (Exception)
+                {
+                    // ignore
+                }
             }
-            else if (Reader != null)
-            {
-                Reader.Close();
-                mFileStream.Close();
-            }
-
-            Writer = null;
-            Reader = null;
-            mFileStream = null;
+            return new StreamWriter(new MemoryStream(Array.Empty<byte>()));
         }
     }
 
@@ -176,13 +144,13 @@ namespace GameCore
 
         public static bool Aligned(IBinaryStream writer, long alignment)
         {
-            var p = CMath.Align(writer.Position, alignment);
+            var p = CMath.AlignUp(writer.Position, alignment);
             return (p == writer.Position);
         }
 
         public static void Align(IBinaryStream writer, long alignment)
         {
-            writer.Position = CMath.Align(writer.Position, alignment);
+            writer.Position = CMath.AlignUp(writer.Position, alignment);
         }
     }
 }

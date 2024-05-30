@@ -136,9 +136,11 @@ namespace DataBuildSystem
 
         // Return false if dependencies are up-to-date
         // Return true if dependencies where updated
-        public bool Update(Action<short, State> ood)
+        public delegate DataCompilerResult DataCompilerOutputUpdateDelegate(short id, State state);
+        public DataCompilerResult Update(DataCompilerOutputUpdateDelegate ood)
         {
-            var result = false;
+            var result = DataCompilerResult.None;
+
             for (var i = 0; i < Count; ++i)
             {
                 var method = Infos[i].Method;
@@ -150,14 +152,14 @@ namespace DataBuildSystem
                 {
                     case EMethod.ContentHash:
                     {
-                        FileInfo fileInfo = new(filepath);
+                        var fileInfo = new FileInfo(filepath);
                         if (fileInfo.Exists)
                             newHash = HashUtility.Compute(fileInfo);
                     }
                         break;
                     case EMethod.TimestampHash:
                     {
-                        FileInfo fileInfo = new(filepath);
+                        var fileInfo = new FileInfo(filepath);
                         if (fileInfo.Exists)
                         {
                             newHash = Hash160.FromDateTime(File.GetLastWriteTime(filepath));
@@ -168,19 +170,17 @@ namespace DataBuildSystem
 
                 if (newHash == Hash160.Null)
                 {
-                    result = true;
                     Hashes[i] = newHash;
-                    ood?.Invoke(Infos[i].Id, State.Missing);
+                    if (ood != null) result = ood(Infos[i].Id, State.Missing);
                 }
                 else if (newHash != Hashes[i])
                 {
-                    result = true;
                     Hashes[i] = newHash;
-                    ood?.Invoke(Infos[i].Id, State.Modified);
+                    if (ood != null) result = ood(Infos[i].Id, State.Modified);
                 }
                 else // (newHash == Hashes[i])
                 {
-                    ood?.Invoke(Infos[i].Id, State.Ok);
+                    if (ood != null) result = ood(Infos[i].Id, State.Ok);
                 }
             }
 

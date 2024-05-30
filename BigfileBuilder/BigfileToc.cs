@@ -1,5 +1,7 @@
+using System.Text;
 using GameCore;
 using GameData;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace BigfileBuilder
 {
@@ -15,16 +17,16 @@ namespace BigfileBuilder
 
         private interface IReadContext
         {
-            void Begin(int block, IBinaryStreamReader reader);
-            bool Read(int block, int item, IBinaryStreamReader reader);
-            bool Next(ref int block);
+            void Begin(int outerIter, IBinaryStreamReader reader);
+            bool Read(int outerIter, int innerIter, IBinaryStreamReader reader);
+            bool Next(ref int outerIter);
         }
 
         private interface IWriteContext
         {
-            void Begin(int block, IBinaryStreamWriter writer);
-            bool Write(int block, int item, IBinaryStreamWriter writer);
-            bool Next(ref int block);
+            void Begin(int outerIter, IBinaryStreamWriter writer);
+            bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer);
+            bool Next(ref int outerIter);
         }
 
         public interface ITocEntryReader
@@ -257,9 +259,9 @@ namespace BigfileBuilder
                 TocEntryReader = tocEntryReader;
             }
 
-            public void Begin(int block, IBinaryStreamReader reader)
+            public void Begin(int outerIter, IBinaryStreamReader reader)
             {
-                if (block == -1)
+                if (outerIter == -1)
                 {
                     // Read the header
                     var totalNumberOfEntries = TocEntryReader.ReadCount(reader);
@@ -276,9 +278,9 @@ namespace BigfileBuilder
                     // iterate for numberOfSections
                 }
 
-                if (block < Sections.Count)
+                if (outerIter < Sections.Count)
                 {
-                    if (block.IsEven())
+                    if (outerIter.IsEven())
                     {
                         // iterate for Sections[block].Toc.Count;
                     }
@@ -291,12 +293,12 @@ namespace BigfileBuilder
                 // iterate for 0
             }
 
-            public bool Read(int block, int item, IBinaryStreamReader reader)
+            public bool Read(int outerIter, int innerIter, IBinaryStreamReader reader)
             {
-                switch (block)
+                switch (outerIter)
                 {
                     case -1:
-                        var ts = Sections[item];
+                        var ts = Sections[innerIter];
                         ts.TocOffset = TocEntryReader.ReadOffset(reader);
                         var numTocEntries = TocEntryReader.ReadCount(reader);
                         ts.Toc = new List<ITocEntry>(numTocEntries);
@@ -305,15 +307,15 @@ namespace BigfileBuilder
                             ts.Toc.Add(new TocEntry());
                         }
 
-                        return item < Sections.Count;
+                        return innerIter < Sections.Count;
 
                     case >= 0:
-                        var sectionIndex = (block / 2);
+                        var sectionIndex = (outerIter / 2);
 
-                        if (block.IsEven())
+                        if (outerIter.IsEven())
                         {
                             // Read Toc Entries
-                            var e = Sections[sectionIndex].Toc[item];
+                            var e = Sections[sectionIndex].Toc[innerIter];
                             TocEntryReader.ReadFileOffset(reader, e);
                             TocEntryReader.ReadFileSize(reader, e);
                             TocEntryReader.ReadChildrenOffset(reader, e);
@@ -323,7 +325,7 @@ namespace BigfileBuilder
                         else
                         {
                             // Read extra info for some TocEntry
-                            var e = Sections[sectionIndex].Toc[item];
+                            var e = Sections[sectionIndex].Toc[innerIter];
                             if (e.Flags.HasFlag(ETocFlags.HasChildren))
                             {
                                 var numChildren = TocEntryReader.ReadCount(reader);
@@ -336,16 +338,16 @@ namespace BigfileBuilder
                             }
                         }
 
-                        return item < Sections[sectionIndex].Toc.Count;
+                        return innerIter < Sections[sectionIndex].Toc.Count;
                 }
 
                 return false;
             }
 
-            public bool Next(ref int block)
+            public bool Next(ref int outerIter)
             {
-                block++;
-                return block < (Sections.Count * 2);
+                outerIter++;
+                return outerIter < (Sections.Count * 2);
             }
         }
 
@@ -374,9 +376,9 @@ namespace BigfileBuilder
             private int NumTotalEntries { get; set; }
             private int NumSections { get; set; }
 
-            public void Begin(int block, IBinaryStreamReader reader)
+            public void Begin(int outerIter, IBinaryStreamReader reader)
             {
-                if (block == -1)
+                if (outerIter == -1)
                 {
                     // Read the header
                     NumTotalEntries = reader.ReadInt32();
@@ -385,7 +387,7 @@ namespace BigfileBuilder
                     // numSections
                 }
 
-                if (block.IsEven())
+                if (outerIter.IsEven())
                 {
                     // Sections[block].Toc.Count
                 }
@@ -393,41 +395,41 @@ namespace BigfileBuilder
                 // Sections[block].TocExtraCount
             }
 
-            public bool Read(int block, int item, IBinaryStreamReader reader)
+            public bool Read(int outerIter, int innerIter, IBinaryStreamReader reader)
             {
-                switch (block)
+                switch (outerIter)
                 {
                     case -1:
                         reader.ReadInt32(); // read total number of entries
                         reader.ReadInt32(); // read number of sections
 
-                        return item < NumSections;
+                        return innerIter < NumSections;
 
                     case >= 0:
                         // Read Toc Entry filenames
-                        if (block.IsEven())
+                        if (outerIter.IsEven())
                         {
                             reader.ReadInt32(); // Offset (skip)
                         }
                         else
                         {
-                            reader.Position = CMath.Align(reader.Position, 4);
+                            reader.Position = CMath.AlignUp(reader.Position, 4);
 
-                            var sectionIndex = (block / 2);
-                            var te = Sections[sectionIndex].Toc[item];
+                            var sectionIndex = (outerIter / 2);
+                            var te = Sections[sectionIndex].Toc[innerIter];
                             te.Filename = reader.ReadString();
                         }
 
-                        return item < Sections[block].Toc.Count;
+                        return innerIter < Sections[outerIter].Toc.Count;
                 }
 
                 return false;
             }
 
-            public bool Next(ref int block)
+            public bool Next(ref int outerIter)
             {
-                block += 1;
-                return block < (Sections.Count * 2);
+                outerIter += 1;
+                return outerIter < (Sections.Count * 2);
             }
         }
 
@@ -441,7 +443,6 @@ namespace BigfileBuilder
         private sealed class ReadHdbContext : IReadContext
         {
             private IReadOnlyList<TocSection> Sections { get; }
-
             public ReadHdbContext(IReadOnlyList<TocSection> sections)
             {
                 Sections = sections;
@@ -450,57 +451,42 @@ namespace BigfileBuilder
             private int NumTotalEntries { get; set; }
             private int NumSections { get; set; }
 
-            public void Begin(int block, IBinaryStreamReader reader)
+            public void Begin(int outerIter, IBinaryStreamReader reader)
             {
-                if (block == -1)
+                if (outerIter == -1)
                 {
                     // Read the header
                     NumTotalEntries = reader.ReadInt32();
                     NumSections = reader.ReadInt32();
-
-                    // Return 'numSections' as the iterator count for 'block' = -1
-                    // numSections
                 }
-
-                if (block < Sections.Count)
-                {
-                    // Return the number of TocEntry's in the section as the iterator count for 'block' >= 0
-                    // Sections[block].Toc.Count
-                }
-
-                // 0
             }
 
-            public bool Read(int sectionIndex, int item, IBinaryStreamReader reader)
+            public bool Read(int outerIter, int innerIter, IBinaryStreamReader reader)
             {
-                switch (sectionIndex)
+                switch (outerIter)
                 {
                     case -1:
-                        //var ts = Sections[item];
-                        var _ = reader.ReadInt32();
-                        reader.ReadInt32();
-                        reader.ReadInt64();
-
-                        return item < NumSections;
+                        var _ = reader.ReadInt32(); // Section offset
+                        return innerIter < NumSections;
 
                     case >= 0:
                         // Read Toc Entry content hash
                         var hash = new byte[Hash160.Size];
                         reader.Read(hash, 0, hash.Length);
 
-                        var te = Sections[sectionIndex].Toc[item];
+                        var te = Sections[outerIter].Toc[innerIter];
                         te.FileContentHash = Hash160.ConstructTake(hash);
 
-                        return item < Sections[sectionIndex].Toc.Count;
+                        return innerIter < Sections[outerIter].Toc.Count;
                 }
 
                 return false;
             }
 
-            public bool Next(ref int sectionIndex)
+            public bool Next(ref int outerIter)
             {
-                sectionIndex += 1;
-                return sectionIndex < Sections.Count;
+                outerIter += 1;
+                return outerIter < Sections.Count;
             }
         }
 
@@ -535,7 +521,7 @@ namespace BigfileBuilder
 
                     // However we also have an 'extra' block where we are writing Children of TocEntry's that have them, and
                     // we need to compute the offset for each entry to the block of children
-                    for (var i=0; i<section.TocCount; ++i)
+                    for (var i = 0; i < section.TocCount; ++i)
                     {
                         var te = section.Toc[i];
                         te.EntryIndex = i; // Also have the TocEntry know the index it has in the Toc
@@ -558,9 +544,9 @@ namespace BigfileBuilder
                 return e.Children.Count > 0;
             }
 
-            public void Begin(int block, IBinaryStreamWriter writer)
+            public void Begin(int outerIter, IBinaryStreamWriter writer)
             {
-                if (block == -1)
+                if (outerIter == -1)
                 {
                     // Header
                     writer.Write(Entries.Count);
@@ -568,27 +554,27 @@ namespace BigfileBuilder
                 }
             }
 
-            public bool Write(int block, int item, IBinaryStreamWriter writer)
+            public bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer)
             {
-                switch (block)
+                switch (outerIter)
                 {
                     case -1:
                         {
-                            var section = Sections[item];
+                            var section = Sections[innerIter];
                             TocEntryWriter.WriteOffset(writer, section.TocOffset);
                             TocEntryWriter.WriteCount(writer, section.Toc.Count);
-                            return item < Sections.Count;
+                            return innerIter < Sections.Count;
                         }
                     case >= 0:
                         {
-                            var section = Sections[block / 2];
-                            var e = section.Toc[item];
-                            if (block.IsEven())
+                            var section = Sections[outerIter / 2];
+                            var e = section.Toc[innerIter];
+                            if (outerIter.IsEven())
                             {
                                 TocEntryWriter.WriteFileOffset(writer, e);
                                 TocEntryWriter.WriteFileSize(writer, e);
                                 TocEntryWriter.WriteChildrenOffset(writer, e);
-                                return item < section.Toc.Count;
+                                return innerIter < section.Toc.Count;
                             }
 
                             if (HasChildren(e))
@@ -600,32 +586,31 @@ namespace BigfileBuilder
                                 }
                             }
 
-                            return item < section.Toc.Count;
+                            return innerIter < section.Toc.Count;
                         }
                 }
 
                 return false;
             }
 
-            public bool Next(ref int block)
+            public bool Next(ref int outerIter)
             {
-                block += 1;
-                return block < (2 * Sections.Count);
+                outerIter += 1;
+                return outerIter < (2 * Sections.Count);
             }
         }
 
         // <summary>
         // The Fdb or Filename Database
-        // Each section of the Fdb holds {FilenameOffset(Int32)[],  Filename(string)[]}
+        // Each section of the Fdb holds {FilenameOffset(UInt32)[], Filename(string)[]}
         // </summary>
         private sealed class WriteFdbContext : IWriteContext
         {
-            private int Index { get; set; }
-
             private IReadOnlyList<TocSection> Sections { get; }
             private IReadOnlyList<ITocEntry> Entries { get; }
-            private List<int> SectionOffsets { get; }
-            private List<int> FilenameOffsets { get; }
+            private List<uint> SectionOffsets { get; }
+            private List<uint>[] FilenameOffsetsPerSection { get; }
+            private byte[] StringByteBuffer { get; set; }
 
             public WriteFdbContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
@@ -633,67 +618,82 @@ namespace BigfileBuilder
                 Entries = entries;
 
                 SectionOffsets = new(sections.Count);
-                FilenameOffsets = new(entries.Count);
+                FilenameOffsetsPerSection = new List<uint>[sections.Count];
+
+                StringByteBuffer = new byte[65536];
 
                 // Compute the offset of each section
-                var offset = sizeof(int) + sizeof(int) + Sections.Count * sizeof(int);
-                foreach (var section in Sections)
+                var offset = (uint)(sizeof(int) + sizeof(int) + Sections.Count * sizeof(int));
+                for (var i = 0; i < sections.Count; i++)
                 {
+                    var section = sections[i];
                     SectionOffsets.Add(offset);
 
-                    offset += section.TocCount * sizeof(int); // The size of Offset[]
+                    FilenameOffsetsPerSection[i] = new List<uint>(section.TocCount);
+
+                    offset += (uint)(section.TocCount * sizeof(int)); // The size of Offset[]
                     foreach (var e in section.Toc)
                     {
-                        FilenameOffsets.Add(offset);
-                        offset += sizeof(int) + e.Filename.Length + 1;
-                        offset = CMath.Align32(offset, 4);
+                        FilenameOffsetsPerSection[i].Add(offset);
+
+                        // We need to figure out the length of the string in bytes, treat the string as UTF-8 and do include a null terminator.
+                        // Length + StrLen(FileName) + 1 (null terminator)
+                        offset += (uint)(sizeof(int) + Encoding.UTF8.GetByteCount(e.Filename) + 1);
+                        offset = CMath.AlignUp32(offset, 4);
                     }
                 }
             }
 
-            public void Begin(int block, IBinaryStreamWriter writer)
+            public void Begin(int outerIter, IBinaryStreamWriter writer)
             {
-                Index = 0;
-
-                if (block == -1)
+                if (outerIter == -1)
                 {
                     // Header
                     writer.Write(Entries.Count);
                     writer.Write(Sections.Count);
-                    // Sections.Count;
                 }
-
-                // var section = Sections[block / 2];
-                // section.TocCount;
             }
 
-            public bool Write(int block, int item, IBinaryStreamWriter writer)
+            public bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer)
             {
-                if (block == -1)
+                if (outerIter == -1)
                 {
-                    writer.Write(SectionOffsets[item]); // Write the offset to each section
-                    return item < Sections.Count;
+                    writer.Write(SectionOffsets[innerIter]); // Write the offset to each section
+                    return innerIter < Sections.Count;
                 }
                 else
                 {
-                    var section = Sections[block / 2];
-                    if (block.IsEven())
+                    var sectionIndex = outerIter / 2;
+                    var section = Sections[sectionIndex];
+                    if (outerIter.IsEven())
                     {
-                        writer.Write(FilenameOffsets[Index++]);
+                        writer.Write(FilenameOffsetsPerSection[sectionIndex][innerIter]);
                     }
                     else
                     {
-                        writer.Write(section.Toc[item].Filename);
+                        // writer.Write(section.Toc[item].Filename);
+                        // Write the string to the writer as UTF-8 and null terminated.
+                        var filename = section.Toc[innerIter].Filename;
+                        var strByteLen = Encoding.UTF8.GetByteCount(filename);
+                        strByteLen = CMath.AlignUp32(strByteLen + 1, 4);
+                        if (strByteLen > StringByteBuffer.Length)
+                        {
+                            StringByteBuffer = new byte[CMath.AlignUp32(strByteLen + (strByteLen / 8), 256)];
+                        }
+
+                        Encoding.UTF8.GetBytes(filename, 0, filename.Length, StringByteBuffer, 0);
+                        writer.Write(StringByteBuffer, 0, strByteLen);
+                        StreamUtils.Align(writer, 4);
                     }
 
-                    return item < section.TocCount;
+                    return innerIter < section.TocCount;
                 }
             }
 
-            public bool Next(ref int block)
+            public bool Next(ref int outerIter)
             {
-                block += 1;
-                return block < (2 * Sections.Count);
+                outerIter += 1;
+                return outerIter < (2 * Sections.Count);
             }
         }
 
@@ -704,7 +704,7 @@ namespace BigfileBuilder
         {
             private IReadOnlyList<TocSection> Sections { get; }
             private IReadOnlyList<ITocEntry> Entries { get; }
-            private List<int> SectionOffsets { get; }
+            private List<uint> SectionOffsets { get; }
 
             public WriteHdbContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
             {
@@ -716,18 +716,17 @@ namespace BigfileBuilder
                 // Compute the offset of each section
 
                 // Entries.Count + Sections.Count + (SectionOffsets.Count * sizeof(int))
-                var offset = sizeof(int) + sizeof(int) + sections.Count * sizeof(int);
-
+                var offset = (uint)(sizeof(int) + sizeof(int) + sections.Count * sizeof(int));
                 foreach (var section in Sections)
                 {
                     SectionOffsets.Add(offset);
-                    offset += section.TocCount * Hash160.Size; // The size of Hash160
+                    offset += (uint)(section.TocCount * Hash160.Size); // The size of Hash160
                 }
             }
 
-            public void Begin(int block, IBinaryStreamWriter writer)
+            public void Begin(int outerIter, IBinaryStreamWriter writer)
             {
-                if (block == -1)
+                if (outerIter == -1)
                 {
                     // Header
                     writer.Write(Entries.Count);
@@ -739,25 +738,25 @@ namespace BigfileBuilder
                 // iterate for section.TocCount;
             }
 
-            public bool Write(int block, int item, IBinaryStreamWriter writer)
+            public bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer)
             {
-                if (block == -1)
+                if (outerIter == -1)
                 {
-                    writer.Write(SectionOffsets[item]); // Write the offset to each section
-                    return item < SectionOffsets.Count;
+                    writer.Write(SectionOffsets[innerIter]); // Write the offset to each section
+                    return innerIter < SectionOffsets.Count;
                 }
                 else
                 {
-                    var section = Sections[block];
-                    section.Toc[item].FileContentHash.WriteTo(writer);
-                    return item < section.Toc.Count;
+                    var section = Sections[outerIter];
+                    section.Toc[innerIter].FileContentHash.WriteTo(writer);
+                    return innerIter < section.Toc.Count;
                 }
             }
 
-            public bool Next(ref int block)
+            public bool Next(ref int outerIter)
             {
-                block += 1;
-                return block < Sections.Count;
+                outerIter += 1;
+                return outerIter < Sections.Count;
             }
         }
 

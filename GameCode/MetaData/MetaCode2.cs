@@ -1328,12 +1328,12 @@ namespace GameData
                     var ms = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[mi].Index](mi, ctx);
 
                     // Align the size based on the member type alignment
-                    size = CMath.Align32(size, ctx.MetaCode2.GetMemberAlignment(mi));
+                    size = CMath.AlignUp32(size, ctx.MetaCode2.GetMemberAlignment(mi));
 
                     size += ms;
                 }
 
-                size = CMath.Align32(size, classAlign);
+                size = CMath.AlignUp32(size, classAlign);
 
                 return size;
             }
@@ -1346,7 +1346,7 @@ namespace GameData
                 // Determine the alignment of the element and see if we need to align the size
                 var elementAlign = ctx.MetaCode2.GetMemberAlignment(msi);
                 var elementSize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[msi].Index](msi, ctx);
-                elementSize = CMath.Align32(elementSize, elementAlign);
+                elementSize = CMath.AlignUp32(elementSize, elementAlign);
 
                 var size = count * elementSize;
                 return size;
@@ -1360,14 +1360,14 @@ namespace GameData
                 var keyIndex = msi;
                 var keyAlign = ctx.MetaCode2.GetMemberAlignment(keyIndex);
                 var keySize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[keyIndex].Index](keyIndex, ctx);
-                keySize = CMath.Align32(keySize, keyAlign);
+                keySize = CMath.AlignUp32(keySize, keyAlign);
 
                 var valueIndex = msi + count;
                 var valueAlign = ctx.MetaCode2.GetMemberAlignment(valueIndex);
                 var valueSize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[valueIndex].Index](valueIndex, ctx);
-                valueSize = CMath.Align32(valueSize, valueAlign);
+                valueSize = CMath.AlignUp32(valueSize, valueAlign);
 
-                var size = CMath.Align32(count * keySize, valueAlign) + count * valueSize;
+                var size = CMath.AlignUp32(count * keySize, valueAlign) + count * valueSize;
                 return size;
             }
         }
@@ -1409,7 +1409,7 @@ namespace GameData
 
                 public static void End(DataBlock db, IBinaryWriter data)
                 {
-                    var gap = CMath.Align(db.Size, db.Alignment) - db.Size;
+                    var gap = CMath.AlignUp(db.Size, db.Alignment) - db.Size;
                     // Write actual data to reach the size alignment requirement
                     const byte zero = 0;
                     for (var i = 0; i < gap; ++i)
@@ -1418,7 +1418,7 @@ namespace GameData
 
                 private static void AlignTo(IBinaryStream writer, int alignment)
                 {
-                    writer.Position = CMath.Align(writer.Position, alignment);
+                    writer.Position = CMath.AlignUp(writer.Position, alignment);
                 }
 
                 private static bool IsAligned(IBinaryStream writer, int alignment)
@@ -1592,7 +1592,7 @@ namespace GameData
             public void Align(int align)
             {
                 var offset = _dataWriter.Position;
-                if (CMath.TryAlign(offset, align, out var alignment)) return;
+                if (CMath.TryAlignUp(offset, align, out var alignment)) return;
                 _dataWriter.Position = alignment;
             }
 
@@ -1601,8 +1601,8 @@ namespace GameData
                 // NOTE the alignment is kinda obsolete, at this moment aligning blocks to 8 bytes is sufficient
 
                 // Always align the size of the block to 8 bytes
-                size = CMath.Align32(size, 8);
-                _offset = CMath.Align32(_offset, alignment);
+                size = CMath.AlignUp32(size, 8);
+                _offset = CMath.AlignUp32(_offset, alignment);
 
                 _dataBlocks.Add( new DataBlock()
                 {
@@ -1889,7 +1889,7 @@ namespace GameData
                 var offset = dataWriter.Position;
                 foreach (var (dbRef, db) in finalDataDataBase)
                 {
-                    offset = CMath.Align(offset, db.Alignment);
+                    offset = CMath.AlignUp(offset, db.Alignment);
                     dataOffsetDataBase.Add(dbRef, offset);
                     offset += db.Size;
                 }

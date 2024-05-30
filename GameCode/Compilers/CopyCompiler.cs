@@ -44,7 +44,7 @@ namespace GameData
         public void CompilerConstruct(IDataCompiler dc)
         {
             if (dc is not CopyCompiler cc) return;
-            
+
             mSrcFilename = cc.mSrcFilename;
             mDstFilename = cc.mDstFilename;
             mDependency = cc.mDependency;
@@ -55,39 +55,44 @@ namespace GameData
 
         public DataCompilerOutput CompilerExecute()
         {
-            var result = DataCompilerOutput.EResult.None;
+            var result = DataCompilerResult.None;
             if (mDependency == null)
             {
                 mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
                 mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
-                result = DataCompilerOutput.EResult.DstMissing;
+                result = DataCompilerResult.DstMissing;
             }
             else
             {
-                if (!mDependency.Update(delegate(short id, State state)
-                    {
-                        if (state == State.Missing)
-                        {
-                            result = id switch
-                            {
-                                0 => (result | DataCompilerOutput.EResult.SrcMissing),
-                                1 => (result | DataCompilerOutput.EResult.DstMissing),
-                                _ => result
-                            };
-                        }
-                        else if (state == State.Modified)
-                        {
-                            result = id switch
-                            {
-                                0 => (result | DataCompilerOutput.EResult.SrcChanged),
-                                1 => (result | DataCompilerOutput.EResult.DstChanged),
-                                _ => result
-                            };
-                        }
-                    }))
+                var result3 = mDependency.Update(delegate(short id, State state)
                 {
-                    result = DataCompilerOutput.EResult.Ok;
-                    return new DataCompilerOutput(result, new[] { mDstFilename });
+                    var result2 = DataCompilerResult.None;
+                    if (state == State.Missing)
+                    {
+                        result2 = id switch
+                        {
+                            0 => (DataCompilerResult.SrcMissing),
+                            1 => (DataCompilerResult.DstMissing),
+                            _ => (DataCompilerResult.None),
+                        };
+                    }
+                    else if (state == State.Modified)
+                    {
+                        result2 |= id switch
+                        {
+                            0 => (DataCompilerResult.SrcChanged),
+                            1 => (DataCompilerResult.DstChanged),
+                            _ => (DataCompilerResult.None)
+                        };
+                    }
+
+                    return result2;
+                });
+
+                if (result3 == DataCompilerResult.UpToDate)
+                {
+                    result = DataCompilerResult.UpToDate;
+                    return new DataCompilerOutput(result, new[] { mDstFilename }, this);
                 }
             }
 
@@ -97,15 +102,15 @@ namespace GameData
                 File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
 
                 // Execution is done, update the dependency to reflect the new state
-                mDependency.Update(null);
+                result = mDependency.Update(null);
             }
             catch (Exception)
             {
-                result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.Error);
+                result = (DataCompilerResult)(result | DataCompilerResult.Error);
             }
 
             // The result returned here is the result that 'caused' this compiler to execute its action and not the 'new' state.
-            return new DataCompilerOutput(result, new[] { mDstFilename });
+            return new DataCompilerOutput(result, new[] { mDstFilename }, this);
         }
     }
 }

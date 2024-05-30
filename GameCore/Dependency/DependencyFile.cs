@@ -8,7 +8,7 @@ namespace GameCore
     public class DepFile
     {
         private string mUserKey = string.Empty;
-        private string mExtension = string.Empty;
+        private string mExtension;
         private readonly DepInfo mMain;             /// The key/main file
         private readonly List<DepInfo> mIn;         /// Additional input files
         private readonly List<DepInfo> mOut;        /// The generated output files
@@ -323,10 +323,9 @@ namespace GameCore
                 if (!Directory.Exists(depFilename))
                     Directory.CreateDirectory(depFilename);
 
-                var ts = new TextStream(depFilename);
-                ts.Open(TextStream.EMode.Write);
-                save(ts.Writer);
-                ts.Close();
+                var reader = TextStream.OpenForWrite(depFilename);
+                save(reader);
+                reader.Close();
 
                 return true;
             }

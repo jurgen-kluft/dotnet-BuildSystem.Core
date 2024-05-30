@@ -58,7 +58,7 @@ namespace BigfileBuilder
         private ulong Write(Stream readStream, long fileSize)
         {
             // Align the file on the calculated additionalLength
-            FileStream.Position = CMath.Align(FileStream.Position, BigfileConfig.FileAlignment);
+            FileStream.Position = CMath.AlignUp(FileStream.Position, BigfileConfig.FileAlignment);
             var position = (ulong)FileStream.Position;
 
             Debug.Assert(fileSize < int.MaxValue);
@@ -129,6 +129,7 @@ namespace BigfileBuilder
     public sealed class Bigfile
     {
         public List<BigfileFile> Files { get; } = new();
+        public int BigfileIndex { get; set; }
 
         public void Write(BigfileWriter writer)
         {
@@ -136,7 +137,7 @@ namespace BigfileBuilder
             foreach (var bff in Files)
             {
                 additionalSize += bff.FileSize;
-                additionalSize = CMath.Align(additionalSize, BigfileConfig.FileAlignment);
+                additionalSize = CMath.AlignUp(additionalSize, BigfileConfig.FileAlignment);
             }
 
             writer.AddSize(additionalSize);

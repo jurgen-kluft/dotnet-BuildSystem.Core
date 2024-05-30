@@ -2,8 +2,8 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
-
 using GameCore;
+
 namespace DataBuildSystem
 {
     public static class AssemblyCompiler
@@ -12,16 +12,14 @@ namespace DataBuildSystem
         {
             try
             {
-                var ts = new TextStream(_csincludeFilename);
-                if (ts.Open(TextStream.EMode.Read))
+                var reader = TextStream.OpenForRead(_csincludeFilename);
+                while (!reader.EndOfStream)
                 {
-                    while (!ts.Reader.EndOfStream)
-                    {
-                        var filename = ts.Reader.ReadLine();
-                        collectedCsFiles.Add(new Filename(filename));
-                    }
-                    ts.Close();
+                    var filename = reader.ReadLine();
+                    collectedCsFiles.Add(new Filename(filename));
                 }
+
+                reader.Close();
             }
             catch (Exception e)
             {
@@ -29,9 +27,9 @@ namespace DataBuildSystem
             }
         }
 
-        private static void Include(Filename[] _csincludeFilenames, List<Filename> collectedCsFiles)
+        private static void Include(Filename[] includeFilenames, List<Filename> collectedCsFiles)
         {
-            foreach (var f in _csincludeFilenames)
+            foreach (var f in includeFilenames)
                 Include(f, collectedCsFiles);
         }
 
@@ -53,6 +51,7 @@ namespace DataBuildSystem
                         break;
                     }
                 }
+
                 if (!isModified)
                 {
                     foreach (var f in csincludes)
@@ -64,6 +63,7 @@ namespace DataBuildSystem
                         }
                     }
                 }
+
                 if (!isModified)
                 {
                     foreach (var f in collectedCsFiles)
@@ -99,7 +99,7 @@ namespace DataBuildSystem
             {
                 // Create dependency file
                 depFile = new DepFile(subPath + filenameOfAssembly, dstPath);
-                depFile.main.Rule = DepInfo.EDepRule.MUST_EXIST;             /// The main file must exist, if it doesn't we need to try and build it again!
+                depFile.main.Rule = DepInfo.EDepRule.MUST_EXIST; /// The main file must exist, if it doesn't we need to try and build it again!
 
                 foreach (var f in files)
                     depFile.addIn(f, srcPath);
@@ -155,6 +155,7 @@ namespace DataBuildSystem
                     return null;
                 }
             }
+
             return assembly;
         }
     }

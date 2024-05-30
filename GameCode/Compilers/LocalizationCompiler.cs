@@ -58,61 +58,60 @@ namespace GameData
 
         public DataCompilerOutput CompilerExecute()
         {
-            var result = DataCompilerOutput.EResult.Ok;
+            DataCompilerResult result;
             if (mDependency == null)
             {
                 mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
                 // Load 'languages list' file
                 try
                 {
-                    TextStream ts = new(mSrcFilename);
-                    ts.Open(TextStream.EMode.Read);
-                    while (!ts.Reader.EndOfStream)
+                    var reader = TextStream.OpenForRead(mSrcFilename);
+                    while (!reader.EndOfStream)
                     {
-                        var filename = ts.Reader.ReadLine();
+                        var filename = reader.ReadLine();
                         if (string.IsNullOrEmpty(filename))
                         {
                             mDstFilenames.Add(filename);
                         }
                     }
-                    ts.Close();
+                    reader.Close();
                 }
                 catch (Exception)
                 {
-                    result = DataCompilerOutput.EResult.Error;
+                    result = DataCompilerResult.Error;
                 }
                 finally
                 {
-                    result = DataCompilerOutput.EResult.DstMissing;
+                    result = DataCompilerResult.DstMissing;
                 }
             }
             else
             {
-                if (!mDependency.Update(delegate (short id, State state)
+                result = mDependency.Update(delegate (short id, State state)
                 {
+                    var result2 = DataCompilerResult.UpToDate;
                     if (state == State.Missing)
                     {
                         switch (id)
                         {
-                            case 0: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.SrcMissing); break;
-                            default: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.DstMissing); break;
+                            case 0: result2 = DataCompilerResult.SrcMissing; break;
+                            default: result2 = DataCompilerResult.DstMissing; break;
                         }
                     }
                     else if (state == State.Modified)
                     {
                         switch (id)
                         {
-                            case 0: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.SrcChanged); break;
-                            default: result = (DataCompilerOutput.EResult)(result | DataCompilerOutput.EResult.DstChanged); break;
+                            case 0: result2 = DataCompilerResult.SrcChanged; break;
+                            default: result2 = DataCompilerResult.DstChanged; break;
                         }
                     }
-                }))
-                {
-                    result = DataCompilerOutput.EResult.Ok;
-                }
+
+                    return result2;
+                });
             }
 
-            return new DataCompilerOutput(result, mDstFilenames.ToArray());
+            return new DataCompilerOutput(result, mDstFilenames.ToArray(), this);
         }
     }
 }

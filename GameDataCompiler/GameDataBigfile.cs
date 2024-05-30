@@ -5,7 +5,7 @@ namespace DataBuildSystem
 {
 	internal sealed class GameDataBigfile
 	{
-        private static void Add(Bigfile bigfile, long fileId, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
+        private static void Add(Bigfile bigfile, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
         {
             var mainBigfileFile = new BigfileFile(filenames[0]);
             for (var i = 1; i < filenames.Count; ++i)
@@ -29,11 +29,16 @@ namespace DataBuildSystem
 
             var bigfile = new Bigfile();
             var children = new List<BigfileFile>();
-            var fileId = (long)0;
+
+            // Explanation:
+            // A FileId is actually just a combination of the index of the Bigfile and the index of the BigfileFile within the Bigfile
             foreach (var o in gdClOutput)
 			{
-				Add(bigfile, fileId++, o.Filenames, children);
+				Add(bigfile, o.Filenames, children);
 			}
+
+            // So that is why here we are just giving the BigfileFile an incremental index
+            var fileId = (long)0;
             foreach(var c in children)
 			{
                 c.FileId = fileId++;
