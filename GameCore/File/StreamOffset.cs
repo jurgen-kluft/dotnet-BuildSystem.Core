@@ -3,10 +3,10 @@ namespace GameCore
 {
     public struct StreamOffset
     {
-        public static readonly StreamOffset sEmpty = new (-1);
+        public static readonly StreamOffset sEmpty = new (ulong.MaxValue);
         public static readonly StreamOffset sZero = new (0);
 
-        public StreamOffset(long offset)
+        public StreamOffset(ulong offset)
         {
             Offset = offset;
         }
@@ -16,8 +16,8 @@ namespace GameCore
             Offset = streamOffset.Offset;
         }
 
-        public long Offset { get; private set; }
-        public int Offset32 => (int)Offset;
+        public ulong Offset { get; private set; }
+        public uint Offset32 => (uint)Offset;
 
         public static StreamOffset operator +(StreamOffset a, StreamOffset b)
         {
@@ -26,7 +26,7 @@ namespace GameCore
 
         public static StreamOffset operator +(StreamOffset a, int b)
         {
-            return new StreamOffset(a.Offset + b);
+                return new StreamOffset( (ulong)((long)a.Offset + b));
         }
 
         public static StreamOffset operator +(StreamOffset a, uint b)
@@ -36,20 +36,20 @@ namespace GameCore
 
         public static StreamOffset operator +(StreamOffset a, long b)
         {
-            return new StreamOffset(a.Offset + b);
+            return new StreamOffset((ulong)((long)a.Offset + b));
         }
 
         public static StreamOffset operator +(StreamOffset a, ulong b)
         {
-            return new StreamOffset(a.Offset + (long)b);
+            return new StreamOffset(a.Offset + b);
         }
 
         public static StreamOffset operator -(StreamOffset a, StreamOffset b)
         {
-            var c = a.Offset - b.Offset;
+            var c = (long)a.Offset - (long)b.Offset;
             if (c < 0)
-                c = -1;
-            return new (c);
+                c = 0;
+            return new StreamOffset((ulong)c);
         }
 
         public static bool operator ==(StreamOffset a, StreamOffset b)
@@ -62,7 +62,7 @@ namespace GameCore
             return a.Offset != b.Offset;
         }
 
-        public void Align(long alignment)
+        public void Align(ulong alignment)
         {
             Offset = (Offset + (alignment - 1)) & ~(alignment - 1);
         }

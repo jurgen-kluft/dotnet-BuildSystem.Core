@@ -37,7 +37,7 @@ namespace BigfileBuilder
         /// <summary>
         /// The alignment of every file in the bigfile
         /// </summary>
-        long FileAlignment { get; }
+        uint FileAlignment { get; }
 
         /// <summary>
         /// True = Allow binary duplicate files
@@ -64,7 +64,7 @@ namespace BigfileBuilder
         public string BigFileFdbExtension => ".gdf";
         public string BigFileHdbExtension => ".gdh";
         public EPlatform Platform => EPlatform.Win64;
-        public long FileAlignment => 256;
+        public uint FileAlignment => 256;
         public bool AllowDuplicateFiles => false;
         public uint ReadBufferSize => 1 * 1024 * 1024;
         public uint WriteBufferSize => 1 * 1024 * 1024;
@@ -86,7 +86,7 @@ namespace BigfileBuilder
         public static string BigFileFdbExtension => sConfig.BigFileFdbExtension;
         public static string BigFileHdbExtension => sConfig.BigFileHdbExtension;
         public static EPlatform Platform => sConfig.Platform;
-        public static long FileAlignment => sConfig.FileAlignment;
+        public static uint FileAlignment => sConfig.FileAlignment;
         public static bool AllowDuplicateFiles => sConfig.AllowDuplicateFiles;
         public static uint ReadBufferSize => sConfig.ReadBufferSize;
         public static uint WriteBufferSize => sConfig.WriteBufferSize;

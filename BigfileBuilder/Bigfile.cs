@@ -39,7 +39,7 @@ namespace BigfileBuilder
         /// </summary>
         /// <param name="filepath">The name of the bigfile</param>
         /// <returns>True if successful</returns>
-        public long Save(string filepath)
+        public ulong Save(string filepath)
         {
             try
             {
@@ -51,15 +51,15 @@ namespace BigfileBuilder
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return -1;
+                return 0;
             }
         }
 
-        private long Write(Stream readStream, long fileSize)
+        private ulong Write(Stream readStream, long fileSize)
         {
             // Align the file on the calculated additionalLength
             FileStream.Position = CMath.Align(FileStream.Position, BigfileConfig.FileAlignment);
-            var position = FileStream.Position;
+            var position = (ulong)FileStream.Position;
 
             Debug.Assert(fileSize < int.MaxValue);
 

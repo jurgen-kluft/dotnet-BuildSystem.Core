@@ -10,55 +10,55 @@ namespace GameCore
     /// </summary>
     public sealed class StreamContext
     {
-        private long _offsetOfReferenceInStream = StreamOffset.sEmpty.Offset;
-        private readonly List<long> _referencesOfReferenceInStream = new ();
+        private ulong mOffsetOfReferenceInStream = StreamOffset.sEmpty.Offset;
+        private readonly List<ulong> mReferencesOfReferenceInStream = new ();
 
-        public long Offset
+        public ulong Offset
         {
-            get => _offsetOfReferenceInStream;
-            set => _offsetOfReferenceInStream = value;
+            get => mOffsetOfReferenceInStream;
+            set => mOffsetOfReferenceInStream = value;
         }
 
-        public int Count => _referencesOfReferenceInStream.Count;
+        public int Count => mReferencesOfReferenceInStream.Count;
 
-        public long this[int index] => _referencesOfReferenceInStream[index];
+        public ulong this[int index] => mReferencesOfReferenceInStream[index];
 
         public StreamContext()
         {
 
         }
 
-        public void Add(long offset)
+        public void Add(ulong offset)
         {
-            _referencesOfReferenceInStream.Add(offset);
+            mReferencesOfReferenceInStream.Add(offset);
         }
 
         public void ResolveToNull(IBinaryStreamWriter writer)
         {
-            if (_referencesOfReferenceInStream.Count > 0)
+            if (mReferencesOfReferenceInStream.Count > 0)
             {
                 if (!writer.Architecture.Is64Bit)
                 {
-                    const int NULL = 0;
+                    const int nullPointer32 = 0;
                     var currentOffset =  (writer.Position);
-                    foreach (var o in _referencesOfReferenceInStream)
+                    foreach (var o in mReferencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.sEmpty.Offset);
-                        writer.Seek(o);
-                        writer.Write(NULL);
+                        writer.Seek((long)o);
+                        writer.Write(nullPointer32);
                     }
 
                     writer.Seek(currentOffset);
                 }
                 else
                 {
-                    const long NULL = 0;
+                    const ulong nullPointer64 = 0;
                     var currentOffset = (writer.Position);
-                    foreach (var o in _referencesOfReferenceInStream)
+                    foreach (var o in mReferencesOfReferenceInStream)
                     {
                         Debug.Assert(o != StreamOffset.sEmpty.Offset);
-                        writer.Seek(o);
-                        writer.Write(NULL);
+                        writer.Seek((long)o);
+                        writer.Write(nullPointer64);
                     }
 
                     writer.Seek(currentOffset);
@@ -68,9 +68,9 @@ namespace GameCore
 
         public bool Resolve(IBinaryStreamWriter writer)
         {
-            if (_referencesOfReferenceInStream.Count <= 0) return true;
+            if (mReferencesOfReferenceInStream.Count <= 0) return true;
 
-            if (_offsetOfReferenceInStream == StreamOffset.sEmpty.Offset)
+            if (mOffsetOfReferenceInStream == StreamOffset.sEmpty.Offset)
             {
                 // Encountered a StreamContext holding references that could not be resolved!
                 //
@@ -83,12 +83,12 @@ namespace GameCore
 
             if (!writer.Architecture.Is64Bit)
             {
-                var offsetToWrite = (int)_offsetOfReferenceInStream;
+                var offsetToWrite = (int)mOffsetOfReferenceInStream;
                 var currentOffset = writer.Position;
-                foreach (var o in _referencesOfReferenceInStream)
+                foreach (var o in mReferencesOfReferenceInStream)
                 {
                     Debug.Assert(o != StreamOffset.sEmpty.Offset);
-                    writer.Seek(o);
+                    writer.Seek((long)o);
                     writer.Write(offsetToWrite);
                 }
 
@@ -96,12 +96,12 @@ namespace GameCore
             }
             else // 64-bit pointers
             {
-                var offsetToWrite = (long)_offsetOfReferenceInStream;
+                var offsetToWrite = (long)mOffsetOfReferenceInStream;
                 var currentOffset = writer.Position;
-                foreach (var o in _referencesOfReferenceInStream)
+                foreach (var o in mReferencesOfReferenceInStream)
                 {
                     Debug.Assert(o != StreamOffset.sEmpty.Offset);
-                    writer.Seek(o);
+                    writer.Seek((long)o);
                     writer.Write(offsetToWrite);
                 }
                 writer.Seek(currentOffset);

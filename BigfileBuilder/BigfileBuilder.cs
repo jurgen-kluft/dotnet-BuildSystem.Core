@@ -55,7 +55,7 @@ namespace BigfileBuilder
                     currentOffset.Align(BigfileConfig.FileAlignment);
                 }
             }
-            return currentOffset.Offset;
+            return (long)currentOffset.Offset;
         }
 
         // return true if build was successful
