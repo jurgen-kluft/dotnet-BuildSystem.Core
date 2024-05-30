@@ -562,7 +562,7 @@ namespace GameCore
             sParseFull(newDirname.mFull, out newDeviceName, out newIsNetworkDevice, out newPath, out newLevels);
 
             var sameDevice = true;
-            if (String.Compare(thisDeviceName, newDeviceName, true) != 0)
+            if (string.Compare(thisDeviceName, newDeviceName, true) != 0)
                 sameDevice = false;
 
             if (newPath.Length == 0)
@@ -590,7 +590,7 @@ namespace GameCore
 
                     var samePath = true;
                     for (var i = 0; i < inFolders.Length && samePath; i++)
-                        samePath = String.Compare(inFolders[i], folders[i], sIgnoreCase) == 0;
+                        samePath = string.Compare(inFolders[i], folders[i], sIgnoreCase) == 0;
 
                     newIsNetworkDevice = false;
                     newDeviceName = string.Empty;

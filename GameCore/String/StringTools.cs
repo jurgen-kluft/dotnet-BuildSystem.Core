@@ -158,7 +158,7 @@ namespace GameCore
             }
             return h;
         }
-        public static Int64 Encode_64_10(params char[] characters)
+        public static long Encode_64_10(params char[] characters)
         {
             var h = (long)0;
             foreach (var c in characters)
@@ -329,7 +329,7 @@ namespace GameCore
             return b;
         }
 
-        public static Int32 HexToInt32(string str)
+        public static int HexToInt32(string str)
         {
             if (str.StartsWith("0x"))
                 str = str.Substring(2);
@@ -353,12 +353,12 @@ namespace GameCore
             return value;
         }
 
-        public static Int64 HexToInt64(string str)
+        public static long HexToInt64(string str)
         {
             if (str.StartsWith("0x"))
                 str = str.Substring(2);
 
-            Int64 value = 0;
+            long value = 0;
             foreach (var c in str)
             {
                 if (value == 0 && c == '0')

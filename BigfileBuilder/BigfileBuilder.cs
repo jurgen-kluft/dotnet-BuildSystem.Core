@@ -1,6 +1,6 @@
 ﻿using GameCore;
 
-namespace DataBuildSystem
+namespace BigfileBuilder
 {
     public sealed class BigfileBuilder
     {
@@ -12,13 +12,13 @@ namespace DataBuildSystem
         private EPlatform Platform { get; }
 
         // Returns the size of the final Bigfile
-        private Int64 Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
+        private long Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
         {
             // Simulation:
             // Compute the file Id
             foreach (var bigfile in bigFiles)
             {
-                var fileId = (Int64)0;
+                var fileId = (long)0;
                 foreach (var bigfileFile in bigfile.Files)
                 {
                     if (bigfileFile.FileId == -1)
@@ -43,11 +43,11 @@ namespace DataBuildSystem
                     if (fileInfo.Exists)
                     {
                         bigfileFile.FileOffset = new(currentOffset);
-                        bigfileFile.FileSize = (Int32)fileInfo.Length;
+                        bigfileFile.FileSize = fileInfo.Length;
                     }
                     else
                     {
-                        bigfileFile.FileOffset = StreamOffset.Empty;
+                        bigfileFile.FileOffset = StreamOffset.sEmpty;
                         bigfileFile.FileSize = 0;
                     }
 
@@ -108,7 +108,7 @@ namespace DataBuildSystem
             {
                 foreach(var bff in bf.Files)
                 {
-                    if (bff.FileOffset != StreamOffset.Empty) continue;
+                    if (bff.FileOffset != StreamOffset.sEmpty) continue;
 
                     Console.WriteLine("No data for file {0} with id {1}", dstPath + bff.Filename, bff.FileId);
                     return false;

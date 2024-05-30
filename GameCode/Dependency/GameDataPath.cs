@@ -12,7 +12,7 @@ namespace GameData
 	}
 
 	[Flags]
-	public enum EGameData : Int32
+	public enum EGameData : int
 	{
 		GameDataDll = 0,
 		GameDataCompilerLog = 1,
@@ -27,6 +27,11 @@ namespace GameData
 
 	public static class GameDataPath
 	{
+        public static string BigFileExtension { get; set; }
+        public static string BigFileTocExtension { get; set; }
+        public static string BigFileFdbExtension { get; set; }
+        public static string BigFileHdbExtension { get; set; }
+
 		public static string GetPath(EGameDataPath p)
 		{
 			return p switch
@@ -52,10 +57,10 @@ namespace GameData
 				EGameData.GameDataCompilerLog => ".gdl",
 				EGameData.GameDataData => BuildSystemCompilerConfig.DataFileExtension,
 				EGameData.GameDataRelocation => BuildSystemCompilerConfig.DataRelocFileExtension,
-				EGameData.BigFileData => BigfileConfig.BigFileExtension,
-				EGameData.BigFileToc => BigfileConfig.BigFileTocExtension,
-				EGameData.BigFileFilenames => BigfileConfig.BigFileFdbExtension,
-				EGameData.BigFileHashes => BigfileConfig.BigFileHdbExtension,
+				EGameData.BigFileData => BigFileExtension,
+				EGameData.BigFileToc => BigFileTocExtension,
+				EGameData.BigFileFilenames => BigFileFdbExtension,
+				EGameData.BigFileHashes => BigFileHdbExtension,
 				_ => string.Empty
 			};
 		}

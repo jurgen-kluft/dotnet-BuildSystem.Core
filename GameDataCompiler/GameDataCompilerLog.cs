@@ -131,7 +131,7 @@ namespace DataBuildSystem
 
         public void AssignFileId(int unitIndex, List<IDataCompiler> compilers)
         {
-            Int64 fileId = unitIndex;
+            long fileId = unitIndex;
             fileId = fileId << 32;
 
             var sortedCompilerList = BuildCompilerSignatureList(compilers);

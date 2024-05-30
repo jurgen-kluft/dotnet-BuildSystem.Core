@@ -49,42 +49,42 @@ namespace GameData
 
         public bool IsInt8(Type t)
         {
-            return t == typeof(SByte);
+            return t == typeof(sbyte);
         }
 
         public bool IsUInt8(Type t)
         {
-            return t == typeof(Byte);
+            return t == typeof(byte);
         }
 
         public bool IsInt16(Type t)
         {
-            return t == typeof(Int16);
+            return t == typeof(short);
         }
 
         public bool IsUInt16(Type t)
         {
-            return t == typeof(UInt16);
+            return t == typeof(ushort);
         }
 
         public bool IsInt32(Type t)
         {
-            return t == typeof(Int32);
+            return t == typeof(int);
         }
 
         public bool IsUInt32(Type t)
         {
-            return t == typeof(UInt32);
+            return t == typeof(uint);
         }
 
         public bool IsInt64(Type t)
         {
-            return t == typeof(Int64);
+            return t == typeof(long);
         }
 
         public bool IsUInt64(Type t)
         {
-            return t == typeof(UInt64);
+            return t == typeof(ulong);
         }
 
         public bool IsFloat(Type t)

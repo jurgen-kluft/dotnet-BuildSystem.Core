@@ -144,7 +144,7 @@ namespace DataBuildSystem
             #region Fields
 
             private List<string> mStrings = new();
-            private List<UInt64> mStringHashes = new();
+            private List<ulong> mStringHashes = new();
             private uint mOffset = 0;
             private List<uint> mStringOffsets = new();
 
@@ -167,7 +167,7 @@ namespace DataBuildSystem
             {
                 mStrings = new List<string>();
                 mStringOffsets = new List<uint>();
-                mStringHashes = new List<UInt64>();
+                mStringHashes = new List<ulong>();
                 mOffset = 0;
             }
 
@@ -238,7 +238,7 @@ namespace DataBuildSystem
                 return true;
             }
 
-            class HashAndIndexPairComparer : IComparer<KeyValuePair<UInt64, Int32>>
+            class HashAndIndexPairComparer : IComparer<KeyValuePair<ulong, int>>
             {
                 #region IComparer<KeyValuePair<ulong,int>> Members
 
@@ -258,9 +258,9 @@ namespace DataBuildSystem
             public void GetRemap(out List<int> outRemap)
             {
                 var i = 0;
-                List<KeyValuePair<UInt64, Int32>> hashes = new(Count);
+                List<KeyValuePair<ulong, int>> hashes = new(Count);
                 foreach (var hash in mStringHashes)
-                    hashes.Add(new KeyValuePair<UInt64, Int32>(hash, i++));
+                    hashes.Add(new KeyValuePair<ulong, int>(hash, i++));
 
                 // Sort by hash
                 hashes.Sort(new HashAndIndexPairComparer());
@@ -509,7 +509,7 @@ namespace DataBuildSystem
             #region Save
 
             // Return the written data size
-            public int Save(string filename, Int64 magic)
+            public int Save(string filename, long magic)
             {
                 try
                 {
@@ -523,8 +523,8 @@ namespace DataBuildSystem
                     FileStream fileStream = new(fileInfo.FullName, FileMode.OpenOrCreate, FileAccess.Write);
                     var writer = ArchitectureUtils.CreateBinaryWriter(fileStream, LocalizerConfig.Platform);
 
-                    writer.Write((Int32)(magic >> 32));
-                    writer.Write((Int32)(magic));
+                    writer.Write((int)(magic >> 32));
+                    writer.Write((int)(magic));
 
                     var result = mStringTable.Write(writer);
 
@@ -559,7 +559,7 @@ namespace DataBuildSystem
             private string mName = string.Empty;
             private string mFilename = string.Empty;
             private string mFolder = string.Empty;
-            private Int64 mFileSize = 0;
+            private long mFileSize = 0;
             private StringTable mStrTable = new StringTable();
 
             #endregion
@@ -593,7 +593,7 @@ namespace DataBuildSystem
                 get { return mFolder; }
             }
 
-            public Int64 filesize
+            public long filesize
             {
                 get { return mFileSize; }
             }
@@ -673,7 +673,7 @@ namespace DataBuildSystem
 
             #region save
 
-            public bool save(Int64 magic)
+            public bool save(long magic)
             {
                 try
                 {
@@ -705,7 +705,7 @@ namespace DataBuildSystem
 
             #region C Header File
 
-            public bool saveHeaderFile(int maxFileSize, Int64 magic)
+            public bool saveHeaderFile(int maxFileSize, long magic)
             {
                 try
                 {
@@ -718,19 +718,19 @@ namespace DataBuildSystem
                     textStream.Writer.WriteLine("#define __LOCALIZATION_IDS_H__");
                     textStream.Writer.WriteLine("");
                     textStream.Writer.WriteLine("");
-                    line = String.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_VERSION_H", (Int32)(magic >> 32));
+                    line = string.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_VERSION_H", (int)(magic >> 32));
                     textStream.Writer.WriteLine(line);
-                    line = String.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_VERSION_L", (Int32)(magic));
+                    line = string.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_VERSION_L", (int)(magic));
                     textStream.Writer.WriteLine(line);
                     textStream.Writer.WriteLine("");
                     textStream.Writer.WriteLine("");
-                    line = String.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_MAX_FILE_SIZE", maxFileSize);
+                    line = string.Format("#define\t\t{0}\t\t\t0x{1:X8}", "LOCALIZATION_MAX_FILE_SIZE", maxFileSize);
                     textStream.Writer.WriteLine(line);
                     textStream.Writer.WriteLine("");
 
                     for (var i = 0; i < mStrTable.Count; ++i)
                     {
-                        line = String.Format("#define\t\t{0}\t\t\t{1}", mStrTable[i], i);
+                        line = string.Format("#define\t\t{0}\t\t\t{1}", mStrTable[i], i);
                         textStream.Writer.WriteLine(line);
                     }
 
@@ -763,7 +763,7 @@ namespace DataBuildSystem
             private string mName = string.Empty;
             private string mFilename = string.Empty;
             private string mFolder = string.Empty;
-            private Int64 mFileSize = 0;
+            private long mFileSize = 0;
             private StringTable mStrTable = new StringTable();
 
             #endregion
@@ -797,7 +797,7 @@ namespace DataBuildSystem
                 get { return mFolder; }
             }
 
-            public Int64 filesize
+            public long filesize
             {
                 get { return mFileSize; }
             }
@@ -876,7 +876,7 @@ namespace DataBuildSystem
 
             #region save
 
-            public bool save(Int64 magic)
+            public bool save(long magic)
             {
                 try
                 {
@@ -921,13 +921,13 @@ namespace DataBuildSystem
         {
             private string mMainFilename;
             private bool mIsModified = true;
-            private readonly Int64 mMagic = DateTime.Now.Ticks;
+            private readonly long mMagic = DateTime.Now.Ticks;
             private readonly List<LocFile> mLocFiles = new();
             private readonly List<LocFile> mMasterLocFiles = new();
             private readonly List<IdFile> mIDFiles = new();
             private readonly List<IdFile> mMasterIDFiles = new();
 
-            public Int64 magic
+            public long magic
             {
                 get { return mMagic; }
             }
@@ -1104,7 +1104,7 @@ namespace DataBuildSystem
                     foreach (var l in mMasterLocFiles)
                         l.save(mMagic);
 
-                    Int64 maxFileSize = 0;
+                    long maxFileSize = 0;
                     foreach (var l in mMasterLocFiles)
                     {
                         if (l.filesize > maxFileSize)
@@ -1118,7 +1118,7 @@ namespace DataBuildSystem
                         fileWithListOfLanguageFiles.Writer.WriteLine(l.filename);
                     fileWithListOfLanguageFiles.Close();
 
-                    allIds.saveHeaderFile((Int32)maxFileSize, mMagic);
+                    allIds.saveHeaderFile((int)maxFileSize, mMagic);
 
                     // The dependency file
                     var depFile = DepFile.sCreate(mMainFilename, LocalizerConfig.SrcPath);

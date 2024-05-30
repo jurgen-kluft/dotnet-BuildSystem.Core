@@ -18,34 +18,34 @@ namespace GameData
 
     public static class IntegerExtensions
     {
-        public static bool IsEven(this Int32 v)
+        public static bool IsEven(this int v)
         {
             return (v & 1) == 0;
         }
 
-        public static bool IsOdd(this Int32 v)
+        public static bool IsOdd(this int v)
         {
             return (v & 1) == 1;
         }
 
-        public static Int64 AlignUp(this Int64 v, int alignment)
+        public static long AlignUp(this long v, int alignment)
         {
             return (v + alignment - 1) & ~(alignment - 1);
         }
 
-        public static Int64 AlignDown(this Int64 v, int alignment)
+        public static long AlignDown(this long v, int alignment)
         {
             return v & ~(alignment - 1);
         }
 
-        public static Int32 Lower32(this Int64 v)
+        public static int Lower32(this long v)
         {
-            return (Int32)(v);
+            return (int)(v);
         }
 
-        public static Int32 Upper32(this Int64 v)
+        public static int Upper32(this long v)
         {
-            return (Int32)(v >> 32);
+            return (int)(v >> 32);
         }
     }
 }

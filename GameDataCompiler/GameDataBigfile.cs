@@ -1,4 +1,5 @@
 ﻿using GameData;
+using BigfileBuilder;
 
 namespace DataBuildSystem
 {
@@ -24,7 +25,7 @@ namespace DataBuildSystem
 
         public void Save(string filename, List<DataCompilerOutput> gdClOutput)
 		{
-			var bfb = new BigfileBuilder(BigfileConfig.Platform);
+			var bfb = new BigfileBuilder.BigfileBuilder(BigfileConfig.Platform);
 
             var bigfile = new Bigfile();
             var children = new List<BigfileFile>();

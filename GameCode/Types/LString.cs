@@ -21,14 +21,14 @@ namespace GameData
         }
 
         public string LStringText { get; private set; }
-        public Int64 LStringId { get; set; }
+        public long LStringId { get; set; }
 
         #endregion
 
         #region Properties
 
         public bool StructIsValueType => true;
-        public int StructSize => sizeof(Int64);
+        public int StructSize => sizeof(long);
         public int StructAlign => 8;
         public string StructName => "lstring_t";
 

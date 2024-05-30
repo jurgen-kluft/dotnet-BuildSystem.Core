@@ -9,7 +9,7 @@ namespace GameCore
     {
         #region Fields
 
-        public readonly static StreamFile Empty = new (string.Empty, 0, StreamOffset.Empty);
+        public readonly static StreamFile Empty = new (string.Empty, 0, StreamOffset.sEmpty);
 
         #endregion
         #region Constructor
@@ -21,7 +21,7 @@ namespace GameCore
             FileOffset = file.FileOffset;
         }
 
-        public StreamFile(string filename, Int32 size, StreamOffset offset)
+        public StreamFile(string filename, int size, StreamOffset offset)
         {
             Filename = filename;
             FileSize = size;
@@ -35,12 +35,12 @@ namespace GameCore
         {
             get
             {
-                return FileSize == 0 && FileOffset == StreamOffset.Empty && Filename  == string.Empty;
+                return FileSize == 0 && FileOffset == StreamOffset.sEmpty && Filename  == string.Empty;
             }
         }
 
         public string Filename { get; set; }
-        public Int32 FileSize { get; set; }
+        public int FileSize { get; set; }
         public StreamOffset FileOffset { get; set; }
 
         #endregion
@@ -93,19 +93,19 @@ namespace GameCore
         #endregion
         #region Properties
 
-        public Int64 Alignment { get; set; }
+        public long Alignment { get; set; }
 
         #endregion
         #region Read/Write Process
 
-        internal static Int64 StreamAlign(Int64 value, Int64 alignment)
+        internal static long StreamAlign(long value, long alignment)
         {
             return (value + (alignment - 1)) & (~(alignment - 1));
         }
 
-        public Int64 ReadWriteProcess(List<StreamFile> files)
+        public long ReadWriteProcess(List<StreamFile> files)
         {
-            Int64 resultingSize = 0;
+            long resultingSize = 0;
             for (var fileIndex=0; fileIndex<files.Count; fileIndex++)
             {
                 var file = files[fileIndex];
@@ -135,7 +135,7 @@ namespace GameCore
 
         public void Build(List<StreamFile> srcFiles, string dstFile)
         {
-            Int64 offset = 0;
+            long offset = 0;
             for (var fileIndex=0; fileIndex<srcFiles.Count; fileIndex++)
             {
                 var sfile = srcFiles[fileIndex];

@@ -175,7 +175,7 @@ namespace GameCore
                 bool isNetworkDevice;
                 sParseDevice(mFull, out deviceName, out isNetworkDevice);
 
-                return isNetworkDevice || !String.IsNullOrEmpty(deviceName);
+                return isNetworkDevice || !string.IsNullOrEmpty(deviceName);
             }
         }
 
@@ -865,7 +865,7 @@ namespace GameCore
             sParseFull(newFilename.mFull, out newDeviceName, out newIsNetworkDevice, out newPath, out newLevels, out newName, out newExtension);
 
             var sameDevice = true;
-            if (String.Compare(thisDeviceName, newDeviceName, sIgnoreCase) != 0)
+            if (string.Compare(thisDeviceName, newDeviceName, sIgnoreCase) != 0)
                 sameDevice = false;
 
             if (newPath.Length == 0)
@@ -893,7 +893,7 @@ namespace GameCore
 
                     var samePath = true;
                     for (var i = 0; i < inFolders.Length && samePath; i++)
-                        samePath = String.Compare(inFolders[i], folders[i], sIgnoreCase) == 0;
+                        samePath = string.Compare(inFolders[i], folders[i], sIgnoreCase) == 0;
 
                     newIsNetworkDevice = false;
                     newDeviceName = string.Empty;
@@ -1025,7 +1025,7 @@ namespace GameCore
             if (o is Filename)
             {
                 var other = (Filename)o;
-                return (String.Compare(Full, other.Full, sIgnoreCase) == 0);
+                return (string.Compare(Full, other.Full, sIgnoreCase) == 0);
             }
 
             return false;
@@ -1041,7 +1041,7 @@ namespace GameCore
             bool isNetworkDevice;
             sParseDevice(mFull, out deviceName, out isNetworkDevice);
 
-            if (isNetworkDevice || !String.IsNullOrEmpty(deviceName))
+            if (isNetworkDevice || !string.IsNullOrEmpty(deviceName))
             {
                 if (deviceName == "S")
                 {

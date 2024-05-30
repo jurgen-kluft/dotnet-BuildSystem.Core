@@ -9,8 +9,8 @@ namespace GameCore
 
         private StreamReference mStreamReference;
         private readonly Dictionary<StreamReference, int> mReferenceToIndex = new ();
-        private readonly Dictionary<Int64, int> mIDToIndex = new ();
-        private readonly List<Int64> mItems = new();
+        private readonly Dictionary<long, int> mIDToIndex = new ();
+        private readonly List<long> mItems = new();
         private readonly List<StreamReference> mReferences = new();
 
         #endregion
@@ -36,7 +36,7 @@ namespace GameCore
             }
         }
 
-        public List<Int64> All
+        public List<long> All
         {
             get
             {
@@ -44,7 +44,7 @@ namespace GameCore
             }
         }
 
-        public Int64 this[int index]
+        public long this[int index]
         {
             get
             {
@@ -55,7 +55,7 @@ namespace GameCore
         #endregion
         #region Private Methods
 
-        private int InternalIndexOf(Int64 inItem)
+        private int InternalIndexOf(long inItem)
         {
             int index;
             if (!mIDToIndex.TryGetValue(inItem, out index))
@@ -63,7 +63,7 @@ namespace GameCore
             return index;
         }
 
-        private StreamReference InternalReferenceOf(Int64 inItem)
+        private StreamReference InternalReferenceOf(long inItem)
         {
             var index = InternalIndexOf(inItem);
             if (index == -1)
@@ -75,7 +75,7 @@ namespace GameCore
         #endregion
         #region Public Methods
 
-        public StreamReference Add(StreamReference inReference, Int64 inItem)
+        public StreamReference Add(StreamReference inReference, long inItem)
         {
             int index;
             if (!mReferenceToIndex.TryGetValue(inReference, out index))
@@ -92,7 +92,7 @@ namespace GameCore
             }
         }
 
-        public StreamReference ReferenceOf(Int64 inItem)
+        public StreamReference ReferenceOf(long inItem)
         {
             return InternalReferenceOf(inItem);
         }

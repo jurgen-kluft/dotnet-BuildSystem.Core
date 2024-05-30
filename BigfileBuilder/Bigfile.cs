@@ -1,19 +1,14 @@
 ﻿using System.Diagnostics;
 using GameCore;
 
-namespace DataBuildSystem
+namespace BigfileBuilder
 {
     public sealed class BigfileWriter
     {
         private FileStream FileStream { get; set; }
-        private byte[] ReadCache { get; set; }
+        private byte[] ReadCache { get; set; } = new byte[BigfileConfig.ReadBufferSize];
 
-        public BigfileWriter()
-        {
-            ReadCache = new byte[BigfileConfig.ReadBufferSize];
-        }
-
-        public void AddSize(Int64 length)
+        public void AddSize(long length)
         {
             FileStream.SetLength(FileStream.Position + length);
         }
@@ -27,7 +22,7 @@ namespace DataBuildSystem
                 var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 var bigfileInfo = new FileInfo(bigfileFilepath);
                 DirUtils.Create(bigfileInfo.DirectoryName);
-                FileStream = new(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (Int32)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
+                FileStream = new(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (int)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
             }
             catch (Exception e)
             {
@@ -44,7 +39,7 @@ namespace DataBuildSystem
         /// </summary>
         /// <param name="filepath">The name of the bigfile</param>
         /// <returns>True if successful</returns>
-        public Int64 Save(string filepath)
+        public long Save(string filepath)
         {
             try
             {
@@ -60,13 +55,13 @@ namespace DataBuildSystem
             }
         }
 
-        private Int64 Write(Stream readStream, Int64 fileSize)
+        private long Write(Stream readStream, long fileSize)
         {
             // Align the file on the calculated additionalLength
             FileStream.Position = CMath.Align(FileStream.Position, BigfileConfig.FileAlignment);
             var position = FileStream.Position;
 
-            Debug.Assert(fileSize < Int32.MaxValue);
+            Debug.Assert(fileSize < int.MaxValue);
 
             var sizeToWrite = fileSize;
             while (sizeToWrite > 0)
@@ -92,8 +87,8 @@ namespace DataBuildSystem
 
     public sealed class BigfileReader
     {
-        private FileStream _fileStream;
-        private BinaryReader _binaryReader;
+        private FileStream mFileStream;
+        private BinaryReader mBinaryReader;
 
         public bool Open(string filepath)
         {
@@ -104,8 +99,8 @@ namespace DataBuildSystem
                 var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 var bigfileInfo = new FileInfo(bigfileFilepath);
 
-                _fileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (Int32)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
-                _binaryReader = new(_fileStream);
+                mFileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (int)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
+                mBinaryReader = new(mFileStream);
             }
             catch (Exception e)
             {
@@ -118,16 +113,16 @@ namespace DataBuildSystem
 
         public void Close()
         {
-            if (_fileStream == null) return;
+            if (mFileStream == null) return;
 
-            if (_binaryReader != null)
+            if (mBinaryReader != null)
             {
-                _binaryReader.Close();
-                _binaryReader = null;
+                mBinaryReader.Close();
+                mBinaryReader = null;
             }
 
-            _fileStream.Close();
-            _fileStream = null;
+            mFileStream.Close();
+            mFileStream = null;
         }
     }
 

@@ -70,7 +70,7 @@ namespace GameData
                     while (!ts.Reader.EndOfStream)
                     {
                         var filename = ts.Reader.ReadLine();
-                        if (String.IsNullOrEmpty(filename))
+                        if (string.IsNullOrEmpty(filename))
                         {
                             mDstFilenames.Add(filename);
                         }

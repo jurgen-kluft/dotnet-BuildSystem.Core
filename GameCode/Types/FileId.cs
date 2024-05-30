@@ -6,7 +6,7 @@ namespace GameData
 {
     public interface IFileId
     {
-        Int64 Value { get; }
+        long Value { get; }
     }
 
     public sealed class FileId : IFileId, IStruct
@@ -24,7 +24,7 @@ namespace GameData
             mProvider = provider;
         }
 
-        public Int64 Value
+        public long Value
         {
             get { return mProvider.FileId; }
         }

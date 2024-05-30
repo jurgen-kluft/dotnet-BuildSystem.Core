@@ -81,20 +81,20 @@ namespace GameCore
 				}
 			
 				//Replace all of the types with the pattern that matches that type
-				masterPattern = Regex.Replace(masterPattern,@"\{String\}",  (String)typePatterns["String"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Int16\}",  (String)typePatterns["Int16"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{UInt16\}",  (String)typePatterns["UInt16"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Int32\}",  (String)typePatterns["Int32"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{UInt32\}",  (String)typePatterns["UInt32"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Int64\}",  (String)typePatterns["Int64"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{UInt64\}",   (String)typePatterns["UInt64"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Single\}",   (String)typePatterns["Single"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Double\}",   (String)typePatterns["Double"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Boolean\}",   (String)typePatterns["Boolean"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Byte\}",  (String)typePatterns["Byte"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{SByte\}",  (String)typePatterns["SByte"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Char\}",  (String)typePatterns["Char"]);
-				masterPattern = Regex.Replace(masterPattern,@"\{Decimal\}", (String)typePatterns["Decimal"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{String\}",  (string)typePatterns["String"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Int16\}",  (string)typePatterns["Int16"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{UInt16\}",  (string)typePatterns["UInt16"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Int32\}",  (string)typePatterns["Int32"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{UInt32\}",  (string)typePatterns["UInt32"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Int64\}",  (string)typePatterns["Int64"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{UInt64\}",   (string)typePatterns["UInt64"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Single\}",   (string)typePatterns["Single"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Double\}",   (string)typePatterns["Double"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Boolean\}",   (string)typePatterns["Boolean"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Byte\}",  (string)typePatterns["Byte"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{SByte\}",  (string)typePatterns["SByte"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Char\}",  (string)typePatterns["Char"]);
+				masterPattern = Regex.Replace(masterPattern,@"\{Decimal\}", (string)typePatterns["Decimal"]);
 				
 				masterPattern = Regex.Replace(masterPattern,@"\s+","\\s+");	//replace the white space with the pattern for white space
 
@@ -240,55 +240,55 @@ namespace GameCore
 					break;
 														
 				case "Int16":
-					o = Int16.Parse(sValue);
+					o = short.Parse(sValue);
 					break;
 
 				case "UInt16":
-					o = UInt16.Parse(sValue);
+					o = ushort.Parse(sValue);
 					break;
 
 				case "Int32":
-					o = Int32.Parse(sValue);
+					o = int.Parse(sValue);
 					break;
 
 				case "UInt32":
-					o = UInt32.Parse(sValue);
+					o = uint.Parse(sValue);
 					break;
 
 				case "Int64":
-					o = Int64.Parse(sValue);
+					o = long.Parse(sValue);
 					break;
 
 				case "UInt64":
-					o = UInt64.Parse(sValue);
+					o = ulong.Parse(sValue);
 					break;
 
 				case "Single":
-					o = Single.Parse(sValue);
+					o = float.Parse(sValue);
 					break;
 
 				case "Double":
-					o = Double.Parse(sValue);
+					o = double.Parse(sValue);
 					break;
 
 				case "Boolean":
-					o = Boolean.Parse(sValue);
+					o = bool.Parse(sValue);
 					break;
 
 				case "Byte":
-					o = Byte.Parse(sValue);
+					o = byte.Parse(sValue);
 					break;
 
 				case "SByte":
-					o = SByte.Parse(sValue);
+					o = sbyte.Parse(sValue);
 					break;
 
 				case "Char":
-					o = Char.Parse(sValue);
+					o = char.Parse(sValue);
 					break;
 
 				case "Decimal":
-					o = Decimal.Parse(sValue);
+					o = decimal.Parse(sValue);
 					break;
 			}
 			return o;
@@ -305,59 +305,59 @@ namespace GameCore
 			switch(typeName)
 			{
 				case "Int16":
-					innerPattern = (String)typePatterns["Int16"];
+					innerPattern = (string)typePatterns["Int16"];
 					break;
 
 				case "UInt16":
-					innerPattern = (String)typePatterns["UInt16"];
+					innerPattern = (string)typePatterns["UInt16"];
 					break;
 
 				case "Int32":
-					innerPattern = (String)typePatterns["Int32"];
+					innerPattern = (string)typePatterns["Int32"];
 					break;
 
 				case "UInt32":
-					innerPattern = (String)typePatterns["UInt32"];
+					innerPattern = (string)typePatterns["UInt32"];
 					break;
 
 				case "Int64":
-					innerPattern = (String)typePatterns["Int64"];
+					innerPattern = (string)typePatterns["Int64"];
 					break;
 
 				case "UInt64":
-					innerPattern = (String)typePatterns["UInt64"];
+					innerPattern = (string)typePatterns["UInt64"];
 					break;
 
 				case "Single":
-					innerPattern = (String)typePatterns["Single"];
+					innerPattern = (string)typePatterns["Single"];
 					break;
 
 				case "Double":
-					innerPattern = (String)typePatterns["Double"];
+					innerPattern = (string)typePatterns["Double"];
 					break;
 
 				case "Boolean":
-					innerPattern = (String)typePatterns["Boolean"];
+					innerPattern = (string)typePatterns["Boolean"];
 					break;
 
 				case "Byte":
-					innerPattern = (String)typePatterns["Byte"];
+					innerPattern = (string)typePatterns["Byte"];
 					break;
 
 				case "SByte":
-					innerPattern = (String)typePatterns["SByte"];
+					innerPattern = (string)typePatterns["SByte"];
 					break;
 
 				case "Char":
-					innerPattern = (String)typePatterns["Char"];
+					innerPattern = (string)typePatterns["Char"];
 					break;
 
 				case "Decimal":
-					innerPattern = (String)typePatterns["Decimal"];
+					innerPattern = (string)typePatterns["Decimal"];
 					break;
 
 				case "String":
-					innerPattern = (String)typePatterns["String"];
+					innerPattern = (string)typePatterns["String"];
 					break;
 			}
 			return innerPattern;
@@ -383,7 +383,7 @@ namespace GameCore
 						Console.Write("Capture"+j+"='" + c + "', Position="+c.Index + "   <");
 						for(var k = 0; k < c.ToString().Length; k++)
 						{
-                            Console.Write(((Int32)(c.ToString()[k])));
+                            Console.Write(((int)(c.ToString()[k])));
 						}
                         Console.WriteLine(">");
 					}

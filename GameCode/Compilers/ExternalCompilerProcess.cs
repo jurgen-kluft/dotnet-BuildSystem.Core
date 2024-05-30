@@ -71,7 +71,7 @@ namespace GameData
 
         public string Arguments(string filename)
         {
-            return String.Format("-srcpath \"{0}\" -dstpath \"{1}\" -srcfile \"{2}\"", BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath, filename, BuildSystemCompilerConfig.PlatformName);
+            return string.Format("-srcpath \"{0}\" -dstpath \"{1}\" -srcfile \"{2}\"", BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath, filename, BuildSystemCompilerConfig.PlatformName);
         }
 
         public string Arguments(string filename, string appendToCmdLine)

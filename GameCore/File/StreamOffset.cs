@@ -1,19 +1,12 @@
-using System;
-using System.Diagnostics;
 
 namespace GameCore
 {
     public struct StreamOffset
     {
-        #region Fields
+        public static readonly StreamOffset sEmpty = new (-1);
+        public static readonly StreamOffset sZero = new (0);
 
-        public readonly static StreamOffset Empty = new (-1);
-        public readonly static StreamOffset Zero = new (0);
-
-        #endregion
-        #region Constructor
-
-        public StreamOffset(Int64 offset)
+        public StreamOffset(long offset)
         {
             Offset = offset;
         }
@@ -23,38 +16,32 @@ namespace GameCore
             Offset = streamOffset.Offset;
         }
 
-        #endregion
-        #region Properties
-
-        public Int64 Offset { get; set; }
-        public Int32 Offset32 => (Int32)Offset;
-
-        #endregion
-        #region Operators
+        public long Offset { get; private set; }
+        public int Offset32 => (int)Offset;
 
         public static StreamOffset operator +(StreamOffset a, StreamOffset b)
         {
             return new StreamOffset(a.Offset + b.Offset);
         }
 
-        public static StreamOffset operator +(StreamOffset a, Int32 b)
+        public static StreamOffset operator +(StreamOffset a, int b)
         {
             return new StreamOffset(a.Offset + b);
         }
 
-        public static StreamOffset operator +(StreamOffset a, UInt32 b)
+        public static StreamOffset operator +(StreamOffset a, uint b)
         {
             return new StreamOffset(a.Offset + b);
         }
 
-        public static StreamOffset operator +(StreamOffset a, Int64 b)
+        public static StreamOffset operator +(StreamOffset a, long b)
         {
             return new StreamOffset(a.Offset + b);
         }
 
-        public static StreamOffset operator +(StreamOffset a, UInt64 b)
+        public static StreamOffset operator +(StreamOffset a, ulong b)
         {
-            return new StreamOffset(a.Offset + (Int64)b);
+            return new StreamOffset(a.Offset + (long)b);
         }
 
         public static StreamOffset operator -(StreamOffset a, StreamOffset b)
@@ -75,10 +62,7 @@ namespace GameCore
             return a.Offset != b.Offset;
         }
 
-        #endregion
-        #region Methods
-
-        public void Align(Int64 alignment)
+        public void Align(long alignment)
         {
             Offset = (Offset + (alignment - 1)) & ~(alignment - 1);
         }
@@ -96,8 +80,6 @@ namespace GameCore
         {
             return Offset.GetHashCode();
         }
-
-        #endregion
     }
 
 }

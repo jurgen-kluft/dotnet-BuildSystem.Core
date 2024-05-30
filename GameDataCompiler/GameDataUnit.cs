@@ -224,7 +224,7 @@ namespace DataBuildSystem
         public string FilePath { get; private init; }
         public string Name { get; }
         public Hash160 Hash { get; private init; }
-        public Int32 Index { get; private init; }
+        public int Index { get; private init; }
         private State[] States { get; set; } = new State[(int)EGameData.Count];
         private Dependency Dep { get; set; }
 
@@ -243,7 +243,7 @@ namespace DataBuildSystem
 
         private GameDataUnit() : this(string.Empty, -1) { }
 
-        public GameDataUnit(string filepath, Int32 index)
+        public GameDataUnit(string filepath, int index)
         {
             FilePath = filepath;
             Name = Path.GetFileNameWithoutExtension(filepath);

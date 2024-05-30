@@ -22,7 +22,7 @@ These are now following the same layout as mentioned above containing multiple s
 
 ## Bigfile Organization
 
-So during development we will have multiple loose Bigfiles and only for a final release we will merge them into one Bigfile.
+So during development we will have multiple loose Big files and only for a final release we will merge them into one Bigfile.
 Every Bigfile has an associated `index`, and each FileId that is written in the game data is composed of a Bigfile `index` 
 and a BigfileFile `index`.
 

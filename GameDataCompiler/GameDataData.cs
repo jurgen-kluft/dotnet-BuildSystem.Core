@@ -1,18 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Collections.Generic;
+﻿using System.Reflection;
 
 using GameCore;
 using GameData;
-using GameData.MetaCode;
 
 namespace DataBuildSystem
 {
-    static class ObjectTreeWalker
+    internal static class ObjectTreeWalker
     {
-        #region Walk
-
         public delegate bool OnObjectDelegate(object compound);
 
         public static bool Walk(object compound, OnObjectDelegate ood)
@@ -106,44 +100,28 @@ namespace DataBuildSystem
             }
             return true;
         }
-
-        #endregion
     }
 
     public sealed class GameDataData
     {
-        #region Fields
-
-        private Assembly mDataAssembly;
-        private GameData.IDataRoot mRoot;
+        private IDataRoot mRoot;
 
         private List<IDataCompiler> mCompilers;
         private List<IFileIdProvider> mFilesProviders;
 
-        #endregion
-        #region Constructor
-
         public GameDataData(Assembly dataAssembly)
         {
-            mDataAssembly = dataAssembly;
+            Assembly = dataAssembly;
             mCompilers = new();
             mFilesProviders = new();
         }
 
-        #endregion
-        #region Properties
+        public Assembly Assembly { get; }
 
-        public Assembly assembly
-        {
-            get { return mDataAssembly; }
-        }
         public GameData.IDataRoot root
         {
             get { return mRoot; }
         }
-
-        #endregion
-        #region Instanciate
 
         private bool Instanciate()
         {
@@ -152,7 +130,7 @@ namespace DataBuildSystem
 
             try
             {
-                mRoot = AssemblyUtil.Create1<GameData.IDataRoot>(mDataAssembly);
+                mRoot = AssemblyUtil.Create1<IDataRoot>(Assembly);
                 return mRoot != null;
             }
             catch (System.Exception)
@@ -161,14 +139,9 @@ namespace DataBuildSystem
             }
         }
 
-        #endregion
-        #region Compile
-
-        #region Data Compilation steps
-
         public List<IDataCompiler> CollectDataCompilers()
         {
-            List<IDataCompiler> compilers = new();
+            var compilers = new List<IDataCompiler>();
             if (Instanciate())
             {
                 // Collect:
@@ -202,8 +175,8 @@ namespace DataBuildSystem
             if (compilers.Count == 0)
                 return;
 
-            MemoryStream memoryStream = new();
-            BinaryMemoryWriter memoryWriter = new();
+            var memoryStream = new MemoryStream();
+            var memoryWriter = new BinaryMemoryWriter();
 
             var signatureList = new List<KeyValuePair<Hash160, IDataCompiler>>(compilers.Count);
             foreach (var cl in compilers)
@@ -222,7 +195,7 @@ namespace DataBuildSystem
             }
             signatureList.Sort(Comparer);
 
-            long index = 0;
+            var index = (long)0;
             var prevSignature = signatureList[0].Key;
             foreach (var scl in signatureList)
             {
@@ -246,9 +219,8 @@ namespace DataBuildSystem
                         return true;
 
                     var handled = false;
-                    if (compound is IFileIdProvider)
+                    if (compound is IFileIdProvider f)
                     {
-                        var f = compound as IFileIdProvider;
                         mFilesProviders.Add(f);
                         handled = true;
                     }
@@ -260,11 +232,6 @@ namespace DataBuildSystem
 
             return true;
         }
-
-        #endregion
-
-        #endregion
-        #region Generate C++ Code and Data
 
         private void GenerateCppCodeAndData(object data, string dataFilename, string codeFilename, string relocFilename)
         {
@@ -278,15 +245,12 @@ namespace DataBuildSystem
             }
         }
 
-        #endregion
-        #region Generate Std Data
-
         private void GenerateStdData(object data, string dataFilename, string relocFilename)
         {
             // Generate the generic data
             try
             {
-                // StdDataStream stdDataStream = new StdDataStream(BuildSystemCompilerConfig.Platform);
+                // var stdDataStream = new StdDataStream(BuildSystemCompilerConfig.Platform);
                 // StdDataStream.SizeOfBool = BuildSystemCompilerConfig.SizeOfBool;
                 // stdDataStream.Write(BuildSystemCompilerConfig.Platform, data, dataFilename, relocFilename);
             }
@@ -296,22 +260,17 @@ namespace DataBuildSystem
             }
         }
 
-        #endregion
-        #region Save
-
         public bool Save(string filepath)
         {
             //generateCppCodeAndData(root, fullNameWithoutExtension + ".rdf", fullNameWithoutExtension + ".rcf", fullNameWithoutExtension + ".rrf");
             var dataFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataFileExtension);
             var relocFilename = Path.ChangeExtension(filepath, BuildSystemCompilerConfig.DataRelocFileExtension);
 
-            GameData.FileCommander.createDirectoryOnDisk(Path.GetDirectoryName(dataFilename));
+            FileCommander.createDirectoryOnDisk(Path.GetDirectoryName(dataFilename));
 
             GenerateStdData(mRoot, dataFilename, relocFilename);
             GenerateCppCodeAndData(mRoot, dataFilename + "c", Path.ChangeExtension(dataFilename, ".h"), relocFilename + "c");
             return true;
         }
-
-        #endregion
     }
 }

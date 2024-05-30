@@ -530,14 +530,14 @@ namespace GameCore
 		/// <returns>True if the two vectors are equal; otherwise, False.</returns>
 		public static bool operator==(FVector2 u, FVector2 v)
 		{
-			if (Object.Equals(u, null))
+			if (object.Equals(u, null))
 			{
-				return Object.Equals(v, null);
+				return object.Equals(v, null);
 			}
 
-			if (Object.Equals(v, null))
+			if (object.Equals(v, null))
 			{
-				return Object.Equals(u, null);
+				return object.Equals(u, null);
 			}
 
 			return (u.X == v.X) && (u.Y == v.Y);
@@ -550,14 +550,14 @@ namespace GameCore
 		/// <returns>True if the two vectors are not equal; otherwise, False.</returns>
 		public static bool operator!=(FVector2 u, FVector2 v)
 		{
-			if (Object.Equals(u, null))
+			if (object.Equals(u, null))
 			{
-				return !Object.Equals(v, null);
+				return !object.Equals(v, null);
 			}
 
-			if (Object.Equals(v, null))
+			if (object.Equals(v, null))
 			{
-				return !Object.Equals(u, null);
+				return !object.Equals(u, null);
 			}
 
 			return !((u.X == v.X) && (u.Y == v.Y));

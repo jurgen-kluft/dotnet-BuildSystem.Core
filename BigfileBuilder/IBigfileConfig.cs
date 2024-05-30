@@ -1,7 +1,6 @@
-﻿using System;
-using GameCore;
+﻿using GameCore;
 
-namespace DataBuildSystem
+namespace BigfileBuilder
 {
     public interface IBigfileConfig
     {
@@ -38,7 +37,7 @@ namespace DataBuildSystem
         /// <summary>
         /// The alignment of every file in the bigfile
         /// </summary>
-        Int64 FileAlignment { get; }
+        long FileAlignment { get; }
 
         /// <summary>
         /// True = Allow binary duplicate files
@@ -49,12 +48,12 @@ namespace DataBuildSystem
         /// <summary>
         /// The size of the read buffer when reading files to copy to the Bigfile
         /// </summary>
-        UInt32 ReadBufferSize { get; }
+        uint ReadBufferSize { get; }
 
         /// <summary>
         /// The size of the write buffer (cache) for writing to the Bigfile
         /// </summary>
-        UInt32 WriteBufferSize { get; }
+        uint WriteBufferSize { get; }
     }
 
     public sealed class BigfileDefaultConfig : IBigfileConfig
@@ -65,31 +64,31 @@ namespace DataBuildSystem
         public string BigFileFdbExtension => ".gdf";
         public string BigFileHdbExtension => ".gdh";
         public EPlatform Platform => EPlatform.Win64;
-        public Int64 FileAlignment => 256;
+        public long FileAlignment => 256;
         public bool AllowDuplicateFiles => false;
-        public UInt32 ReadBufferSize => 1 * 1024 * 1024;
-        public UInt32 WriteBufferSize => 1 * 1024 * 1024;
+        public uint ReadBufferSize => 1 * 1024 * 1024;
+        public uint WriteBufferSize => 1 * 1024 * 1024;
     }
 
 
     public static class BigfileConfig
     {
-        private static IBigfileConfig _Config = new BigfileDefaultConfig();
+        private static IBigfileConfig sConfig = new BigfileDefaultConfig();
 
         public static void Init(IBigfileConfig config)
         {
-            _Config = config;
+            sConfig = config;
         }
 
-        public static string BigfileName => _Config.BigfileName;
-        public static string BigFileExtension => _Config.BigFileExtension;
-        public static string BigFileTocExtension => _Config.BigFileTocExtension;
-        public static string BigFileFdbExtension => _Config.BigFileFdbExtension;
-        public static string BigFileHdbExtension => _Config.BigFileHdbExtension;
-        public static EPlatform Platform => _Config.Platform;
-        public static Int64 FileAlignment => _Config.FileAlignment;
-        public static bool AllowDuplicateFiles => _Config.AllowDuplicateFiles;
-        public static UInt32 ReadBufferSize => _Config.ReadBufferSize;
-        public static UInt32 WriteBufferSize => _Config.WriteBufferSize;
+        public static string BigfileName => sConfig.BigfileName;
+        public static string BigFileExtension => sConfig.BigFileExtension;
+        public static string BigFileTocExtension => sConfig.BigFileTocExtension;
+        public static string BigFileFdbExtension => sConfig.BigFileFdbExtension;
+        public static string BigFileHdbExtension => sConfig.BigFileHdbExtension;
+        public static EPlatform Platform => sConfig.Platform;
+        public static long FileAlignment => sConfig.FileAlignment;
+        public static bool AllowDuplicateFiles => sConfig.AllowDuplicateFiles;
+        public static uint ReadBufferSize => sConfig.ReadBufferSize;
+        public static uint WriteBufferSize => sConfig.WriteBufferSize;
     }
 }

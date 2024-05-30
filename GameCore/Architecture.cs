@@ -12,23 +12,23 @@ namespace GameCore
 
         int Write(byte v, byte[] buffer, int offset);
         int Write(sbyte v, byte[] buffer, int offset);
-        int Write(Int16 v, byte[] buffer, int offset);
-        int Write(UInt16 v, byte[] buffer, int offset);
-        int Write(Int32 v, byte[] buffer, int offset);
-        int Write(UInt32 v, byte[] buffer, int offset);
-        int Write(Int64 v, byte[] buffer, int offset);
-        int Write(UInt64 v, byte[] buffer, int offset);
+        int Write(short v, byte[] buffer, int offset);
+        int Write(ushort v, byte[] buffer, int offset);
+        int Write(int v, byte[] buffer, int offset);
+        int Write(uint v, byte[] buffer, int offset);
+        int Write(long v, byte[] buffer, int offset);
+        int Write(ulong v, byte[] buffer, int offset);
         int Write(float v, byte[] buffer, int offset);
         int Write(double v, byte[] buffer, int offset);
 
         sbyte ReadInt8(byte[] buffer, int index);
         byte ReadUInt8(byte[] buffer, int index);
-        Int16 ReadInt16(byte[] buffer, int index);
-        UInt16 ReadUInt16(byte[] buffer, int index);
-        Int32 ReadInt32(byte[] buffer, int index);
-        UInt32 ReadUInt32(byte[] buffer, int index);
-        Int64 ReadInt64(byte[] buffer, int index);
-        UInt64 ReadUInt64(byte[] buffer, int index);
+        short ReadInt16(byte[] buffer, int index);
+        ushort ReadUInt16(byte[] buffer, int index);
+        int ReadInt32(byte[] buffer, int index);
+        uint ReadUInt32(byte[] buffer, int index);
+        long ReadInt64(byte[] buffer, int index);
+        ulong ReadUInt64(byte[] buffer, int index);
         float ReadFloat(byte[] buffer, int index);
         double ReadDouble(byte[] buffer, int index);
     }
@@ -104,37 +104,37 @@ namespace GameCore
             return 1;
         }
 
-        public int Write(Int16 v, byte[] buffer, int offset)
+        public int Write(short v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             return 2;
         }
 
-        public int Write(UInt16 v, byte[] buffer, int offset)
+        public int Write(ushort v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             return 2;
         }
 
-        public int Write(Int32 v, byte[] buffer, int offset)
+        public int Write(int v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             return 4;
         }
 
-        public int Write(UInt32 v, byte[] buffer, int offset)
+        public int Write(uint v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             return 4;
         }
 
-        public int Write(Int64 v, byte[] buffer, int offset)
+        public int Write(long v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             return 8;
         }
 
-        public int Write(UInt64 v, byte[] buffer, int offset)
+        public int Write(ulong v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             return 8;
@@ -162,32 +162,32 @@ namespace GameCore
             return buffer[index];
         }
 
-        public Int16 ReadInt16(byte[] buffer, int index)
+        public short ReadInt16(byte[] buffer, int index)
         {
             return BitConverter.ToInt16(buffer, index);
         }
 
-        public UInt16 ReadUInt16(byte[] buffer, int index)
+        public ushort ReadUInt16(byte[] buffer, int index)
         {
             return BitConverter.ToUInt16(buffer, index);
         }
 
-        public Int32 ReadInt32(byte[] buffer, int index)
+        public int ReadInt32(byte[] buffer, int index)
         {
             return BitConverter.ToInt32(buffer, index);
         }
 
-        public UInt32 ReadUInt32(byte[] buffer, int index)
+        public uint ReadUInt32(byte[] buffer, int index)
         {
             return BitConverter.ToUInt32(buffer, index);
         }
 
-        public Int64 ReadInt64(byte[] buffer, int index)
+        public long ReadInt64(byte[] buffer, int index)
         {
             return BitConverter.ToInt64(buffer, index);
         }
 
-        public UInt64 ReadUInt64(byte[] buffer, int index)
+        public ulong ReadUInt64(byte[] buffer, int index)
         {
             return BitConverter.ToUInt64(buffer, index);
         }
@@ -220,21 +220,21 @@ namespace GameCore
             return 1;
         }
 
-        public int Write(Int16 v, byte[] buffer, int offset)
+        public int Write(short v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             (buffer[0], buffer[1]) = (buffer[1], buffer[0]);
             return 2;
         }
 
-        public int Write(UInt16 v, byte[] buffer, int offset)
+        public int Write(ushort v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             (buffer[0], buffer[1]) = (buffer[1], buffer[0]);
             return 2;
         }
 
-        public int Write(Int32 v, byte[] buffer, int offset)
+        public int Write(int v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             (buffer[0], buffer[3 - 0]) = (buffer[3 - 0], buffer[0]);
@@ -242,7 +242,7 @@ namespace GameCore
             return 4;
         }
 
-        public int Write(UInt32 v, byte[] buffer, int offset)
+        public int Write(uint v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             (buffer[0], buffer[3 - 0]) = (buffer[3 - 0], buffer[0]);
@@ -250,7 +250,7 @@ namespace GameCore
             return 4;
         }
 
-        public int Write(Int64 v, byte[] buffer, int offset)
+        public int Write(long v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             (buffer[0], buffer[7 - 0]) = (buffer[7 - 0], buffer[0]);
@@ -260,7 +260,7 @@ namespace GameCore
             return 8;
         }
 
-        public int Write(UInt64 v, byte[] buffer, int offset)
+        public int Write(ulong v, byte[] buffer, int offset)
         {
             BitConverter.TryWriteBytes(buffer.AsSpan(offset), v);
             (buffer[0], buffer[7 - 0]) = (buffer[7 - 0], buffer[0]);
@@ -298,37 +298,37 @@ namespace GameCore
             return buffer[index];
         }
 
-        public Int16 ReadInt16(byte[] buffer, int index)
+        public short ReadInt16(byte[] buffer, int index)
         {
             Swap(buffer, 0, 2);
             return BitConverter.ToInt16(buffer, 0);
         }
 
-        public UInt16 ReadUInt16(byte[] buffer, int index)
+        public ushort ReadUInt16(byte[] buffer, int index)
         {
             Swap(buffer, 0, 2);
             return BitConverter.ToUInt16(buffer, 0);
         }
 
-        public Int32 ReadInt32(byte[] buffer, int index)
+        public int ReadInt32(byte[] buffer, int index)
         {
             Swap(buffer, 0, 4);
             return BitConverter.ToInt32(buffer, 0);
         }
 
-        public UInt32 ReadUInt32(byte[] buffer, int index)
+        public uint ReadUInt32(byte[] buffer, int index)
         {
             Swap(buffer, 0, 4);
             return BitConverter.ToUInt32(buffer, 0);
         }
 
-        public Int64 ReadInt64(byte[] buffer, int index)
+        public long ReadInt64(byte[] buffer, int index)
         {
             Swap(buffer, 0, 8);
             return BitConverter.ToInt64(buffer, 0);
         }
 
-        public UInt64 ReadUInt64(byte[] buffer, int index)
+        public ulong ReadUInt64(byte[] buffer, int index)
         {
             Swap(buffer, 0, 8);
             return BitConverter.ToUInt64(buffer, 0);

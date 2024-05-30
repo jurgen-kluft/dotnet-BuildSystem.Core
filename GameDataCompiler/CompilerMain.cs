@@ -2,6 +2,8 @@ using System.Reflection;
 using System.Runtime.Loader;
 
 using GameCore;
+using BigfileBuilder;
+using GameData;
 
 namespace DataBuildSystem
 {
@@ -99,7 +101,7 @@ namespace DataBuildSystem
             {
                 foreach (var config in configsForBigfileBuilder)
                 {
-                    if (config.Platform == BuildSystemCompilerConfig.Platform)
+                    if (config.Platform.HasFlag(BuildSystemCompilerConfig.Platform))
                     {
                         BigfileConfig.Init(config);
                         break;
@@ -112,6 +114,11 @@ namespace DataBuildSystem
                 return Error();
             }
 
+            GameDataPath.BigFileExtension = BigfileConfig.BigFileExtension;
+            GameDataPath.BigFileTocExtension = BigfileConfig.BigFileTocExtension;
+            GameDataPath.BigFileFdbExtension = BigfileConfig.BigFileFdbExtension;
+            GameDataPath.BigFileHdbExtension = BigfileConfig.BigFileHdbExtension;
+
             gameDataAssemblyContext.Unload();
 
             // NOTES
@@ -123,7 +130,7 @@ namespace DataBuildSystem
             var gdus = new GameDataUnits();
 
             var start = DateTime.Now;
-            Console.WriteLine("------ Initializing data compilation");
+            Console.WriteLine("------ Initializing data compilation units");
             gdus.Load(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.GddPath);
             var end = DateTime.Now;
             Console.WriteLine("Finished initialization -- ok (Duration: {0}s)", (end - start).TotalSeconds);

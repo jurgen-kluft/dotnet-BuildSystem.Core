@@ -614,14 +614,14 @@ namespace GameCore
 		/// <returns>True if the two complex numbers are equal; otherwise, False.</returns>
 		public static bool operator==(ComplexF u, ComplexF v)
 		{
-			if (Object.Equals(u, null))
+			if (object.Equals(u, null))
 			{
-				return Object.Equals(v, null);
+				return object.Equals(v, null);
 			}
 
-			if (Object.Equals(v, null))
+			if (object.Equals(v, null))
 			{
-				return Object.Equals(u, null);
+				return object.Equals(u, null);
 			}
 
 			return (u.Real == v.Real) && (u.Imaginary == v.Imaginary);
@@ -634,14 +634,14 @@ namespace GameCore
 		/// <returns>True if the two complex numbers are not equal; otherwise, False.</returns>
 		public static bool operator!=(ComplexF u, ComplexF v)
 		{
-			if (Object.Equals(u, null))
+			if (object.Equals(u, null))
 			{
-				return !Object.Equals(v, null);
+				return !object.Equals(v, null);
 			}
 
-			if (Object.Equals(v, null))
+			if (object.Equals(v, null))
 			{
-				return !Object.Equals(u, null);
+				return !object.Equals(u, null);
 			}
 
 			return !((u.Real == v.Real) && (u.Imaginary == v.Imaginary));

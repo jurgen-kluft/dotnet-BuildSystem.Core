@@ -65,8 +65,8 @@ namespace GameCore
                 var c = filename[filenameCharIndex];
                 if (mIgnoreCase)
                 {
-                    p = Char.ToLower(p);
-                    c = Char.ToLower(c);
+                    p = char.ToLower(p);
+                    c = char.ToLower(c);
                 }
 
                 if ((p != c) && (p != '?'))
@@ -84,8 +84,8 @@ namespace GameCore
                 var c = filename[filenameCharIndex];
                 if (mIgnoreCase)
                 {
-                    p = Char.ToLower(p);
-                    c = Char.ToLower(c);
+                    p = char.ToLower(p);
+                    c = char.ToLower(c);
                 }
 
                 if (p == '*')

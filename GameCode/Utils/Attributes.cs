@@ -40,32 +40,32 @@ namespace GameData
             error = string.Empty;
             return true;
         }
-        public virtual bool Check(Int16 c, out string error)
+        public virtual bool Check(short c, out string error)
         {
             error = string.Empty;
             return true;
         }
-        public virtual bool Check(UInt16 c, out string error)
+        public virtual bool Check(ushort c, out string error)
         {
             error = string.Empty;
             return true;
         }
-        public virtual bool Check(Int32 c, out string error)
+        public virtual bool Check(int c, out string error)
         {
             error = string.Empty;
             return true;
         }
-        public virtual bool Check(UInt32 c, out string error)
+        public virtual bool Check(uint c, out string error)
         {
             error = string.Empty;
             return true;
         }
-        public virtual bool Check(Int64 c, out string error)
+        public virtual bool Check(long c, out string error)
         {
             error = string.Empty;
             return true;
         }
-        public virtual bool Check(UInt64 c, out string error)
+        public virtual bool Check(ulong c, out string error)
         {
             error = string.Empty;
             return true;
@@ -103,7 +103,7 @@ namespace GameData
 
         private bool Error(string valueStr, out string errorStr)
         {
-            errorStr = String.Format("Value {0} out of range [{1},{2}]", valueStr, Min, Max);
+            errorStr = string.Format("Value {0} out of range [{1},{2}]", valueStr, Min, Max);
             return false;
         }
 
@@ -123,7 +123,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int16 c, out string errorStr)
+        public override bool Check(short c, out string errorStr)
         {
             int v = c;
             if (v < Min || v > Max)
@@ -131,7 +131,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt16 c, out string errorStr)
+        public override bool Check(ushort c, out string errorStr)
         {
             int v = c;
             if (v < Min || v > Max)
@@ -139,7 +139,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int32 c, out string errorStr)
+        public override bool Check(int c, out string errorStr)
         {
             var v = c;
             if (v < Min || v > Max)
@@ -147,7 +147,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt32 c, out string errorStr)
+        public override bool Check(uint c, out string errorStr)
         {
             var v = (int)c;
             if (v < Min || v > Max)
@@ -155,7 +155,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int64 c, out string errorStr)
+        public override bool Check(long c, out string errorStr)
         {
             var v = c;
             if (v < Min || v > Max)
@@ -163,9 +163,9 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt64 c, out string errorStr)
+        public override bool Check(ulong c, out string errorStr)
         {
-            var v = (Int64)c;
+            var v = (long)c;
             if (v < Min || v > Max)
                 return Error(c.ToString(), out errorStr);
             errorStr = string.Empty;
@@ -205,7 +205,7 @@ namespace GameData
 
         private bool Error(string valueStr, out string errorStr)
         {
-            errorStr = String.Format("Value {0} out of range [{1},{2}]", valueStr, Min, Max);
+            errorStr = string.Format("Value {0} out of range [{1},{2}]", valueStr, Min, Max);
             return false;
         }
 
@@ -225,7 +225,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int16 c, out string errorStr)
+        public override bool Check(short c, out string errorStr)
         {
             double v = c;
             if (v < Min || v > Max)
@@ -233,7 +233,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt16 c, out string errorStr)
+        public override bool Check(ushort c, out string errorStr)
         {
             double v = c;
             if (v < Min || v > Max)
@@ -241,7 +241,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int32 c, out string errorStr)
+        public override bool Check(int c, out string errorStr)
         {
             double v = c;
             if (v < Min || v > Max)
@@ -249,7 +249,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt32 c, out string errorStr)
+        public override bool Check(uint c, out string errorStr)
         {
             double v = c;
             if (v < Min || v > Max)
@@ -257,7 +257,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int64 c, out string errorStr)
+        public override bool Check(long c, out string errorStr)
         {
             double v = c;
             if (v < Min || v > Max)
@@ -265,7 +265,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt64 c, out string errorStr)
+        public override bool Check(ulong c, out string errorStr)
         {
             double v = c;
             if (v < Min || v > Max)
@@ -299,8 +299,8 @@ namespace GameData
         private const double SMin = -1.0 * ((double)((7 * (1 << 12) + ((1 << 12) - 1))) / (double)(1 << 12));
         private const double SMax = ((double)((7 * (1 << 12) + ((1 << 12) - 1))) / (double)(1 << 12));
 
-        private readonly double mMin = Double.MinValue;
-        private readonly double mMax = Double.MaxValue;
+        private readonly double mMin = double.MinValue;
+        private readonly double mMax = double.MaxValue;
 
         public Fx16Range(double min, double max)
         {
@@ -316,7 +316,7 @@ namespace GameData
 
         private bool Error(string valueStr, out string errorStr)
         {
-            errorStr = String.Format("Value {0} out of range [{1},{2}]", valueStr, mMin, mMax);
+            errorStr = string.Format("Value {0} out of range [{1},{2}]", valueStr, mMin, mMax);
             return false;
         }
 
@@ -336,7 +336,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int16 c, out string errorStr)
+        public override bool Check(short c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -344,7 +344,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt16 c, out string errorStr)
+        public override bool Check(ushort c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -352,7 +352,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int32 c, out string errorStr)
+        public override bool Check(int c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -360,7 +360,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt32 c, out string errorStr)
+        public override bool Check(uint c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -368,7 +368,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int64 c, out string errorStr)
+        public override bool Check(long c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -376,7 +376,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt64 c, out string errorStr)
+        public override bool Check(ulong c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -407,8 +407,8 @@ namespace GameData
 
     public class Fx32Range : Range
     {
-        private readonly double mMin = Double.MinValue;
-        private readonly double mMax = Double.MaxValue;
+        private readonly double mMin = double.MinValue;
+        private readonly double mMax = double.MaxValue;
 
         public Fx32Range(double min, double max)
         {
@@ -418,7 +418,7 @@ namespace GameData
 
         private bool Error(string valueStr, out string errorStr)
         {
-            errorStr = String.Format("Value {0} out of range [{1},{2}]", valueStr, mMin, mMax);
+            errorStr = string.Format("Value {0} out of range [{1},{2}]", valueStr, mMin, mMax);
             return false;
         }
 
@@ -438,7 +438,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int16 c, out string errorStr)
+        public override bool Check(short c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -446,7 +446,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt16 c, out string errorStr)
+        public override bool Check(ushort c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -454,7 +454,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int32 c, out string errorStr)
+        public override bool Check(int c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -462,7 +462,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt32 c, out string errorStr)
+        public override bool Check(uint c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -470,7 +470,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(Int64 c, out string errorStr)
+        public override bool Check(long c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)
@@ -478,7 +478,7 @@ namespace GameData
             errorStr = string.Empty;
             return true;
         }
-        public override bool Check(UInt64 c, out string errorStr)
+        public override bool Check(ulong c, out string errorStr)
         {
             var v = ((double)c) / (1 << 12);
             if (v < mMin || v > mMax)

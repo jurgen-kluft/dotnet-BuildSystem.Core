@@ -6,26 +6,26 @@ namespace GameCore
 {
     public static partial class  CMath
     {
-        public static Int64 Align(Int64 position, Int64 alignment)
+        public static long Align(long position, long alignment)
         {
             return (position + (alignment - 1)) & ~(alignment - 1);
         }
-        public static bool TryAlign(Int64 position, Int64 alignment, out Int64 aligned)
+        public static bool TryAlign(long position, long alignment, out long aligned)
         {
             aligned = (position + (alignment - 1)) & ~(alignment - 1);
             return aligned == position;
         }
-        public static bool IsAligned(Int64 position, Int64 alignment)
+        public static bool IsAligned(long position, long alignment)
         {
             var newpos = (position + (alignment - 1)) & ~(alignment - 1);
             return newpos == position;
         }
 
-        public static Int32 Align32(Int32 position, Int32 alignment)
+        public static int Align32(int position, int alignment)
         {
             return (position + (alignment - 1)) & ~(alignment - 1);
         }
-        public static bool TryAlign32(Int32 position, Int32 alignment, out Int32 aligned)
+        public static bool TryAlign32(int position, int alignment, out int aligned)
         {
             aligned = (position + (alignment - 1)) & ~(alignment - 1);
             return aligned == position;
@@ -168,19 +168,19 @@ namespace GameCore
 
     public static class StreamUtils
     {
-        private static Int64 Position(IBinaryStream writer)
+        private static long Position(IBinaryStream writer)
         {
             var p = writer.Position;
             return p;
         }
 
-        public static bool Aligned(IBinaryStream writer, Int64 alignment)
+        public static bool Aligned(IBinaryStream writer, long alignment)
         {
             var p = CMath.Align(writer.Position, alignment);
             return (p == writer.Position);
         }
 
-        public static void Align(IBinaryStream writer, Int64 alignment)
+        public static void Align(IBinaryStream writer, long alignment)
         {
             writer.Position = CMath.Align(writer.Position, alignment);
         }

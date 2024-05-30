@@ -4,6 +4,7 @@
     <OutputType>library</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <RootNamespace>GameCode</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

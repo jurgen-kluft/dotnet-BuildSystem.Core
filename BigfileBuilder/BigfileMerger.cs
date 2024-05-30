@@ -6,7 +6,7 @@ using GameCore;
 //
 // BuildTools: Merging of multiple Bigfiles and BigfileTocs
 //
-namespace DataBuildSystem
+namespace BigfileBuilder
 {
 
     public sealed class BigfileMerger

@@ -4,21 +4,21 @@ namespace GameData
 {
     public struct Fx16 : IStruct
     {
-        private Int16 mValue;
+        private short mValue;
 
-        public Fx16(Int32 v)
+        public Fx16(int v)
         {
-            mValue = (Int16)(v << 12);
+            mValue = (short)(v << 12);
         }
 
         public Fx16(float v)
         {
-            mValue = (Int16)(v * (1 << 12));
+            mValue = (short)(v * (1 << 12));
         }
 
         public Fx16(double v)
         {
-            mValue = (Int16)(v * (1 << 12));
+            mValue = (short)(v * (1 << 12));
         }
 
         static public Fx16 SFromFloat(float v)

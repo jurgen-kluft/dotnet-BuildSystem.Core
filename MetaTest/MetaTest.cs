@@ -31,7 +31,7 @@ namespace MetaTest
 
         public class TestFileIdProvider : IFileIdProvider
         {
-            public Int64 FileId { get; set; }
+            public long FileId { get; set; }
         }
 
         public enum ETestEnum : uint
@@ -45,12 +45,12 @@ namespace MetaTest
         public class TestRoot
         {
             public float m_Float = 3.14f;
-            public Int32 m_Int = 1;
+            public int m_Int = 1;
             public bool m_Bool1 = true;
             public bool m_Bool2 = false;
             public bool m_Bool3 = true;
             public bool m_Bool4 = false;
-            public SByte m_Int8 = 2;
+            public sbyte m_Int8 = 2;
             public ETestEnum m_Enum = ETestEnum.EnumerationC;
             public Color m_Color = Colors.Aliceblue;
 
@@ -70,13 +70,13 @@ namespace MetaTest
             public FileId File = new FileId(new TestFileIdProvider { FileId = 1 });
 
             public float[] Floats = new float[8];
-            public List<Int64> IntegerList = new() { 0,1,2,3,4 };
+            public List<long> IntegerList = new() { 0,1,2,3,4 };
 
 			// The classes/structs are serialized in-place (not as a pointer)
 			[ArrayElementsInPlace]
             public TestArrayElement[] ObjectArray = new TestArrayElement[2] { new(), new() };
 
-            public Int64?[] IntPtrArray = new long?[1];
+            public long?[] IntPtrArray = new long?[1];
         }
 
 

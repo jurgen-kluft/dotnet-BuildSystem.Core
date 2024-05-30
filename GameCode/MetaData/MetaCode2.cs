@@ -137,9 +137,9 @@ namespace GameData
                 private init => Value = (Value & 0xFFFFFF00) | value;
             }
 
-            public Int32 SizeInBits => sSizeInBits[Index];
-            public Int32 SizeInBytes => (SizeInBits + 7) >> 3;
-            public Int32 Alignment => sAlignment[Index];
+            public int SizeInBits => sSizeInBits[Index];
+            public int SizeInBytes => (SizeInBits + 7) >> 3;
+            public int Alignment => sAlignment[Index];
             public string NameOfType => sTypeNames[Index];
 
             private const uint FlagInPlace = 0x200000;
@@ -160,25 +160,25 @@ namespace GameData
             public readonly StringTable DataStrings;
             public readonly List<string> MemberStrings;
             public readonly List<MetaInfo> MembersType;
-            public readonly List<Int32> MembersName;
-            public readonly List<Int32> MembersStart; // If we are a Struct the members start here
-            public readonly List<Int32> MembersCount; // If we are an Array/List/Dict/Struct we hold many elements/members
+            public readonly List<int> MembersName;
+            public readonly List<int> MembersStart; // If we are a Struct the members start here
+            public readonly List<int> MembersCount; // If we are an Array/List/Dict/Struct we hold many elements/members
             public readonly List<object> MembersObject; // This is to know the type of the class
 
-            public MetaCode2(StringTable dataStrings, Int32 estimatedCount)
+            public MetaCode2(StringTable dataStrings, int estimatedCount)
             {
                 DataStrings = dataStrings;
                 MemberStrings = new List<string>(estimatedCount);
                 MembersType = new List<MetaInfo>(estimatedCount);
-                MembersName = new List<Int32>(estimatedCount);
-                MembersStart = new List<Int32>(estimatedCount);
-                MembersCount = new List<Int32>(estimatedCount);
+                MembersName = new List<int>(estimatedCount);
+                MembersStart = new List<int>(estimatedCount);
+                MembersCount = new List<int>(estimatedCount);
                 MembersObject = new List<object>(estimatedCount);
             }
 
-            public Int32 Count => MembersType.Count;
+            public int Count => MembersType.Count;
 
-            public Int32 AddMember(MetaInfo info, Int32 name, Int32 startIndex, Int32 count, object o)
+            public int AddMember(MetaInfo info, int name, int startIndex, int count, object o)
             {
                 var index = Count;
                 MembersType.Add(info);
@@ -189,7 +189,7 @@ namespace GameData
                 return index;
             }
 
-            private void SetMember(Int32 memberIndex, MetaInfo info, Int32 name, Int32 startIndex, Int32 count, object o)
+            private void SetMember(int memberIndex, MetaInfo info, int name, int startIndex, int count, object o)
             {
                 MembersType[memberIndex] = info;
                 MembersName[memberIndex] = name;
@@ -198,7 +198,7 @@ namespace GameData
                 MembersObject[memberIndex] = o;
             }
 
-            private void DuplicateMember(Int32 memberIndex)
+            private void DuplicateMember(int memberIndex)
             {
                 var type = MembersType[memberIndex];
                 var name = MembersName[memberIndex];
@@ -208,7 +208,7 @@ namespace GameData
                 AddMember(type, name, startIndex, count, obj);
             }
 
-            private void SwapMembers(Int32 i, Int32 j)
+            private void SwapMembers(int i, int j)
             {
                 MembersType.Swap(i, j);
                 MembersName.Swap(i, j);
@@ -217,13 +217,13 @@ namespace GameData
                 MembersObject.Swap(i, j);
             }
 
-            public void UpdateStartIndexAndCount(Int32 memberIndex, Int32 startIndex, Int32 count)
+            public void UpdateStartIndexAndCount(int memberIndex, int startIndex, int count)
             {
                 MembersStart[memberIndex] = startIndex;
                 MembersCount[memberIndex] = count;
             }
 
-            public Int32 GetMemberAlignment(Int32 memberIndex)
+            public int GetMemberAlignment(int memberIndex)
             {
                 var mt = MembersType[memberIndex];
                 var alignment = mt.Alignment;
