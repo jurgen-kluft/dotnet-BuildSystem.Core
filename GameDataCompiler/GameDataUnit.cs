@@ -71,7 +71,7 @@ namespace DataBuildSystem
 
                         // GameDataCompiler log is updated -> rebuild the Bigfile
                         // As long as all the FileId's will be the same we do not need to build/save the game data files
-                        GameDataBigfile bff = new();
+                        GameDataBigfile bff = new(gdu.Index);
                         bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
                         gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
@@ -107,8 +107,8 @@ namespace DataBuildSystem
                     {
                         gdCl.AssignFileId(gdu.Index, mergedCompilers);
 
-                        // Rebuild the Bigfiles and GameData files
-                        var bff = new GameDataBigfile();
+                        // Rebuild the Bigfile and GameData file
+                        var bff = new GameDataBigfile(gdu.Index);
                         bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
                         gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 

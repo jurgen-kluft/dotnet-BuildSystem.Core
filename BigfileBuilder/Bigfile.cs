@@ -129,7 +129,12 @@ namespace BigfileBuilder
     public sealed class Bigfile
     {
         public List<BigfileFile> Files { get; } = new();
-        public int BigfileIndex { get; set; }
+        public int Index { get; set; }
+
+        public Bigfile(int index)
+        {
+            Index = index;
+        }
 
         public void Write(BigfileWriter writer)
         {

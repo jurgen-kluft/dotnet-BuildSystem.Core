@@ -5,7 +5,14 @@ namespace DataBuildSystem
 {
 	internal sealed class GameDataBigfile
 	{
-        private static void Add(Bigfile bigfile, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
+        public GameDataBigfile(int index)
+        {
+            Index = index;
+        }
+
+        private int Index { get; }
+
+        private static void Add(Bigfile bigfile, long fileId, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
         {
             var mainBigfileFile = new BigfileFile(filenames[0]);
             for (var i = 1; i < filenames.Count; ++i)
@@ -13,13 +20,12 @@ namespace DataBuildSystem
                 var filename = filenames[i];
                 var bigfileFile = new BigfileFile(filename)
                 {
-                    FileId = -1
+                    FileId = fileId
                 };
                 mainBigfileFile.Children.Add(bigfileFile);
                 children.Add(bigfileFile);
             }
 
-            // TODO Determine the Bigfile linked to this FileId
             bigfile.Files.Add(mainBigfileFile);
         }
 
@@ -27,22 +33,14 @@ namespace DataBuildSystem
 		{
 			var bfb = new BigfileBuilder.BigfileBuilder(BigfileConfig.Platform);
 
-            var bigfile = new Bigfile();
+            var bigfile = new Bigfile(Index);
             var children = new List<BigfileFile>();
 
             // Explanation:
             // A FileId is actually just a combination of the index of the Bigfile and the index of the BigfileFile within the Bigfile
             foreach (var o in gdClOutput)
 			{
-				Add(bigfile, o.Filenames, children);
-			}
-
-            // So that is why here we are just giving the BigfileFile an incremental index
-            var fileId = (long)0;
-            foreach(var c in children)
-			{
-                c.FileId = fileId++;
-                bigfile.Files.Add(c);
+				Add(bigfile, o.FileIdProvider.FileId, o.Filenames, children);
 			}
 
             var bigFiles = new List<Bigfile>() { bigfile };

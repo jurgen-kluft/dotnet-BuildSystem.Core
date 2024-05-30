@@ -172,7 +172,7 @@ namespace BigfileBuilder
 
             public static IWriteContext CreateWriteTocContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries, ITocEntryWriter tocEntryWriter)
             {
-                return new WriteToc32Context(sections, entries, tocEntryWriter);
+                return new WriteTocContext(sections, entries, tocEntryWriter);
             }
 
             public static IWriteContext CreateWriteFdbContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries)
@@ -494,14 +494,14 @@ namespace BigfileBuilder
         // The TOC or Table of Contents
         // This is also a multi-section TOC
         // </summary>
-        private sealed class WriteToc32Context : IWriteContext
+        private sealed class WriteTocContext : IWriteContext
         {
             private IReadOnlyList<TocSection> Sections { get; }
             private IReadOnlyList<ITocEntry> Entries { get; }
 
             private ITocEntryWriter TocEntryWriter { get; }
 
-            public WriteToc32Context(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries, ITocEntryWriter tocEntryWriter)
+            public WriteTocContext(IReadOnlyList<TocSection> sections, IReadOnlyList<ITocEntry> entries, ITocEntryWriter tocEntryWriter)
             {
                 Sections = sections;
                 Entries = entries;
@@ -620,9 +620,13 @@ namespace BigfileBuilder
                 SectionOffsets = new(sections.Count);
                 FilenameOffsetsPerSection = new List<uint>[sections.Count];
 
+                // String to UTF-8 byte buffer for reuse
                 StringByteBuffer = new byte[65536];
 
-                // Compute the offset of each section
+                // Simulation:
+                //   Compute the offset of each section
+
+                // NumEntries + NumSections + NumSections*Offset
                 var offset = (uint)(sizeof(int) + sizeof(int) + Sections.Count * sizeof(int));
                 for (var i = 0; i < sections.Count; i++)
                 {
@@ -631,14 +635,14 @@ namespace BigfileBuilder
 
                     FilenameOffsetsPerSection[i] = new List<uint>(section.TocCount);
 
-                    offset += (uint)(section.TocCount * sizeof(int)); // The size of Offset[]
+                    offset += (uint)(section.TocCount * sizeof(uint)); // The size of Offset[]
                     foreach (var e in section.Toc)
                     {
                         FilenameOffsetsPerSection[i].Add(offset);
 
                         // We need to figure out the length of the string in bytes, treat the string as UTF-8 and do include a null terminator.
                         // Length + StrLen(FileName) + 1 (null terminator)
-                        offset += (uint)(sizeof(int) + Encoding.UTF8.GetByteCount(e.Filename) + 1);
+                        offset += (uint)(sizeof(uint) + Encoding.UTF8.GetByteCount(e.Filename) + 1);
                         offset = CMath.AlignUp32(offset, 4);
                     }
                 }
@@ -671,8 +675,6 @@ namespace BigfileBuilder
                     }
                     else
                     {
-                        // writer.Write(section.Toc[item].Filename);
-                        // Write the string to the writer as UTF-8 and null terminated.
                         var filename = section.Toc[innerIter].Filename;
                         var strByteLen = Encoding.UTF8.GetByteCount(filename);
                         strByteLen = CMath.AlignUp32(strByteLen + 1, 4);
