@@ -67,11 +67,11 @@ namespace DataBuildSystem
                         // The number and order of data compilers should be identical with 'loaded_compilers'
                         var currentCompilers = gdd.CollectDataCompilers();
                         gdCl.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
-                        gdCl.AssignFileId(gdu.Index, mergedCompilers);
 
                         // GameDataCompiler log is updated -> rebuild the Bigfile
                         // As long as all the FileId's will be the same we do not need to build/save the game data files
                         GameDataBigfile bff = new(gdu.Index);
+                        bff.AssignFileId(gdClOutput);
                         bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
                         gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 
@@ -105,10 +105,9 @@ namespace DataBuildSystem
 
                     if (result.IsOutOfData)
                     {
-                        gdCl.AssignFileId(gdu.Index, mergedCompilers);
-
                         // Rebuild the Bigfile and GameData file
                         var bff = new GameDataBigfile(gdu.Index);
+                        bff.AssignFileId(gdClOutput);
                         bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
                         gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
 

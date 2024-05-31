@@ -754,7 +754,7 @@ namespace GameData
                 writer.WriteLine($"\tdict_t<{keyTypeString}, {valueTypeString}> m_{memberName};");
             }
 
-            
+
             private void WriteEnum(Type e, TextStreamWriter writer)
             {
                 writer.WriteLine($"enum {e.Name}");
@@ -1374,27 +1374,27 @@ namespace GameData
 
         public class CppDataStream2 : IDataWriter
         {
-            private int _current;
-            private int _offset;
-            private readonly EPlatform _platform;
-            private readonly List<DataBlock> _dataBlocks;
-            private readonly Dictionary<StreamReference, int> _referenceToBlock;
-            private readonly Dictionary<StreamReference, long> _markers;
-            private readonly StringTable _stringTable;
-            private readonly MemoryStream _memoryStream;
-            private readonly IBinaryStreamWriter _dataWriter;
+            private int mCurrent;
+            private int mOffset;
+            private readonly EPlatform mPlatform;
+            private readonly List<DataBlock> mDataBlocks;
+            private readonly Dictionary<StreamReference, int> mReferenceToBlock;
+            private readonly Dictionary<StreamReference, long> mMarkers;
+            private readonly StringTable mStringTable;
+            private readonly MemoryStream mMemoryStream;
+            private readonly IBinaryStreamWriter mDataWriter;
 
             public CppDataStream2(EPlatform platform, StringTable strTable)
             {
-                _current = -1;
-                _offset = 0;
-                _platform = platform;
-                _dataBlocks = new();
-                _referenceToBlock = new();
-                _markers = new();
-                _stringTable = strTable;
-                _memoryStream = new();
-                _dataWriter = ArchitectureUtils.CreateBinaryWriter(_memoryStream, _platform);
+                mCurrent = -1;
+                mOffset = 0;
+                mPlatform = platform;
+                mDataBlocks = new();
+                mReferenceToBlock = new();
+                mMarkers = new();
+                mStringTable = strTable;
+                mMemoryStream = new();
+                mDataWriter = ArchitectureUtils.CreateBinaryWriter(mMemoryStream, mPlatform);
             }
 
             private class DataBlock
@@ -1416,12 +1416,12 @@ namespace GameData
                         data.Write(zero);
                 }
 
-                private static void AlignTo(IBinaryStream writer, int alignment)
+                private static void AlignTo(IBinaryStream writer, uint alignment)
                 {
                     writer.Position = CMath.AlignUp(writer.Position, alignment);
                 }
 
-                private static bool IsAligned(IBinaryStream writer, int alignment)
+                private static bool IsAligned(IBinaryStream writer, uint alignment)
                 {
                     return CMath.IsAligned(writer.Position, alignment);
                 }
@@ -1588,12 +1588,12 @@ namespace GameData
                     }
                 }
             }
-            
+
             public void Align(int align)
             {
-                var offset = _dataWriter.Position;
+                var offset = mDataWriter.Position;
                 if (CMath.TryAlignUp(offset, align, out var alignment)) return;
-                _dataWriter.Position = alignment;
+                mDataWriter.Position = alignment;
             }
 
             public void NewBlock(StreamReference reference, int alignment, int size)
@@ -1602,197 +1602,197 @@ namespace GameData
 
                 // Always align the size of the block to 8 bytes
                 size = CMath.AlignUp32(size, 8);
-                _offset = CMath.AlignUp32(_offset, alignment);
+                mOffset = CMath.AlignUp32(mOffset, alignment);
 
-                _dataBlocks.Add( new DataBlock()
+                mDataBlocks.Add( new DataBlock()
                 {
                     Alignment = alignment,
-                    Offset = _offset,
+                    Offset = mOffset,
                     Size = size,
                     Reference = reference
                 });
 
-                _referenceToBlock.Add(reference, _dataBlocks.Count);
+                mReferenceToBlock.Add(reference, mDataBlocks.Count);
 
-                _offset += size;
+                mOffset += size;
 
-                if (_offset >= _dataWriter.Length)
+                if (mOffset >= mDataWriter.Length)
                 {
-                    _dataWriter.Length = _offset + 4 * 1024;
+                    mDataWriter.Length = mOffset + 4 * 1024;
                 }
             }
 
             public void OpenBlock(StreamReference r)
             {
-                var exists = _referenceToBlock.TryGetValue(r, out var index);
+                var exists = mReferenceToBlock.TryGetValue(r, out var index);
                 Debug.Assert(exists);
-                Debug.Assert(_current == -1);
+                Debug.Assert(mCurrent == -1);
 
-                _current = index;
+                mCurrent = index;
 
                 // Set the stream position to the start of the block
-                var db = _dataBlocks[index];
-                _dataWriter.Position = db.Offset;
+                var db = mDataBlocks[index];
+                mDataWriter.Position = db.Offset;
             }
 
             public void Mark(StreamReference reference)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Mark(_dataBlocks[_current], reference, _dataWriter.Position);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Mark(mDataBlocks[mCurrent], reference, mDataWriter.Position);
             }
 
             public void CloseBlock()
             {
-                Debug.Assert(_current != -1);
-                DataBlock.End(_dataBlocks[_current], _dataWriter);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.End(mDataBlocks[mCurrent], mDataWriter);
 
                 // Check if the position is within the bounds of this block
-                Debug.Assert(_dataWriter.Position >= _dataBlocks[_current].Offset && _dataWriter.Position <= (_dataBlocks[_current].Offset + _dataBlocks[_current].Size));
+                Debug.Assert(mDataWriter.Position >= mDataBlocks[mCurrent].Offset && mDataWriter.Position <= (mDataBlocks[mCurrent].Offset + mDataBlocks[mCurrent].Size));
 
-                _current = -1;
+                mCurrent = -1;
             }
 
             public void Write(float v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(float v)
             {
                 Align(4);
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(double v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(double v)
             {
                 Align(8);
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(sbyte v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(byte v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(short v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(short v)
             {
                 Align(2);
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(int v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(int v)
             {
                 Align(4);
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(long v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(long v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(ushort v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(ushort v)
             {
                 Align(2);
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(uint v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(uint v)
             {
                 Align(4);
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(ulong v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void AlignWrite(ulong v)
             {
                 Align(8);
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, v);
             }
 
             public void Write(byte[] data, int index, int count)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, data, index, count);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, data, index, count);
             }
 
             public void Write(string str)
             {
-                Debug.Assert(_current != -1);
-                var idx = _stringTable.Add(str);
-                var len = _stringTable.LengthOfByIndex(idx);
-                var reference = _stringTable.ReferenceOfByIndex(idx);
+                Debug.Assert(mCurrent != -1);
+                var idx = mStringTable.Add(str);
+                var len = mStringTable.LengthOfByIndex(idx);
+                var reference = mStringTable.ReferenceOfByIndex(idx);
                 Write(reference, len);
             }
 
             public void Write(StreamReference v)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, _dataBlocks[_current], v);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, mDataBlocks[mCurrent], v);
             }
 
             public void Write(StreamReference v, long length)
             {
-                Debug.Assert(_current != -1);
-                DataBlock.Write(_dataWriter, _dataBlocks[_current], v);
-                DataBlock.Write(_dataWriter, length);
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, mDataBlocks[mCurrent], v);
+                DataBlock.Write(mDataWriter, length);
             }
 
             public void Final(IBinaryStreamWriter dataWriter)
@@ -1802,15 +1802,15 @@ namespace GameData
             public void Finalize(IBinaryStreamWriter dataWriter, IBinaryStreamWriter relocationDataWriter)
             {
                 // Dictionary for mapping a Reference to a DataBlock
-                var finalDataDataBase = new Dictionary<StreamReference, DataBlock>(_dataBlocks.Count);
-                foreach (var d in _dataBlocks)
+                var finalDataDataBase = new Dictionary<StreamReference, DataBlock>(mDataBlocks.Count);
+                foreach (var d in mDataBlocks)
                     finalDataDataBase.Add(d.Reference, d);
 
                 // For all blocks:
                 // Collapse identical blocks identified by hash, and when a collapse has occurred we have
                 // to re-iterate again since a collapse changes the hash of a data block.
 
-                var memoryBytes = _memoryStream.ToArray();
+                var memoryBytes = mMemoryStream.ToArray();
                 var memoryStream = new BinaryMemoryBlock();
                 memoryStream.Setup(memoryBytes, 0, memoryBytes.Length);
 
@@ -1822,7 +1822,7 @@ namespace GameData
                     duplicateDataBase.Clear();
                     dataHashDataBase.Clear();
 
-                    foreach (var d in _dataBlocks)
+                    foreach (var d in mDataBlocks)
                     {
                         var hash = HashUtility.Compute(memoryBytes.AsSpan(d.Offset, d.Size));
                         if (dataHashDataBase.TryGetValue(hash, out var newRef))
@@ -1857,15 +1857,15 @@ namespace GameData
                     }
 
                     // Rebuild the list of data blocks
-                    _dataBlocks.Clear();
-                    _dataBlocks.Capacity = finalDataDataBase.Count;
+                    mDataBlocks.Clear();
+                    mDataBlocks.Capacity = finalDataDataBase.Count;
                     foreach (var (_, db) in finalDataDataBase)
                     {
-                        _dataBlocks.Add(db);
+                        mDataBlocks.Add(db);
                     }
 
                     // For each data block replace any occurence of an old reference with its unique reference
-                    foreach (var db in _dataBlocks)
+                    foreach (var db in mDataBlocks)
                     {
                         foreach (var (uniqueRef, duplicateRefs) in duplicateDataBase)
                         {
@@ -1903,29 +1903,29 @@ namespace GameData
                     DataBlock.WriteTo(db, memoryStream, dataWriter, relocationDataWriter, dataOffsetDataBase, readWriteBuffer);
                 }
             }
-            
-            public IArchitecture Architecture => _dataWriter.Architecture;
+
+            public IArchitecture Architecture => mDataWriter.Architecture;
 
             public long Position
             {
-                get => _dataWriter.Position;
-                set => _dataWriter.Position = value;
+                get => mDataWriter.Position;
+                set => mDataWriter.Position = value;
             }
 
             public long Length
             {
-                get => _dataWriter.Length;
-                set => _dataWriter.Length = value;
+                get => mDataWriter.Length;
+                set => mDataWriter.Length = value;
             }
 
             public long Seek(long offset)
             {
-                return _dataWriter.Seek(offset);
+                return mDataWriter.Seek(offset);
             }
 
             public void Close()
             {
-                _dataWriter.Close();
+                mDataWriter.Close();
             }
         }
     }

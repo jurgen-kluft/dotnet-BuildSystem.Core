@@ -15,47 +15,19 @@ namespace BigfileBuilder
         private long Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
         {
             // Simulation:
-            // Compute the file Id
-            foreach (var bigfile in bigFiles)
-            {
-                var fileId = (long)0;
-                foreach (var bigfileFile in bigfile.Files)
-                {
-                    if (bigfileFile.FileId == -1)
-                    {
-                        bigfileFile.FileId = fileId;
-                    }
-                    else
-                    {
-                        fileId = bigfileFile.FileId;
-                    }
-                }
-            }
-
-            // Simulation:
-            // Compute the file size and offset for each BigfileFile
-            var currentOffset = new StreamOffset(0);
+            // Compute the final file size of the bigfile
+            var simulator = new BigfileWriterSimulator();
+            simulator.Open(string.Empty, 0);
             foreach (var bigfile in bigFiles)
             {
                 foreach (var bigfileFile in bigfile.Files)
                 {
-                    var fileInfo = new FileInfo(Path.Join(dstPath, bigfileFile.Filename));
-                    if (fileInfo.Exists)
-                    {
-                        bigfileFile.FileOffset = new(currentOffset);
-                        bigfileFile.FileSize = fileInfo.Length;
-                    }
-                    else
-                    {
-                        bigfileFile.FileOffset = StreamOffset.sEmpty;
-                        bigfileFile.FileSize = 0;
-                    }
-
-                    currentOffset += bigfileFile.FileSize;
-                    currentOffset.Align(BigfileConfig.FileAlignment);
+                    var filename = Path.Join(dstPath, bigfileFile.Filename);
+                    simulator.Save(filename);
                 }
             }
-            return (long)currentOffset.Offset;
+            simulator.Close();
+            return simulator.FinalSize;
         }
 
         // return true if build was successful
@@ -63,24 +35,24 @@ namespace BigfileBuilder
         {
             var writer = new BigfileWriter();
 
+            // Run the simulation so that we know the final file size of the Bigfile
+            var bigfileFinalSize = Simulate(dstPath, bigFiles);
+
             // Opening the Bigfile
-            if (!writer.Open(Path.Join(pubPath, mainBigfileFilename)))
+            if (!writer.Open(Path.Join(pubPath, mainBigfileFilename), bigfileFinalSize))
             {
                 Console.WriteLine("Error opening BigfileWriter: {0}", mainBigfileFilename);
                 return false;
             }
-
-            // Run the simulation so that we know the final file size of the Bigfile
-            var bigfileSize = Simulate(dstPath, bigFiles);
-            writer.AddSize(bigfileSize);
 
             // Write all files to the Bigfile Archive
             foreach (var bigfile in bigFiles)
             {
                 foreach (var bigfileFile in bigfile.Files)
                 {
-                    var offset = writer.Save(Path.Join(dstPath, bigfileFile.Filename));
-                    bigfileFile.FileOffset = new StreamOffset(offset);
+                    var (ok, fileOffset, fileSize) = writer.Save(Path.Join(dstPath, bigfileFile.Filename));
+                    bigfileFile.FileSize = fileSize;
+                    bigfileFile.FileOffset = ok ? new StreamOffset(fileOffset) : StreamOffset.sEmpty;
                 }
             }
 

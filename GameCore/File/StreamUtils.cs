@@ -6,7 +6,19 @@ namespace GameCore
 {
     public static partial class  CMath
     {
-        public static long AlignUp(long position, long alignment)
+        public static int AlignUp(int position, int alignment)
+        {
+            return (position + (alignment - 1)) & ~(alignment - 1);
+        }
+        public static long AlignUp(long position, int alignment)
+        {
+            return (position + (alignment - 1)) & ~(alignment - 1);
+        }
+        public static long AlignUp(long position, uint alignment)
+        {
+            return (position + (alignment - 1)) & ~(alignment - 1);
+        }
+        public static ulong AlignUp(ulong position, uint alignment)
         {
             return (position + (alignment - 1)) & ~(alignment - 1);
         }
@@ -142,13 +154,13 @@ namespace GameCore
             return p;
         }
 
-        public static bool Aligned(IBinaryStream writer, long alignment)
+        public static bool Aligned(IBinaryStream writer, int alignment)
         {
             var p = CMath.AlignUp(writer.Position, alignment);
             return (p == writer.Position);
         }
 
-        public static void Align(IBinaryStream writer, long alignment)
+        public static void Align(IBinaryStream writer, int alignment)
         {
             writer.Position = CMath.AlignUp(writer.Position, alignment);
         }

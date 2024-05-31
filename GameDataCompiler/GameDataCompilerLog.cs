@@ -129,19 +129,6 @@ namespace DataBuildSystem
             return signatureDict;
         }
 
-        public void AssignFileId(int unitIndex, List<IDataCompiler> compilers)
-        {
-            long fileId = unitIndex;
-            fileId = fileId << 32;
-
-            var sortedCompilerList = BuildCompilerSignatureList(compilers);
-            foreach (var cl in sortedCompilerList)
-            {
-                cl.Value.CompilerFileIdProvider.FileId = fileId;
-                fileId += 1;
-            }
-        }
-
         public Result Execute(List<IDataCompiler> compilers, out List<DataCompilerOutput> gdClOutput)
         {
             // Make sure the directory structure of @SrcPath is duplicated at @DstPath

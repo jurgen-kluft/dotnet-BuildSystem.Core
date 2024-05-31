@@ -10,7 +10,7 @@ namespace DataBuildSystem
             Index = index;
         }
 
-        private int Index { get; }
+        private long Index { get; }
 
         private static void Add(Bigfile bigfile, long fileId, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
         {
@@ -29,6 +29,16 @@ namespace DataBuildSystem
             bigfile.Files.Add(mainBigfileFile);
         }
 
+        public void AssignFileId(List<DataCompilerOutput> gdClOutput)
+        {
+            var bigFileIndex = Index << 32;
+            foreach (var o in gdClOutput)
+            {
+                var fileId = (bigFileIndex | o.FileIdProvider.FileId);
+                o.FileIdProvider.FileId = fileId;
+            }
+        }
+
         public void Save(string filename, List<DataCompilerOutput> gdClOutput)
 		{
 			var bfb = new BigfileBuilder.BigfileBuilder(BigfileConfig.Platform);
@@ -38,9 +48,11 @@ namespace DataBuildSystem
 
             // Explanation:
             // A FileId is actually just a combination of the index of the Bigfile and the index of the BigfileFile within the Bigfile
+            var bigFileIndex = Index << 32;
             foreach (var o in gdClOutput)
-			{
-				Add(bigfile, o.FileIdProvider.FileId, o.Filenames, children);
+            {
+                var fileId = (bigFileIndex | o.FileIdProvider.FileId);
+                Add(bigfile, fileId, o.Filenames, children);
 			}
 
             var bigFiles = new List<Bigfile>() { bigfile };

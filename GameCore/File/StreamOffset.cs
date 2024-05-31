@@ -1,4 +1,6 @@
 
+using System.Diagnostics;
+
 namespace GameCore
 {
     public struct StreamOffset
@@ -6,6 +8,11 @@ namespace GameCore
         public static readonly StreamOffset sEmpty = new (ulong.MaxValue);
         public static readonly StreamOffset sZero = new (0);
 
+        public StreamOffset(long offset)
+        {
+            Debug.Assert(offset >= 0);
+            Offset = (ulong)offset;
+        }
         public StreamOffset(ulong offset)
         {
             Offset = offset;

@@ -4,6 +4,10 @@ using GameCore;
 
 namespace GameData
 {
+    // A FileId is a combination of the index of a Bigfile and the index of a BigfileFile within the Bigfile.
+    // The reason for building a FileId like this is that we can easily combine multiple Bigfiles and use the
+    // Bigfile Index to index into a Section.
+
     public interface IFileId
     {
         long Value { get; }
@@ -12,10 +16,9 @@ namespace GameData
     public sealed class FileId : IFileId, IStruct
     {
         private readonly IFileIdProvider mProvider;
+        public static readonly FileId sEmpty = new();
 
-        public static readonly FileId SEmpty = new();
-
-        public FileId() : this(null)
+        private FileId() : this(null)
         {
         }
 
@@ -24,10 +27,7 @@ namespace GameData
             mProvider = provider;
         }
 
-        public long Value
-        {
-            get { return mProvider.FileId; }
-        }
+        public long Value => mProvider.FileId;
 
         public bool StructIsValueType => true;
         public int StructSize => 8;
