@@ -3,12 +3,8 @@ using System.IO;
 using System.Collections.Generic;
 using GameCore;
 
-//
-// BuildTools: Merging of multiple Bigfiles and BigfileTocs
-//
 namespace BigfileBuilder
 {
-
     public sealed class BigfileMerger
     {
         public BigfileMerger()
@@ -16,17 +12,17 @@ namespace BigfileBuilder
         }
 
         /// <summary>
-        /// Merge 1 or more Bigfiles and BigfileTocs to one Bigfile and one BigfileToc
+        /// Merge more than one BigFile and Bigfile TOC, resulting in one Bigfile and one Bigfile TOC
         /// </summary>
-        public void MergeInto(string inDstPath, string inSubPath, string inPubPath, List<Bigfile> srcBigfiles, Bigfile dstBigfile)
+        public void MergeInto(string inDstPath, string inSubPath, string inPubPath, List<Bigfile> srcBigFiles, Bigfile dstBigFile)
         {
             // Merging the 1 or more bigfile data files into one is very straightforward.
             // Create/Open the destination bigfile data file and append each bigfile data to it and while doing it remembering the
             // file offset of each one.
 
             // Merging the TOCs is also quite easy:
-            // Create
-            // For each TOC load the header, then
+            //  - Sort the source Bigfile list by Bigfile Index
+            //  - For each TOC load the header
 
         }
 
