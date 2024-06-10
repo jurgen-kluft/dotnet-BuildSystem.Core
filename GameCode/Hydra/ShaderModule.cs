@@ -1,5 +1,7 @@
 // ReSharper disable All
 
+using hydra.i32types;
+
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 #pragma warning disable CS0414 // Field is assigned but its value is never used
@@ -10,28 +12,110 @@ namespace hydra
     namespace ShaderModule
     {
         // Method attribute to mark a method as a shader
-        public interface IShaderLayout
-        {
-        }
-
         [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
         public class uniformAttribute : System.Attribute
         {
         }
 
         [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+        public class shaderAttribute : System.Attribute
+        {
+            public string Stage { get; private set; }
+
+            public shaderAttribute(string stage)
+            {
+                Stage = stage;
+            }
+        }
+
+        [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
         public class layoutAttribute : System.Attribute
         {
-            public layoutAttribute(string layout, int binding)
+            public string Layout { get; private set; }
+            public string Format { get; private set; }
+
+            public layoutAttribute()
             {
+                Layout = String.Empty;
             }
 
-            public layoutAttribute(int binding)
+            public layoutAttribute(string layout)
             {
+                Layout = layout;
+            }
+        }
+
+        [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+        public class locationAttribute : System.Attribute
+        {
+            public int Location { get; private set; }
+
+            public locationAttribute()
+            {
+                Location = 0;
             }
 
-            public layoutAttribute(int local_size_x, int local_size_y, int local_size_z)
+            public locationAttribute(int location)
             {
+                Location = location;
+            }
+        }
+
+        [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+        public class bindingAttribute : System.Attribute
+        {
+            public int Binding { get; private set; }
+
+            public bindingAttribute()
+            {
+                Binding = 0;
+            }
+
+            public bindingAttribute(int binding)
+            {
+                Binding = binding;
+            }
+        }
+
+        [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+        public class setAttribute : System.Attribute
+        {
+            public int Set { get; private set; }
+
+            public setAttribute()
+            {
+                Set = 0;
+            }
+
+            public setAttribute(int set)
+            {
+                Set = set;
+            }
+        }
+
+        [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+        public class formatAttribute : System.Attribute
+        {
+            public string Format { get; private set; }
+
+            public formatAttribute(string format)
+            {
+                Format = format;
+            }
+        }
+
+        [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+        public class dispatchAttribute : System.Attribute
+        {
+            public int x { get; private set; }
+            public int y { get; private set; }
+            public int z { get; private set; }
+
+            public dispatchAttribute(int local_size_x, int local_size_y, int local_size_z)
+            {
+                x = local_size_x;
+                y = local_size_y;
+                z = local_size_z;
             }
         }
 
@@ -50,77 +134,33 @@ namespace hydra
         {
         }
 
-        public struct sampler2D
+
+        [AttributeUsage(AttributeTargets.Field)]
+        class guiAttribute : Attribute
         {
+            public string DisplayName { get; init; }
+
+            public guiAttribute()
+            {
+            }
+
+            public guiAttribute(string displayName)
+            {
+                DisplayName = displayName;
+            }
         }
 
-        public struct image2D
+        [AttributeUsage(AttributeTargets.Field)]
+        class rangeAttribute : Attribute
         {
+            public object Min { get; init; }
+            public object Max { get; init; }
+
+            public rangeAttribute(object min, object max)
+            {
+                Min = min;
+                Max = max;
+            }
         }
-
-        public struct _in_
-        {
-        }
-
-
-
-    interface IGUIAttribute
-    {
-        Type Type { get; }
-        string DisplayName { get; }
-    }
-
-    [AttributeUsage(AttributeTargets.Field)]
-    class GUIFloat : Attribute, IGUIAttribute
-    {
-        public Type Type => typeof(float);
-        public string DisplayName { get; init; }
-        public float Value { get; init; }
-        public float Min { get; init; }
-        public float Max { get; init; }
-
-        public GUIFloat(string displayName, float value, float min = 0.0f, float max = 1.0f)
-        {
-            DisplayName = displayName;
-            Value = value;
-            Min = min;
-            Max = max;
-        }
-
-        public GUIFloat() : this("Float", 1.0f, 0.0f, 1.0f)
-        {
-        }
-
-        public GUIFloat(string displayName) : this(displayName, 1.0f, 0.0f, 1.0f)
-        {
-        }
-    }
-
-    // A field attribute that indicates it must be exposed in the UI for the artist to tweak
-    [AttributeUsage(AttributeTargets.Field)]
-    class GUIInt : Attribute
-    {
-        public Type Type => typeof(int);
-        public string DisplayName { get; init; }
-        public float Min { get; init; } = 0;
-        public float Max { get; init; } = 1;
-        public float Value { get; init; } = 1;
-
-        public GUIInt(string displayName, int value, int min = 0, int max = 1)
-        {
-            DisplayName = displayName;
-            Value = value;
-            Min = min;
-            Max = max;
-        }
-
-        public GUIInt() : this("Int", 1, 0, 1)
-        {
-        }
-
-        public GUIInt(string displayName) : this(displayName, 1, 0, 1)
-        {
-        }
-    }
     }
 }

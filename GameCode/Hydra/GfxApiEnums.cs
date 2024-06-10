@@ -324,6 +324,11 @@ namespace hydra
             FORCE_UINT,
             Count
         };
+
+        public static string GetLayoutName(Enum e)
+        {
+            return "";
+        }
     }
 
     namespace TopologyType

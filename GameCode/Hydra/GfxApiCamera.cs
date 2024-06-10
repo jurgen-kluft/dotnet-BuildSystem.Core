@@ -15,6 +15,8 @@
 // Types
 namespace hydra
 {
+    using f32types;
+
     //
     // Camera/Views
 
@@ -23,14 +25,14 @@ namespace hydra
     //
     struct Camera
     {
-        f32types.mat4s view;
-        f32types.mat4s projection;
-        f32types.mat4s view_projection;
+        mat4 view;
+        mat4 projection;
+        mat4 view_projection;
 
-        f32types.vec3s position;
-        f32types.vec3s right;
-        f32types.vec3s direction;
-        f32types.vec3s up;
+        vec3s position;
+        vec3s right;
+        vec3s direction;
+        vec3s up;
 
         float yaw;
         float pitch;

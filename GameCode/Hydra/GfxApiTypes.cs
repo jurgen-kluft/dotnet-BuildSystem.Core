@@ -176,7 +176,7 @@ namespace hydra
             public vec3 xyz { get; }
         };
 
-        public struct mat4s
+        public struct mat4
         {
             public vec4 m0, m1, m2, m3;
         };
