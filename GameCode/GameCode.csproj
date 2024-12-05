@@ -25,6 +25,10 @@
     <Compile Include="Utils/*.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Compilers\TextureCompiler\" />
+  </ItemGroup>
+
   <Target Name="CopyGameDataDLL" AfterTargets="Build">
     <ItemGroup>
       <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />

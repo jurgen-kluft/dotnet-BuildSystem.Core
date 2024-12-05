@@ -33,6 +33,7 @@ namespace BigfileBuilder
         {
             int ReadCount(IBinaryStreamReader reader);
             long ReadOffset(IBinaryStreamReader reader);
+            int ReadChildIndex(IBinaryStreamReader reader);
             void ReadFileSize(IBinaryStreamReader reader, ITocEntry entry);
             void ReadFileOffset(IBinaryStreamReader reader, ITocEntry entry);
             void ReadChildrenOffset(IBinaryStreamReader reader, ITocEntry entry);
@@ -42,6 +43,7 @@ namespace BigfileBuilder
         {
             void WriteCount(IBinaryStreamWriter writer, int count);
             void WriteOffset(IBinaryStreamWriter writer, long offset);
+            void WriteChildIndex(IBinaryStreamWriter writer, int childIndex);
             void WriteFileSize(IBinaryStreamWriter writer, ITocEntry entry);
             void WriteFileOffset(IBinaryStreamWriter writer, ITocEntry entry);
             void WriteChildrenOffset(IBinaryStreamWriter writer, ITocEntry entry);
@@ -50,6 +52,7 @@ namespace BigfileBuilder
             int FileOffsetInBytes { get; } // Size of this in the data stream
             int FileSizeInBytes { get; } // Size of this in the data stream
             int ChildrenOffsetInBytes { get; } // Size of this in the data stream
+            int ChildIndexInBytes { get; } // Size of this in the data stream
         }
 
         private sealed class TocEntryReader32 : ITocEntryReader
@@ -67,11 +70,14 @@ namespace BigfileBuilder
                 return reader.ReadUInt32();
             }
 
+            public int ReadChildIndex(IBinaryStreamReader reader)
+            {
+                return reader.ReadInt32();
+            }
+
             public void ReadFileSize(IBinaryStreamReader reader, ITocEntry entry)
             {
                 entry.FileSize = reader.ReadUInt32();
-                entry.Flags |= (entry.FileSize & 0x80000000) != 0 ? ETocFlags.Compressed : 0;
-                entry.FileSize &= ~0x80000000;
             }
 
             public void ReadFileOffset(IBinaryStreamReader reader, ITocEntry entry)
@@ -84,7 +90,8 @@ namespace BigfileBuilder
             {
                 var childrenOffset = reader.ReadUInt32();
                 entry.Flags |= (childrenOffset & 0x80000000) != 0 ? ETocFlags.HasChildren : 0;
-                entry.ChildrenOffset = new StreamOffset(childrenOffset & ~0x80000000);
+                entry.Flags |= (childrenOffset & 0x40000000) != 0 ? ETocFlags.Compressed : 0;
+                entry.ChildrenOffset = new StreamOffset(childrenOffset & ~0xC0000000);
             }
         }
 
@@ -94,18 +101,20 @@ namespace BigfileBuilder
             {
                 writer.Write(count);
             }
+
             public void WriteOffset(IBinaryStreamWriter writer, long offset)
             {
                 writer.Write((int)offset);
             }
 
+            public void WriteChildIndex(IBinaryStreamWriter writer, int childIndex)
+            {
+                writer.Write(childIndex);
+            }
+
             public void WriteFileSize(IBinaryStreamWriter writer, ITocEntry entry)
             {
                 var fileSize = entry.FileSize;
-                if (entry.Flags.HasFlag(ETocFlags.Compressed))
-                {
-                    fileSize |= 0x80000000;
-                }
                 writer.Write(fileSize);
             }
 
@@ -121,7 +130,10 @@ namespace BigfileBuilder
                 {
                     childrenOffset |= 0x80000000;
                 }
-
+                if (entry.Flags.HasFlag(ETocFlags.Compressed))
+                {
+                    childrenOffset |= 0x40000000;
+                }
                 writer.Write(childrenOffset);
             }
 
@@ -130,6 +142,7 @@ namespace BigfileBuilder
             public int FileOffsetInBytes => 4;
             public int FileSizeInBytes => 4;
             public int ChildrenOffsetInBytes => 4;
+            public int ChildIndexInBytes => 4;
         }
 
         public interface ITocEntry
@@ -327,7 +340,7 @@ namespace BigfileBuilder
                                 var numChildren = TocEntryReader.ReadCount(reader);
                                 for (var i = 0; i < numChildren; ++i)
                                 {
-                                    var childEntryIndex = TocEntryReader.ReadCount(reader);
+                                    var childEntryIndex = TocEntryReader.ReadChildIndex(reader);
                                     var childEntry = Sections[sectionIndex].Toc[childEntryIndex];
                                     e.Children.Add(childEntry);
                                 }
@@ -509,7 +522,8 @@ namespace BigfileBuilder
                 // Simulation:
                 // - Compute the offset of each section
 
-                // Num Sections + Num Entries + (Num Sections * (int + int))
+                // Num Sections
+                // sizeof(int) + (sizeof(int) + sizeof(int))[Num Sections]
                 var offset = tocEntryWriter.CountInBytes + tocEntryWriter.CountInBytes + Sections.Count * (tocEntryWriter.OffsetInBytes + tocEntryWriter.CountInBytes);
                 foreach (var section in Sections)
                 {
@@ -527,7 +541,7 @@ namespace BigfileBuilder
                         if (HasChildren(te))
                         {
                             te.ChildrenOffset = new StreamOffset((ulong)offset);
-                            offset += tocEntryWriter.CountInBytes + te.Children.Count * sizeof(int); // NumChildren + EntryIndex[]
+                            offset += tocEntryWriter.CountInBytes + te.Children.Count * tocEntryWriter.ChildIndexInBytes; // NumChildren + EntryIndex[]
                         }
                         else
                         {
@@ -579,7 +593,7 @@ namespace BigfileBuilder
                                 TocEntryWriter.WriteCount(writer, e.Children.Count);
                                 foreach (var ce in e.Children)
                                 {
-                                    TocEntryWriter.WriteCount(writer, ce.FileId.Lower32());
+                                    TocEntryWriter.WriteChildIndex(writer, ce.FileId.Lower32());
                                 }
                             }
 

@@ -101,6 +101,9 @@ namespace GameData
                 // Execute the actual purpose of this compiler
                 File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
 
+                // Note: On Windows we have different tools than on Mac/Linux
+                // Note: Shaders are in HLSL and for Mac (Metal) need to be compiled
+
                 // Execution is done, update the dependency to reflect the new state
                 result = mDependency.Update(null);
             }

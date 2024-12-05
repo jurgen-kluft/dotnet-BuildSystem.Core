@@ -11,8 +11,7 @@ namespace DataBuildSystem
     {
         static int Main(string[] args)
         {
-            var layout = new hydra.ShaderModule.SimpleDrawPBR.VertexShaderLayout();
-            var scene_type = layout.scene.GetType();
+
             return 0;
         }
     }

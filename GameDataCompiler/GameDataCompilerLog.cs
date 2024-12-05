@@ -73,7 +73,7 @@ namespace DataBuildSystem
                 return Result.Ok;
             }
 
-            return Result.OutOfData;
+            return Result.OutOfDate;
         }
 
         private List<KeyValuePair<Hash160, IDataCompiler>> BuildCompilerSignatureList(List<IDataCompiler> compilers)
@@ -157,7 +157,7 @@ namespace DataBuildSystem
                 return Result.Ok;
             }
 
-            return Result.OutOfData;
+            return Result.OutOfDate;
         }
 
         private void RegisterCompilers(List<IDataCompiler> compilers)
@@ -262,7 +262,7 @@ namespace DataBuildSystem
         private int AsInt => (int)ResultValue;
 
         public static readonly Result Ok = new() { ResultValue = (int)ResultEnum.Ok };
-        public static readonly Result OutOfData = new() { ResultValue = (int)ResultEnum.OutOfDate };
+        public static readonly Result OutOfDate = new() { ResultValue = (int)ResultEnum.OutOfDate };
         public static readonly Result Error = new() { ResultValue = (int)ResultEnum.Error };
 
         public static Result FromRaw(int b)
@@ -272,8 +272,7 @@ namespace DataBuildSystem
 
         public bool IsOk => ResultValue == 0;
         public bool IsNotOk => ResultValue != 0;
-        public bool IsOutOfData => ((int)ResultValue & (int)(ResultEnum.OutOfDate)) != 0;
-        public bool IsError => ((int)ResultValue & (int)(ResultEnum.Error)) != 0;
+        public bool IsOutOfDate => ((int)ResultValue & (int)(ResultEnum.OutOfDate)) != 0;
 
         public static bool operator ==(Result b1, Result b2)
         {

@@ -39,7 +39,7 @@ namespace DataBuildSystem
             // Foreach DataUnit that is out-of-date or missing
             foreach (var gdu in DataUnits)
             {
-                gdu.Verify();
+                gdu.DetermineState();
 
                 var gduGameDataDll = gdu.StateOf(EGameData.GameDataDll);
                 var gduCompilerLog = gdu.StateOf(EGameData.GameDataCompilerLog);
@@ -77,7 +77,7 @@ namespace DataBuildSystem
 
                         // Lastly we need to save the game data compiler log
                         gdCl.Save(mergedCompilers);
-                        gdu.Verify();
+                        gdu.DetermineState();
 
                         UnloadAssembly();
                     }
@@ -99,11 +99,11 @@ namespace DataBuildSystem
                     {
                         if (gduGameDataData.IsNotOk || gduBigfile.IsNotOk)
                         {
-                            result = Result.OutOfData;
+                            result = Result.OutOfDate;
                         }
                     }
 
-                    if (result.IsOutOfData)
+                    if (result.IsOutOfDate)
                     {
                         // Rebuild the Bigfile and GameData file
                         var bff = new GameDataBigfile(gdu.Index);
@@ -115,7 +115,7 @@ namespace DataBuildSystem
                         gdCl.Save(mergedCompilers);
                     }
 
-                    gdu.Verify();
+                    gdu.DetermineState();
                     UnloadAssembly();
                 }
             }
@@ -260,7 +260,7 @@ namespace DataBuildSystem
             }
         }
 
-        public void Verify()
+        public void DetermineState()
         {
             Dep.Update(delegate (short idx, State state)
             {
