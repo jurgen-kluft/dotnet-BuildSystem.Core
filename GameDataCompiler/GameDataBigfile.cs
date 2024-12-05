@@ -5,14 +5,14 @@ namespace DataBuildSystem
 {
 	internal sealed class GameDataBigfile
 	{
-        public GameDataBigfile(int index)
+        public GameDataBigfile(uint index)
         {
             Index = index;
         }
 
-        private int Index { get; }
+        private uint Index { get; }
 
-        private static void Add(Bigfile bigfile, long fileId, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
+        private static void Add(Bigfile bigfile, uint fileIndex, IReadOnlyList<string> filenames, ICollection<BigfileFile> children)
         {
             var mainBigfileFile = new BigfileFile(filenames[0]);
             for (var i = 1; i < filenames.Count; ++i)
@@ -20,7 +20,7 @@ namespace DataBuildSystem
                 var filename = filenames[i];
                 var bigfileFile = new BigfileFile(filename)
                 {
-                    FileId = fileId
+                    FileId = ((ulong)bigfile.Index << 32) | (ulong)fileIndex
                 };
                 mainBigfileFile.Children.Add(bigfileFile);
                 children.Add(bigfileFile);
@@ -38,8 +38,7 @@ namespace DataBuildSystem
             var bigFileIndex = (long)Index << 32;
             foreach (var o in gdClOutput)
             {
-                var fileId = (bigFileIndex | o.FileIdProvider.FileId);
-                o.FileIdProvider.FileId = fileId;
+                o.FileIdProvider.FileIndex =  o.FileIdProvider.FileIndex;
             }
         }
 
@@ -52,7 +51,7 @@ namespace DataBuildSystem
 
             foreach (var o in gdClOutput)
 			{
-				Add(bigfile, o.FileIdProvider.FileId, o.Filenames, children);
+				Add(bigfile, o.FileIdProvider.FileIndex, o.Filenames, children);
 			}
 
             var bigFiles = new List<Bigfile>() { bigfile };

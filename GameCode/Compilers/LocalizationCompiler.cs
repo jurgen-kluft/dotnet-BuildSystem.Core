@@ -54,7 +54,7 @@ namespace GameData
         }
 
         public IFileIdProvider CompilerFileIdProvider => this;
-        public long FileId { get; set; }
+        public uint FileIndex { get; set; }
 
         public DataCompilerOutput CompilerExecute()
         {

@@ -135,7 +135,7 @@ namespace DataBuildSystem
                 hashToPath.Add(hash, filepath);
             }
 
-            var dataUnits = new Dictionary<int, GameDataUnit>();
+            var dataUnits = new Dictionary<uint, GameDataUnit>();
 
             var binaryFile = new BinaryFileReader();
             if (binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log")))
@@ -160,7 +160,7 @@ namespace DataBuildSystem
             }
 
             // Any new DataUnit? -> create them with an index that is not used
-            var index = 0;
+            var index = (uint)0;
             foreach (var item in hashToPath)
             {
                 while (dataUnits.ContainsKey(index))
@@ -223,7 +223,7 @@ namespace DataBuildSystem
         public string FilePath { get; private init; }
         public string Name { get; }
         public Hash160 Hash { get; private init; }
-        public int Index { get; private init; }
+        public uint Index { get; private init; }
         private State[] States { get; set; } = new State[(int)EGameData.Count];
         private Dependency Dep { get; set; }
 
@@ -240,9 +240,9 @@ namespace DataBuildSystem
             return s;
         }
 
-        private GameDataUnit() : this(string.Empty, -1) { }
+        private GameDataUnit() : this(string.Empty, uint.MaxValue) { }
 
-        public GameDataUnit(string filepath, int index)
+        public GameDataUnit(string filepath, uint index)
         {
             FilePath = filepath;
             Name = Path.GetFileNameWithoutExtension(filepath);
@@ -286,7 +286,7 @@ namespace DataBuildSystem
             {
                 FilePath = reader.ReadString(),
                 Hash = Hash160.ReadFrom(reader),
-                Index = reader.ReadInt32()
+                Index = reader.ReadUInt32()
             };
             for (var i = 0; i < gdu.States.Length; ++i)
                 gdu.States[i] = new State(reader.ReadInt32());

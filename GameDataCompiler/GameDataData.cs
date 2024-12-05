@@ -195,12 +195,12 @@ namespace DataBuildSystem
             }
             signatureList.Sort(Comparer);
 
-            var index = (long)0;
+            var index = (uint)0;
             var prevSignature = signatureList[0].Key;
             foreach (var scl in signatureList)
             {
 				var filesProvider = scl.Value.CompilerFileIdProvider;
-                filesProvider.FileId = index;
+                filesProvider.FileIndex = index;
                 if (prevSignature != scl.Key)
                     index++;
                 prevSignature = scl.Key;

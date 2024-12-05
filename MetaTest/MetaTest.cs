@@ -31,7 +31,7 @@ namespace MetaTest
 
         public class TestFileIdProvider : IFileIdProvider
         {
-            public long FileId { get; set; }
+            public uint FileIndex { get; set; }
         }
 
         public enum ETestEnum : uint
@@ -67,7 +67,7 @@ namespace MetaTest
         public class TestData
         {
             public string Name = "A test string";
-            public FileId File = new FileId(new TestFileIdProvider { FileId = 1 });
+            public FileId File = new FileId(new TestFileIdProvider { FileIndex = 1 });
 
             public float[] Floats = new float[8];
             public List<long> IntegerList = new() { 0,1,2,3,4 };

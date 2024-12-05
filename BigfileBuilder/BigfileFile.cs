@@ -15,7 +15,7 @@ namespace BigfileBuilder
         public string Filename { get; }
         public long FileSize { get; set; } = 0;
         public StreamOffset FileOffset { get; set; } = StreamOffset.sEmpty;
-        public long FileId { get; set; } = -1;
+        public ulong FileId { get; init; } = ulong.MaxValue;
         public Hash160 FileContentHash { get; set; } = Hash160.Empty;
         public List<BigfileFile> Children { get; set; } = new ();
     }

@@ -32,7 +32,7 @@ namespace GameData
     // this can be queried with IResource to get the actual Resource Object. This way we can obtain a reference to the actual
     // resource object, and we can check if the resource object has already been instantiated. If it has we can return the reference
     // to the already instantiated resource object.
-    // When the game/application starts it can scan the directory for resource libraries and load their TOC into memory. When those
+    // When the game/application starts it can scan the directory for resource libraries and load their content into memory. When those
     // are in memory you can then create the ResourceLibraryManager and create an Array<ResourceSection> and for each ResourceSection
     // create an Array<ResourceObject>. Now whenever we encounter a IResource we can easily get the ResourceObject from the Resource
     // Library Manager.
@@ -42,8 +42,8 @@ namespace GameData
     // only contain ShaderResources. This way we can easily manage the resources, and we can easily query the ResourceLibraryManager.
     //
     // How do we pack this info into 64 bits, the following layout could work:
-    // - 16 bits for the ResourceSection index
     // - 16 bits for the ResourceType index
+    // - 16 bits for the ResourceSection index
     // - 32 bits for the ResourceObject index
 
     public interface IResource : IStruct

@@ -173,9 +173,9 @@ namespace BigfileBuilder
     public sealed class Bigfile
     {
         public List<BigfileFile> Files { get; } = new();
-        public long Index { get; set; }
+        public uint Index { get; set; }
 
-        public Bigfile(long index)
+        public Bigfile(uint index)
         {
             Index = index;
         }

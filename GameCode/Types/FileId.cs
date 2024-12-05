@@ -10,18 +10,26 @@ namespace GameData
 
     public interface IFileId
     {
-        long Value { get; }
+        uint BigfileIndex { get; }
+        uint FileIndex { get; }
     }
 
-    public sealed class FileId(IFileIdProvider provider) : IFileId, IStruct
+    public sealed class FileId : IFileId, IStruct
     {
         public static readonly FileId sEmpty = new();
+        private readonly IFileIdProvider provider;
 
         private FileId() : this(null)
         {
         }
 
-        public long Value => provider.FileId;
+        public FileId(IFileIdProvider provider)
+        {
+            this.provider = provider;
+        }
+
+        public uint BigfileIndex { get; set; }
+        public uint FileIndex => provider.FileIndex;
 
         public bool StructIsValueType => true;
         public int StructSize => 8;
@@ -30,7 +38,8 @@ namespace GameData
 
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
-            writer.Write(provider.FileId);
+            writer.Write(BigfileIndex);
+            writer.Write(FileIndex);
         }
     }
 }
