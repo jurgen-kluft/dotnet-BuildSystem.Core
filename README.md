@@ -12,15 +12,14 @@ following things will be done by the BuildSystem:
   - ``bool``; Multiple booleans are combined and basically become `bits`
   - ``s8``/``s16``/``s32``/``s64``;
   - ``u8``/``u16``/``u32``/``u64``;
-  - ``fx16``/``fx32``;
   - ``f32``/``f64``; single and double float precision
+  - ``f32x2``/``f32x3``/``f32x4``;
   - ``FRect``/``IRect``; floating point and integer rectangle (left, right, top, bottom)
-  - ``Array<T>``; C style array of any type listed here
   - ``FSize``/``Size``; floating point and integer size (width, height) compound
-  - ``FVec2``/``FVec3``/``FVec4``;
   - ``FMat22``/``FMat33``/``FMat44``;
   - ``Color``; 32-bit RGBA color
   - ``LString``; Localized string
+  - ``Array<T>``; C style array of any type listed here
  - Anything derived from ``IDataCompiler``:
    - ```MeshCompiler("objects/rock.ply")```
    - ```TextureCompiler("textures/logo.TGA", ETexFormat.BC5_UNORM_BLOCK)```
