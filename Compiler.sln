@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetaTest", "MetaTest\MetaTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localizer", "Localizer\Localizer.csproj", "{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameData", "Data.Test\GameData.csproj", "{77982C8A-F6C1-4458-B19A-A3766620F519}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,5 +51,9 @@ Global
 		{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06AD8BC8-5A35-46DE-9B6C-F0C69899E472}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77982C8A-F6C1-4458-B19A-A3766620F519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77982C8A-F6C1-4458-B19A-A3766620F519}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77982C8A-F6C1-4458-B19A-A3766620F519}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77982C8A-F6C1-4458-B19A-A3766620F519}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

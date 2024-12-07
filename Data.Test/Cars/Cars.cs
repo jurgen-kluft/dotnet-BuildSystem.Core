@@ -1,17 +1,36 @@
 using System;
 
-namespace GameData.Cars
+namespace GameData
 {
+    public class Car
+    {
+        public CarConfiguration Configuration { get; set; }
+        public string ModelPath { get; set; }
+
+        public Car(CarConfiguration config, string modelPath)
+        {
+            Configuration = config;
+            ModelPath = modelPath;
+        }
+    }
+
     public partial class Cars : IDataUnit
     {
-        public string name { get { return "Cars"; } }
+        public EDataUnit UnitType { get; } = EDataUnit.Embed;
+        public string UnitID { get; } = "Cars-56e889c7-1051-4147-9544-c37ee7bc927e";
 
-        public Car[] cars = new Car[] {
-            new Car(BMWConfig, "Cars\\BMW\\BMW.glTF"),
-            new Car(LexusConfig, "Cars\\Lexus\\Lexus.glTF"),
-            new Car(MercedesConfig, "Cars\\Mercedes\\Mercedes.glTF"),
-        };
-    };
+        public Car[] m_cars;
+
+        public Cars()
+        {
+            m_cars = new Car[]
+            {
+                new(GetBMWConfig(), "Cars\\BMW\\BMW.glTF"), // BMW
+                new(GetLexusConfig(), "Cars\\Lexus\\Lexus.glTF"), // Lexus
+                new(GetMercedesConfig(), "Cars\\Mercedes\\Mercedes.glTF"), // Mercedes
+            };
+        }
+    }
 
     public class CarConfiguration
     {

@@ -2,14 +2,12 @@ using System;
 
 namespace GameData
 {
-    namespace Fonts
-    {
         public class Fonts : IDataUnit
         {
-            public string Name { get { return "Fonts"; } }
+            public EDataUnit UnitType { get; } = EDataUnit.Embed;
+            public string UnitID { get; } = "Fonts-56e889c7-1051-4147-9544-c37ee7bc927e";
 
             public string Description = "This is fonts data";
             public FontFile Font = new("Fonts\\ARCADECLASSIC.TTF");
         }
-    }
 }

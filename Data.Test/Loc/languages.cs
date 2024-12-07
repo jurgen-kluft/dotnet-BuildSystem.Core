@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 
-namespace BuildTools.Data
+namespace GameData
 {
-    public class Languages
+    public class Languages : IDataUnit
     {
-        public LocalizationFile localization = new ("Loc\\Localization.dat");
+        public EDataUnit UnitType { get; } = EDataUnit.External;
+        public string UnitID { get; } = "Loc-56e889c7-1051-4147-9544-c37ee7bc927e";
+        public LocalizationFile localization = new("Loc\\Localization.dat");
     }
 }

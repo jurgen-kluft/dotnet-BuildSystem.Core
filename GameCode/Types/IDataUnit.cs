@@ -10,6 +10,6 @@ namespace GameData
     public interface IDataUnit
     {
         EDataUnit UnitType { get; }
+        string UnitID { get; }
     }
-
 }

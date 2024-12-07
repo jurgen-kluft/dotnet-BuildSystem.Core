@@ -4,7 +4,8 @@ using System.IO;
 
 namespace GameData
 {
-    public class Curves : Resource 
+#if CURVE_COMPILER
+    public class Curves
     {
         private readonly CurveCompiler[] mCompilers;
         private FileId[] fileIds;
@@ -17,37 +18,37 @@ namespace GameData
                 mCompilers[i] = new CurveCompiler(filenames[i]);
         }
 
-        public override void consolidate()
+        public void consolidate()
         {
             List<FileId> fileIdList = new List<FileId>();
             foreach(CurveCompiler cc in mCompilers)
                 cc.collect(fileIdList);
             fileIds = fileIdList.ToArray();
         }
-        
+
         public Array Values { get { return fileIds; } }
     }
 
-    public class Curve : Resource
+    public class Curve
     {
         private readonly CurveCompiler mCompiler;
     	private FileId fileId;
-    	
+
         public Curve(string filename)
         {
 			mCompiler = new CurveCompiler(filename);
         }
-        
-        public override void consolidate()
+
+        public void consolidate()
         {
             List<FileId> fileIds = new List<FileId>();
             mCompiler.collect(fileIds);
             if (fileIds.Count == 1)
                 fileId = fileIds[0];
             else
-                fileId = new FileId();
+                fileId = new FileId(null);
         }
-        
+
         public object Value { get { return fileId; } }
     }
 
@@ -290,74 +291,5 @@ namespace GameData
 
         #endregion
     }
-
-    /// <summary>
-    /// Compiling data into a binary representation from a .crv file:
-    /// </summary>
-    public class CurveCompiler : Compiler
-    {
-        #region Fields
-
-        private readonly Filename mSrcFilename;
-        public FileId mFileId;
-
-        #endregion
-        #region Constructor
-
-        public CurveCompiler(string filename)
-        {
-            mSrcFilename = new Filename(filename);
-        }
-
-        #endregion
-        #region init / compile / resolve / collect
-
-        public override void init(DependencyChecker dc)
-        {
-
-        }
-
-        public override bool compile(DependencyChecker dc)
-        {
-            if (dc.isModified(mSrcFilename))
-            {
-                CurveIF c = new CurveIF();
-                if (c.LoadText(FileCommander.SrcPath + mSrcFilename))
-                {
-                    if (FileCommander.createDirectoryOnDisk(FileCommander.DstPath, mSrcFilename))
-                    {
-                        c.SaveBinary(FileCommander.DstPath + mSrcFilename);
-
-                        DepFile depFile = DepFile.sCreate(mSrcFilename, mSrcFilename);
-                        if (depFile == null)
-                            return false;
-
-                        if (depFile.init(Config.SrcPath, Config.DstPath))
-                            if (depFile.save(Config.DstPath))
-                                return dc.add(depFile);
-                    }
-                }
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
-
-        public override bool resolve(BigfileBuilder bfb)
-        {
-        	int index;
-            bfb.indexOf(mSrcFilename, out index);
-            mFileId = new FileId(index);
-            return true;
-        }
-
-        public override void collect(List<FileId> compiledFileIds)
-        {
-            compiledFileIds.Add(mFileId);
-        }
-
-        #endregion
-    }
+#endif
 }

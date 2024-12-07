@@ -1,23 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>GameData.Root</AssemblyName>
+    <AssemblyName>GameData</AssemblyName>
     <OutputType>library</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="*.cs" />
+    <Compile Include="**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="GameCode">
-      <HintPath>GameCode.dll</HintPath>
-    </Reference>
-    <Reference Include="GameCore">
-      <HintPath>GameCore.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\GameCode\GameCode.csproj" />
+    <ProjectReference Include="..\GameCore\GameCore.csproj" />
+    <ProjectReference Include="..\BigfileBuilder\BigfileBuilder.csproj" />
   </ItemGroup>
 
   <Target Name="CopyGameDataDLL" AfterTargets="Build">

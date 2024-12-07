@@ -41,6 +41,15 @@ namespace GameData
         public string Path { get; }
     }
 
+    public sealed class FontFile : IFile
+    {
+        public FontFile(string path)
+        {
+            Path = path;
+        }
+        public string Path { get; }
+    }
+
     public sealed class LocalizationFile : IFile
     {
         public LocalizationFile(string path)

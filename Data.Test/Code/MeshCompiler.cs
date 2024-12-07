@@ -23,7 +23,7 @@ namespace GameData
         }
 
         public IFileIdProvider CompilerFileIdProvider => this;
-        public long FileId { get; set; }
+        public uint FileIndex { get; set; }
 
         public void CompilerSignature(IBinaryWriter stream)
         {
@@ -61,13 +61,13 @@ namespace GameData
 
         public DataCompilerOutput CompilerExecute()
         {
-            DataCompilerOutput.EResult result = DataCompilerOutput.EResult.None;
+            DataCompilerResult result = DataCompilerResult.None;
 
             // Execute the actual purpose of this compiler
 
             // Call our external process to compile this mesh (obj, ply) into a tri format
 
-            return new(result, new[] { mDstFilename });
+            return new DataCompilerOutput(result, new[] { mDstFilename }, this);
         }
 
     }
