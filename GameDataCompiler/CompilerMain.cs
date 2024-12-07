@@ -121,12 +121,6 @@ namespace DataBuildSystem
 
             gameDataAssemblyContext.Unload();
 
-            // NOTES
-            //       We should be able to generate the .sln and .csproj/Directory.Build.props files, so that we do not have to manage them
-            //       and track them in source control.
-            //       This does mean that each 'folder' in the Data folder is going to be a project or how else do we know where to generate
-            //       a project?
-
             var gdus = new GameDataUnits();
 
             var start = DateTime.Now;

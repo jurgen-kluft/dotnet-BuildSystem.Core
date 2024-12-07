@@ -11,10 +11,10 @@ namespace GameData
 			Knight,
 		}
 
-		public class AI : IDataRoot
+		public class AI : IDataUnit
 		{
 			public string Name { get { return "AI"; } }
-			public FileId ReactionCurve = new (new CopyCompiler("AI\\ReactionCurve.curve"));
+			public CurveFile ReactionCurve = new ("AI\\ReactionCurve.curve");
 			public string Description = "This is AI data";
 
 			public Enemy[] BlueprintsAsArray = { new Enemy() };

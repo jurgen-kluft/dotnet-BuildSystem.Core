@@ -6,14 +6,14 @@ namespace GameData
 	{
 		public string Name { get { return "Game Name"; } }
 
-		public FileId BootSound = new (new CopyCompiler("Sound\\BootChime.wav"));
+		public AudioFile BootSound = new ("Sound\\BootChime.wav");
 
-		public DataUnit AI = new ("AI", "AI\\", EDataUnit.Embed);
-		public DataUnit Fonts = new ("Fonts", "Fonts\\", EDataUnit.Embed);
-		public DataUnit Menu = new ("Menu", "Menu\\", EDataUnit.Embed);
+		public AI AI = new AI();
+		public Fonts Fonts = new Fonts();
+		public Menu Menu = new Menu();
 
-		public DataUnit Cars = new ("Cars", "Cars\\", EDataUnit.External);
-		public DataUnit Tracks = new ("Tracks", "Tracks\\", EDataUnit.External);
-		public DataUnit Tests = new ("Tests", "Tests\\", EDataUnit.External);
+		public Cars Cars = new Cars();
+		public Tracks Tracks = new Tracks();
+		public Tests Tests = new Tests();
 	}
 }

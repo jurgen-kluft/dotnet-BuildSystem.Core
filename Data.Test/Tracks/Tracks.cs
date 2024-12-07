@@ -2,16 +2,21 @@ using System;
 
 namespace GameData
 {
-	public class Tracks : IDataUnit
+    public class Track  : IDataUnit
+    {
+        public string Name { get; set; }
+        public ModelFile Model { get; set; }
+        public TextureFile Road { get; set; }
+    }
+
+	public class Tracks
 	{
-		private CodeObject code = new CodeObject("Concepts", "Concepts\\Concepts.csi");
-		
 		public string name { get { return "Tracks"; } }
-	
-		public FileIdList[] tracks = new FileIdList[] {
-			new FileIdList(new ExternalRootNodeCompiler("Track1", "Tracks\\Track1\\Track1.csi")),
-			new FileIdList(new ExternalRootNodeCompiler("Track2", "Tracks\\Track2\\Track2.csi")),
-			new FileIdList(new ExternalRootNodeCompiler("Track3", "Tracks\\Track3\\Track3.csi"))
-		};
+
+		public Track[] tracks = new Track[] {
+            new Track(Name = "Track1", Model = "Tracks\\Track1\\Track1.glTF", Road = "Tracks\\Track1\\Road.png"),
+            new Track(Name = "Track2", Model = "Tracks\\Track2\\Track2.glTF", Road = "Tracks\\Track2\\Road.png"),
+            new Track(Name = "Track3", Model = "Tracks\\Track3\\Track3.glTF", Road = "Tracks\\Track3\\Road.png"),
+        };
 	}
 }

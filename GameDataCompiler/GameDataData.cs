@@ -104,7 +104,7 @@ namespace DataBuildSystem
 
     public sealed class GameDataData
     {
-        private IDataRoot mRoot;
+        private IDataUnit mRoot;
 
         private List<IDataCompiler> mCompilers;
         private List<IFileIdProvider> mFilesProviders;
@@ -118,7 +118,7 @@ namespace DataBuildSystem
 
         public Assembly Assembly { get; }
 
-        public IDataRoot Root
+        public IDataUnit Root
         {
             get { return mRoot; }
         }
@@ -130,7 +130,7 @@ namespace DataBuildSystem
 
             try
             {
-                mRoot = AssemblyUtil.Create1<IDataRoot>(Assembly);
+                mRoot = AssemblyUtil.Create1<IDataUnit>(Assembly);
                 return mRoot != null;
             }
             catch (System.Exception)

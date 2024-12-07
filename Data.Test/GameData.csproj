@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="Code\Code.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="GameCode">
       <HintPath>GameCode.dll</HintPath>
     </Reference>

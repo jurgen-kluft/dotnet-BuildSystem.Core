@@ -7,6 +7,10 @@ namespace GameData
     // A FileId is a combination of the index of a Bigfile and the index of a BigfileFile within the Bigfile.
     // The reason for building a FileId like this is that we can easily combine multiple Bigfiles and use the
     // Bigfile Index to index into a Section.
+    public interface IFile
+    {
+
+    }
 
     public interface IFileId
     {

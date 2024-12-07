@@ -4,6 +4,6 @@ namespace BuildTools.Data
 {
     public class Languages
     {
-        public FileIdList FileId = new FileIdList(new LocalizationCompiler("Loc\\Localization.dat"));
+        public LocalizationFile localization = new ("Loc\\Localization.dat");
     }
 }
