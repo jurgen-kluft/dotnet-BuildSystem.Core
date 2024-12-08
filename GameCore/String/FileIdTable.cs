@@ -5,16 +5,11 @@ namespace GameCore
 {
     public class FileIdTable
     {
-        #region Fields
-
         private StreamReference mStreamReference;
         private readonly Dictionary<StreamReference, int> mReferenceToIndex = new ();
         private readonly Dictionary<long, int> mIDToIndex = new ();
         private readonly List<long> mItems = new();
         private readonly List<StreamReference> mReferences = new();
-
-        #endregion
-        #region Properties
 
         public StreamReference Reference
         {
@@ -52,9 +47,6 @@ namespace GameCore
             }
         }
 
-        #endregion
-        #region Private Methods
-
         private int InternalIndexOf(long inItem)
         {
             int index;
@@ -71,9 +63,6 @@ namespace GameCore
             else
                 return mReferences[index];
         }
-
-        #endregion
-        #region Public Methods
 
         public StreamReference Add(StreamReference inReference, long inItem)
         {
@@ -105,7 +94,7 @@ namespace GameCore
                 var idReference = StreamReference.NewReference;
 
                 writer.Write((long)Count);
-                writer.Write(idReference);
+                writer.WriteBlockReference(idReference);
 
                 writer.NewBlock(idReference, 8, mItems.Count * sizeof(long));
                 writer.OpenBlock(idReference);
@@ -121,8 +110,5 @@ namespace GameCore
                 writer.CloseBlock();
             }
         }
-
-
-        #endregion
     }
 }

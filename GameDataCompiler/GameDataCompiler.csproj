@@ -6,6 +6,7 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <RootNamespace>DataBuildSystem</RootNamespace>
     <LangVersion>12</LangVersion>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

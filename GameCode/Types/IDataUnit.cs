@@ -5,11 +5,18 @@ namespace GameData
     {
         External,
         Embed,
+        Root,
     }
 
     public interface IDataUnit
     {
         EDataUnit UnitType { get; }
-        string UnitID { get; }
+        string UnitId { get; }
     }
+
+    public interface IDataRootUnit : IDataUnit
+    {
+
+    }
+
 }

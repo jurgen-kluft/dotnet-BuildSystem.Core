@@ -72,12 +72,14 @@ namespace DataBuildSystem
             Console.WriteLine("dll path: " + BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
 
             // Using 'AssemblyLoadContext' so that we can also Unload the GameData DLL
+            var gdus = new GameDataUnits();
+
             var gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
             var dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
-            var gameDataRootAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
+            var gameDataAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
 
             // BuildSystem.DataCompiler configuration
-            var configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gameDataRootAssembly);
+            var configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gameDataAssembly);
             if (configsForCompiler.Length > 0)
             {
                 foreach (var config in configsForCompiler)
@@ -96,7 +98,7 @@ namespace DataBuildSystem
             }
 
             // Bigfile configuration
-            var configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(gameDataRootAssembly);
+            var configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(gameDataAssembly);
             if (configsForBigfileBuilder.Length > 0)
             {
                 foreach (var config in configsForBigfileBuilder)
@@ -119,10 +121,6 @@ namespace DataBuildSystem
             GameDataPath.BigFileFdbExtension = BigfileConfig.BigFileFdbExtension;
             GameDataPath.BigFileHdbExtension = BigfileConfig.BigFileHdbExtension;
 
-            gameDataAssemblyContext.Unload();
-
-            var gdus = new GameDataUnits();
-
             var start = DateTime.Now;
             Console.WriteLine("------ Initializing data compilation units");
             gdus.Load(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.GddPath);
@@ -137,6 +135,8 @@ namespace DataBuildSystem
 
             gdus.Save(BuildSystemCompilerConfig.DstPath);
             Console.WriteLine("Finished -- Total build time {0}s", (DateTime.Now - buildStart).TotalSeconds);
+
+            gameDataAssemblyContext.Unload();
 
             return Success();
         }

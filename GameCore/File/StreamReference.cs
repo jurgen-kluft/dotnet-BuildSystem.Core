@@ -4,26 +4,18 @@ using System.Diagnostics;
 
 namespace GameCore
 {
-    [DebuggerDisplay("ID: {Id}")]
+    [DebuggerDisplay("StreamReference: {Id}")]
     public readonly struct StreamReference
     {
-        #region Fields
-
         public static readonly StreamReference Empty = new StreamReference(0);
 
-        #endregion
-        #region Constructor
+        private static uint UniqueId { get; set; } = 0;
+        public static StreamReference NewReference => new() { Id = ++UniqueId };
 
         private StreamReference(uint id)
         {
             Id = id;
         }
-
-        #endregion
-        #region Properties
-
-        private static uint UniqueId { get; set; } = 0;
-        public static StreamReference NewReference => new() { Id = ++UniqueId };
 
         public uint Id
         {
@@ -31,20 +23,10 @@ namespace GameCore
             private init;
         }
 
-        #endregion
-        #region Operators
-
-        public static bool operator ==(StreamReference a, StreamReference b)
+        public bool IsEqual(StreamReference other)
         {
-            return a.Id == b.Id;
+            return Id == other.Id;
         }
-        public static bool operator !=(StreamReference a, StreamReference b)
-        {
-            return a.Id != b.Id;
-        }
-
-        #endregion
-        #region Comparer (IEqualityComparer)
 
         public class Comparer : IEqualityComparer<StreamReference>
         {
@@ -58,20 +40,5 @@ namespace GameCore
                 return (int)r.Id;
             }
         }
-
-        #endregion
-        #region Methods
-
-        public override bool Equals(object obj)
-        {
-            return obj != null && ((StreamReference)obj).Id == Id;
-        }
-
-        public override int GetHashCode()
-        {
-            return (int)Id;
-        }
-
-        #endregion
     }
 }

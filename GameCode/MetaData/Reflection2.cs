@@ -18,19 +18,19 @@ namespace GameData
         }
 
         // A delegate that can process a member
-        private delegate void ProcessDelegate(MemberProcess m);
+        private delegate void ProcessDelegate(MemberProcessor m);
 
-        private struct MemberProcess
+        private struct MemberProcessor
         {
-            public int MemberIndex { get; init; }
+            public int Index { get; init; }
             public object Object { get; init; }
             public Type Type { get; init; }
             public ProcessDelegate Process { get; init; }
         }
 
-        private readonly Queue<MemberProcess> _memberProcessQueue = new(256);
+        private readonly Queue<MemberProcessor> _memberProcessQueue = new(256);
 
-        private void ProcessArray(MemberProcess m)
+        private void ProcessArray(MemberProcessor m)
         {
             if (m.Object is not Array array)
                 return;
@@ -52,10 +52,10 @@ namespace GameData
                 CreateMember(null, elementType, elementName);
             }
 
-            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, count);
+            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, count);
         }
 
-        private void ProcessList(MemberProcess m)
+        private void ProcessList(MemberProcessor m)
         {
             if (m.Object is not IList list)
                 return;
@@ -70,10 +70,10 @@ namespace GameData
 
             var endIndex = _metaCode2.MembersType.Count;
 
-            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
+            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, endIndex - startIndex);
         }
 
-        private void ProcessDictionary(MemberProcess m)
+        private void ProcessDictionary(MemberProcessor m)
         {
             if (m.Object is not IDictionary dictionary)
                 return;
@@ -97,10 +97,10 @@ namespace GameData
 
             var endIndex = _metaCode2.MembersType.Count;
 
-            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
+            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, endIndex - startIndex);
         }
 
-        private void ProcessClass(MemberProcess m)
+        private void ProcessClass(MemberProcessor m)
         {
             var startIndex = _metaCode2.MembersType.Count;
             var dataObjectFields = GetFieldInfoList(m.Object);
@@ -113,7 +113,7 @@ namespace GameData
             }
 
             var endIndex = _metaCode2.MembersType.Count;
-            _metaCode2.UpdateStartIndexAndCount(m.MemberIndex, startIndex, endIndex - startIndex);
+            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, endIndex - startIndex);
         }
 
         private void CreateMember(object dataObjectFieldValue, Type dataObjectFieldType, string dataObjectFieldName)
@@ -162,27 +162,27 @@ namespace GameData
             else if (_typeInformation.IsGenericDictionary(dataObjectFieldType))
             {
                 var member = _memberFactory.NewDictionaryMember(dataObjectFieldType, dataObjectFieldValue, memberName);
-                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessDictionary });
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessDictionary });
             }
             else if (_typeInformation.IsArray(dataObjectFieldType))
             {
                 var member = _memberFactory.NewArrayMember(dataObjectFieldType, dataObjectFieldValue, memberName);
-                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessArray });
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessArray });
             }
             else if (_typeInformation.IsGenericList(dataObjectFieldType))
             {
                 var member = _memberFactory.NewArrayMember(dataObjectFieldType, dataObjectFieldValue, memberName);
-                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessList });
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessList });
             }
             else if (_typeInformation.IsStruct(dataObjectFieldType))
             {
                 var member = _memberFactory.NewClassMember(dataObjectFieldType, dataObjectFieldValue, memberName);
-                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
             }
             else if (_typeInformation.IsClass(dataObjectFieldType))
             {
                 var member = _memberFactory.NewClassMember(dataObjectFieldType, dataObjectFieldValue, memberName);
-                _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
             }
             else if (_typeInformation.IsString(dataObjectFieldType))
             {
@@ -275,7 +275,7 @@ namespace GameData
             if (!_typeInformation.IsClass(root.GetType())) return;
 
             var rootIndex = _memberFactory.NewClassMember(root.GetType(), root, string.Empty);
-            _memberProcessQueue.Enqueue(new MemberProcess { MemberIndex = rootIndex, Object = root, Type = root.GetType(), Process = ProcessClass });
+            _memberProcessQueue.Enqueue(new MemberProcessor { Index = rootIndex, Object = root, Type = root.GetType(), Process = ProcessClass });
             while (_memberProcessQueue.Count > 0)
             {
                 var m = _memberProcessQueue.Dequeue();

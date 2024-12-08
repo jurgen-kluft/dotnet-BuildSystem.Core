@@ -20,8 +20,8 @@ namespace GameData
 
     public sealed class FileId : IFileId, IStruct
     {
-        public static readonly FileId sEmpty = new();
-        private readonly IFileIdProvider provider;
+        public static readonly FileId s_empty = new();
+        private readonly IFileIdProvider _provider;
 
         private FileId() : this(null)
         {
@@ -29,11 +29,11 @@ namespace GameData
 
         public FileId(IFileIdProvider provider)
         {
-            this.provider = provider;
+            this._provider = provider;
         }
 
         public uint BigfileIndex { get; set; }
-        public uint FileIndex => provider.FileIndex;
+        public uint FileIndex => _provider.FileIndex;
 
         public bool StructIsValueType => true;
         public int StructSize => 8;
@@ -46,4 +46,36 @@ namespace GameData
             writer.Write(FileIndex);
         }
     }
+
+    public class FileIdPtr : IFile, IFileId, IStruct
+    {
+        private FileIdPtr() : this(null, null)
+        {
+        }
+
+        protected FileIdPtr(IFileIdProvider provider, Type objectType)
+        {
+            Provider = provider;
+            ObjectType = objectType;
+        }
+
+        public uint BigfileIndex { get; set; }
+        public uint FileIndex => Provider.FileIndex;
+
+        private IFileIdProvider Provider { get; }
+        public Type ObjectType { get; set; }
+
+        public bool StructIsValueType => true;
+        public int StructSize => 8 * 2;
+        public int StructAlign => 8;
+        public string StructName => "fileid_ptr_t";
+
+        public void StructWrite(GameCore.IBinaryWriter writer)
+        {
+            writer.Write(ulong.MinValue); // T* ptr = nullptr;
+            writer.Write(BigfileIndex);     // fileid_t fileid;
+            writer.Write(FileIndex);
+        }
+    }
+
 }

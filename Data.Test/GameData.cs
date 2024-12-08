@@ -2,10 +2,10 @@ using System;
 
 namespace GameData
 {
-	public class GameRoot : IDataUnit
+	public class GameRoot : IDataRootUnit
 	{
-        public EDataUnit UnitType { get; } = EDataUnit.External;
-        public string UnitID { get; } = "Root-56e889c7-1051-4147-9544-c37ee7bc927e";
+        public EDataUnit UnitType { get; } = EDataUnit.Root;
+        public string UnitId { get; } = "GameData";
 
 		public AudioFile BootSound = new ("Sound\\BootChime.wav");
 

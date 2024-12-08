@@ -6,6 +6,12 @@ using GameCore;
 using DataBuildSystem;
 namespace GameData
 {
+    public sealed class Localization
+    {
+        public string m_Language;
+        public List<string> m_Strings = new();
+    }
+
     public sealed class LocalizationCompiler : IDataCompiler, IFileIdProvider
     {
         private string mSrcFilename;

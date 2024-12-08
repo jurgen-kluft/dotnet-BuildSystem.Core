@@ -104,34 +104,35 @@ namespace DataBuildSystem
 
     public sealed class GameDataData
     {
-        private IDataUnit mRoot;
-
+        private IDataUnit mDataUnit;
         private List<IDataCompiler> mCompilers;
         private List<IFileIdProvider> mFilesProviders;
 
-        public GameDataData(Assembly dataAssembly)
+        public GameDataData() : this(null)
         {
-            Assembly = dataAssembly;
+        }
+
+        public GameDataData(IDataUnit dataUnit)
+        {
+            mDataUnit = dataUnit;
             mCompilers = new();
             mFilesProviders = new();
         }
 
-        public Assembly Assembly { get; }
-
-        public IDataUnit Root
+        public IDataUnit DataUnit
         {
-            get { return mRoot; }
+            get { return mDataUnit; }
         }
 
-        private bool Instanciate()
+        public bool Instanciate(Assembly assembly)
         {
-            if (mRoot != null)
+            if (mDataUnit != null)
                 return true;
 
             try
             {
-                mRoot = AssemblyUtil.Create1<IDataUnit>(Assembly);
-                return mRoot != null;
+                mDataUnit = AssemblyUtil.Create1<IDataRootUnit>(assembly);
+                return mDataUnit != null;
             }
             catch (System.Exception)
             {
@@ -142,13 +143,12 @@ namespace DataBuildSystem
         public List<IDataCompiler> CollectDataCompilers()
         {
             var compilers = new List<IDataCompiler>();
-            if (Instanciate())
             {
                 // Collect:
                 // - Compilers
                 // - FileId providers
                 // - Bigfile providers
-                ObjectTreeWalker.Walk(mRoot, delegate (object compound)
+                ObjectTreeWalker.Walk(mDataUnit, delegate (object compound)
                     {
                         var compoundType = compound.GetType();
                         if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
@@ -167,6 +167,34 @@ namespace DataBuildSystem
                 );
             }
             return compilers;
+        }
+
+
+
+        public List<IDataUnit> CollectDataUnits()
+        {
+            var dataUnits = new List<IDataUnit>();
+            {
+                // Collect:
+                // - IDataUnit
+                ObjectTreeWalker.Walk(mDataUnit, delegate (object compound)
+                    {
+                        var compoundType = compound.GetType();
+                        if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
+                            return true;
+
+                        // TODO what about Array's or List<>'s of DataCompilers?
+
+                        if (compound is IDataUnit du)
+                        {
+                            dataUnits.Add(du);
+                            return true;
+                        }
+                        return false;
+                    }
+                );
+            }
+            return dataUnits;
         }
 
         public void PrepareFilesProviders(List<IDataCompiler> compilers)
@@ -211,7 +239,7 @@ namespace DataBuildSystem
         {
             mFilesProviders.Clear();
 
-            var ok = ObjectTreeWalker.Walk(mRoot, delegate (object compound)
+            var ok = ObjectTreeWalker.Walk(mDataUnit, delegate (object compound)
                 {
                     var compoundType = compound.GetType();
 
@@ -268,8 +296,8 @@ namespace DataBuildSystem
 
             FileCommander.createDirectoryOnDisk(Path.GetDirectoryName(dataFilename));
 
-            GenerateStdData(mRoot, dataFilename, relocFilename);
-            GenerateCppCodeAndData(mRoot, dataFilename + "c", Path.ChangeExtension(dataFilename, ".h"), relocFilename + "c");
+            GenerateStdData(mDataUnit, dataFilename, relocFilename);
+            GenerateCppCodeAndData(mDataUnit, dataFilename + "c", Path.ChangeExtension(dataFilename, ".h"), relocFilename + "c");
             return true;
         }
     }

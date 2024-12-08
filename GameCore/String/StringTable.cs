@@ -4,8 +4,6 @@ namespace GameCore
 {
     public class StringTable
     {
-        #region Fields
-
         private readonly UTF8Encoding _encoding = new ();
         private readonly Dictionary<string, int> _dictionary;
         private readonly List<uint> _hashes;
@@ -13,9 +11,6 @@ namespace GameCore
         private readonly List<StreamReference> _references;
         private readonly List<string> _strings;
         private readonly byte[] _utf8;
-
-        #endregion
-        #region Constructor
 
         public StringTable(int estimatedNumberOfStrings = 4096, int longestUtf8StrLen = 8192)
         {
@@ -32,18 +27,12 @@ namespace GameCore
             StringsReference = StreamReference.NewReference;
         }
 
-        #endregion
-        #region Properties
-
         public StreamReference Reference { get;  }
         private StreamReference  HashesReference { get;  }
         private StreamReference  OffsetsReference { get;  }
         private StreamReference  StringsReference { get;  }
 
         private int Count => _strings.Count;
-
-        #endregion
-        #region Public Methods
 
         public int Add(string inString)
         {
@@ -149,9 +138,9 @@ namespace GameCore
             {
                 writer.Write(StringTools.Encode_32_5('S','T','R','T','B'));
                 writer.Write(Count);
-                writer.Write(HashesReference);
-                writer.Write(OffsetsReference);
-                writer.Write(StringsReference);
+                writer.WriteBlockReference(HashesReference);
+                writer.WriteBlockReference(OffsetsReference);
+                writer.WriteBlockReference(StringsReference);
                 writer.CloseBlock();
 
                 // String Hashes
@@ -193,7 +182,5 @@ namespace GameCore
                 }
             }
         }
-
-        #endregion
     }
 }

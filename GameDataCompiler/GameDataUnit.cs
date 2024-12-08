@@ -10,28 +10,28 @@ namespace DataBuildSystem
     // be tracked. When such a compiler is out-of-date, the GameDataCompilerLog will be updated
     // and the GameDataBigfile and GameDataData will be rebuilt.
 
-    //
-
     public class GameDataUnits
     {
-        private List<GameDataUnit> DataUnits { get; set; } = new();
+        private List<GameDataUnit> DataUnits { get; set; }
 
-        public GameDataUnits() { }
-
-        private AssemblyLoadContext mGameDataAssemblyContext;
-        private Assembly mGameDataAssembly;
-
-        private Assembly LoadAssembly(string gameDataDllFilename)
+        public bool Initialize(string gameDataDllFilename)
         {
-            mGameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemCompilerConfig.GddPath, gameDataDllFilename));
-            mGameDataAssembly = mGameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
-            return mGameDataAssembly;
+            _gameDataAssembly = LoadAssembly(gameDataDllFilename);
+            _gameDataData = new GameDataData();
+
+            // Instantiate the data root (which is the root DataUnit)
+            return _gameDataData.Instanciate(_gameDataAssembly);
         }
-        private void UnloadAssembly()
+
+        private Assembly _gameDataAssembly;
+        private GameDataData _gameDataData;
+
+        private static Assembly LoadAssembly(string gameDataDllFilename)
         {
-            mGameDataAssemblyContext.Unload();
-            mGameDataAssembly = null;
+            AssemblyLoadContext gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
+            var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemCompilerConfig.GddPath, gameDataDllFilename));
+            Assembly gameDataAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
+            return gameDataAssembly;
         }
 
         public State Update(string srcPath, string dstPath)
@@ -49,7 +49,7 @@ namespace DataBuildSystem
                 if (gduGameDataDll.IsOk && gduCompilerLog.IsOk && gduGameDataData.IsOk && gduBigfile.IsOk)
                 {
                     // All is up-to-date, but source files might have changed!
-                    var gdCl = new GameDataCompilerLog(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+                    var gdCl = new GameDataCompilerLog(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
 
                     // Load the compiler log so that they can be used to verify the source files
                     var loadedCompilers = new List<IDataCompiler>();
@@ -60,8 +60,7 @@ namespace DataBuildSystem
                     if (result.IsNotOk)
                     {
                         // Some (or all) compilers reported a change, now we have to load the assembly and build the Bigfile and Game Data.
-                        var gdAsm = LoadAssembly(gdu.FilePath);
-                        var gdd = new GameDataData(gdAsm);
+                        var gdd = new GameDataData(gdu.DataUnit);
 
                         // We have to collect the data compilers from the gdd because we have to assign FileId's
                         // The number and order of data compilers should be identical with 'loaded_compilers'
@@ -72,25 +71,22 @@ namespace DataBuildSystem
                         // As long as all the FileId's will be the same we do not need to build/save the game data files
                         GameDataBigfile bff = new(gdu.Index);
                         bff.AssignFileId(gdClOutput);
-                        bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
-                        gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
+                        bff.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.BigFileData), gdClOutput);
+                        gdd.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataData));
 
                         // Lastly we need to save the game data compiler log
                         gdCl.Save(mergedCompilers);
                         gdu.DetermineState();
-
-                        UnloadAssembly();
                     }
                 }
                 else
                 {
-                    var gdAsm = LoadAssembly(gdu.FilePath);
-                    var gdd = new GameDataData(gdAsm);
+                    var gdd = new GameDataData(gdu.DataUnit);
 
                     var currentCompilers = gdd.CollectDataCompilers();
                     var loadedCompilers = new List<IDataCompiler>(currentCompilers.Count);
 
-                    var gdCl = new GameDataCompilerLog(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataCompilerLog));
+                    var gdCl = new GameDataCompilerLog(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
                     gdCl.Load(loadedCompilers);
                     gdCl.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
 
@@ -108,15 +104,14 @@ namespace DataBuildSystem
                         // Rebuild the Bigfile and GameData file
                         var bff = new GameDataBigfile(gdu.Index);
                         bff.AssignFileId(gdClOutput);
-                        bff.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.BigFileData), gdClOutput);
-                        gdd.Save(GameDataPath.GetFilePathFor(gdu.Name, EGameData.GameDataData));
+                        bff.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.BigFileData), gdClOutput);
+                        gdd.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataData));
 
                         // Everything is saved, now save the compiler log
                         gdCl.Save(mergedCompilers);
                     }
 
                     gdu.DetermineState();
-                    UnloadAssembly();
                 }
             }
             return State.Ok;
@@ -124,15 +119,11 @@ namespace DataBuildSystem
 
         public void Load(string dstPath, string gddPath)
         {
-            // Scan the gddPath folder for all game data .dll's
-            var hashToPath = new Dictionary<Hash160, string>();
-            foreach (var path in DirUtils.EnumerateFiles(gddPath, "GameData.*.dll", SearchOption.TopDirectoryOnly))
+            var idToDataUnit = new Dictionary<string, IDataUnit>();
+            var currentDataUnits =  _gameDataData.CollectDataUnits();
+            foreach (var cdu in currentDataUnits)
             {
-                var filepath = path.RelativePath(gddPath.Length + 1).ToString();
-                if (!Path.GetFileNameWithoutExtension(filepath).StartsWith("GameData")) continue;
-
-                var hash = HashUtility.Compute_UTF8(filepath.ToLower());
-                hashToPath.Add(hash, filepath);
+                idToDataUnit.Add(cdu.UnitId, cdu);
             }
 
             var dataUnits = new Dictionary<uint, GameDataUnit>();
@@ -147,31 +138,31 @@ namespace DataBuildSystem
                     for (var i = 0; i < numUnits; i++)
                     {
                         var gdu = GameDataUnit.Load(binaryFile);
-
-                        // Is this one still in the list of .dll's?
-                        if (hashToPath.ContainsKey(gdu.Hash))
+                        if (idToDataUnit.TryGetValue(gdu.Id, out IDataUnit du))
                         {
-                            hashToPath.Remove(gdu.Hash);
+                            gdu.DataUnit = du;
+                            idToDataUnit.Remove(gdu.Id);
                             dataUnits.Add(gdu.Index, gdu);
                         }
                     }
                 }
+
                 binaryFile.Close();
             }
 
             // Any new DataUnit? -> create them with an index that is not used
             var index = (uint)0;
-            foreach (var item in hashToPath)
+            foreach (var item in idToDataUnit)
             {
                 while (dataUnits.ContainsKey(index))
                     index++;
-                var gdu = new GameDataUnit(item.Value, index);
+                var gdu = new GameDataUnit(gddPath, index, item.Value);
                 dataUnits.Add(gdu.Index, gdu);
                 index++;
             }
 
             // Finally, build the list of DataUnits
-            DataUnits = new(dataUnits.Count);
+            DataUnits = new List<GameDataUnit>(dataUnits.Count);
             foreach (var item in dataUnits)
             {
                 DataUnits.Add(item.Value);
@@ -220,10 +211,9 @@ namespace DataBuildSystem
 
     public class GameDataUnit
     {
-        public string FilePath { get; private init; }
-        public string Name { get; }
-        public Hash160 Hash { get; private init; }
+        public string Id { get; private init; }
         public uint Index { get; private init; }
+        public IDataUnit DataUnit { get; set; }
         private State[] States { get; set; } = new State[(int)EGameData.Count];
         private Dependency Dep { get; set; }
 
@@ -240,13 +230,12 @@ namespace DataBuildSystem
             return s;
         }
 
-        private GameDataUnit() : this(string.Empty, uint.MaxValue) { }
+        private GameDataUnit() : this(string.Empty, uint.MaxValue, null) { }
 
-        public GameDataUnit(string filepath, uint index)
+        public GameDataUnit(string dirPath, uint index, IDataUnit dataUnit)
         {
-            FilePath = filepath;
-            Name = Path.GetFileNameWithoutExtension(filepath);
-            Hash = HashUtility.Compute_UTF8(FilePath);
+            DataUnit = dataUnit;
+            Id = dataUnit.UnitId;
             Index = index;
             Dep = new();
 
@@ -254,9 +243,12 @@ namespace DataBuildSystem
             {
                 States[i] = State.Missing;
             }
+
             foreach (var e in (EGameData[])Enum.GetValues(typeof(EGameData)))
             {
-                Dep.Add((short)e, GameDataPath.GetPathFor(e), Path.ChangeExtension(FilePath, GameDataPath.GetExtFor(e)));
+                var unitName = e == EGameData.GameDataDll ? "GameData" : dataUnit.UnitId;
+                var filename = Path.Join(dirPath, unitName) + GameDataPath.GetExtFor(e);
+                Dep.Add((short)e, GameDataPath.GetPathFor(e), filename);
             }
         }
 
@@ -271,8 +263,7 @@ namespace DataBuildSystem
 
         public void Save(IBinaryWriter writer)
         {
-            writer.Write(FilePath);
-            Hash.WriteTo(writer);
+            writer.Write(DataUnit.UnitId);
             writer.Write(Index);
             foreach (var t in States)
                 writer.Write(t.AsInt);
@@ -284,8 +275,8 @@ namespace DataBuildSystem
         {
             GameDataUnit gdu = new()
             {
-                FilePath = reader.ReadString(),
-                Hash = Hash160.ReadFrom(reader),
+                DataUnit = null,
+                Id = reader.ReadString(),
                 Index = reader.ReadUInt32()
             };
             for (var i = 0; i < gdu.States.Length; ++i)

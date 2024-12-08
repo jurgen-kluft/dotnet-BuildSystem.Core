@@ -1,58 +1,130 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
+using GameCore;
+using DataBuildSystem;
 
 namespace GameData
 {
-#if CURVE_COMPILER
-    public class Curves
+    public sealed class CurveCompiler : IDataCompiler, IFileIdProvider
     {
-        private readonly CurveCompiler[] mCompilers;
-        private FileId[] fileIds;
+        private string mSrcFilename;
+        private string mDstFilename;
+        private Dependency mDependency;
 
-        public Curves(params string[] filenames)
+        public CurveCompiler(string filename) : this(filename, filename)
         {
-            int n = filenames.Length;
-            mCompilers = new CurveCompiler[n];
-            for (int i=0; i<n; i++)
-                mCompilers[i] = new CurveCompiler(filenames[i]);
+        }
+        public CurveCompiler(string srcFilename, string dstFilename)
+        {
+            mSrcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            mDstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
-        public void consolidate()
+        public void CompilerSignature(IBinaryWriter stream)
         {
-            List<FileId> fileIdList = new List<FileId>();
-            foreach(CurveCompiler cc in mCompilers)
-                cc.collect(fileIdList);
-            fileIds = fileIdList.ToArray();
+            stream.Write(mSrcFilename);
+            stream.Write(mDstFilename);
         }
 
-        public Array Values { get { return fileIds; } }
-    }
-
-    public class Curve
-    {
-        private readonly CurveCompiler mCompiler;
-    	private FileId fileId;
-
-        public Curve(string filename)
+        public void CompilerWrite(IBinaryWriter stream)
         {
-			mCompiler = new CurveCompiler(filename);
+            stream.Write(mSrcFilename);
+            stream.Write(mDstFilename);
+            mDependency.WriteTo(stream);
         }
 
-        public void consolidate()
+        public void CompilerRead(IBinaryReader stream)
         {
-            List<FileId> fileIds = new List<FileId>();
-            mCompiler.collect(fileIds);
-            if (fileIds.Count == 1)
-                fileId = fileIds[0];
+            mSrcFilename = stream.ReadString();
+            mDstFilename = stream.ReadString();
+            mDependency = Dependency.ReadFrom(stream);
+        }
+
+        public void CompilerConstruct(IDataCompiler dc)
+        {
+            if (dc is not CurveCompiler cc) return;
+
+            mSrcFilename = cc.mSrcFilename;
+            mDstFilename = cc.mDstFilename;
+            mDependency = cc.mDependency;
+        }
+
+        public IFileIdProvider CompilerFileIdProvider => this;
+        public uint FileIndex { get; set; }
+
+        public DataCompilerOutput CompilerExecute()
+        {
+            var result = DataCompilerResult.None;
+            if (mDependency == null)
+            {
+                mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
+                mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
+                result = DataCompilerResult.DstMissing;
+            }
             else
-                fileId = new FileId(null);
-        }
+            {
+                var result3 = mDependency.Update(delegate(short id, State state)
+                {
+                    var result2 = DataCompilerResult.None;
+                    if (state == State.Missing)
+                    {
+                        result2 = id switch
+                        {
+                            0 => (DataCompilerResult.SrcMissing),
+                            1 => (DataCompilerResult.DstMissing),
+                            _ => (DataCompilerResult.None),
+                        };
+                    }
+                    else if (state == State.Modified)
+                    {
+                        result2 |= id switch
+                        {
+                            0 => (DataCompilerResult.SrcChanged),
+                            1 => (DataCompilerResult.DstChanged),
+                            _ => (DataCompilerResult.None)
+                        };
+                    }
 
-        public object Value { get { return fileId; } }
+                    return result2;
+                });
+
+                if (result3 == DataCompilerResult.UpToDate)
+                {
+                    result = DataCompilerResult.UpToDate;
+                    return new DataCompilerOutput(result, new[] { mDstFilename }, this);
+                }
+            }
+
+            try
+            {
+                // Execute the actual purpose of this compiler
+                File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
+
+                // Execution is done, update the dependency to reflect the new state
+                result = mDependency.Update(null);
+            }
+            catch (Exception)
+            {
+                result = (DataCompilerResult)(result | DataCompilerResult.Error);
+            }
+
+            // The result returned here is the result that 'caused' this compiler to execute its action and not the 'new' state.
+            return new DataCompilerOutput(result, new[] { mDstFilename }, this);
+        }
     }
 
-    public class CurveIF
+    public class CurvePoint
+    {
+        public double mX;
+        public double mY;
+    }
+
+    public class CurveControlPoint
+    {
+        public CurvePoint mControlPoint = new CurvePoint();
+        public CurvePoint mTangentBegin = new CurvePoint();
+        public CurvePoint mTangentEnd = new CurvePoint();
+    }
+
+    public sealed class Curve
     {
         #region Fields
 
@@ -61,25 +133,12 @@ namespace GameData
         public double mMinY;
         public double mMaxY;
 
-        public class Point
-        {
-            public double mX;
-            public double mY;
-        }
-
-        public class ControlPoint
-        {
-            public Point mControlPoint = new Point();
-            public Point mTangentBegin = new Point();
-            public Point mTangentEnd = new Point();
-        }
-
         public int mNumControlPoints;
-        public ControlPoint[] mControlPoints;
+        public CurveControlPoint[] mControlPoints;
         public int mInterpolationFlag;
 
         public int mNumCurvePoints;
-        public Point[] mCurve;
+        public CurvePoint[] mCurve;
 
         #endregion
         #region Save Binary
@@ -102,7 +161,7 @@ namespace GameData
                 writer.Write((float)mMaxY);
 
                 writer.Write(mNumCurvePoints);
-                foreach (Point p in mCurve)
+                foreach (CurvePoint p in mCurve)
                 {
                     writer.Write((float)p.mX);
                     writer.Write((float)p.mY);
@@ -196,7 +255,7 @@ namespace GameData
                     }
 
                     mNumControlPoints = (int)Double.Parse(line);	// Number of control points.
-                    mControlPoints = new ControlPoint[mNumControlPoints];
+                    mControlPoints = new CurveControlPoint[mNumControlPoints];
 
                     line = reader.ReadLine();
                     while (line[0] == ';')
@@ -205,7 +264,7 @@ namespace GameData
                     }
                     for (int I = 0; I < mNumControlPoints; I++)		// Load each control point.
                     {
-                        mControlPoints[I] = new ControlPoint();
+                        mControlPoints[I] = new CurveControlPoint();
 
                         int iPos = 0;
                         string strTemp1 = sGetWordSimple(line, ref iPos);
@@ -253,10 +312,10 @@ namespace GameData
                         line = reader.ReadLine();
                     }
 
-                    mCurve = new Point[mNumCurvePoints];
+                    mCurve = new CurvePoint[mNumCurvePoints];
 
                     for (int I = 0; I < mNumCurvePoints; I++)		// Load each point.
-                        mCurve[I] = new Point();
+                        mCurve[I] = new CurvePoint();
 
                     for (int I = 0; I < mNumCurvePoints; I++)		// Load each point.
                     {
@@ -291,5 +350,54 @@ namespace GameData
 
         #endregion
     }
+
+#if CURVE_COMPILER
+    public class Curves
+    {
+        private readonly CurveCompiler[] mCompilers;
+        private FileId[] fileIds;
+
+        public Curves(params string[] filenames)
+        {
+            int n = filenames.Length;
+            mCompilers = new CurveCompiler[n];
+            for (int i=0; i<n; i++)
+                mCompilers[i] = new CurveCompiler(filenames[i]);
+        }
+
+        public void consolidate()
+        {
+            List<FileId> fileIdList = new List<FileId>();
+            foreach(CurveCompiler cc in mCompilers)
+                cc.collect(fileIdList);
+            fileIds = fileIdList.ToArray();
+        }
+
+        public Array Values { get { return fileIds; } }
+    }
+
+    public class Curve
+    {
+        private readonly CurveCompiler mCompiler;
+    	private FileId fileId;
+
+        public Curve(string filename)
+        {
+			mCompiler = new CurveCompiler(filename);
+        }
+
+        public void consolidate()
+        {
+            List<FileId> fileIds = new List<FileId>();
+            mCompiler.collect(fileIds);
+            if (fileIds.Count == 1)
+                fileId = fileIds[0];
+            else
+                fileId = new FileId(null);
+        }
+
+        public object Value { get { return fileId; } }
+    }
+
 #endif
 }

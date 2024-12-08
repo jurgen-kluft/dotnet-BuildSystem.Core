@@ -20,7 +20,7 @@ namespace GameData
 
         // Need to define
         // - String data representation (struct string_t)
-        //   - string_t { u32 const mLength; char const* mStr; }
+        //   - string_t { u32 const mByteLength; u32 const mRuneLength; char const* mStr; }
         // - LString data representation (lstring_t = u64)
         // - FileId data representation (fileid_t = u64)
         // - Array data representation (template<T> array_t { u32 const mSize; T const* mArray; })

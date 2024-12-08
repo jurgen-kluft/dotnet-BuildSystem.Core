@@ -4,58 +4,45 @@ using GameCore;
 
 namespace GameData
 {
-    public sealed class CurveFile : IFile
+    public sealed class CurveFile : FileIdPtr
     {
-        public CurveFile(string path)
+        public CurveFile(string path) : base(new CurveCompiler(path), typeof(Curve))
         {
-            Path = path;
         }
-
-        public string Path { get; }
     }
 
-    public sealed class TextureFile : IFile
+    public sealed class TextureFile : FileIdPtr
     {
-        public TextureFile(string path)
+        public TextureFile(string path) : base(new TextureCompiler(path), typeof(Texture))
         {
-            Path = path;
         }
-        public string Path { get; }
     }
 
-    public sealed class ModelFile : IFile
+    public sealed class ModelFile : FileIdPtr
     {
-        public ModelFile(string path)
+        public ModelFile(string path) : base(new ModelCompiler(path), typeof(Model))
         {
-            Path = path;
         }
-        public string Path { get; }
     }
 
-    public sealed class AudioFile : IFile
+    public sealed class AudioFile : FileIdPtr
     {
-        public AudioFile(string path)
+        public AudioFile(string path) : base(new AudioCompiler(path), typeof(Audio))
         {
-            Path = path;
         }
-        public string Path { get; }
     }
 
-    public sealed class FontFile : IFile
+    public sealed class FontFile : FileIdPtr
     {
-        public FontFile(string path)
+        public FontFile(string path) : base(new FontCompiler(path), typeof(Font))
         {
-            Path = path;
         }
-        public string Path { get; }
     }
 
-    public sealed class LocalizationFile : IFile
+    public sealed class LocalizationFile : FileIdPtr
     {
-        public LocalizationFile(string path)
+        public LocalizationFile(string path) : base(new LocalizationCompiler(path), typeof(Localization))
         {
-            Path = path;
         }
-        public string Path { get; }
     }
 }

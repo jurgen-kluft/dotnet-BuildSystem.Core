@@ -5,25 +5,25 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class Shader
+    public sealed class Model
     {
-        // Shader Type
-        // Bindings
-        // Uniforms
-        // Shader Code
+        // Index Buffer
+        // Vertex Buffer
+        // Materials
+        // Textures
     }
 
-    // e.g. new FileId(new ShaderCompiler("StaticMesh.vs"));
-    public sealed class ShaderCompiler : IDataCompiler, IFileIdProvider
+    // e.g. new FileId(new ModelCompiler("Models/Teapot.glTF"));
+    public sealed class ModelCompiler : IDataCompiler, IFileIdProvider
     {
         private string mSrcFilename;
         private string mDstFilename;
         private Dependency mDependency;
 
-        public ShaderCompiler(string filename) : this(filename, filename)
+        public ModelCompiler(string filename) : this(filename, filename)
         {
         }
-        public ShaderCompiler(string srcFilename, string dstFilename)
+        public ModelCompiler(string srcFilename, string dstFilename)
         {
             mSrcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             mDstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -51,7 +51,7 @@ namespace GameData
 
         public void CompilerConstruct(IDataCompiler dc)
         {
-            if (dc is not ShaderCompiler cc) return;
+            if (dc is not ModelCompiler cc) return;
 
             mSrcFilename = cc.mSrcFilename;
             mDstFilename = cc.mDstFilename;
@@ -108,9 +108,6 @@ namespace GameData
             {
                 // Execute the actual purpose of this compiler
                 File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
-
-                // Note: On Windows we have different tools than on Mac/Linux
-                // Note: Shaders are in HLSL and for Mac (Metal) need to be compiled
 
                 // Execution is done, update the dependency to reflect the new state
                 result = mDependency.Update(null);

@@ -17,6 +17,10 @@
     <ProjectReference Include="..\BigfileBuilder\BigfileBuilder.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Archive\" />
+  </ItemGroup>
+
   <Target Name="CopyGameDataDLL" AfterTargets="Build">
     <ItemGroup>
       <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />

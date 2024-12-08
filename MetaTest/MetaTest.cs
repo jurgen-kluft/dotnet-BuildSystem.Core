@@ -42,8 +42,38 @@ namespace MetaTest
             EnumerationD = 0xFFFF0003,
         }
 
-        public class TestRoot
+        public class TestDataEmbeddedUnit : IDataUnit
         {
+            public EDataUnit UnitType { get; } = EDataUnit.Embed;
+            public string UnitId { get; } = "TestEmbeddedDataUnit";
+            public Type UnitDataType { get; } = typeof(TestDataEmbeddedUnit);
+
+            public float m_Float = 3.14f;
+            public int m_Int = 1;
+            public bool m_Bool1 = true;
+            public bool m_Bool2 = false;
+            public bool m_Bool3 = true;
+        }
+
+        public class TestDataExternalUnit : IDataUnit
+        {
+            public EDataUnit UnitType { get; } = EDataUnit.External;
+            public string UnitId { get; } = "TestExternalDataUnit";
+            public Type UnitDataType { get; } = typeof(TestDataExternalUnit);
+
+            public float m_Float = 3.14f;
+            public int m_Int = 1;
+            public bool m_Bool1 = true;
+            public bool m_Bool2 = false;
+            public bool m_Bool3 = true;
+        }
+
+        public class TestRoot : IDataRootUnit
+        {
+            public EDataUnit UnitType { get; } = EDataUnit.Root;
+            public string UnitId { get; } = "TestRoot";
+            public Type UnitDataType { get; } = typeof(TestRoot);
+
             public float m_Float = 3.14f;
             public int m_Int = 1;
             public bool m_Bool1 = true;

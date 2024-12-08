@@ -28,15 +28,13 @@ namespace GameData
         bool IsClass(Type t);
         bool IsStruct(Type t);
         bool IsIStruct(Type t);
-        bool IsFileId(Type t);
+        bool IsDataUnit(Type t);
     }
 
     #endregion
 
     public sealed class GenericTypeInformation : ITypeInformation
     {
-        #region Private Methods
-
         public bool IsNull(Type t)
         {
             return (t == null);
@@ -132,19 +130,15 @@ namespace GameData
             return (t.IsValueType && !t.IsPrimitive && !t.IsEnum) && (!t.IsArray && !IsString(t) && (t != typeof(decimal)) && (t != typeof(DateTime)));
         }
 
-        public bool IsFileId(Type t)
-        {
-            return !t.IsPrimitive && HasGenericInterface(t, typeof(GameData.IFileId));
-        }
-
         public bool IsIStruct(Type t)
         {
             return HasGenericInterface(t, typeof(GameData.IStruct));
         }
 
-        #endregion
-
-        #region Static Methods
+        public bool IsDataUnit(Type t)
+        {
+            return !t.IsPrimitive && HasGenericInterface(t, typeof(GameData.IDataUnit));
+        }
 
         private static bool HasGenericInterface(Type objectType, Type interfaceType)
         {
@@ -154,7 +148,5 @@ namespace GameData
                     return true;
             return false;
         }
-
-        #endregion
     }
 }
