@@ -327,7 +327,7 @@ namespace GameData
             private static void WriteDataUnitProcess(int memberIndex, StreamReference br, StreamReference cr, WriteContext ctx)
             {
                 // A DataUnit (class) is written as a collection of members
-                ctx.DataStream.OpenChunk(cr);
+                ctx.DataStream.OpenDataUnit(cr);
                 {
                     ctx.DataStream.OpenBlock(br);
                     {
@@ -341,7 +341,7 @@ namespace GameData
                     }
                     ctx.DataStream.CloseBlock();
                 }
-                ctx.DataStream.CloseChunk();
+                ctx.DataStream.CloseDataUnit();
             }
 
             private static void WriteDataUnit(int memberIndex, WriteContext ctx)
@@ -353,7 +353,7 @@ namespace GameData
                 ctx.DataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
 
                 var cr = StreamReference.NewReference;
-                ctx.DataStream.OpenChunk(cr);
+                ctx.DataStream.OpenDataUnit(cr);
 
                 ctx.DataStream.Write((ulong)0); // T*
                 ctx.DataStream.WriteChunkReference(cr); // {offset,size}
@@ -461,9 +461,8 @@ namespace GameData
             private int mCurrent;
             private int mOffset;
             private readonly EPlatform mPlatform;
-            private StreamReference mChunkReference;
             private readonly Dictionary<StreamReference, int> mReferenceToChunk;
-            private readonly Stack<StreamReference> mChunkStack;
+            private readonly Stack<StreamReference> mDataUnitStack;
             private readonly List<DataBlock> mDataBlocks;
             private readonly Dictionary<StreamReference, int> mReferenceToBlock;
             private readonly StringTable mStringTable;
@@ -475,9 +474,8 @@ namespace GameData
                 mCurrent = -1;
                 mOffset = 0;
                 mPlatform = platform;
-                mChunkReference = StreamReference.Empty;
                 mReferenceToChunk = new();
-                mChunkStack = new();
+                mDataUnitStack = new();
                 mDataBlocks = new();
                 mReferenceToBlock = new();
                 mStringTable = strTable;
@@ -489,9 +487,13 @@ namespace GameData
             {
                 private Dictionary<StreamReference, List<long>> BlockPointers { get; } = new();
                 private Dictionary<StreamReference, List<long>> ChunkPointers { get; } = new();
+                
+                // Markers:
+                // These are used when you are writing data to the stream and you want to 
+                // 'remember' this as a pointer, so you can store a StreamReference and Offset.
                 private Dictionary<StreamReference, long> Markers { get; } = new();
 
-                public StreamReference ChunkReference{ get; set; }
+                public StreamReference DataUnitReference{ get; set; }
                 public int Alignment { get; init; }
                 public int Offset { get; init; }
                 public int Size { get; init; }
@@ -642,15 +644,20 @@ namespace GameData
                         db.BlockPointers.Add(newRef, oldOffsets);
                     }
                 }
-
-                internal static void WriteTo(DataBlock db, IBinaryDataStream data, IBinaryStreamWriter outData, IBinaryWriter outRelocationDataWriter, IDictionary<StreamReference, long> dataOffsetDataBase, byte[] readWriteBuffer)
+                
+                internal static void ProcessStreamMarkers(DataBlock db, long dataBlockOffset, IDictionary<StreamReference, long> dataOffsetDataBase)
                 {
-                    StreamUtils.Align(outData, db.Alignment);
+                    // Update the dataOffsetDatabase with any markers we have in this data block
+                    foreach (var (sr, offset) in db.Markers)
+                    {
+                        dataOffsetDataBase.Add(sr, dataBlockOffset + offset);
+                    }
+                }
 
-                    // Verify the position of the data stream
-                    dataOffsetDataBase.TryGetValue(db.Reference, out var outDataBlockOffset);
-                    Debug.Assert(outData.Position == outDataBlockOffset);
-
+                internal static void CollectStreamPointers(DataBlock db, ICollection<StreamPointer> streamPointers, IDictionary<StreamReference, long> dataOffsetDataBase)
+                {
+                    // BlockPointers are references that are written in this Block, each Reference might
+                    // have been written more than once so that is why there is a list of Offsets.
                     foreach (var (sr, offsets) in db.BlockPointers)
                     {
                         // What is the offset of the data block we are pointing to
@@ -660,16 +667,33 @@ namespace GameData
                         // The offset are relative to the start of the DataBlock
                         foreach (var o in offsets)
                         {
-                            data.Seek(db.Offset + o); // Seek to the position that has the 'StreamReference'
-                            data.Write(referenceOffset); // The value we write here is the offset to the data computed in the simulation
+                            // Remember this pointer
+                            var sp = new StreamPointer() { Position = db.Offset + o, DataOffset = referenceOffset };
+                            streamPointers.Add(sp);
                         }
                     }
+                }
 
-                    // Update the dataOffsetDatabase with any markers we have in this data block
-                    foreach (var (sr, offset) in db.Markers)
+                internal static void WriteStreamPointers(IBinaryDataStream data, List<StreamPointer> streamPointers)
+                {
+                    if (streamPointers.Count == 0)
+                        return;
+                    
+                    for (var i = 0; i < streamPointers.Count - 1; i++)
                     {
-                        dataOffsetDataBase.Add(sr, outDataBlockOffset + offset);
+                        streamPointers[i].Write(data, streamPointers[i + 1]);
                     }
+
+                    // Last StreamPointer is written by giving it itself, so that the 'next' pointer is 0
+                    streamPointers[^1].Write(data, streamPointers[^1]);
+                }
+
+                internal static void WriteDataBlock(DataBlock db, IBinaryStreamReader data, IBinaryStreamWriter outData, IDictionary<StreamReference, long> dataOffsetDataBase, byte[] readWriteBuffer)
+                {
+                    // Verify the position of the data stream
+                    dataOffsetDataBase.TryGetValue(db.Reference, out var outDataBlockOffset);
+                    StreamUtils.Align(outData, db.Alignment);
+                    Debug.Assert(outData.Position == outDataBlockOffset);
 
                     // Read from the data stream at the start of the block and write the block to the output
                     data.Seek(db.Offset);
@@ -683,16 +707,6 @@ namespace GameData
                         Debug.Assert(actualRead > 0);
                         outData.Write(readWriteBuffer, 0, actualRead);
                         sizeToWrite -= actualRead;
-                    }
-
-                    // Write relocation info
-                    // NOTE: the offsets (_pointers) of this data block are relative to this block
-                    foreach (var (_, offsets) in db.BlockPointers)
-                    {
-                        foreach (var o in offsets)
-                        {
-                            outRelocationDataWriter.Write((int)outDataBlockOffset + (int)o);
-                        }
                     }
                 }
             }
@@ -714,7 +728,7 @@ namespace GameData
 
                 mDataBlocks.Add( new DataBlock()
                 {
-                    ChunkReference = mChunkReference,
+                    DataUnitReference = mDataUnitStack.Peek(),
                     Alignment = alignment,
                     Offset = mOffset,
                     Size = size,
@@ -730,18 +744,18 @@ namespace GameData
                     mDataWriter.Length = mOffset + 4 * 1024;
                 }
 
-                return mChunkReference;
+                return mDataUnitStack.Peek();
             }
 
-            public void OpenChunk(StreamReference reference)
+            public void OpenDataUnit(StreamReference reference)
             {
-                mChunkStack.Push(reference);
-                mChunkReference = reference;
+                mDataUnitStack.Push(reference);
             }
 
-            public void CloseChunk()
+            public void CloseDataUnit()
             {
-                mChunkReference = mChunkStack.Count > 0 ? mChunkStack.Pop() : StreamReference.Empty;
+                Debug.Assert(mDataUnitStack.Count > 0);
+                mDataUnitStack.Pop();
             }
 
             public void OpenBlock(StreamReference r)
@@ -754,7 +768,7 @@ namespace GameData
 
                 // Set the stream position to the start of the block
                 var db = mDataBlocks[index];
-                db.ChunkReference = mChunkReference;
+                db.DataUnitReference = mDataUnitStack.Peek();
                 mDataWriter.Position = db.Offset;
             }
 
@@ -928,109 +942,207 @@ namespace GameData
             {
             }
 
-            public void Finalize(IBinaryStreamWriter dataWriter, IBinaryStreamWriter relocationDataWriter)
+            private struct StreamPointer
             {
-                // Dictionary for mapping a Reference to a DataBlock
-                var finalDataDataBase = new Dictionary<StreamReference, DataBlock>(mDataBlocks.Count);
+                public long Position { get; init; } // The position in the stream of where the pointer is located
+                public long DataOffset { get; init; }   // Pointer is pointing to [Position + Offset]
+                
+                public void Write(IBinaryWriter writer, StreamPointer previousStreamPointer)
+                {
+                    var next32 = (int)((previousStreamPointer.Position - Position) / 8);
+                    var offset32 = (int)(DataOffset / 8);
+                    writer.Write(next32);
+                    writer.Write(offset32);
+                }
+            }
+
+            public void Finalize(IBinaryStreamWriter dataWriter)
+            {
+                // NEW, DataUnits!
+                // A DataUnit consists of Blocks.
+                // For each DataUnit we need to de-duplicate Blocks, and once we have done that we 
+                // can serialize DataUnits to the dataWriter.
+                // Also every serialized DataUnit needs a Header structure, so that when it is loaded in
+                // the Runtime we have some information, like where the first Pointer is located to start
+                // patching them.
+                var blockDataBases = new List<Dictionary<StreamReference, DataBlock>>();
+                var dataUnitDataBase = new Dictionary<StreamReference, int>(mDataBlocks.Count);
+                var dataUnitStreamPositions = new List<long>();
+                var dataUnitStreamSizes = new List<long>();
                 foreach (var d in mDataBlocks)
-                    finalDataDataBase.Add(d.Reference, d);
-
-                // For all blocks:
-                // Collapse identical blocks identified by hash, and when a collapse has occurred we have
-                // to re-iterate again since a collapse changes the hash of a data block.
-
-                var memoryBytes = mMemoryStream.ToArray();
-                var memoryStream = new BinaryMemoryBlock();
-                memoryStream.Setup(memoryBytes, 0, memoryBytes.Length);
-
-                var duplicateDataBase = new Dictionary<StreamReference, List<StreamReference>>();
-                var dataHashDataBase = new Dictionary<Hash160, StreamReference>();
-
-                while (true)
                 {
-                    duplicateDataBase.Clear();
-                    dataHashDataBase.Clear();
-
-                    foreach (var d in mDataBlocks)
+                    Dictionary<StreamReference, DataBlock> blockDatabase;
+                    if (!dataUnitDataBase.TryGetValue(d.DataUnitReference, out var blockDatabaseIndex))
                     {
-                        var hash = HashUtility.Compute(memoryBytes.AsSpan(d.Offset, d.Size));
-                        if (dataHashDataBase.TryGetValue(hash, out var newRef))
+                        blockDatabaseIndex = blockDataBases.Count;
+                        blockDataBases.Add(new Dictionary<StreamReference, DataBlock>());
+                        dataUnitDataBase.Add(d.DataUnitReference, blockDatabaseIndex);
+                    }
+
+                    blockDataBases[blockDatabaseIndex].Add(d.Reference, d);
+                }
+                
+                dataWriter.Write((uint)dataUnitDataBase.Count); // Number of DataUnits
+
+                var dataUnitsHeaderOffset = dataWriter.Position;
+                for (var i=0; i<dataUnitDataBase.Count; ++i)
+                {
+                    dataWriter.Write((ulong)0); // DataUnit*
+                    dataWriter.Write((uint)0); // DataUnit Offset
+                    dataWriter.Write((uint)0); // DataUnit Size
+                }
+
+                var readWriteBuffer = new byte[65536];
+                foreach (var cdb in dataUnitDataBase)
+                {
+                    // Store the start of the DataUnit
+                    var dataUnitBeginPos = dataWriter.Position;
+                    
+                    // Dictionary for mapping a Reference to a DataBlock
+                    var blockDataBase = blockDataBases[cdb.Value];
+
+                    // For all blocks that are part of this chunk:
+                    // Collapse identical blocks identified by hash, and when a collapse has occurred we have
+                    // to re-iterate again since a collapse changes the hash of a data block.
+
+                    var memoryBytes = mMemoryStream.ToArray();
+                    var memoryStream = new BinaryMemoryBlock();
+                    memoryStream.Setup(memoryBytes, 0, memoryBytes.Length);
+
+                    var duplicateDataBase = new Dictionary<StreamReference, List<StreamReference>>();
+                    var dataHashDataBase = new Dictionary<Hash160, StreamReference>();
+
+                    var dataBlocks = new List<DataBlock>(blockDataBase.Count);
+                    foreach (var b in blockDataBase)
+                        dataBlocks.Add(b.Value);
+
+                    while (true)
+                    {
+                        duplicateDataBase.Clear();
+                        dataHashDataBase.Clear();
+
+                        foreach (var d in dataBlocks)
                         {
-                            // Encountering a block of data which has a duplicate.
-                            // After the first iteration it might be the case that
-                            // they have the same 'Reference' since they are collapsed.
-                            if (!d.Reference.IsEqual(newRef))
+                            var hash = HashUtility.Compute(memoryBytes.AsSpan(d.Offset, d.Size));
+                            if (dataHashDataBase.TryGetValue(hash, out var newRef))
                             {
-                                if (!duplicateDataBase.ContainsKey(newRef))
+                                // Encountering a block of data which has a duplicate.
+                                // After the first iteration it might be the case that
+                                // they have the same 'Reference' since they are collapsed.
+                                if (!d.Reference.IsEqual(newRef))
                                 {
-                                    if (finalDataDataBase.ContainsKey(d.Reference))
+                                    if (!duplicateDataBase.ContainsKey(newRef))
                                     {
-                                        var duplicateReferences = new List<StreamReference>() { d.Reference };
-                                        duplicateDataBase[newRef] = duplicateReferences;
+                                        if (blockDataBase.ContainsKey(d.Reference))
+                                        {
+                                            var duplicateReferences = new List<StreamReference>() { d.Reference };
+                                            duplicateDataBase[newRef] = duplicateReferences;
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    if (finalDataDataBase.ContainsKey(d.Reference))
-                                        duplicateDataBase[newRef].Add(d.Reference);
-                                }
+                                    else
+                                    {
+                                        if (blockDataBase.ContainsKey(d.Reference))
+                                            duplicateDataBase[newRef].Add(d.Reference);
+                                    }
 
-                                finalDataDataBase.Remove(d.Reference);
+                                    blockDataBase.Remove(d.Reference);
+                                }
                             }
-                        }
-                        else
-                        {
-                            // This block of data is still unique
-                            dataHashDataBase.Add(hash, d.Reference);
-                        }
-                    }
-
-                    // Rebuild the list of data blocks
-                    mDataBlocks.Clear();
-                    mDataBlocks.Capacity = finalDataDataBase.Count;
-                    foreach (var (_, db) in finalDataDataBase)
-                    {
-                        mDataBlocks.Add(db);
-                    }
-
-                    // For each data block replace any occurence of an old reference with its unique reference
-                    foreach (var db in mDataBlocks)
-                    {
-                        foreach (var (uniqueRef, duplicateRefs) in duplicateDataBase)
-                        {
-                            foreach (var duplicateRef in duplicateRefs)
+                            else
                             {
-                                DataBlock.ReplaceReference(memoryStream, db, duplicateRef, uniqueRef);
+                                // This block of data is still unique
+                                dataHashDataBase.Add(hash, d.Reference);
                             }
                         }
+
+                        // Rebuild the list of data blocks
+                        dataBlocks.Clear();
+                        dataBlocks.Capacity = blockDataBase.Count;
+                        foreach (var (_, db) in blockDataBase)
+                        {
+                            dataBlocks.Add(db);
+                        }
+
+                        // For each data block replace any occurence of an old reference with its unique reference
+                        foreach (var db in dataBlocks)
+                        {
+                            foreach (var (uniqueRef, duplicateRefs) in duplicateDataBase)
+                            {
+                                foreach (var duplicateRef in duplicateRefs)
+                                {
+                                    DataBlock.ReplaceReference(memoryStream, db, duplicateRef, uniqueRef);
+                                }
+                            }
+                        }
+
+                        // Did we find any duplicates, if so then we also replaced references
+                        // and by doing so hashes have changed.
+                        // Some blocks now might have an identical hash due to this.
+                        if (duplicateDataBase.Count == 0) break;
                     }
 
-                    // Did we find any duplicates, if so then we also replaced references
-                    // and by doing so hashes have changed.
-                    // Some blocks now might have an identical hash due to this.
-                    if (duplicateDataBase.Count == 0) break;
+                    // Remember the location of the chunk header
+                    var headerOffset = dataWriter.Position;
+                    dataWriter.Write((uint)0); // Offset to first pointer
+                    dataWriter.Write((uint)0); // Number of pointers
+                    
+                    // Compute stream offset for each data block, do this by simulating the writing process.
+                    // All references (pointers) are written in the stream as a 64-bit offset (64-bit pointers)
+                    // relative to the start of the data stream.
+                    var dataOffsetDataBase = new Dictionary<StreamReference, long>();
+                    var offset = dataWriter.Position;
+                    foreach (var (dbRef, db) in blockDataBase)
+                    {
+                        offset = CMath.AlignUp(offset, db.Alignment);
+                        dataOffsetDataBase.Add(dbRef, offset);
+                        DataBlock.ProcessStreamMarkers(db, offset, dataOffsetDataBase);
+                        offset += db.Size;
+                    }
+                    
+                    // Dump all blocks to dataWriter
+                    // Dump all reallocation info to relocationData
+                    // Patch the location of every reference in the memory stream!
+                    var streamPointers = new List<StreamPointer>();
+                    foreach (var (_, db) in blockDataBase)
+                    {
+                        DataBlock.CollectStreamPointers(db, streamPointers, dataOffsetDataBase);
+                    }
+                    
+                    // Connect all StreamPointer into a Singly-LinkedList
+                    DataBlock.WriteStreamPointers(memoryStream, streamPointers);
+
+                    foreach (var (_, db) in blockDataBase)
+                    {
+                        DataBlock.WriteDataBlock(db, memoryStream, dataWriter, dataOffsetDataBase, readWriteBuffer);
+                    }
+                    
+                    // Remember the current location
+                    var dataUnitEndPos = dataWriter.Position;
+                    
+                    // Change position to chunk header and finalize the header
+                    dataWriter.Position = headerOffset;
+                    dataWriter.Write((uint)(streamPointers[0].Position / 8));
+                    dataWriter.Write((ulong)streamPointers.Count);
+
+                    // Restore the position
+                    dataWriter.Position = dataUnitEndPos;
+                    
+                    // Store the position and size of this DataUnit
+                    dataUnitStreamPositions.Add(dataUnitBeginPos);
+                    dataUnitStreamSizes.Add(dataUnitEndPos - dataUnitBeginPos);
                 }
 
-                // Compute stream offset for each data block, do this by simulating the writing process.
-                // All references (pointers) are written in the stream as a 64-bit offset (64-bit pointers)
-                // relative to the start of the data stream.
-                var dataOffsetDataBase = new Dictionary<StreamReference, long>();
-                var offset = dataWriter.Position;
-                foreach (var (dbRef, db) in finalDataDataBase)
+                var dataEnd = dataWriter.Position;
+
+                dataWriter.Position = dataUnitsHeaderOffset;
+                for (var i = 0; i < dataUnitDataBase.Count; ++i)
                 {
-                    offset = CMath.AlignUp(offset, db.Alignment);
-                    dataOffsetDataBase.Add(dbRef, offset);
-                    offset += db.Size;
+                    dataWriter.Write((ulong)0);                         // DataUnit*
+                    dataWriter.Write((uint)dataUnitStreamPositions[i]); // DataUnit Offset
+                    dataWriter.Write((uint)dataUnitStreamSizes[i]);     // DataUnit Size
                 }
 
-                // Dump all blocks to dataWriter
-                // Dump all reallocation info to relocationDataWriter
-                // Patch the location of every reference in the memory stream!
-                var readWriteBuffer = new byte[8192];
-                foreach (var (_, db) in finalDataDataBase)
-                {
-                    DataBlock.WriteTo(db, memoryStream, dataWriter, relocationDataWriter, dataOffsetDataBase, readWriteBuffer);
-                }
+                dataWriter.Position = dataEnd;
             }
 
             public IArchitecture Architecture => mDataWriter.Architecture;

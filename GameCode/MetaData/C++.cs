@@ -80,14 +80,9 @@ namespace GameData
             var dataFileInfo = new FileInfo(dataFilename);
             var dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
             var dataFileStreamWriter = ArchitectureUtils.CreateBinaryWriter(dataFileStream, platform);
-            var relocationFileInfo = new FileInfo(relocationFilename);
-            var relocationFileStream = new FileStream(relocationFileInfo.FullName, FileMode.Create);
-            var relocationFileStreamWriter = ArchitectureUtils.CreateBinaryWriter(relocationFileStream, platform);
-            dataStream.Finalize(dataFileStreamWriter, relocationFileStreamWriter);
+            dataStream.Finalize(dataFileStreamWriter);
             dataFileStreamWriter.Close();
             dataFileStream.Close();
-            relocationFileStreamWriter.Close();
-            relocationFileStream.Close();
 
             // Generate the c++ code using the CppCodeWriter.
             var codeFileInfo = new FileInfo(codeFilename);

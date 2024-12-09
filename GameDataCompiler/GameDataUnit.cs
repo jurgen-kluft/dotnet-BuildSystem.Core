@@ -195,19 +195,7 @@ namespace DataBuildSystem
     //    BigFileFilenames
     //    BigFileHashes
     //
-    // The filename extension is different for each of the above file types, the GameDataDll is a .dll file etc..
-    // Most extensions are configurable, but the GameDataDll (.dll) and GameDataCompilerLog (.gdl) are fixed.
-    //
-    // So for example, the GameDataUnit "Levels" should have the following files:
-    //    GameData.Levels.dll
-    //    GameData.Levels.gdl
-    //    GameData.Levels.gdd
-    //    GameData.Levels.gdr
-    //    GameData.Levels.gda
-    //    GameData.Levels.gdt
-    //    GameData.Levels.gdf
-    //    GameData.Levels.gdh
-
+    // The name of the file will come from the IDataUnit.UnitId.
 
     public class GameDataUnit
     {
