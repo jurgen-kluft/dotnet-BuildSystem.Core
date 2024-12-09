@@ -382,7 +382,7 @@ namespace GameData
             private static int CalcDataSizeOfString(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersStart[memberIndex];
-                return ctx.StringTable.LengthOfByIndex(member);
+                return ctx.StringTable.ByteCountForIndex(member);
             }
 
             private static int CalcDataSizeOfStruct(int memberIndex, WriteContext ctx)
@@ -487,9 +487,9 @@ namespace GameData
             {
                 private Dictionary<StreamReference, List<long>> BlockPointers { get; } = new();
                 private Dictionary<StreamReference, List<long>> DataUnitPointers { get; } = new();
-                
+
                 // Markers:
-                // These are used when you are writing data to the stream and you want to 
+                // These are used when you are writing data to the stream and you want to
                 // 'remember' this as a pointer, so you can store a StreamReference and Offset.
                 private Dictionary<StreamReference, long> Markers { get; } = new();
 
@@ -644,7 +644,7 @@ namespace GameData
                         db.BlockPointers.Add(newRef, oldOffsets);
                     }
                 }
-                
+
                 internal static void ProcessStreamMarkers(DataBlock db, long dataBlockOffset, IDictionary<StreamReference, long> dataOffsetDataBase)
                 {
                     // Update the dataOffsetDatabase with any markers we have in this data block
@@ -679,7 +679,7 @@ namespace GameData
                 {
                     if (streamPointers.Count == 0)
                         return;
-                    
+
                     for (var i = 0; i < streamPointers.Count - 1; i++)
                     {
                         streamPointers[i].Write(data, streamPointers[i + 1]);
@@ -915,8 +915,8 @@ namespace GameData
             {
                 Debug.Assert(mCurrent != -1);
                 var idx = mStringTable.Add(str);
-                var len = mStringTable.LengthOfByIndex(idx);
-                var reference = mStringTable.ReferenceOfByIndex(idx);
+                var len = mStringTable.ByteCountForIndex(idx);
+                var reference = mStringTable.StreamReferenceForIndex(idx);
                 Write(reference, len);
             }
 
@@ -948,7 +948,7 @@ namespace GameData
                 // For all blocks that are part of this chunk:
                 // Collapse identical blocks identified by hash, and when a collapse has occurred we have
                 // to re-iterate again since a collapse changes the hash of a data block.
-                
+
                 var memoryBytes = memoryStream.ToArray();
                 var memoryBlock = new BinaryMemoryBlock();
                 memoryBlock.Setup(memoryBytes, 0, memoryBytes.Length);
@@ -1032,7 +1032,7 @@ namespace GameData
             {
                 // NEW, DataUnits!
                 // A DataUnit consists of Blocks.
-                // For each DataUnit we need to de-duplicate Blocks, and once we have done that we 
+                // For each DataUnit we need to de-duplicate Blocks, and once we have done that we
                 // can serialize DataUnits to the dataWriter.
                 // Also every serialized DataUnit needs a Header structure, so that when it is loaded in
                 // the Runtime we have some information, like where the first Pointer is located to start
@@ -1053,7 +1053,7 @@ namespace GameData
 
                     blockDataBases[blockDatabaseIndex].Add(d.Reference, d);
                 }
-                
+
                 dataWriter.Write((uint)dataUnitDataBase.Count); // Number of DataUnits
 
                 var dataUnitsHeaderOffset = dataWriter.Position;
@@ -1069,7 +1069,7 @@ namespace GameData
                 {
                     // Store the start of the DataUnit
                     var dataUnitBeginPos = dataWriter.Position;
-                    
+
                     // Dictionary for mapping a Reference to a DataBlock
                     var blockDataBase = blockDataBases[cdb.Value];
 
@@ -1079,7 +1079,7 @@ namespace GameData
                     var headerOffset = dataWriter.Position;
                     dataWriter.Write((uint)0); // Offset to first pointer
                     dataWriter.Write((uint)0); // Number of pointers
-                    
+
                     // Compute stream offset for each data block, do this by simulating the writing process.
                     // All references (pointers) are written in the stream as a 64-bit offset (64-bit pointers)
                     // relative to the start of the data stream.
@@ -1092,7 +1092,7 @@ namespace GameData
                         DataBlock.ProcessStreamMarkers(db, offset, dataOffsetDataBase);
                         offset += db.Size;
                     }
-                    
+
                     // Dump all blocks to dataWriter
                     // Dump all reallocation info to relocationData
                     // Patch the location of every reference in the memory stream!
@@ -1101,7 +1101,7 @@ namespace GameData
                     {
                         DataBlock.CollectStreamPointers(db, streamPointers, dataOffsetDataBase);
                     }
-                    
+
                     // Connect all StreamPointer into a Singly-LinkedList so that in the Runtime we
                     // only have to walk the list to patch the pointers, we do not need to load an
                     // additional file with pointer locations.
@@ -1111,10 +1111,10 @@ namespace GameData
                     {
                         DataBlock.WriteDataBlock(db, memoryStream, dataWriter, dataOffsetDataBase, readWriteBuffer);
                     }
-                    
+
                     // Remember the current location
                     var dataUnitEndPos = dataWriter.Position;
-                    
+
                     // Change position to chunk header and finalize the header
                     dataWriter.Position = headerOffset;
                     dataWriter.Write((uint)(streamPointers[0].Position / 8));
@@ -1122,7 +1122,7 @@ namespace GameData
 
                     // Restore the position
                     dataWriter.Position = dataUnitEndPos;
-                    
+
                     // Store the position and size of this DataUnit
                     dataUnitStreamPositions.Add(dataUnitBeginPos);
                     dataUnitStreamSizes.Add(dataUnitEndPos - dataUnitBeginPos);
