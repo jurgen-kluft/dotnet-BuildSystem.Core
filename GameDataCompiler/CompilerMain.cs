@@ -67,8 +67,7 @@ namespace DataBuildSystem
             DirUtils.Create(BuildSystemCompilerConfig.DstPath);
             DirUtils.Create(BuildSystemCompilerConfig.PubPath);
 
-            var gameDataRootDllName = "GameData.Root.DLL";
-
+            var gameDataRootDllName = "GameData.DLL";
             Console.WriteLine("dll path: " + BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
 
             // Using 'AssemblyLoadContext' so that we can also Unload the GameData DLL

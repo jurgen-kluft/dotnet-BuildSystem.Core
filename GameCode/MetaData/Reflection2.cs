@@ -8,9 +8,9 @@ namespace GameData
     {
         private readonly MetaCode2 _metaCode2;
         private readonly IMemberFactory2 _memberFactory;
-        private readonly ITypeInformation _typeInformation;
+        private readonly ITypeInfo2 _typeInformation;
 
-        public Reflector2(MetaCode2 metaCode2, IMemberFactory2 memberFactory, ITypeInformation typeInformation)
+        public Reflector2(MetaCode2 metaCode2, IMemberFactory2 memberFactory, ITypeInfo2 typeInformation)
         {
             _metaCode2 = metaCode2;
             _memberFactory = memberFactory;

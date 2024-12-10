@@ -100,13 +100,13 @@ namespace GameData
                 sizeof(ulong), // UInt64
                 sizeof(float), // Float
                 sizeof(double), // Double
-                8, // String (pointer, length)
+                16, // String (pointer, byte length, rune length)
                 4, // Enum
-                0, // Struct (unknown)
-                8, // Class (offset)
-                8, // Array (offset, length)
-                8, // Dictionary (offset, length)
-                8, // DataUnit (ptr, offset, size)
+                0, // Struct (depends on the struct type)
+                8, // Class (pointer)
+                16, // Array (pointer, byte length, item count)
+                16, // Dictionary (pointer, byte length, item count)
+                16, // DataUnit (pointer, offset, size)
             };
 
             private static readonly string[] sTypeNames = new string[Count]
@@ -124,15 +124,14 @@ namespace GameData
                 "u64", // UInt64
                 "f32", // Float
                 "f64", // Double
-                "string_t", // String (pointer, length)
+                "string_t", // String (pointer, byte length, rune length)
                 "enum_t", // Enum
                 "struct", // Struct (unknown)
                 "class", // Class (offset)
-                "array_t", // Array (offset, length)
-                "dict_t", // Dictionary (offset, length)
-                "data_unit_t" // DataUnit (ptr, offset, size)
+                "array_t", // Array (pointer, byte length, item count)
+                "dict_t", // Dictionary (pointer, byte length, item count)
+                "data_unit_t" // DataUnit (pointer, offset, size)
             };
-
 
             private uint Value { get; set; }
 
@@ -157,12 +156,13 @@ namespace GameData
         }
 
         // MetaCode is a thought experiment on how to optimize the building of the classes and members that we encounter
-        // when we go through the C# code using reflection. Currently we are building this purely using custom C# code
+        // when we go through the C# code using reflection. Currently, we are building this purely using custom C# code,
         // and we could do this a lot more efficient.
 
         public class MetaCode2
         {
             public readonly StringTable DataStrings;
+            public readonly List<int> SortedMembersMap; // Sorted member index map
             public readonly List<string> MemberStrings;
             public readonly List<MetaInfo> MembersType;
             public readonly List<int> MembersName;
@@ -173,6 +173,7 @@ namespace GameData
             public MetaCode2(StringTable dataStrings, int estimatedCount)
             {
                 DataStrings = dataStrings;
+                SortedMembersMap = new List<int>(estimatedCount);
                 MemberStrings = new List<string>(estimatedCount);
                 MembersType = new List<MetaInfo>(estimatedCount);
                 MembersName = new List<int>(estimatedCount);
@@ -186,6 +187,7 @@ namespace GameData
             public int AddMember(MetaInfo info, int name, int startIndex, int count, object o)
             {
                 var index = Count;
+                SortedMembersMap.Add(index);
                 MembersType.Add(info);
                 MembersName.Add(name);
                 MembersStart.Add(startIndex);
@@ -211,15 +213,6 @@ namespace GameData
                 var count = MembersCount[memberIndex];
                 var obj = MembersObject[memberIndex];
                 AddMember(type, name, startIndex, count, obj);
-            }
-
-            private void SwapMembers(int i, int j)
-            {
-                MembersType.Swap(i, j);
-                MembersName.Swap(i, j);
-                MembersStart.Swap(i, j);
-                MembersCount.Swap(i, j);
-                MembersObject.Swap(i, j);
             }
 
             public void UpdateStartIndexAndCount(int memberIndex, int startIndex, int count)
@@ -278,25 +271,31 @@ namespace GameData
                 public int Compare(int x, int y)
                 {
                     var xt = _metaCode2.MembersType[x];
-                    var yt = _metaCode2.MembersType[y];
                     var xs = xt.SizeInBits;
-                    var ys = yt.SizeInBits;
                     if (xt.IsStruct)
                     {
-                        xs = sizeof(ulong) * 8;
                         if (_metaCode2.MembersObject[x] is IStruct xi)
                         {
                             xs = xi.StructSize * 8;
                         }
+                        else
+                        {
+                            xs = sizeof(ulong) * 8;
+                        }
                     }
 
+                    var yt = _metaCode2.MembersType[y];
+                    var ys = yt.SizeInBits;
                     if (yt.IsStruct)
                     {
-                        // figure out if it is an IStruct since IStruct has defined it's own size
-                        ys = sizeof(ulong) * 8;
+                        // figure out if it is an IStruct since IStruct has defined its own size
                         if (_metaCode2.MembersObject[y] is IStruct yi)
                         {
                             ys = yi.StructSize * 8;
+                        }
+                        else
+                        {
+                            ys = sizeof(ulong) * 8;
                         }
                     }
 
@@ -327,7 +326,7 @@ namespace GameData
                     if (cmt.IsBool)
                     {
                         end -= 1;
-                        SwapMembers(mi, end);
+                        SortedMembersMap.Swap(mi, end);
                     }
                     else
                     {
@@ -373,23 +372,11 @@ namespace GameData
 
             public void SortMembers(int classIndex, IComparer<int> comparer)
             {
-                // Manual Bubble Sort, sort members by size/alignment, descending
+                // Sort members by size/alignment, descending
                 // This sort needs to be stable to ensure that other identical classes are sorted in the same way
                 var si = MembersStart[classIndex];
                 var count = MembersCount[classIndex];
-                var end = si + count;
-                for (var i = si; i < end; ++i)
-                {
-                    var swapped = false;
-                    for (var j = si; j < end - 1; ++j)
-                    {
-                        if (comparer.Compare(j, j + 1) > 0) continue;
-                        SwapMembers(j, j + 1);
-                        swapped = true;
-                    }
-
-                    if (!swapped) break;
-                }
+                SortedMembersMap.Sort(si, count, comparer);
             }
         }
 

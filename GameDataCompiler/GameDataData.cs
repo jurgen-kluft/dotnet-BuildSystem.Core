@@ -265,7 +265,7 @@ namespace DataBuildSystem
         {
             try
             {
-                CppCodeStream.Write2(BuildSystemCompilerConfig.Platform, data, dataFilename, codeFilename, relocFilename);
+                CppCodeStream2.Write2(BuildSystemCompilerConfig.Platform, data, dataFilename, codeFilename, relocFilename);
             }
             catch (Exception e)
             {

@@ -5,9 +5,9 @@ namespace GameData
     using MetaCode;
 
     // CodeStream for generating C++ header file(s) containing structs that map to 'data'
-    public static class CppCodeStream
+    public static class CppCodeStream2
     {
-        // Save binary data and C code for mapping to the data
+        // Save binary data and C++ code for mapping to the data
 
         // C/C++ code:
         //   - Endian
@@ -16,22 +16,21 @@ namespace GameData
         //   - Database of written references, objects, arrays, strings
         //     - For emitting an object once as well as terminating circular references
         //   - C# class hierarchy is collapsed to one C++ class
-        //   - De-duplicated data (strings, arrays)
+        //   - De-duplicated data (strings, arrays, struct instances, class instances)
 
-        // Need to define
+        // Need to use 'charon' C++ library, since it has predefined structs for:
         // - String data representation (struct string_t)
-        //   - string_t { u32 const mByteLength; u32 const mRuneLength; char const* mStr; }
         // - LString data representation (lstring_t = u64)
         // - FileId data representation (fileid_t = u64)
-        // - Array data representation (template<T> array_t { u32 const mSize; T const* mArray; })
+        // - Array data representation (template<T> array_t { u32 const mByteSize; u32 const mCount; T const* mArray; })
+
+        // Notes:
         // - Embedding a struct (IStruct) will be treated as a value type
         // - Embedding a class will result in a pointer to that class
 
         // Defined: (big/little endian)
         // double       -> 8 byte
         // float        -> 4 byte
-        // fx32         -> 4 byte
-        // fx16         -> 2 byte
         // ulong/long   -> 8 byte
         // uint/int     -> 4 byte
         // ushort/short -> 2 byte
@@ -44,7 +43,7 @@ namespace GameData
             var stringTable = new StringTable();
             var metaCode = new MetaCode2(stringTable, 8192);
             var metaMemberFactory = new MetaMemberFactory(metaCode);
-            var typeInformation = new GenericTypeInformation();
+            var typeInformation = new TypeInfo2();
 
             var reflector = new Reflector2(metaCode, metaMemberFactory, typeInformation);
             reflector.Analyze(data);

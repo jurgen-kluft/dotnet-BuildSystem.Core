@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="9.0.0" />
   </ItemGroup>
 
   <Target Name="CopyMetaTestDLL" AfterTargets="Build">

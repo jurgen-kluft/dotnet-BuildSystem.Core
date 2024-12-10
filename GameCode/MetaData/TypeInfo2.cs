@@ -4,9 +4,7 @@ namespace GameData
     using GameCore;
     using MetaCode;
 
-    #region TypeInformation
-
-    public interface ITypeInformation
+    public interface ITypeInfo2
     {
         bool IsNull(Type t);
         bool IsBool(Type t);
@@ -31,9 +29,7 @@ namespace GameData
         bool IsDataUnit(Type t);
     }
 
-    #endregion
-
-    public sealed class GenericTypeInformation : ITypeInformation
+    public sealed class TypeInfo2 : ITypeInfo2
     {
         public bool IsNull(Type t)
         {

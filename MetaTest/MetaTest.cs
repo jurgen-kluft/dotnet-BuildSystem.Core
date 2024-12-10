@@ -112,7 +112,7 @@ namespace MetaTest
 
         static int Main(string[] args)
         {
-            CppCodeStream.Write2(EPlatform.Win64, new TestRoot(), "metatest.cdd", "metatest.h", "metatest.cdr");
+            CppCodeStream2.Write2(EPlatform.Win64, new TestRoot(), "metatest.cdd", "metatest.h", "metatest.cdr");
             return Success();
         }
 

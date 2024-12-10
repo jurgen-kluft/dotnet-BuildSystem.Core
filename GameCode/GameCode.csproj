@@ -5,12 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
     <RootNamespace>GameCode</RootNamespace>
-    <LangVersion>12</LangVersion>
+    <LangVersion>11</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.12.0" />
   </ItemGroup>
 
   <ItemGroup>
