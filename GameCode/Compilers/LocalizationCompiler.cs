@@ -12,7 +12,7 @@ namespace GameData
         public List<string> m_Strings = new();
     }
 
-    public sealed class LocalizationCompiler : IDataCompiler, IFileIdProvider
+    public sealed class LocalizationCompiler : IDataCompiler, IFileIdInstance
     {
         private string mSrcFilename;
         private List<string> mDstFilenames = new();
@@ -59,8 +59,9 @@ namespace GameData
             }
         }
 
-        public IFileIdProvider CompilerFileIdProvider => this;
+        public IFileIdInstance CompilerFileIdProvider => this;
         public uint FileIndex { get; set; }
+        public string[] FileNames => mDstFilenames.ToArray();
 
         public DataCompilerOutput CompilerExecute()
         {
@@ -117,7 +118,7 @@ namespace GameData
                 });
             }
 
-            return new DataCompilerOutput(result, mDstFilenames.ToArray(), this);
+            return new DataCompilerOutput(result, this);
         }
     }
 }

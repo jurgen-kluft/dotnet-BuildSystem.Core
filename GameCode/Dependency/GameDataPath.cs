@@ -22,7 +22,6 @@ namespace GameData
 		BigFileToc = 5,
 		BigFileFilenames = 6,
 		BigFileHashes = 7,
-		Count = 8,
 	}
 
 	public static class GameDataPath
@@ -44,7 +43,7 @@ namespace GameData
 			};
 		}
 
-		private static EGameDataPath[] _sGameDataUnitToEPath = { EGameDataPath.Gdd, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub };
+        private static EGameDataPath[] _sGameDataUnitToEPath = [EGameDataPath.Gdd, EGameDataPath.Gdd, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub];
 		public static EGameDataPath GetPathFor(EGameData unit)
 		{
 			return _sGameDataUnitToEPath[(int)unit];

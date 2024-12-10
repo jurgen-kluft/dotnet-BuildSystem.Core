@@ -136,7 +136,7 @@ namespace GameData
             return !t.IsPrimitive && HasGenericInterface(t, typeof(GameData.IDataUnit));
         }
 
-        private static bool HasGenericInterface(Type objectType, Type interfaceType)
+        public static bool HasGenericInterface(Type objectType, Type interfaceType)
         {
             var baseTypes = objectType.GetInterfaces();
             foreach (var t in baseTypes)

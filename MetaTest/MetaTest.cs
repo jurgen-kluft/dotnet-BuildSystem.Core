@@ -29,9 +29,10 @@ namespace MetaTest
         #endregion
         #region Main
 
-        public class TestFileIdProvider : IFileIdProvider
+        public class TestFileIdProvider : IFileIdInstance
         {
             public uint FileIndex { get; set; }
+            public string[] FileNames { get; set; }
         }
 
         public enum ETestEnum : uint
@@ -42,11 +43,9 @@ namespace MetaTest
             EnumerationD = 0xFFFF0003,
         }
 
-        public class TestDataEmbeddedUnit : IDataUnit
+        public class TestDataUnit : IDataUnit
         {
-            public EDataUnit UnitType { get; } = EDataUnit.Embed;
-            public string UnitId { get; } = "TestEmbeddedDataUnit";
-            public Type UnitDataType { get; } = typeof(TestDataEmbeddedUnit);
+            public string UnitId => "TestDataUnit";
 
             public float m_Float = 3.14f;
             public int m_Int = 1;
@@ -55,24 +54,9 @@ namespace MetaTest
             public bool m_Bool3 = true;
         }
 
-        public class TestDataExternalUnit : IDataUnit
+        public class TestRoot : IRootDataUnit
         {
-            public EDataUnit UnitType { get; } = EDataUnit.External;
-            public string UnitId { get; } = "TestExternalDataUnit";
-            public Type UnitDataType { get; } = typeof(TestDataExternalUnit);
-
-            public float m_Float = 3.14f;
-            public int m_Int = 1;
-            public bool m_Bool1 = true;
-            public bool m_Bool2 = false;
-            public bool m_Bool3 = true;
-        }
-
-        public class TestRoot : IDataRootUnit
-        {
-            public EDataUnit UnitType { get; } = EDataUnit.Root;
-            public string UnitId { get; } = "TestRoot";
-            public Type UnitDataType { get; } = typeof(TestRoot);
+            public string UnitId => "TestRoot";
 
             public float m_Float = 3.14f;
             public int m_Int = 1;
@@ -97,7 +81,7 @@ namespace MetaTest
         public class TestData
         {
             public string Name = "A test string";
-            public FileId File = new FileId(new TestFileIdProvider { FileIndex = 1 });
+            public FileId File = new FileId(null, new TestFileIdProvider { FileIndex = 1, FileNames = new string[] { "file1" } });
 
             public float[] Floats = new float[8];
             public List<long> IntegerList = new() { 0,1,2,3,4 };
@@ -107,8 +91,9 @@ namespace MetaTest
             public TestArrayElement[] ObjectArray = new TestArrayElement[2] { new(), new() };
 
             public long?[] IntPtrArray = new long?[1];
-        }
 
+            public TestDataUnit TestDataUnit = new TestDataUnit();
+        }
 
         static int Main(string[] args)
         {

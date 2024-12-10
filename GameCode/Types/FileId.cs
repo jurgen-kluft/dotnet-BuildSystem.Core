@@ -7,33 +7,31 @@ namespace GameData
     // A FileId is a combination of the index of a Bigfile and the index of a BigfileFile within the Bigfile.
     // The reason for building a FileId like this is that we can easily combine multiple Bigfiles and use the
     // Bigfile Index to index into a Section.
-    public interface IFile
-    {
-
-    }
 
     public interface IFileId
     {
-        uint BigfileIndex { get; }
-        uint FileIndex { get; }
+        uint BigFileIndex { get; }
+        uint FileIndex{ get; set; }
+        IDataCompiler Compiler { get; }
     }
 
     public sealed class FileId : IFileId, IStruct
     {
         public static readonly FileId s_empty = new();
-        private readonly IFileIdProvider _provider;
 
         private FileId() : this(null)
         {
         }
 
-        public FileId(IFileIdProvider provider)
+        public FileId(IDataCompiler compiler)
         {
-            this._provider = provider;
+            Compiler = compiler;
         }
 
-        public uint BigfileIndex { get; set; }
-        public uint FileIndex => _provider.FileIndex;
+        public uint BigFileIndex { get; set; }
+        public uint FileIndex { get; set; }
+        public string[] FileNames => Compiler.CompilerFileNames;
+        public IDataCompiler Compiler { get; }
 
         public bool StructIsValueType => true;
         public int StructSize => 8;
@@ -42,28 +40,17 @@ namespace GameData
 
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
-            writer.Write(BigfileIndex);
+            writer.Write(BigFileIndex);
             writer.Write(FileIndex);
         }
     }
 
-    public class FileIdPtr : IFile, IFileId, IStruct
+    public class FileIdPtr : IFileId, IStruct
     {
-        private FileIdPtr() : this(null, null)
-        {
-        }
+        public uint BigFileIndex { get; set; }
+        public uint FileIndex { get; set; }
 
-        protected FileIdPtr(IFileIdProvider provider, Type objectType)
-        {
-            Provider = provider;
-            ObjectType = objectType;
-        }
-
-        public uint BigfileIndex { get; set; }
-        public uint FileIndex => Provider.FileIndex;
-
-        private IFileIdProvider Provider { get; }
-        public Type ObjectType { get; set; }
+        public IDataCompiler Compiler { get; protected init; }
 
         public bool StructIsValueType => true;
         public int StructSize => 8 * 2;
@@ -73,7 +60,7 @@ namespace GameData
         public void StructWrite(GameCore.IBinaryWriter writer)
         {
             writer.Write(ulong.MinValue); // T* ptr = nullptr;
-            writer.Write(BigfileIndex);     // fileid_t fileid;
+            writer.Write(BigFileIndex);     // fileid_t fileid;
             writer.Write(FileIndex);
         }
     }

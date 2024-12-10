@@ -46,11 +46,14 @@ namespace DataBuildSystem
                 var signature = currentCompilerSignatureList[currentListIndex++];
                 // We can just advance the index of the previous compiler signature list until the comparison returns that the current signature is bigger
                 // because that means that the current compiler is not in the previous list.
-                int c;
-                do
+                int c = 1;
+                while (previousListIndex < previousCompilerSignatureList.Count)
                 {
                     c = comparer.Compare(currentCompilerSignatureList[currentListIndex], previousCompilerSignatureList[previousListIndex]);
-                } while (c > 0 && ++previousListIndex < previousCompilerSignatureList.Count);
+                    if (c < 1)
+                        break;
+                    previousListIndex++;
+                }
 
                 if (c == 0)
                 {

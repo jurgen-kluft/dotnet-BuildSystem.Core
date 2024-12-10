@@ -14,13 +14,14 @@ namespace DataBuildSystem
     {
         private List<GameDataUnit> DataUnits { get; set; }
 
-        public bool Initialize(string gameDataDllFilename)
+        public Assembly Initialize(string gameDataDllFilename)
         {
             _gameDataAssembly = LoadAssembly(gameDataDllFilename);
             _gameDataData = new GameDataData();
 
             // Instantiate the data root (which is the root DataUnit)
-            return _gameDataData.Instanciate(_gameDataAssembly);
+            _gameDataData.Instanciate(_gameDataAssembly);
+            return _gameDataAssembly;
         }
 
         private Assembly _gameDataAssembly;
@@ -202,7 +203,7 @@ namespace DataBuildSystem
         public string Id { get; private init; }
         public uint Index { get; private init; }
         public IDataUnit DataUnit { get; set; }
-        private State[] States { get; set; } = new State[(int)EGameData.Count];
+        private State[] States { get; set; } = new State[Enum.GetValues<EGameData>().Length];
         private Dependency Dep { get; set; }
 
         public State StateOf(EGameData u)
@@ -232,7 +233,7 @@ namespace DataBuildSystem
                 States[i] = State.Missing;
             }
 
-            foreach (var e in (EGameData[])Enum.GetValues(typeof(EGameData)))
+            foreach (var e in Enum.GetValues<EGameData>())
             {
                 var unitName = e == EGameData.GameDataDll ? "GameData" : dataUnit.UnitId;
                 var filename = Path.Join(dirPath, unitName) + GameDataPath.GetExtFor(e);

@@ -22,7 +22,7 @@ namespace GameData
 
     public class BuildSystemCompilerCustomConfigPC : IBuildSystemCompilerConfig
     {
-        public string Platform { get { return EPlatform.Win64.ToString(); } }
+        public EPlatform Platform { get { return EPlatform.Win64; } }
         public string DataFilename(string name) { return name; }
         public string DataFileExtension { get { return ".gdf"; } }
         public string DataRelocFileExtension { get { return ".gdr"; } }
@@ -33,7 +33,7 @@ namespace GameData
 
     public class BuildSystemLocalizerConfigPC : IBuildSystemLocalizerConfig
     {
-        public string Platform { get { return EPlatform.Win64.ToString(); } }
+        public EPlatform Platform { get { return EPlatform.Win64; } }
         public bool LittleEndian { get { return true; } }
         public bool Unicode { get { return false; } }
         public string SubDepFileExtension { get { return ".sdep"; } }

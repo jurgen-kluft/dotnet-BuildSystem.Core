@@ -253,7 +253,7 @@ namespace GameData
 
         public void Analyze(object root)
         {
-            // Ok, so every class has fields and we can reflect on the type of the field.
+            // Ok, so every class has fields, and we can reflect on the type of the field.
             // When the field is a normal primitive we know what to do and when it is a
             // class it's also easy.
             // But when the class is derived from another class than it's a different story.
@@ -262,7 +262,7 @@ namespace GameData
             //
             //    We treat all data, including those from the base classes, as if it was only
             //    the derived class. This will result in predictable serialization and generated
-            //    code classes are not derived in anyway, making it impossible to 'cast'.
+            //    code classes are not derived in any way, making it impossible to 'cast'.
             //
             //
             // Solution #2:

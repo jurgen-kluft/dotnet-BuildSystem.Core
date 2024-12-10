@@ -27,12 +27,10 @@ namespace DataBuildSystem
 
     public interface IBuildSystemLocalizerConfig
     {
-        #region Properties
-
         /// <summary>
         /// The platform this configuration is for
         /// </summary>
-        string Platform { get; }
+        EPlatform Platform { get; }
 
         /// <summary>
         /// Endianness of the build
@@ -48,15 +46,11 @@ namespace DataBuildSystem
         string MainDepFileExtension { get; }
         string SubLocFileExtension { get; }
         string MainLocFileExtension { get; }
-
-        #endregion
     }
 
     public class BuildSystemLocalizerDefaultConfig : IBuildSystemLocalizerConfig
     {
-        #region Properties
-
-        public string Platform => "Default";
+        public EPlatform Platform => EPlatform.Win64;
 
         public bool LittleEndian => true;
 
@@ -69,19 +63,11 @@ namespace DataBuildSystem
         public string SubLocFileExtension => ".sloc";
 
         public string MainLocFileExtension => ".loc";
-
-        #endregion
     }
 
     public static class LocalizerConfig
     {
-        #region Fields
-
         private static IBuildSystemLocalizerConfig _sConfig = new BuildSystemLocalizerDefaultConfig();
-
-        #endregion
-
-        #region Properties
 
         public static bool PlatformPc => Platform == EPlatform.Win64;
 
@@ -142,10 +128,6 @@ namespace DataBuildSystem
         public static string SubLocFileExtension => _sConfig.SubLocFileExtension;
 
         public static string MainLocFileExtension => _sConfig.MainLocFileExtension;
-
-        #endregion
-
-        #region Methods
 
         public static bool FolderFilter(string folder)
         {
@@ -226,7 +208,5 @@ namespace DataBuildSystem
 
             return (T)Enum.Parse(typeof(T), name);
         }
-
-        #endregion
     }
 }

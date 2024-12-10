@@ -12,7 +12,7 @@ namespace GameData
     }
 
     // e.g. new FileId(new FontCompiler("Fonts/TimesNewRoman.TTF"));
-    public sealed class FontCompiler : IDataCompiler, IFileIdProvider
+    public sealed class FontCompiler : IDataCompiler, IFileIdInstance
     {
         private string mSrcFilename;
         private string mDstFilename;
@@ -56,8 +56,9 @@ namespace GameData
             mDependency = cc.mDependency;
         }
 
-        public IFileIdProvider CompilerFileIdProvider => this;
+        public IFileIdInstance CompilerFileIdProvider => this;
         public uint FileIndex { get; set; }
+        public string[] FileNames => new string[] { mDstFilename };
 
         public DataCompilerOutput CompilerExecute()
         {
@@ -98,7 +99,7 @@ namespace GameData
                 if (result3 == DataCompilerResult.UpToDate)
                 {
                     result = DataCompilerResult.UpToDate;
-                    return new DataCompilerOutput(result, new[] { mDstFilename }, this);
+                    return new DataCompilerOutput(result,  this);
                 }
             }
 
@@ -116,7 +117,7 @@ namespace GameData
             }
 
             // The result returned here is the result that 'caused' this compiler to execute its action and not the 'new' state.
-            return new DataCompilerOutput(result, new[] { mDstFilename }, this);
+            return new DataCompilerOutput(result, this);
         }
     }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "MetaTest": {
       "commandName": "Project",
-      "workingDirectory": "E:\\Dev.NET\\.NET_BuildSystem\\MetaTest"
+      "workingDirectory": "/Users/obnosis5/dev.go/src/github.com/jurgen-kluft/BuildSystem.Core/MetaTest"
     }
   }
 }

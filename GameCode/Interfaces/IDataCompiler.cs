@@ -18,20 +18,6 @@ namespace GameData
         Error      = 0x8000,
     }
 
-    public struct DataCompilerOutput
-    {
-        public string[] Filenames { get; } // Files in 'DstPath'
-        public IFileIdProvider FileIdProvider { get; }
-        public DataCompilerResult Result { get; }
-
-        public DataCompilerOutput(DataCompilerResult result, string[] filenames, IFileIdProvider fileIdProvider)
-        {
-            Filenames = filenames;
-            FileIdProvider = fileIdProvider;
-            Result = result;
-        }
-    }
-
     /// <summary>
     /// The data compiler interface.
     ///
@@ -65,11 +51,11 @@ namespace GameData
         ///<summary>
         /// Return the FilesProvider associated with this IDataCompiler (this is for Types.FileId)
         ///</summary>
-        IFileIdProvider CompilerFileIdProvider { get; }
+        string[] CompilerFileNames { get; }
 
         ///<summary>
         /// Execute the compiler and return the result as a DataCompilerOutput struct
         ///</summary>
-        DataCompilerOutput CompilerExecute();
+        DataCompilerResult CompilerExecute();
     }
 }

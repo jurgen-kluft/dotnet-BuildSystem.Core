@@ -1,24 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>GameData</AssemblyName>
     <OutputType>library</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <RootNamespace>GameData</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="**/*.cs" />
+    <Compile Include="Src.Data/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GameCode\GameCode.csproj" />
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
     <ProjectReference Include="..\BigfileBuilder\BigfileBuilder.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Archive\" />
   </ItemGroup>
 
   <Target Name="CopyGameDataDLL" AfterTargets="Build">
@@ -30,3 +26,4 @@
   </Target>
 
 </Project>
+

@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="ActorFlow/*.cs" />
     <Compile Include="Assembly/*.cs" />
+    <Compile Include="CommandLine/**/*.cs" />
     <Compile Include="Dependency/*.cs" />
     <Compile Include="File/*.cs" />
     <Compile Include="Hash/*.cs" />

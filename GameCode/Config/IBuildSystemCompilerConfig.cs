@@ -5,12 +5,10 @@ namespace DataBuildSystem
 {
     public interface IBuildSystemCompilerConfig
     {
-        #region Methods & Properties
-
         /// <summary>
         /// The platform this configuration is for
         /// </summary>
-        string Platform { get; }
+        EPlatform Platform { get; }
 
         /// <summary>
         /// The resource data file name
@@ -41,45 +39,28 @@ namespace DataBuildSystem
         /// Treat every bool as a n byte value (1, 2 or 4)
         /// </summary>
         int SizeOfBool { get; }
-
-        #endregion
     }
 
     public class BuildSystemCompilerConfigDefault : IBuildSystemCompilerConfig
     {
-        #region Methods & Properties
-        public string Platform => "Default";
+        public EPlatform Platform => EPlatform.Win64;
         public string DataFilename(string name) { return "Game" + "." + name; }
         public string DataFileExtension => ".gdd";
         public string DataRelocFileExtension => ".gdr";
         public bool LittleEndian => true;
         public bool EnumIsInt32 => false;
         public int SizeOfBool => 1;
-
-        #endregion
     }
 
     public static class BuildSystemCompilerConfig
     {
-        #region Fields
-
-        private static EPlatform _sTarget = EPlatform.Win64;
-        private static ETerritory _sTerritory = ETerritory.USA;
-
         private static IBuildSystemCompilerConfig _sConfig = new BuildSystemCompilerConfigDefault();
-
-        #endregion
-        #region Properties
 
         public static bool LittleEndian => _sConfig.LittleEndian;
         public static string Name { get; private set; }
         public static EPlatform Platform { get; private set; } = EPlatform.Win64;
-
-        public static string PlatformName => Platform.ToString();
-        public static EPlatform Target => _sTarget;
-        public static string TargetName => _sTarget.ToString();
-        public static ETerritory Territory => _sTerritory;
-        public static string TerritoryName => _sTerritory.ToString();
+        public static EPlatform Target { get; private set; } = EPlatform.Win64;
+        public static ETerritory Territory { get; private set; } = ETerritory.Europe;
         public static bool EnumIsInt32 => _sConfig.EnumIsInt32;
         public static int SizeOfBool => _sConfig.SizeOfBool;
         public static string BasePath { get; private set;}
@@ -92,9 +73,6 @@ namespace DataBuildSystem
         public static string DataFileExtension => _sConfig.DataFileExtension;
         public static string DataRelocFileExtension => _sConfig.DataRelocFileExtension;
 
-        #endregion
-        #region Methods
-
         public static bool FolderFilter(string folder)
         {
             if (folder.StartsWith("bin.", true, CultureInfo.InvariantCulture))
@@ -105,7 +83,7 @@ namespace DataBuildSystem
                 return true;
             if (folder.EndsWith(".svn", true, CultureInfo.InvariantCulture))
                 return true;
-            if (string.Compare(folder, PlatformName, true, CultureInfo.InvariantCulture) == 0)
+            if (string.Compare(folder, Platform.ToString(), true, CultureInfo.InvariantCulture) == 0)
                 return true;
 
             return false;
@@ -161,8 +139,8 @@ namespace DataBuildSystem
             GameCore.Environment.addVariable("BASEPATH", GameCore.Environment.expandVariables(basePath));
 
             Platform = FromString(platform, EPlatform.Win64);
-            _sTarget = FromString(target, EPlatform.Win64);
-            _sTerritory = FromString(territory, ETerritory.USA);
+            Target = FromString(target, EPlatform.Win64);
+            Territory = FromString(territory, ETerritory.USA);
 
             Name = name;
             BasePath = GameCore.Environment.expandVariables(basePath);
@@ -201,7 +179,5 @@ namespace DataBuildSystem
         {
             return _sConfig.DataFilename(name);
         }
-
-        #endregion
     }
 }

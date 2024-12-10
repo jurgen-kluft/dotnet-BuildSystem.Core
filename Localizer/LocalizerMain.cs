@@ -1,8 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Collections.Generic;
+﻿using System.Reflection;
+
 using GameCore;
+using CommandLineParser.Arguments;
 
 namespace DataBuildSystem
 {
@@ -22,13 +21,64 @@ namespace DataBuildSystem
 
         #endregion
 
+        class GameDataCompilerArgs
+        {
+            public static GameDataCompilerArgs Parse(string[] args)
+            {
+                var clp = new CommandLineParser.CommandLineParser();
+                var vars = new GameDataCompilerArgs();
+                clp.ExtractArgumentAttributes(vars);
+                clp.ParseCommandLine(args);
+                return vars;
+            }
+
+            [ValueArgument(typeof(string), 'n', "name", Description = "Name of the game")]
+            public string name;
+
+            [ValueArgument(typeof(string), 'p', "platform", Description = "Platform (PC/PS4/PS5/XBOXONE/XSX)")]
+            public string platform;
+
+            [ValueArgument(typeof(string), 't', "target", Description = "Target platform (PC/PS4/PS5/XBOXONE/XSX)")]
+            public string target;
+
+            [ValueArgument(typeof(string), 'r', "territory", Description = "Territory (Europe/USA/Asia/Japan)")]
+            public string territory;
+
+            [ValueArgument(typeof(string), 'b', "basepath", Description = "Base path")]
+            public string basepath;
+
+            [ValueArgument(typeof(string), 'g', "gddpath", Description = "Gdd path")]
+            public string gddpath;
+
+            [ValueArgument(typeof(string), 's', "srcpath", Description = "Source path")]
+            public string srcpath;
+
+            [ValueArgument(typeof(string), 'u', "subpath", Description = "Sub path")]
+            public string subpath;
+
+            [ValueArgument(typeof(string), 'd', "dstpath", Description = "Destination path")]
+            public string dstpath;
+
+            [ValueArgument(typeof(string), 'l', "pubpath", Description = "Publish path")]
+            public string pubpath;
+
+            [ValueArgument(typeof(string), 'o', "toolpath", Description = "Tool path")]
+            public string toolpath;
+
+            [ValueArgument(typeof(string), 'e', "excel0", Description = "Primary Excel file")]
+            public string excel0;
+
+            [ValueArgument(typeof(string), 'e', "worksheet0", Description = "Primary worksheet name")]
+            public string worksheet0;
+        }
+
         /// <summary>
-        /// Convert a set of excel localization files into a text format based file containing the ID table
+        /// Convert a set of Microsoft Excel localization files into a text format based file containing the ID table
         /// DependencySystem is used to detect changes in INPUT and OUTPUT files to minimize building time.
         /// </summary>
         static int Main(string[] args)
         {
-            CommandLine cmdLine = new (args);
+            var cmdLine = GameDataCompilerArgs.Parse(args);
 
             // On the command-line we have:
             // - Name         MyGame                                        Name of the project
@@ -48,7 +98,7 @@ namespace DataBuildSystem
             // example:
             //     -name MJ -platform PC -territory Europe -config "Config.%PLATFORM%.cs" -srcpath "D:\Dev\.NET_BuildSystem\Data.Test" -excel0 "Loc\Localization.xls" -worksheets0 "Localization" -dstpath "%SRCPATH%\Bin.%PLATFORM%" -deppath "%SRCPATH%\Dep.%PLATFORM%" -pubpath "%SRCPATH%\Publish.%PLATFORM%" -toolpath "%SRCPATH%\Tools"
             //
-            if (!LocalizerConfig.Init(cmdLine["name"], cmdLine["platform"], cmdLine["territory"], cmdLine["config"], cmdLine["srcpath"], cmdLine["excel0"], cmdLine["dstpath"], cmdLine["deppath"], cmdLine["pubpath"], cmdLine["toolpath"]))
+            if (!LocalizerConfig.Init(cmdLine.name, cmdLine.platform, cmdLine.territory, cmdLine.basepath, cmdLine.srcpath, cmdLine.gddpath, cmdLine.subpath, cmdLine.dstpath, cmdLine.pubpath, cmdLine.toolpath))
             {
                 Console.WriteLine("Usage: -platform [PLATFORM]");
                 Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");
@@ -71,7 +121,7 @@ namespace DataBuildSystem
 
             // Referenced assemblies, we always include ourselves
             var referencedAssemblies = new List<Filename>();
-            cmdLine.CollectIndexedParams(0, true, "asm", delegate(string param) { referencedAssemblies.Add(new Filename(param)); });
+            //cmdLine.CollectIndexedParams(0, true, "asm", delegate(string param) { referencedAssemblies.Add(new Filename(param)); });
             referencedAssemblies.Insert(0, new Filename(Assembly.GetExecutingAssembly().Location));
 
             // Build configuration object
@@ -101,12 +151,12 @@ namespace DataBuildSystem
                 LocalizerConfig.SetConfig(buildSystemLocalizerConfig);
 
             // Manually supplied additional excel files
-            var sourceFiles = new List<string>();
-            cmdLine.CollectIndexedParams(0, true, "excel", delegate(string param) { sourceFiles.Add(param); });
+            var sourceFiles = new List<string>() { cmdLine.excel0 };
+            //cmdLine.CollectIndexedParams(0, true, "excel", delegate(string param) { sourceFiles.Add(param); });
 
             // Manually supplied worksheet names for every excel files
-            var worksheetNamesList = new List<string[]>();
-            cmdLine.CollectIndexedParams(0, true, "worksheets", delegate(string param) { var names = param.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries); worksheetNamesList.Add(names); });
+            var worksheetNamesList = new List<string[]>() { new string[] { cmdLine.worksheet0 } };
+            //cmdLine.CollectIndexedParams(0, true, "worksheets", delegate(string param) { var names = param.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries); worksheetNamesList.Add(names); });
 
             // Every excel file has these outputs:
             // 1) "filename.xls.ids"

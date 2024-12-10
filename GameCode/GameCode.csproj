@@ -5,7 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
     <RootNamespace>GameCode</RootNamespace>
-    <LangVersion>11</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

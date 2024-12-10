@@ -1,11 +1,13 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
-using GameCore;
 using BigfileBuilder;
+using GameCore;
 using GameData;
+using DataBuildSystem;
+using CommandLineParser.Arguments;
 
-namespace DataBuildSystem
+namespace GameDataCompiler
 {
     class Program
     {
@@ -19,6 +21,68 @@ namespace DataBuildSystem
             return 0;
         }
 
+        class GameDataCompilerArgs
+        {
+            public static GameDataCompilerArgs Parse(string[] args)
+            {
+                var clp = new CommandLineParser.CommandLineParser();
+                var vars = new GameDataCompilerArgs();
+                clp.ExtractArgumentAttributes(vars);
+                clp.ParseCommandLine(args);
+
+                vars.basepath = vars.ReplaceVars(vars.basepath);
+                vars.gddpath = vars.ReplaceVars(vars.gddpath);
+                vars.srcpath = vars.ReplaceVars(vars.srcpath);
+                vars.subpath = vars.ReplaceVars(vars.subpath);
+                vars.dstpath = vars.ReplaceVars(vars.dstpath);
+                vars.pubpath = vars.ReplaceVars(vars.pubpath);
+                vars.toolpath = vars.ReplaceVars(vars.toolpath);
+
+                return vars;
+            }
+
+            public string ReplaceVars(string str)
+            {
+                str = str.Replace("%PLATFORM%", platform);
+                str = str.Replace("%TERRITORY%", territory);
+                str = str.Replace("%BASEPATH%", basepath);
+                return str;
+            }
+
+            [ValueArgument(typeof(string), 'n', "name", DefaultValue = "Game", Description = "Name of the game")]
+            public string name;
+
+            [ValueArgument(typeof(string), 'p', "platform", DefaultValue = "PC", Description = "Platform (PC/PS4/PS5/XBOXONE/XSX)")]
+            public string platform;
+
+            [ValueArgument(typeof(string), 't', "target", DefaultValue = "PC", Description = "Target platform (PC/PS4/PS5/XBOXONE/XSX)")]
+            public string target;
+
+            [ValueArgument(typeof(string), 'r', "territory", DefaultValue = "Europe", Description = "Territory (Europe/USA/Asia/Japan)")]
+            public string territory;
+
+            [ValueArgument(typeof(string), 'b', "basepath", DefaultValue = "", Description = "Base path")]
+            public string basepath;
+
+            [ValueArgument(typeof(string), 'g', "gddpath", DefaultValue = "", Description = "Gdd path")]
+            public string gddpath;
+
+            [ValueArgument(typeof(string), 's', "srcpath", DefaultValue = "", Description = "Source path")]
+            public string srcpath;
+
+            [ValueArgument(typeof(string), 'u', "subpath", DefaultValue = "", Description = "Sub path")]
+            public string subpath;
+
+            [ValueArgument(typeof(string), 'd', "dstpath", DefaultValue = "", Description = "Destination path")]
+            public string dstpath;
+
+            [ValueArgument(typeof(string), 'l', "pubpath", DefaultValue = "", Description = "Publish path")]
+            public string pubpath;
+
+            [ValueArgument(typeof(string), 'o', "toolpath", DefaultValue = "", Description = "Tool path")]
+            public string toolpath;
+        }
+
         // -name track3 -platform PC -target PC -territory Europe -srcpath i:\Data\Assets -gddpath i:\Data\Gdd -subpath Tracks\Track3 -dstpath i:\Data\Bin.PC -pubpath i:\Data\Publish.PC -toolpath i:\Data\Tools
         // -name MJ -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
 
@@ -26,7 +90,7 @@ namespace DataBuildSystem
         // -name "MJ" -platform "MAC" -territory "Europe" -basepath "/Users/obnosis1" -srcpath "/Users/obnosis1/Data/Assets" -gddpath "/Users/obnosis1/Data/GameData" -pubpath "/Users/obnosis1/Data/Publish.%PLATFORM%" -dstpath "/Users/obnosis1/Data/Bin.%PLATFORM%" -toolpath "/Users/obnosis1/Data/Tools"
         static int Main(string[] args)
         {
-            var cmdLine = new CommandLine(args);
+            var cmdLine = GameDataCompilerArgs.Parse(args);
 
             // On the command-line we have:
             // - platform     PC                                            (PS4/PS5/XBOXONE/XSX/PC)
@@ -40,7 +104,7 @@ namespace DataBuildSystem
             // - dstpath      %BASEPATH%\Bin.%PLATFORM%.%TARGET%
             // - pubpath      %BASEPATH%\Publish.%PLATFORM%.%TARGET%
             // - toolpath     %BASEPATH%\Tools
-            if (!BuildSystemCompilerConfig.Init(cmdLine["name"], cmdLine["platform"], cmdLine["target"], cmdLine["territory"], cmdLine["basepath"], cmdLine["srcpath"], cmdLine["gddpath"], cmdLine["subpath"], cmdLine["dstpath"], cmdLine["pubpath"], cmdLine["toolpath"]))
+            if (!BuildSystemCompilerConfig.Init(cmdLine.name, cmdLine.platform, cmdLine.target, cmdLine.territory, cmdLine.basepath, cmdLine.srcpath, cmdLine.gddpath, cmdLine.subpath, cmdLine.dstpath, cmdLine.pubpath, cmdLine.toolpath))
             {
                 Console.WriteLine("Usage: -name [NAME]");
                 Console.WriteLine("       -platform [PLATFORM]");
@@ -58,7 +122,7 @@ namespace DataBuildSystem
             }
 
             var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            Console.WriteLine("------ DataBuildSystem.NET - GameDataCompiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemCompilerConfig.PlatformName, BuildSystemCompilerConfig.TargetName);
+            Console.WriteLine("------ DataBuildSystem.NET - GameDataCompiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemCompilerConfig.Platform.ToString(), BuildSystemCompilerConfig.Target.ToString());
 
             // Record the total build time
             var buildStart = DateTime.Now;
@@ -67,23 +131,17 @@ namespace DataBuildSystem
             DirUtils.Create(BuildSystemCompilerConfig.DstPath);
             DirUtils.Create(BuildSystemCompilerConfig.PubPath);
 
-            var gameDataRootDllName = "GameData.DLL";
-            Console.WriteLine("dll path: " + BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
-
-            // Using 'AssemblyLoadContext' so that we can also Unload the GameData DLL
+            // GameDataUnits, have it initialize by loading the GameData.dll
             var gdus = new GameDataUnits();
-
-            var gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            var dllBytes = File.ReadAllBytes(BuildSystemCompilerConfig.GddPath + "/" + gameDataRootDllName);
-            var gameDataAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
+            var gda = gdus.Initialize("GameData.dll");
 
             // BuildSystem.DataCompiler configuration
-            var configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gameDataAssembly);
-            if (configsForCompiler.Length > 0)
+            var configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gda);
+            if (configsForCompiler != null && configsForCompiler.Length > 0)
             {
                 foreach (var config in configsForCompiler)
                 {
-                    if (config.Platform == BuildSystemCompilerConfig.PlatformName)
+                    if (config.Platform.HasFlag(BuildSystemCompilerConfig.Platform))
                     {
                         BuildSystemCompilerConfig.Init(config);
                         break;
@@ -92,13 +150,13 @@ namespace DataBuildSystem
             }
             else
             {
-                Console.WriteLine($"Unable to find a 'BuildSystemCompilerConfig' for {BuildSystemCompilerConfig.PlatformName} -- error");
+                Console.WriteLine($"Unable to find a 'BuildSystemCompilerConfig' for {BuildSystemCompilerConfig.Platform} -- error");
                 return Error();
             }
 
             // Bigfile configuration
-            var configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(gameDataAssembly);
-            if (configsForBigfileBuilder.Length > 0)
+            var configsForBigfileBuilder = AssemblyUtil.CreateN<IBigfileConfig>(gda);
+            if (configsForBigfileBuilder != null && configsForBigfileBuilder.Length > 0)
             {
                 foreach (var config in configsForBigfileBuilder)
                 {
@@ -111,7 +169,7 @@ namespace DataBuildSystem
             }
             else
             {
-                Console.WriteLine($"Unable to find a 'IBigfileConfig' for {BuildSystemCompilerConfig.PlatformName} -- error");
+                Console.WriteLine($"Unable to find a 'IBigfileConfig' for {BuildSystemCompilerConfig.Platform.ToString()} -- error");
                 return Error();
             }
 
@@ -134,8 +192,6 @@ namespace DataBuildSystem
 
             gdus.Save(BuildSystemCompilerConfig.DstPath);
             Console.WriteLine("Finished -- Total build time {0}s", (DateTime.Now - buildStart).TotalSeconds);
-
-            gameDataAssemblyContext.Unload();
 
             return Success();
         }

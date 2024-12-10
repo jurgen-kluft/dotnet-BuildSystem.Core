@@ -18,6 +18,7 @@ namespace GameCore
         Playstation4 = 0x20000 | Arch64,
         Playstation4Pro = 0x21000 | Arch64,
         Playstation5 = 0x22000 | Arch64,
+        Playstation5Pro = 0x24000 | Arch64,
         NintendoSwitch = 0x40000 | Arch64,
     }
 

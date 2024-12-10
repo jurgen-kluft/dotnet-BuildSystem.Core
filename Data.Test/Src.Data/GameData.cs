@@ -2,12 +2,11 @@ using System;
 
 namespace GameData
 {
-	public class GameRoot : IDataRootUnit
+	public class GameRoot : IRootDataUnit
 	{
-        public EDataUnit UnitType { get; } = EDataUnit.Root;
         public string UnitId { get; } = "GameData";
 
-		public AudioFile BootSound = new ("Sound\\BootChime.wav");
+		public AudioFile BootSound = new ("Sound/BootChime.wav");
 
 		public AI AI = new AI();
 		public Fonts Fonts = new Fonts();

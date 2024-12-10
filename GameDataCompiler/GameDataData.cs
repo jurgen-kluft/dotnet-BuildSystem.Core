@@ -9,6 +9,26 @@ namespace DataBuildSystem
     {
         public delegate bool OnObjectDelegate(object compound);
 
+        private static bool ElementRequiresWalking(Type type)
+        {
+            if (type != null && !type.IsPrimitive && !type.IsEnum)
+            {
+                return !TypeInfo2.HasGenericInterface(type, typeof(IDataUnit));
+            }
+
+            return false;
+        }
+
+        private static bool ObjectRequiresWalking(Type type)
+        {
+            if (type != null && !type.IsPrimitive && !type.IsEnum)
+            {
+                return !TypeInfo2.HasGenericInterface(type, typeof(IDataUnit));
+            }
+
+            return false;
+        }
+
         public static bool Walk(object compound, OnObjectDelegate ood)
         {
             try
@@ -24,30 +44,25 @@ namespace DataBuildSystem
                     if (ood(compound))
                         continue;
 
-                    if (compound is GameData.IExternalObjectProvider)
-                    {
-                        var externalObjectProvider = compound as GameData.IExternalObjectProvider;
-                        compounds.Push(externalObjectProvider.extobject);
-                        continue;
-                    }
-
-                    if (compound is GameData.IDataCompiler)
+                    if (compound is IDataCompiler)
                         continue;
 
                     if (compoundTypeInfo.IsArray)
                     {
                         // Analyze element type
                         var elementType = compoundTypeInfo.GetElementType();
-                        if (!elementType.IsPrimitive && !compoundTypeInfo.IsEnum)
+                        if (ElementRequiresWalking(elementType))
                         {
-                            var objectArray = compound as Array;
-                            if (objectArray != null)
+                            if (compound is Array objectArray)
                             {
                                 for (var i = 0; i < objectArray.Length; i++)
                                 {
                                     var e = objectArray.GetValue(i);
                                     if (e != null)
-                                        compounds.Push(e);
+                                    {
+                                        if (ObjectRequiresWalking(e.GetType()))
+                                            compounds.Push(e);
+                                    }
                                 }
                             }
                         }
@@ -63,7 +78,7 @@ namespace DataBuildSystem
                         foreach (var f in fields)
                         {
                             var o = f.GetValue(compound);
-                            if (o == null)
+                            if (o == null || f.IsInitOnly)
                                 continue;
 
                             var objectTypeInfo = o.GetType();
@@ -71,24 +86,28 @@ namespace DataBuildSystem
                             {
                                 // Analyze element type
                                 var elementType = objectTypeInfo.GetElementType();
-                                if (!elementType.IsPrimitive && !compoundTypeInfo.IsEnum)
+                                if (ElementRequiresWalking(elementType))
                                 {
-                                    var objectArray = o as Array;
-                                    if (objectArray != null)
+                                    if (o is Array objectArray)
                                     {
                                         for (var i = 0; i < objectArray.Length; i++)
                                         {
                                             var e = objectArray.GetValue(i);
                                             if (e != null)
-                                                compounds.Push(e);
+                                            {
+                                                if (ObjectRequiresWalking(e.GetType()))
+                                                    compounds.Push(e);
+                                            }
                                         }
                                     }
                                 }
                             }
                             else
                             {
-                                if (!objectTypeInfo.IsPrimitive)
+                                if (ObjectRequiresWalking(o.GetType()))
+                                {
                                     compounds.Push(o);
+                                }
                             }
                         }
                     }
@@ -106,7 +125,7 @@ namespace DataBuildSystem
     {
         private IDataUnit mDataUnit;
         private List<IDataCompiler> mCompilers;
-        private List<IFileIdProvider> mFilesProviders;
+        private List<IFileIdInstance> mFilesProviders;
 
         public GameDataData() : this(null)
         {
@@ -131,7 +150,7 @@ namespace DataBuildSystem
 
             try
             {
-                mDataUnit = AssemblyUtil.Create1<IDataRootUnit>(assembly);
+                mDataUnit = AssemblyUtil.Create1<IRootDataUnit>(assembly);
                 return mDataUnit != null;
             }
             catch (System.Exception)
@@ -156,10 +175,11 @@ namespace DataBuildSystem
 
                         // TODO what about Array's or List<>'s of DataCompilers?
 
-                        if (compound is IDataCompiler)
+                        if (compound is IFileId c)
                         {
-                            var c = compound as IDataCompiler;
-                            compilers.Add(c);
+                            var compiler = c.Compiler;
+                            if (compiler != null)
+                                compilers.Add(compiler);
                             return true;
                         }
                         return false;
@@ -188,7 +208,6 @@ namespace DataBuildSystem
                         if (compound is IDataUnit du)
                         {
                             dataUnits.Add(du);
-                            return true;
                         }
                         return false;
                     }
@@ -247,7 +266,7 @@ namespace DataBuildSystem
                         return true;
 
                     var handled = false;
-                    if (compound is IFileIdProvider f)
+                    if (compound is IFileIdInstance f)
                     {
                         mFilesProviders.Add(f);
                         handled = true;
