@@ -28,23 +28,6 @@ namespace DataBuildSystem
             }
         }
 
-        public static void UpdateSignatures(List<IDataFile> compilers, ISignatureDataBase database)
-        {
-            if (compilers.Count == 0)
-                return;
-
-            var memoryStream = new MemoryStream();
-            var memoryWriter = new BinaryMemoryWriter();
-
-            foreach (var cl in compilers)
-            {
-                memoryWriter.Reset();
-                cl.BuildSignature(memoryWriter);
-                cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                database.Add(cl.Signature);
-            }
-        }
-
         public Result Merge(List<IDataFile> previousCompilers, List<IDataFile> currentCompilers, out List<IDataFile> mergedCompilers)
         {
             // Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into 'merged_compilers'.

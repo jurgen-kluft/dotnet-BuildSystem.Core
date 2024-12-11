@@ -269,15 +269,25 @@ namespace DataBuildSystem
             return gdu;
         }
 
-        private static void SaveBigfile(uint index, string filename, List<IDataFile> dataFiles)
+        private static void SaveBigfile(uint bigfileIndex, string filename, List<IDataFile> dataFiles, ISignatureDataBase database)
         {
             var bfb = new BigfileBuilder.BigfileBuilder(BigfileConfig.Platform);
 
-            var bigfile = new Bigfile(index);
-            foreach (var o in dataFiles)
+            var memoryStream = new MemoryStream();
+            var memoryWriter = new BinaryMemoryWriter();
+
+            var bigfile = new Bigfile(bigfileIndex);
+            foreach (var cl in dataFiles)
             {
-                var mainBigfileFile = new BigfileFile(o.CookedFilename);
-                bigfile.Files.Add(mainBigfileFile);
+                var mainBigfileFile = new BigfileFile(cl.CookedFilename);
+
+                memoryWriter.Reset();
+                cl.BuildSignature(memoryWriter);
+                cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                if (database.Register(cl.Signature, bigfile.Index, (uint)bigfile.Files.Count))
+                {
+                    bigfile.Files.Add(mainBigfileFile);
+                }
             }
 
             var bigFiles = new List<Bigfile>() { bigfile };

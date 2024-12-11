@@ -26,7 +26,7 @@ namespace GameData
     public interface ISignatureDataBase
     {
         (uint bigfileIndex, uint fileIndex) GetFileId(Hash160 signature);
-        void Add(Hash160 signature);
+        bool Register(Hash160 signature, uint bigfileIndex, uint fileIndex);
     }
 
     public struct DataFile : IStruct, IFileId
