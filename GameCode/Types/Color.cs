@@ -166,12 +166,14 @@ namespace GameData
         {
         }
 
-        public bool StructIsValueType => true;
+        public bool StructIsTemplate => false;
+        public string StructTemplateType => string.Empty;
+
         public int StructSize => 4;
         public int StructAlign => 4;
         public string StructName => "color_t";
 
-        public void StructWrite(GameCore.IBinaryWriter writer)
+        public void StructWrite(IGameDataWriter writer)
         {
             writer.Write(mColor);
         }

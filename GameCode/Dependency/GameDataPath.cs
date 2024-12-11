@@ -17,11 +17,10 @@ namespace GameData
 		GameDataDll = 0,
 		GameDataCompilerLog = 1,
 		GameDataData = 2,
-		GameDataRelocation = 3,
-		BigFileData = 4,
-		BigFileToc = 5,
-		BigFileFilenames = 6,
-		BigFileHashes = 7,
+		BigFileData = 3,
+		BigFileToc = 4,
+		BigFileFilenames = 5,
+		BigFileHashes = 6,
 	}
 
 	public static class GameDataPath
@@ -55,7 +54,6 @@ namespace GameData
 				EGameData.GameDataDll => ".dll",
 				EGameData.GameDataCompilerLog => ".gdl",
 				EGameData.GameDataData => BuildSystemCompilerConfig.DataFileExtension,
-				EGameData.GameDataRelocation => BuildSystemCompilerConfig.DataRelocFileExtension,
 				EGameData.BigFileData => BigFileExtension,
 				EGameData.BigFileToc => BigFileTocExtension,
 				EGameData.BigFileFilenames => BigFileFdbExtension,

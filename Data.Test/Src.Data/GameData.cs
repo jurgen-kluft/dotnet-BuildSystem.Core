@@ -6,7 +6,7 @@ namespace GameData
 	{
         public string UnitId { get; } = "GameData";
 
-		public AudioFile BootSound = new ("Sound/BootChime.wav");
+		public SoundDataFile BootSound = new ("Sound/BootChime.wav");
 
 		public AI AI = new AI();
 		public Fonts Fonts = new Fonts();

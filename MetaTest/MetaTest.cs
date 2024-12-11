@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Data;
 using System.Runtime.Loader;
 
 using GameCore;
@@ -28,12 +29,6 @@ namespace MetaTest
 
         #endregion
         #region Main
-
-        public class TestFileIdProvider : IFileIdInstance
-        {
-            public uint FileIndex { get; set; }
-            public string[] FileNames { get; set; }
-        }
 
         public enum ETestEnum : uint
         {
@@ -81,7 +76,7 @@ namespace MetaTest
         public class TestData
         {
             public string Name = "A test string";
-            public FileId File = new FileId(null, new TestFileIdProvider { FileIndex = 1, FileNames = new string[] { "file1" } });
+            public DataFile File = new DataFile(Hash160.FromDateTime(DateTime.Now), "TestFile");
 
             public float[] Floats = new float[8];
             public List<long> IntegerList = new() { 0,1,2,3,4 };

@@ -33,12 +33,13 @@ namespace GameData
             W = (float)w;
         }
 
-        public bool StructIsValueType => true;
+        public bool StructIsTemplate => false;
+        public string StructTemplateType => string.Empty;
         public int StructSize => 4*sizeof(float);
         public int StructAlign => 4;
         public string StructName => "fvec4_t";
 
-        public void StructWrite(GameCore.IBinaryWriter writer)
+        public void StructWrite(IGameDataWriter writer)
         {
             writer.Write(X);
             writer.Write(Y);

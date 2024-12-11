@@ -69,26 +69,6 @@ namespace DataBuildSystem
     {
         private static IBuildSystemLocalizerConfig _sConfig = new BuildSystemLocalizerDefaultConfig();
 
-        public static bool PlatformPc => Platform == EPlatform.Win64;
-
-        public static bool PlatformXboxOne => Platform == EPlatform.XboxOne;
-
-        public static bool PlatformXboxOneX => Platform == EPlatform.XboxOneX;
-
-        public static bool PlatformPlaystation4 => Platform == EPlatform.Playstation4;
-
-        public static bool PlatformPlaystation4Pro => Platform == EPlatform.Playstation4Pro;
-
-        public static bool TargetPc => Target == EPlatform.Win64;
-
-        public static bool TargetXboxOne => Target == EPlatform.XboxOne;
-
-        public static bool TargetXboxOneX => Target == EPlatform.XboxOneX;
-
-        public static bool TargetPlaystation4 => Target == EPlatform.Playstation4;
-
-        public static bool TargetPlaystation4Pro => Target == EPlatform.Playstation4Pro;
-
         public static string Name { get; private set; } = string.Empty;
 
         public static bool LittleEndian => _sConfig.LittleEndian;

@@ -60,12 +60,13 @@ namespace GameData
             return array;
         }
 
-        public bool StructIsValueType => true;
+        public bool StructIsTemplate => false;
+        public string StructTemplateType => string.Empty;
         public int StructSize => sizeof(short);
         public int StructAlign => 2;
         public string StructName => "fx16_t";
 
-        public void StructWrite(GameCore.IBinaryWriter writer)
+        public void StructWrite(IGameDataWriter writer)
         {
             writer.Write(mValue);
         }

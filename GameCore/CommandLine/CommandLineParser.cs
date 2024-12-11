@@ -12,6 +12,7 @@ using CommandLineParser.Validation;
 namespace CommandLineParser;
 
 /// <summary>
+/// From: https://github.com/j-maly/CommandLineParser
 /// CommandLineParser allows user to define command line arguments and then parse
 /// the arguments from the command line.
 /// </summary>

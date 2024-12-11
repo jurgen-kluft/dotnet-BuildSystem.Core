@@ -13,19 +13,39 @@ namespace DataBuildSystem
         public GameDataCompilerLog(string filepath)
         {
             FilePath = filepath;
+            CompilerLog = new List<IDataFile>();
         }
 
         private EPlatform Platform { get; set; }
 
+        public List<IDataFile> CompilerLog { get; set; }
+
         private class SignatureComparer
         {
-            public int Compare(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
+            public int Compare(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
             {
                 return Hash160.Compare(lhs.Key, rhs.Key);
             }
         }
 
-        public Result Merge(List<IDataCompiler> previousCompilers, List<IDataCompiler> currentCompilers, out List<IDataCompiler> mergedCompilers)
+        public static void UpdateSignatures(List<IDataFile> compilers, ISignatureDataBase database)
+        {
+            if (compilers.Count == 0)
+                return;
+
+            var memoryStream = new MemoryStream();
+            var memoryWriter = new BinaryMemoryWriter();
+
+            foreach (var cl in compilers)
+            {
+                memoryWriter.Reset();
+                cl.BuildSignature(memoryWriter);
+                cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                database.Add(cl.Signature);
+            }
+        }
+
+        public Result Merge(List<IDataFile> previousCompilers, List<IDataFile> currentCompilers, out List<IDataFile> mergedCompilers)
         {
             // Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into 'merged_compilers'.
 
@@ -35,7 +55,7 @@ namespace DataBuildSystem
             var comparer = new SignatureComparer();
 
             // Maximum number of compilers that can be merged is the number of current compilers.
-            mergedCompilers = new List<IDataCompiler>(currentCompilers.Count);
+            mergedCompilers = new List<IDataFile>(currentCompilers.Count);
 
             var currentListIndex = 0;
             var previousListIndex = 0;
@@ -61,7 +81,7 @@ namespace DataBuildSystem
 
                     var pdc = previousCompilerSignatureList[previousListIndex].Value;
                     var cdc = signature.Value;
-                    cdc.CompilerConstruct(pdc);
+                    cdc.CopyConstruct(pdc);
                     mergedCompilers.Add(cdc);
                 }
                 else
@@ -79,60 +99,36 @@ namespace DataBuildSystem
             return Result.OutOfDate;
         }
 
-        private List<KeyValuePair<Hash160, IDataCompiler>> BuildCompilerSignatureList(List<IDataCompiler> compilers)
+        private List<KeyValuePair<Hash160, IDataFile>> BuildCompilerSignatureList(List<IDataFile> compilers)
         {
-            List<KeyValuePair<Hash160, IDataCompiler>> signatureList = new(compilers.Count);
-
-            MemoryStream memoryStream = new();
-            BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
+            var signatureList = new List<KeyValuePair<Hash160, IDataFile>>(compilers.Count);
+            foreach (var cl in compilers)
             {
-                foreach (var cl in compilers)
-                {
-                    memoryWriter.Reset();
-                    var compilerType = cl.GetType();
-                    var compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
-                    compilerTypeSignature.WriteTo(memoryWriter);
-                    cl.CompilerSignature(memoryWriter);
-                    var compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                    signatureList.Add(new KeyValuePair<Hash160, IDataCompiler>(compilerSignature, cl));
-                }
-
-                int Comparer(KeyValuePair<Hash160, IDataCompiler> lhs, KeyValuePair<Hash160, IDataCompiler> rhs)
-                {
-                    return Hash160.Compare(lhs.Key, rhs.Key);
-                }
-
-                signatureList.Sort(Comparer);
+                signatureList.Add(new KeyValuePair<Hash160, IDataFile>(cl.Signature, cl));
             }
+
+            int Comparer(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
+            {
+                return Hash160.Compare(lhs.Key, rhs.Key);
+            }
+
+            signatureList.Sort(Comparer);
 
             return signatureList;
         }
 
-        private Dictionary<Hash160, IDataCompiler> BuildCompilerSignatureDict(List<IDataCompiler> compilers)
+        private Dictionary<Hash160, IDataFile> BuildCompilerSignatureDict(List<IDataFile> compilers)
         {
-            Dictionary<Hash160, IDataCompiler> signatureDict = new(compilers.Count);
-
-            MemoryStream memoryStream = new();
-            BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
+            var signatureDict = new Dictionary<Hash160, IDataFile>(compilers.Count);
+            foreach (var cl in compilers)
             {
-                foreach (var cl in compilers)
-                {
-                    memoryWriter.Reset();
-                    var compilerType = cl.GetType();
-                    var compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
-                    compilerTypeSignature.WriteTo(memoryWriter);
-                    cl.CompilerSignature(memoryWriter);
-                    var compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                    signatureDict.Add(compilerSignature, cl);
-                }
+                signatureDict.Add(cl.Signature, cl);
             }
 
             return signatureDict;
         }
 
-        public Result Execute(List<IDataCompiler> compilers, out List<DataCompilerOutput> gdClOutput)
+        public Result Execute(List<IDataFile> compilers, out List<IDataFile> gdClOutput)
         {
             // Make sure the directory structure of @SrcPath is duplicated at @DstPath
             DirUtils.DuplicateFolderStructure(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
@@ -141,12 +137,16 @@ namespace DataBuildSystem
             var result = 0;
             foreach (var c in compilers)
             {
-                var r = c.CompilerExecute();
-                if (r.Result.HasFlag(DataCompilerResult.Error))
+                var additionalDataFiles = new List<IDataFile>();
+                var r = c.Cook(additionalDataFiles);
+
+                // TODO handle the additional data files
+
+                if (r.HasFlag(DataCookResult.Error))
                     result++;
-                else if (!r.Result.HasFlag(DataCompilerResult.UpToDate))
+                else if (!r.HasFlag(DataCookResult.UpToDate))
                     result++;
-                gdClOutput.Add(r);
+                gdClOutput.Add(c);
             }
 
             // TODO Need to be able to determine
@@ -163,7 +163,7 @@ namespace DataBuildSystem
             return Result.OutOfDate;
         }
 
-        private void RegisterCompilers(List<IDataCompiler> compilers)
+        private void RegisterCompilers(List<IDataFile> compilers)
         {
             foreach (var cl in compilers)
             {
@@ -173,7 +173,7 @@ namespace DataBuildSystem
             }
         }
 
-        public Result Save(List<IDataCompiler> cl)
+        public Result Save(List<IDataFile> cl)
         {
             var writer = ArchitectureUtils.CreateBinaryWriter(FilePath, LocalizerConfig.Platform);
             if (writer == null) return Result.Error;
@@ -188,7 +188,7 @@ namespace DataBuildSystem
                     var compilerType = compiler.GetType();
                     var compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
                     compilerTypeSignature.WriteTo(memoryWriter);
-                    compiler.CompilerSignature(memoryWriter);
+                    compiler.BuildSignature(memoryWriter);
                     var compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
 
                     // byte[4]: Length of Block
@@ -199,7 +199,7 @@ namespace DataBuildSystem
                     memoryWriter.Reset();
                     compilerTypeSignature.WriteTo(memoryWriter);
                     compilerSignature.WriteTo(memoryWriter);
-                    compiler.CompilerWrite(memoryWriter);
+                    compiler.SaveState(memoryWriter);
                     writer.Write(memoryStream.Length);
                     writer.Write(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
                 }
@@ -213,8 +213,10 @@ namespace DataBuildSystem
             return Result.Error;
         }
 
-        public bool Load(List<IDataCompiler> compilers)
+        public bool Load()
         {
+            CompilerLog.Clear();
+
             BinaryFileReader reader = new();
             if (!reader.Open(FilePath))
                 return false;
@@ -231,13 +233,13 @@ namespace DataBuildSystem
 
                 if (mCompilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
                 {
-                    var compiler = Activator.CreateInstance(type) as IDataCompiler;
+                    var compiler = Activator.CreateInstance(type) as IDataFile;
                     if (mCompilerSignatureSet.Add(compilerSignature))
                     {
-                        compilers.Add(compiler);
+                        CompilerLog.Add(compiler);
                     }
 
-                    compiler.CompilerRead(reader);
+                    compiler.LoadState(reader);
                 }
                 else
                 {

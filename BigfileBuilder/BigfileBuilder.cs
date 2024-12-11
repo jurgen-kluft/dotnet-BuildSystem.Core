@@ -82,7 +82,7 @@ namespace BigfileBuilder
                 {
                     if (bff.FileOffset != StreamOffset.sEmpty) continue;
 
-                    Console.WriteLine("No data for file {0} with id {1}", dstPath + bff.Filename, bff.FileId);
+                    Console.WriteLine("No data for file {0}", dstPath + bff.Filename);
                     return false;
                 }
             }

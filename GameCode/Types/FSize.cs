@@ -15,12 +15,13 @@ namespace GameData
             Height = height;
         }
 
-        public bool StructIsValueType => true;
+        public bool StructIsTemplate => false;
+        public string StructTemplateType => string.Empty;
         public int StructSize => 2 * sizeof(float);
         public int StructAlign => 4;
         public string StructName => "fsize_t";
 
-        public void StructWrite(GameCore.IBinaryWriter writer)
+        public void StructWrite(IGameDataWriter writer)
         {
             writer.Write(Width);
             writer.Write(Height);

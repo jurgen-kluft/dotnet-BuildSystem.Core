@@ -7,13 +7,11 @@ namespace GameData
     /// <summary>
     /// Localization String
     ///
-    /// The string will be converted to an Int64 with looking up the textual string in the Localization DB.
+    /// The string will be converted to an Int64 which can be used to lookup the textual string in the Localization DB.
     ///
     /// </summary>
     public struct LString : IStruct, ILStringIdProvider
     {
-        #region Constructor
-
         public LString(string s)
         {
             LStringText = s;
@@ -23,20 +21,15 @@ namespace GameData
         public string LStringText { get; private set; }
         public long LStringId { get; set; }
 
-        #endregion
-
-        #region Properties
-
-        public bool StructIsValueType => true;
+        public bool StructIsTemplate => false;
+        public string StructTemplateType => string.Empty;
         public int StructSize => sizeof(long);
         public int StructAlign => 8;
         public string StructName => "lstring_t";
 
-        public void StructWrite(GameCore.IBinaryWriter writer)
+        public void StructWrite(IGameDataWriter writer)
         {
             writer.Write(LStringId);
         }
-
-        #endregion
     }
 }

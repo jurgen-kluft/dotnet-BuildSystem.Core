@@ -13,7 +13,7 @@ namespace GameData
         {
             public string UnitId { get; } = "AI-56e889c7-1051-4147-9544-c37ee7bc927e";
 
-            public CurveFile ReactionCurve = new("AI\\ReactionCurve.curve");
+            public CurveDataFile ReactionCurve = new("AI\\ReactionCurve.curve");
             public string Description = "This is AI data";
 
             public Enemy[] BlueprintsAsArray = { new Enemy() };

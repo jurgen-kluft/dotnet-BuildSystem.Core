@@ -13,19 +13,19 @@ namespace DataBuildSystem
     public class GameDataUnits
     {
         private List<GameDataUnit> DataUnits { get; set; }
+        private IDataUnit RootDataUnit { get; set; }
 
         public Assembly Initialize(string gameDataDllFilename)
         {
             _gameDataAssembly = LoadAssembly(gameDataDllFilename);
-            _gameDataData = new GameDataData();
 
             // Instantiate the data root (which is the root DataUnit)
-            _gameDataData.Instanciate(_gameDataAssembly);
+            RootDataUnit = GameDataUnit.FindRoot(_gameDataAssembly);
+
             return _gameDataAssembly;
         }
 
         private Assembly _gameDataAssembly;
-        private GameDataData _gameDataData;
 
         private static Assembly LoadAssembly(string gameDataDllFilename)
         {
@@ -35,93 +35,77 @@ namespace DataBuildSystem
             return gameDataAssembly;
         }
 
-        public State Update(string srcPath, string dstPath)
+
+        private void PrepareDataCooking(List<IDataFile> compilers)
+        {
+            if (compilers.Count == 0)
+                return;
+
+            var memoryStream = new MemoryStream();
+            var memoryWriter = new BinaryMemoryWriter();
+
+            var signatureList = new List<KeyValuePair<Hash160, IDataFile>>(compilers.Count);
+            foreach (var cl in compilers)
+            {
+                memoryWriter.Reset();
+                cl.BuildSignature(memoryWriter);
+                cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                signatureList.Add(new KeyValuePair<Hash160, IDataFile>(cl.Signature, cl));
+            }
+        }
+
+        public State Update2(string srcPath, string dstPath)
         {
             // Foreach DataUnit that is out-of-date or missing
+            // We should do this in steps:
+            // - collect all data compilers, and de-duplicate them
+            // - execute all out-of-date data compilers
+            // - save the game data compiler log
+            // - save the game data bigfile
+            // - save the game data unit
+
             foreach (var gdu in DataUnits)
             {
                 gdu.DetermineState();
 
-                var gduGameDataDll = gdu.StateOf(EGameData.GameDataDll);
-                var gduCompilerLog = gdu.StateOf(EGameData.GameDataCompilerLog);
-                var gduGameDataData = gdu.StateOf(EGameData.GameDataData, EGameData.GameDataRelocation);
-                var gduBigfile = gdu.StateOf(EGameData.BigFileData, EGameData.BigFileToc, EGameData.BigFileFilenames, EGameData.BigFileHashes);
+                // Load the compiler log so that they can be used to verify the source files
+                gdu.LoadCompilerLog(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
+            }
 
-                if (gduGameDataDll.IsOk && gduCompilerLog.IsOk && gduGameDataData.IsOk && gduBigfile.IsOk)
+            List<GameDataUnit> rebuild = new();
+            foreach (var gdu in DataUnits)
+            {
+                var currentCompilers = GameDataUnit.CollectDataCompilers(gdu.DataUnit);
+                var loadedCompilers = new List<IDataFile>(gdu.CompilerLog.CompilerLog);
+                gdu.CompilerLog.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
+
+                var result = gdu.CompilerLog.Execute(mergedCompilers, out var gdClOutput);
+                if (result.IsOk)
                 {
-                    // All is up-to-date, but source files might have changed!
-                    var gdCl = new GameDataCompilerLog(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
-
-                    // Load the compiler log so that they can be used to verify the source files
-                    var loadedCompilers = new List<IDataCompiler>();
-                    gdCl.Load(loadedCompilers);
-
-                    // Execute all compilers, every compiler will thus check its dependencies (source and destination files)
-                    var result = gdCl.Execute(loadedCompilers, out var gdClOutput);
-                    if (result.IsNotOk)
+                    if (gdu.StateOf(EGameData.GameDataData).IsNotOk || gdu.StateOf(EGameData.BigFileData, EGameData.BigFileFilenames, EGameData.BigFileHashes, EGameData.BigFileToc).IsNotOk)
                     {
-                        // Some (or all) compilers reported a change, now we have to load the assembly and build the Bigfile and Game Data.
-                        var gdd = new GameDataData(gdu.DataUnit);
-
-                        // We have to collect the data compilers from the gdd because we have to assign FileId's
-                        // The number and order of data compilers should be identical with 'loaded_compilers'
-                        var currentCompilers = gdd.CollectDataCompilers();
-                        gdCl.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
-
-                        // GameDataCompiler log is updated -> rebuild the Bigfile
-                        // As long as all the FileId's will be the same we do not need to build/save the game data files
-                        GameDataBigfile bff = new(gdu.Index);
-                        bff.AssignFileId(gdClOutput);
-                        bff.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.BigFileData), gdClOutput);
-                        gdd.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataData));
-
-                        // Lastly we need to save the game data compiler log
-                        gdCl.Save(mergedCompilers);
-                        gdu.DetermineState();
+                        rebuild.Add(gdu);
                     }
                 }
                 else
                 {
-                    var gdd = new GameDataData(gdu.DataUnit);
-
-                    var currentCompilers = gdd.CollectDataCompilers();
-                    var loadedCompilers = new List<IDataCompiler>(currentCompilers.Count);
-
-                    var gdCl = new GameDataCompilerLog(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
-                    gdCl.Load(loadedCompilers);
-                    gdCl.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
-
-                    var result = gdCl.Execute(mergedCompilers, out var gdClOutput);
-                    if (result.IsOk)
-                    {
-                        if (gduGameDataData.IsNotOk || gduBigfile.IsNotOk)
-                        {
-                            result = Result.OutOfDate;
-                        }
-                    }
-
-                    if (result.IsOutOfDate)
-                    {
-                        // Rebuild the Bigfile and GameData file
-                        var bff = new GameDataBigfile(gdu.Index);
-                        bff.AssignFileId(gdClOutput);
-                        bff.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.BigFileData), gdClOutput);
-                        gdd.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataData));
-
-                        // Everything is saved, now save the compiler log
-                        gdCl.Save(mergedCompilers);
-                    }
-
-                    gdu.DetermineState();
+                    rebuild.Add(gdu);
                 }
+
+                gdu.DetermineState();
             }
+
+            // Update the GameDataFileDatabase to ensure all the signatures have a BigfileIndex+FileIndex
+
+            // Save all the out-of-date GameDataUnits
+
             return State.Ok;
         }
 
         public void Load(string dstPath, string gddPath)
         {
             var idToDataUnit = new Dictionary<string, IDataUnit>();
-            var currentDataUnits =  _gameDataData.CollectDataUnits();
+            var currentDataUnits = GameDataUnit.CollectDataUnits(RootDataUnit);
             foreach (var cdu in currentDataUnits)
             {
                 idToDataUnit.Add(cdu.UnitId, cdu);
@@ -206,6 +190,8 @@ namespace DataBuildSystem
         private State[] States { get; set; } = new State[Enum.GetValues<EGameData>().Length];
         private Dependency Dep { get; set; }
 
+        public GameDataCompilerLog CompilerLog { get; set; }
+
         public State StateOf(EGameData u)
         {
             return States[(int)u];
@@ -243,11 +229,17 @@ namespace DataBuildSystem
 
         public void DetermineState()
         {
-            Dep.Update(delegate (short idx, State state)
+            Dep.Update(delegate(short idx, State state)
             {
                 States[idx] = state;
-                return DataCompilerResult.None;
+                return DataCookResult.None;
             });
+        }
+
+        public bool LoadCompilerLog(string filepath)
+        {
+            CompilerLog = new GameDataCompilerLog(filepath);
+            return CompilerLog.Load();
         }
 
         public void Save(IBinaryWriter writer)
@@ -262,16 +254,188 @@ namespace DataBuildSystem
 
         public static GameDataUnit Load(IBinaryReader reader)
         {
-            GameDataUnit gdu = new()
-            {
-                DataUnit = null,
-                Id = reader.ReadString(),
-                Index = reader.ReadUInt32()
-            };
+            GameDataUnit gdu = new() { DataUnit = null, Id = reader.ReadString(), Index = reader.ReadUInt32() };
             for (var i = 0; i < gdu.States.Length; ++i)
                 gdu.States[i] = new State(reader.ReadInt32());
             gdu.Dep = Dependency.ReadFrom(reader);
             return gdu;
+        }
+
+        public static IDataUnit FindRoot(Assembly assembly)
+        {
+            try
+            {
+                IDataUnit root = AssemblyUtil.Create1<IRootDataUnit>(assembly);
+                return root;
+            }
+            catch (Exception)
+            {
+            }
+
+            return null;
+        }
+
+        public static List<IDataFile> CollectDataCompilers(IDataUnit dataUnit)
+        {
+            var compilers = new List<IDataFile>();
+            {
+                Walk(dataUnit, delegate(object compound)
+                    {
+                        var compoundType = compound.GetType();
+                        if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
+                            return true;
+
+                        // TODO what about Array's or List<>'s of DataCompilers?
+
+                        if (compound is IDataFile c)
+                        {
+                            compilers.Add(c);
+                            return true;
+                        }
+
+                        return false;
+                    }
+                );
+            }
+            return compilers;
+        }
+
+        public static List<IDataUnit> CollectDataUnits(IDataUnit dataUnit)
+        {
+            var dataUnits = new List<IDataUnit>();
+            {
+                Walk(dataUnit, delegate(object compound)
+                    {
+                        var compoundType = compound.GetType();
+                        if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
+                            return true;
+
+                        // TODO what about Array's or List<>'s of DataCompilers?
+
+                        if (compound is IDataUnit du)
+                        {
+                            dataUnits.Add(du);
+                        }
+
+                        return false;
+                    }
+                );
+            }
+            return dataUnits;
+        }
+
+        private delegate bool OnObjectDelegate(object compound);
+
+        private static bool ElementRequiresWalking(Type type)
+        {
+            if (type != null && !type.IsPrimitive && !type.IsEnum)
+            {
+                return !TypeInfo2.HasGenericInterface(type, typeof(IDataUnit));
+            }
+
+            return false;
+        }
+
+        private static bool ObjectRequiresWalking(Type type)
+        {
+            if (type != null && !type.IsPrimitive && !type.IsEnum)
+            {
+                return !TypeInfo2.HasGenericInterface(type, typeof(IDataUnit));
+            }
+
+            return false;
+        }
+
+        private static bool Walk(object compound, OnObjectDelegate ood)
+        {
+            try
+            {
+                Stack<object> compounds = new();
+                compounds.Push(compound);
+
+                while (compounds.Count > 0)
+                {
+                    compound = compounds.Pop();
+                    var compoundTypeInfo = compound.GetType();
+
+                    if (ood(compound))
+                        continue;
+
+                    if (compound is IDataFile)
+                        continue;
+
+                    if (compoundTypeInfo.IsArray)
+                    {
+                        // Analyze element type
+                        var elementType = compoundTypeInfo.GetElementType();
+                        if (ElementRequiresWalking(elementType))
+                        {
+                            if (compound is Array objectArray)
+                            {
+                                for (var i = 0; i < objectArray.Length; i++)
+                                {
+                                    var e = objectArray.GetValue(i);
+                                    if (e != null)
+                                    {
+                                        if (ObjectRequiresWalking(e.GetType()))
+                                            compounds.Push(e);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var fields = compoundTypeInfo.GetFields(
+                            BindingFlags.Public
+                            | BindingFlags.NonPublic
+                            | BindingFlags.Instance
+                            | BindingFlags.GetField
+                        );
+                        foreach (var f in fields)
+                        {
+                            var o = f.GetValue(compound);
+                            if (o == null || f.IsInitOnly)
+                                continue;
+
+                            var objectTypeInfo = o.GetType();
+                            if (objectTypeInfo.IsArray)
+                            {
+                                // Analyze element type
+                                var elementType = objectTypeInfo.GetElementType();
+                                if (ElementRequiresWalking(elementType))
+                                {
+                                    if (o is Array objectArray)
+                                    {
+                                        for (var i = 0; i < objectArray.Length; i++)
+                                        {
+                                            var e = objectArray.GetValue(i);
+                                            if (e != null)
+                                            {
+                                                if (ObjectRequiresWalking(e.GetType()))
+                                                    compounds.Push(e);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (ObjectRequiresWalking(o.GetType()))
+                                {
+                                    compounds.Push(o);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

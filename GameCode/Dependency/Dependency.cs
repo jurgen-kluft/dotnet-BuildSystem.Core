@@ -136,10 +136,10 @@ namespace DataBuildSystem
 
         // Return false if dependencies are up-to-date
         // Return true if dependencies where updated
-        public delegate DataCompilerResult DataCompilerOutputUpdateDelegate(short id, State state);
-        public DataCompilerResult Update(DataCompilerOutputUpdateDelegate ood)
+        public delegate DataCookResult DataCompilerOutputUpdateDelegate(short id, State state);
+        public DataCookResult Update(DataCompilerOutputUpdateDelegate ood)
         {
-            var result = DataCompilerResult.None;
+            var result = DataCookResult.None;
 
             for (var i = 0; i < Count; ++i)
             {

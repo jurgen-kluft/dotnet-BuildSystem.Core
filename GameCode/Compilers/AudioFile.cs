@@ -5,95 +5,102 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    // e.g. new FileId(new CopyCompiler("Textures/Background.PNG"));
-    public sealed class CopyCompiler : IDataCompiler, IFileIdInstance
+    // e.g. new SoundDataFile("Sounds/Boot.wav");
+    public sealed class SoundDataFile : IDataFile
     {
         private string mSrcFilename;
         private string mDstFilename;
         private Dependency mDependency;
 
-        public CopyCompiler(string filename) : this(filename, filename)
+        public SoundDataFile(string filename) : this(filename, filename)
         {
         }
-        public CopyCompiler(string srcFilename, string dstFilename)
+        public SoundDataFile(string srcFilename, string dstFilename)
         {
             mSrcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             mDstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
-        public void CompilerSignature(IBinaryWriter stream)
+        public Hash160 Signature { get; set; }
+
+        public void BuildSignature(IBinaryWriter stream)
         {
-            stream.Write(mSrcFilename);
+            stream.Write("SoundDataFile");
             stream.Write(mDstFilename);
         }
 
-        public void CompilerWrite(IBinaryWriter stream)
+        public void SaveState(IBinaryWriter stream)
         {
             stream.Write(mSrcFilename);
             stream.Write(mDstFilename);
             mDependency.WriteTo(stream);
         }
 
-        public void CompilerRead(IBinaryReader stream)
+        public void LoadState(IBinaryReader stream)
         {
             mSrcFilename = stream.ReadString();
             mDstFilename = stream.ReadString();
             mDependency = Dependency.ReadFrom(stream);
         }
 
-        public void CompilerConstruct(IDataCompiler dc)
+        public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not CopyCompiler cc) return;
+            if (dc is not SoundDataFile cc) return;
 
             mSrcFilename = cc.mSrcFilename;
             mDstFilename = cc.mDstFilename;
             mDependency = cc.mDependency;
         }
 
-        public IFileIdInstance CompilerFileIdProvider => this;
-        public uint FileIndex { get; set; }
-        public string[] FileNames => new string[] { mDstFilename };
-
-        public DataCompilerOutput CompilerExecute()
+        public string CookedFilename => mDstFilename;
+        public object CookedObject
         {
-            var result = DataCompilerResult.None;
+            get
+            {
+                return new DataFile(Signature, "audio_t");
+            }
+        }
+
+        public DataCookResult Cook(List<IDataFile> additionalDataFiles)
+        {
+            var result = DataCookResult.None;
             if (mDependency == null)
             {
                 mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
                 mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
-                result = DataCompilerResult.DstMissing;
+                result = DataCookResult.DstMissing;
             }
             else
             {
                 var result3 = mDependency.Update(delegate(short id, State state)
                 {
-                    var result2 = DataCompilerResult.None;
+                    var result2 = DataCookResult.None;
                     if (state == State.Missing)
                     {
                         result2 = id switch
                         {
-                            0 => (DataCompilerResult.SrcMissing),
-                            1 => (DataCompilerResult.DstMissing),
-                            _ => (DataCompilerResult.None),
+                            0 => (DataCookResult.SrcMissing),
+                            1 => (DataCookResult.DstMissing),
+                            _ => (DataCookResult.None),
                         };
                     }
                     else if (state == State.Modified)
                     {
                         result2 |= id switch
                         {
-                            0 => (DataCompilerResult.SrcChanged),
-                            1 => (DataCompilerResult.DstChanged),
-                            _ => (DataCompilerResult.None)
+                            0 => (DataCookResult.SrcChanged),
+                            1 => (DataCookResult.DstChanged),
+                            _ => (DataCookResult.None)
                         };
                     }
 
                     return result2;
                 });
 
-                if (result3 == DataCompilerResult.UpToDate)
+                if (result3 == DataCookResult.UpToDate)
                 {
-                    result = DataCompilerResult.UpToDate;
-                    return new DataCompilerOutput(result, this);
+                    result = DataCookResult.UpToDate;
+                    return result;
                 }
             }
 
@@ -103,15 +110,15 @@ namespace GameData
                 File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
 
                 // Execution is done, update the dependency to reflect the new state
-                result = mDependency.Update(null);
+                mDependency.Update(null);
             }
             catch (Exception)
             {
-                result = (DataCompilerResult)(result | DataCompilerResult.Error);
+                result = (DataCookResult)(result | DataCookResult.Error);
             }
 
             // The result returned here is the result that 'caused' this compiler to execute its action and not the 'new' state.
-            return new DataCompilerOutput(result, this);
+            return result;
         }
     }
 }
