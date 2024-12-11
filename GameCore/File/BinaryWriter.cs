@@ -15,6 +15,7 @@ namespace GameCore
         void Write(float v);
         void Write(double v);
         void Write(byte[] data, int index, int count);
+        void Write(ReadOnlySpan<byte> span);
         void Write(string v);
     }
 
@@ -137,6 +138,11 @@ namespace GameCore
             _stream.Write(data, index, count);
         }
 
+        public void Write(ReadOnlySpan<byte> span)
+        {
+            _stream.Write(span);
+        }
+
         public void Write(string v)
         {
             var data = System.Text.Encoding.UTF8.GetBytes(v);
@@ -192,6 +198,11 @@ namespace GameCore
             if (count == 0) return;
             Debug.Assert((index + count) <= data.Length);
             _writer.Write(data, index, count);
+        }
+
+        public void Write(ReadOnlySpan<byte> span)
+        {
+            _writer.Write(span);
         }
 
         public void Write(sbyte v)
@@ -311,6 +322,11 @@ namespace GameCore
             _binaryWriter.Write(data, index, count);
         }
 
+        public void Write(ReadOnlySpan<byte> span)
+        {
+            _binaryWriter.Write(span);
+        }
+
         public void Write(sbyte v)
         {
             _binaryWriter.Write(v);
@@ -421,6 +437,11 @@ namespace GameCore
         {
             Debug.Assert((index + count) <= data.Length);
             _binaryWriter.Write(data, index, count);
+        }
+
+        public void Write(ReadOnlySpan<byte> span)
+        {
+            _binaryWriter.Write(span);
         }
 
         public void Write(sbyte v)
@@ -751,6 +772,14 @@ namespace GameCore
             var n = Math.Min(count, _end - _position);
             Array.Copy(data, index, _memory, _position, n);
             Position += n;
+        }
+
+        public void Write(ReadOnlySpan<byte> span)
+        {
+            if (Position >= _end)
+                return;
+            span.CopyTo(_memory.AsSpan(_position));
+            Position += span.Length;
         }
 
         public void Write(string v)

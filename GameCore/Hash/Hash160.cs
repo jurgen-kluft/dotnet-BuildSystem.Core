@@ -351,6 +351,12 @@ namespace GameCore
             return Sha1.Compute(data, start, length);
         }
 
+        public static Hash160 Compute(Type type)
+        {
+            var data = System.Text.Encoding.ASCII.GetBytes(type.Name);
+            return Compute(data.AsSpan());
+        }
+
         public static Hash160 Compute_ASCII(string str)
         {
             var data = System.Text.Encoding.ASCII.GetBytes(str);

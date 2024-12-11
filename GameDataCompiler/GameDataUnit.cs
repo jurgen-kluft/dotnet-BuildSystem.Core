@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using GameCore;
 using GameData;
+using BigfileBuilder;
 
 namespace DataBuildSystem
 {
@@ -14,6 +15,7 @@ namespace DataBuildSystem
     {
         private List<GameDataUnit> DataUnits { get; set; }
         private IDataUnit RootDataUnit { get; set; }
+        private SignatureDataBase SignatureDatabase { get; set; }
 
         public Assembly Initialize(string gameDataDllFilename)
         {
@@ -21,6 +23,8 @@ namespace DataBuildSystem
 
             // Instantiate the data root (which is the root DataUnit)
             RootDataUnit = GameDataUnit.FindRoot(_gameDataAssembly);
+
+            SignatureDatabase = new SignatureDataBase();
 
             return _gameDataAssembly;
         }
@@ -54,16 +58,9 @@ namespace DataBuildSystem
             }
         }
 
-        public State Update2(string srcPath, string dstPath)
+        public State Cook(string srcPath, string dstPath)
         {
-            // Foreach DataUnit that is out-of-date or missing
-            // We should do this in steps:
-            // - collect all data compilers, and de-duplicate them
-            // - execute all out-of-date data compilers
-            // - save the game data compiler log
-            // - save the game data bigfile
-            // - save the game data unit
-
+            // Determine the state of each DataUnit and load their compiler log
             foreach (var gdu in DataUnits)
             {
                 gdu.DetermineState();
@@ -72,32 +69,43 @@ namespace DataBuildSystem
                 gdu.LoadCompilerLog(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
             }
 
-            List<GameDataUnit> rebuild = new();
+            // Collect the data units that need to be rebuilt
+            List<GameDataUnit> rebuilt = new();
+
+            // For each data unit, using the loaded compiler log and a newly created compiler log, merge them
+            // and use the merged compiler log to execute all compilers.
             foreach (var gdu in DataUnits)
             {
                 var currentCompilers = GameDataUnit.CollectDataCompilers(gdu.DataUnit);
                 var loadedCompilers = new List<IDataFile>(gdu.CompilerLog.CompilerLog);
                 gdu.CompilerLog.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
 
-                var result = gdu.CompilerLog.Execute(mergedCompilers, out var gdClOutput);
+                var result = gdu.CompilerLog.Cook(mergedCompilers, out var additionalDataFiles);
                 if (result.IsOk)
                 {
                     if (gdu.StateOf(EGameData.GameDataData).IsNotOk || gdu.StateOf(EGameData.BigFileData, EGameData.BigFileFilenames, EGameData.BigFileHashes, EGameData.BigFileToc).IsNotOk)
                     {
-                        rebuild.Add(gdu);
+                        rebuilt.Add(gdu);
                     }
                 }
                 else
                 {
-                    rebuild.Add(gdu);
+                    rebuilt.Add(gdu);
                 }
 
                 gdu.DetermineState();
             }
 
-            // Update the GameDataFileDatabase to ensure all the signatures have a BigfileIndex+FileIndex
+            // Update the SignatureDatabase to ensure all the signatures have a BigfileIndex + FileIndex
 
-            // Save all the out-of-date GameDataUnits
+            // Save all the out-of-date GameDataUnits, this means saving
+            // - Bigfile data
+            // - Bigfile TOC
+            // - Bigfile filenames
+            // - Bigfile hashes
+
+            // Finally save the
+            // - Game data file
 
             return State.Ok;
         }
@@ -259,6 +267,21 @@ namespace DataBuildSystem
                 gdu.States[i] = new State(reader.ReadInt32());
             gdu.Dep = Dependency.ReadFrom(reader);
             return gdu;
+        }
+
+        private static void SaveBigfile(uint index, string filename, List<IDataFile> dataFiles)
+        {
+            var bfb = new BigfileBuilder.BigfileBuilder(BigfileConfig.Platform);
+
+            var bigfile = new Bigfile(index);
+            foreach (var o in dataFiles)
+            {
+                var mainBigfileFile = new BigfileFile(o.CookedFilename);
+                bigfile.Files.Add(mainBigfileFile);
+            }
+
+            var bigFiles = new List<Bigfile>() { bigfile };
+            bfb.Save(BuildSystemCompilerConfig.PubPath, BuildSystemCompilerConfig.DstPath, filename, bigFiles);
         }
 
         public static IDataUnit FindRoot(Assembly assembly)

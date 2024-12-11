@@ -186,7 +186,7 @@ namespace GameDataCompiler
 
             start = DateTime.Now;
             Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
-            gdus.Update2(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
+            gdus.Cook(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
             end = DateTime.Now;
             Console.WriteLine("Data compilation complete -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 

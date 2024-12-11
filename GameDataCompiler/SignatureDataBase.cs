@@ -5,7 +5,7 @@ using GameData;
 
 namespace DataBuildSystem
 {
-    public class GameDataFileDataBase : ISignatureDataBase
+    public class SignatureDataBase : ISignatureDataBase
     {
         public (uint bigfileIndex, uint fileIndex) GetFileId(Hash160 signature)
         {

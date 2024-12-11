@@ -6,8 +6,8 @@ namespace DataBuildSystem
 {
     public sealed class GameDataCompilerLog
     {
-        private Dictionary<Hash160, Type> mCompilerTypeSet = new Dictionary<Hash160, Type>();
-        private HashSet<Hash160> mCompilerSignatureSet = new HashSet<Hash160>();
+        private Dictionary<Hash160, Type> mCompilerTypeSet = new ();
+        private HashSet<Hash160> mCompilerSignatureSet = new ();
         private string FilePath { get; set; }
 
         public GameDataCompilerLog(string filepath)
@@ -117,43 +117,30 @@ namespace DataBuildSystem
             return signatureList;
         }
 
-        private Dictionary<Hash160, IDataFile> BuildCompilerSignatureDict(List<IDataFile> compilers)
-        {
-            var signatureDict = new Dictionary<Hash160, IDataFile>(compilers.Count);
-            foreach (var cl in compilers)
-            {
-                signatureDict.Add(cl.Signature, cl);
-            }
-
-            return signatureDict;
-        }
-
-        public Result Execute(List<IDataFile> compilers, out List<IDataFile> gdClOutput)
+        public Result Cook(List<IDataFile> compilers, out List<IDataFile> allDataFiles)
         {
             // Make sure the directory structure of @SrcPath is duplicated at @DstPath
             DirUtils.DuplicateFolderStructure(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
 
-            gdClOutput = new(compilers.Count);
+            // This is a very simple single threaded compilation approach
+            allDataFiles = new(compilers.Count);
             var result = 0;
-            foreach (var c in compilers)
+            foreach (var df in compilers)
             {
-                var additionalDataFiles = new List<IDataFile>();
-                var r = c.Cook(additionalDataFiles);
+                var additionalDataFiles = new List<IDataFile>() { df };
 
-                // TODO handle the additional data files
+                var i = 0;
+                while (i < additionalDataFiles.Count)
+                {
+                    var c = additionalDataFiles[i];
+                    var r = c.Cook(additionalDataFiles);
+                    allDataFiles.Add(c);
+                    i += 1;
 
-                if (r.HasFlag(DataCookResult.Error))
-                    result++;
-                else if (!r.HasFlag(DataCookResult.UpToDate))
-                    result++;
-                gdClOutput.Add(c);
+                    if (r.HasFlag(DataCookResult.Error) || !r.HasFlag(DataCookResult.UpToDate))
+                        result++;
+                }
             }
-
-            // TODO Need to be able to determine
-            // - source files out of date
-            // - destination files missing or out of date
-            // - compiler version mismatch
-            // - compiler bundle out of date
 
             if (result == 0)
             {
@@ -167,9 +154,8 @@ namespace DataBuildSystem
         {
             foreach (var cl in compilers)
             {
-                var type = cl.GetType();
-                var typeSignature = HashUtility.Compute_ASCII(type.FullName);
-                mCompilerTypeSet.TryAdd(typeSignature, type);
+                var typeSignature = HashUtility.Compute(cl.GetType());
+                mCompilerTypeSet.TryAdd(typeSignature, cl.GetType());
             }
         }
 
@@ -185,23 +171,16 @@ namespace DataBuildSystem
                 foreach (var compiler in cl)
                 {
                     memoryWriter.Reset();
-                    var compilerType = compiler.GetType();
-                    var compilerTypeSignature = HashUtility.Compute_ASCII(compilerType.FullName);
-                    compilerTypeSignature.WriteTo(memoryWriter);
-                    compiler.BuildSignature(memoryWriter);
-                    var compilerSignature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
 
-                    // byte[4]: Length of Block
-                    // byte[20]: GameDataCompiler Type Signature
-                    // byte[20]: GameDataCompiler Signature
-                    // byte[]: GameDataCompiler Property Data
-
-                    memoryWriter.Reset();
+                    // byte[20]: IDataFile Type Signature
+                    // byte[20]: IDataFile Signature
+                    // byte[]: IDataFile State
+                    var compilerTypeSignature = HashUtility.Compute(compiler.GetType());
                     compilerTypeSignature.WriteTo(memoryWriter);
-                    compilerSignature.WriteTo(memoryWriter);
+                    compiler.Signature.WriteTo(memoryWriter);
                     compiler.SaveState(memoryWriter);
                     writer.Write(memoryStream.Length);
-                    writer.Write(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+                    writer.Write(memoryStream.GetBuffer().AsSpan());
                 }
 
                 memoryWriter.Close();

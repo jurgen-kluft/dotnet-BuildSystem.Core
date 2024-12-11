@@ -613,6 +613,11 @@ namespace GameData
                     writer.Write(data, index, count);
                 }
 
+                internal static void Write(IBinaryWriter writer, ReadOnlySpan<byte> span)
+                {
+                    writer.Write(span);
+                }
+
                 internal static void WriteBlockReference(IBinaryStreamWriter writer, DataBlock db, StreamReference v)
                 {
                     AlignTo(writer, sizeof(ulong));
@@ -941,6 +946,12 @@ namespace GameData
             {
                 Debug.Assert(mCurrent != -1);
                 DataBlock.Write(mDataWriter, data, index, count);
+            }
+
+            public void Write(ReadOnlySpan<byte> span)
+            {
+                Debug.Assert(mCurrent != -1);
+                DataBlock.Write(mDataWriter, span);
             }
 
             public void Write(string str)
