@@ -39,6 +39,9 @@ namespace DataBuildSystem
 
         public State Cook(string srcPath, string dstPath)
         {
+            // Make sure the directory structure of @SrcPath is duplicated at @DstPath
+            DirUtils.DuplicateFolderStructure(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
+
             // Determine the state of each DataUnit and load their compiler log
             foreach (var gdu in DataUnits)
             {
@@ -51,60 +54,62 @@ namespace DataBuildSystem
             // Collect the data units that need to be rebuilt
             List<GameDataUnit> rebuilt = new();
 
+            // Load the SignatureDatabase
+            SignatureDatabase.Load(GameDataPath.GetFilePathFor("SignatureDatabase", EGameData.SignatureDatabase));
+
             // For each data unit, using the loaded compiler log and a newly build compiler log, merge them
             // and use the merged compiler log to execute all compilers.
             foreach (var gdu in DataUnits)
             {
                 var currentLog = GameDataUnit.CollectDataCompilers(gdu.DataUnit);
-                GameDataCompilerLog.Merge(gdu.CompilerLog.CompilerLog, currentLog, out var mergedLog);
+                var mergeResult = GameDataCompilerLog.Merge(gdu.CompilerLog.DataFiles, currentLog, out var mergedLog);
 
-                var result = GameDataCompilerLog.Cook(mergedLog, out var additionalDataFiles);
-                if (result.IsOk)
+                // Cook, fundamentally this will make sure all the cooked files are up-to-date
+                var cookResult = GameDataCompilerLog.Cook(mergedLog, out var finalDataFiles);
+                if (!cookResult.IsOk || !mergeResult.IsOk || gdu.OutOfDate)
                 {
-                    if (gdu.StateOf(EGameData.GameDataData).IsNotOk || gdu.StateOf(EGameData.BigFileData, EGameData.BigFileFilenames, EGameData.BigFileHashes, EGameData.BigFileToc).IsNotOk)
-                    {
-                        rebuilt.Add(gdu);
-                    }
-                }
-                else
-                {
+                    SignatureDatabase.RemoveBigfile(gdu.Index);
                     rebuilt.Add(gdu);
                 }
 
                 // Save the compiler log ?
-
+                gdu.CompilerLog.DataFiles = finalDataFiles;
                 gdu.DetermineState();
             }
 
             // Save all the out-of-date GameDataUnits, this means saving
-            // - Bigfile data
-            // - Bigfile TOC
-            // - Bigfile filenames
-            // - Bigfile hashes
-
-            // For all Bigfiles that are up-to-date, do we still need to finalize the SignatureDatabase?
-            // Since we have a load/save mechanism for the SignatureDatabase, we should be Ok ?
+            // the compiler log and the bigfile
+            foreach (var gdu in rebuilt)
+            {
+                gdu.CompilerLog.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
+            }
+            foreach (var gdu in rebuilt)
+            {
+                gdu.SaveBigfile(gdu.Id, SignatureDatabase);
+            }
 
             // Save the SignatureDatabase
             // - Signature = Bigfile index, Bigfile file index
+            SignatureDatabase.Save(GameDataPath.GetFilePathFor("SignatureDatabase", EGameData.SignatureDatabase));
 
             // Finally save the
-            // - Game data file
+            // - Game Code data file
+            // - Game Code header file
+            CppCodeStream2.Write2(BuildSystemCompilerConfig.Platform, RootDataUnit, GameDataPath.GetFilePathFor(BuildSystemCompilerConfig.Name, EGameData.GameCodeData), GameDataPath.GetFilePathFor(BuildSystemCompilerConfig.Name, EGameData.GameCodeHeader));
 
             return State.Ok;
         }
 
         public void Load(string dstPath, string gddPath)
         {
-            var idToDataUnit = new Dictionary<string, IDataUnit>();
-
             var currentDataUnits = GameDataUnit.CollectDataUnits(RootDataUnit);
+            var idToDataUnit = new Dictionary<string, IDataUnit>(currentDataUnits.Count);
             foreach (var cdu in currentDataUnits)
             {
                 idToDataUnit.Add(cdu.UnitId, cdu);
             }
 
-            var dataUnits = new Dictionary<uint, GameDataUnit>();
+            var dataUnits = new Dictionary<uint, GameDataUnit>(currentDataUnits.Count + (currentDataUnits.Count / 4));
 
             var binaryFile = new BinaryFileReader();
             if (binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log")))
@@ -185,17 +190,18 @@ namespace DataBuildSystem
 
         public GameDataCompilerLog CompilerLog { get; set; }
 
-        public State StateOf(EGameData u)
+        public bool OutOfDate
         {
-            return States[(int)u];
-        }
+            get
+            {
+                foreach (var s in States)
+                {
+                    if (!s.IsOk)
+                        return true;
+                }
 
-        public State StateOf(params EGameData[] pu)
-        {
-            var s = new State();
-            foreach (var u in pu)
-                s.Merge(States[(int)u]);
-            return s;
+                return false;
+            }
         }
 
         private GameDataUnit() : this(string.Empty, uint.MaxValue, null) { }
@@ -245,7 +251,7 @@ namespace DataBuildSystem
             writer.Write(DataUnit.UnitId);
             writer.Write(Index);
             foreach (var t in States)
-                writer.Write(t.AsInt);
+                writer.Write(t.AsInt8);
 
             Dep.WriteTo(writer);
         }
@@ -254,9 +260,15 @@ namespace DataBuildSystem
         {
             GameDataUnit gdu = new() { DataUnit = null, Id = reader.ReadString(), Index = reader.ReadUInt32() };
             for (var i = 0; i < gdu.States.Length; ++i)
-                gdu.States[i] = new State(reader.ReadInt32());
+                gdu.States[i] = new State(reader.ReadInt8());
             gdu.Dep = Dependency.ReadFrom(reader);
             return gdu;
+        }
+
+        public void SaveBigfile(string name, ISignatureDataBase database)
+        {
+            var filename = name + GameDataPath.GetExtFor(EGameData.BigFileData);
+            SaveBigfile(Index, filename, CompilerLog.DataFiles, database);
         }
 
         private static void SaveBigfile(uint bigfileIndex, string filename, List<IDataFile> dataFiles, ISignatureDataBase database)

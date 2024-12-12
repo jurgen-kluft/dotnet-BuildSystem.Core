@@ -29,24 +29,7 @@ namespace GameDataCompiler
                 var vars = new GameDataCompilerArgs();
                 clp.ExtractArgumentAttributes(vars);
                 clp.ParseCommandLine(args);
-
-                vars.basepath = vars.ReplaceVars(vars.basepath);
-                vars.gddpath = vars.ReplaceVars(vars.gddpath);
-                vars.srcpath = vars.ReplaceVars(vars.srcpath);
-                vars.subpath = vars.ReplaceVars(vars.subpath);
-                vars.dstpath = vars.ReplaceVars(vars.dstpath);
-                vars.pubpath = vars.ReplaceVars(vars.pubpath);
-                vars.toolpath = vars.ReplaceVars(vars.toolpath);
-
                 return vars;
-            }
-
-            public string ReplaceVars(string str)
-            {
-                str = str.Replace("%PLATFORM%", platform);
-                str = str.Replace("%TERRITORY%", territory);
-                str = str.Replace("%BASEPATH%", basepath);
-                return str;
             }
 
             [ValueArgument(typeof(string), 'n', "name", DefaultValue = "Game", Description = "Name of the game")]

@@ -37,7 +37,7 @@ namespace GameData
         // byte         -> 1 byte
         // bool         -> 1 byte (Note: 8 booleans are packed together in one byte)
 
-        public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename, string relocationFilename)
+        public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename)
         {
             // Use string table in MetaCode
             var stringTable = new StringTable();

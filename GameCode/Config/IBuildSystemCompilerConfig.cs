@@ -21,11 +21,6 @@ namespace DataBuildSystem
         string DataFileExtension { get; }
 
         /// <summary>
-        /// The resource data relocation information file extension
-        /// </summary>
-        string DataRelocFileExtension { get; }
-
-        /// <summary>
         /// Write the BigfileToc and Resource data in which endian
         /// </summary>
         bool LittleEndian { get; }
@@ -71,7 +66,6 @@ namespace DataBuildSystem
         public static string PubPath { get; private set;}
         public static string ToolPath{ get; private set;}
         public static string DataFileExtension => _sConfig.DataFileExtension;
-        public static string DataRelocFileExtension => _sConfig.DataRelocFileExtension;
 
         public static bool FolderFilter(string folder)
         {

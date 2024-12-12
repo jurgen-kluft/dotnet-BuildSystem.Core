@@ -11,12 +11,12 @@ namespace DataBuildSystem
 
         public GameDataCompilerLog()
         {
-            CompilerLog = new List<IDataFile>();
+            DataFiles = new List<IDataFile>();
         }
 
         private EPlatform Platform { get; set; }
 
-        public List<IDataFile> CompilerLog { get; set; }
+        public List<IDataFile> DataFiles { get; set; }
 
         private class SignatureComparer
         {
@@ -100,9 +100,6 @@ namespace DataBuildSystem
 
         public static Result Cook(IReadOnlyList<IDataFile> compilers, out List<IDataFile> allDataFiles)
         {
-            // Make sure the directory structure of @SrcPath is duplicated at @DstPath
-            DirUtils.DuplicateFolderStructure(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
-
             // This is a very simple single threaded compilation approach
             allDataFiles = new(compilers.Count);
             var result = 0;
@@ -149,7 +146,7 @@ namespace DataBuildSystem
             BinaryMemoryWriter memoryWriter = new();
             if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
             {
-                foreach (var compiler in CompilerLog)
+                foreach (var compiler in DataFiles)
                 {
                     memoryWriter.Reset();
 
@@ -175,7 +172,7 @@ namespace DataBuildSystem
 
         public bool Load(string filepath)
         {
-            CompilerLog.Clear();
+            DataFiles.Clear();
 
             BinaryFileReader reader = new();
             if (!reader.Open(filepath))
@@ -196,7 +193,7 @@ namespace DataBuildSystem
                     var compiler = Activator.CreateInstance(type) as IDataFile;
                     if (mCompilerSignatureSet.Add(compilerSignature))
                     {
-                        CompilerLog.Add(compiler);
+                        DataFiles.Add(compiler);
                     }
 
                     compiler.LoadState(reader);

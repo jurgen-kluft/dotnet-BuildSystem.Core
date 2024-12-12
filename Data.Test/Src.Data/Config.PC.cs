@@ -8,12 +8,12 @@ namespace GameData
     public class BigfileCustomConfigPC : IBigfileConfig
     {
         public EPlatform Platform { get { return EPlatform.Win64; } }
-        public string BigfileName { get { return "MJ"; } }
+        public string BigfileName { get { return "Game"; } }
         public string BigFileExtension { get { return ".bfd"; } }
         public string BigFileTocExtension { get { return ".bft"; } }
         public string BigFileFdbExtension { get { return ".bff"; } }
 		public string BigFileHdbExtension { get { return ".bfh"; } }
-        public uint FileAlignment { get { return 1024; } }
+        public uint FileAlignment { get { return 256; } }
         public bool AllowDuplicateFiles { get { return false; } }
         public bool WriteAsync { get { return true; } }
         public uint ReadBufferSize { get { return 8 * 1024 * 1024; } }
@@ -25,7 +25,6 @@ namespace GameData
         public EPlatform Platform { get { return EPlatform.Win64; } }
         public string DataFilename(string name) { return name; }
         public string DataFileExtension { get { return ".gdf"; } }
-        public string DataRelocFileExtension { get { return ".gdr"; } }
         public bool LittleEndian { get { return true; } }
         public bool EnumIsInt32 { get { return true; } }
 		public int SizeOfBool { get { return 4; } }

@@ -13,15 +13,15 @@ namespace DataBuildSystem
         }
 
         private sbyte StateValue { get; set; }
-        public int AsInt => StateValue;
+        public int AsInt8 => StateValue;
 
         public static readonly State Ok = new() { StateValue = (sbyte)StateEnum.Ok };
         public static readonly State Missing = new() { StateValue = (sbyte)StateEnum.Missing };
         public static readonly State Modified = new() { StateValue = (sbyte)StateEnum.Modified };
 
-        public State(int state)
+        public State(sbyte state)
         {
-            StateValue = (sbyte)state;
+            StateValue = state;
         }
 
         public bool IsOk => StateValue == 0;
@@ -29,39 +29,26 @@ namespace DataBuildSystem
         public bool IsModified => (StateValue & (sbyte)(StateEnum.Modified)) != 0;
         public bool IsMissing => (StateValue & (sbyte)(StateEnum.Missing)) != 0;
 
-        public void Merge(State s)
-        {
-            if (IsModified)
-            {
-                if (s.IsMissing)
-                    StateValue = s.StateValue;
-            }
-            else if (IsOk)
-            {
-                StateValue = s.StateValue;
-            }
-        }
-
         public static bool operator ==(State b1, State b2)
         {
-            return b1.AsInt == b2.AsInt;
+            return b1.StateValue == b2.StateValue;
         }
 
         public static bool operator !=(State b1, State b2)
         {
-            return b1.AsInt != b2.AsInt;
+            return b1.StateValue != b2.StateValue;
         }
 
         public override int GetHashCode()
         {
-            return AsInt;
+            return StateValue;
         }
 
         public override bool Equals(object obj)
         {
             if (obj == null) return false;
             var other = (State)obj;
-            return this.AsInt == other.AsInt;
+            return this.StateValue == other.StateValue;
         }
     }
 

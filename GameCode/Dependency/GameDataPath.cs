@@ -15,12 +15,15 @@ namespace GameData
 	public enum EGameData : int
 	{
 		GameDataDll = 0,
-		GameDataCompilerLog = 1,
-		GameDataData = 2,
-		BigFileData = 3,
-		BigFileToc = 4,
-		BigFileFilenames = 5,
-		BigFileHashes = 6,
+        SignatureDatabase = 1,
+		GameDataCompilerLog = 2,
+		GameDataData = 3,
+		BigFileData = 4,
+		BigFileToc = 5,
+		BigFileFilenames = 6,
+		BigFileHashes = 7,
+        GameCodeData = 8,
+        GameCodeHeader = 9,
 	}
 
 	public static class GameDataPath
@@ -42,7 +45,7 @@ namespace GameData
 			};
 		}
 
-        private static EGameDataPath[] _sGameDataUnitToEPath = [EGameDataPath.Gdd, EGameDataPath.Gdd, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub];
+        private static EGameDataPath[] _sGameDataUnitToEPath = [EGameDataPath.Gdd, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub];
 		public static EGameDataPath GetPathFor(EGameData unit)
 		{
 			return _sGameDataUnitToEPath[(int)unit];
@@ -51,13 +54,16 @@ namespace GameData
 		{
 			return unit switch
 			{
-				EGameData.GameDataDll => ".dll",
+                EGameData.GameDataDll => ".dll",
+                EGameData.SignatureDatabase => ".sdb",
 				EGameData.GameDataCompilerLog => ".gdl",
 				EGameData.GameDataData => BuildSystemCompilerConfig.DataFileExtension,
 				EGameData.BigFileData => BigFileExtension,
 				EGameData.BigFileToc => BigFileTocExtension,
 				EGameData.BigFileFilenames => BigFileFdbExtension,
 				EGameData.BigFileHashes => BigFileHdbExtension,
+                EGameData.GameCodeData => ".gcd",
+                EGameData.GameCodeHeader => ".h",
 				_ => string.Empty
 			};
 		}

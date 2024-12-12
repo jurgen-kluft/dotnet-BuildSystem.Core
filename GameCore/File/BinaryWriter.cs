@@ -41,7 +41,7 @@ namespace GameCore
     public class BinaryStreamWriter : IBinaryStreamWriter
     {
         private readonly Stream _stream;
-        private readonly byte[] _buffer = new byte[32];
+        private readonly byte[] _buffer = new byte[256];
 
         public BinaryStreamWriter(Stream stream)
         {
@@ -145,10 +145,22 @@ namespace GameCore
 
         public void Write(string v)
         {
-            var data = System.Text.Encoding.UTF8.GetBytes(v);
-            Write(data.Length + 1);
-            Write(data);
-            Write((byte)0);
+            var byteCount = System.Text.Encoding.UTF8.GetByteCount(v);
+            if (byteCount < _buffer.Length)
+            {
+                System.Text.Encoding.UTF8.GetBytes(v, _buffer);
+                _buffer[byteCount] = 0;
+                Write(byteCount + 1);
+                _stream.Write(_buffer, 0, byteCount+1);
+            }
+            else
+            {
+                var buffer = new byte[byteCount + 1];
+                System.Text.Encoding.UTF8.GetBytes(v, buffer);
+                buffer[byteCount] = 0;
+                Write(byteCount+1);
+                _stream.Write(buffer, 0, byteCount+1);
+            }
         }
 
         public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture64;
