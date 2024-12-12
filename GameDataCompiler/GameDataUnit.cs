@@ -7,29 +7,27 @@ using BigfileBuilder;
 namespace DataBuildSystem
 {
     // A GameDataUnit is a single .dll file that contains compiled C# code structured as data.
-    // Classes can contain FileId objects that hold a IDataCompiler, these compilers need to
+    // Classes can contain IDataFile objects that can cook data, these 'compilers' need to
     // be tracked. When such a compiler is out-of-date, the GameDataCompilerLog will be updated
-    // and the GameDataBigfile and GameDataData will be rebuilt.
+    // and the GameDataBigfiles and GameDataData will be rebuilt.
 
     public class GameDataUnits
     {
-        private List<GameDataUnit> DataUnits { get; set; }
         private IDataUnit RootDataUnit { get; set; }
+        private List<GameDataUnit> DataUnits { get; set; }
         private SignatureDataBase SignatureDatabase { get; set; }
+
+        private Assembly GameDataAssembly { get; set; }
 
         public Assembly Initialize(string gameDataDllFilename)
         {
-            _gameDataAssembly = LoadAssembly(gameDataDllFilename);
-
-            // Instantiate the data root (which is the root DataUnit)
-            RootDataUnit = GameDataUnit.FindRoot(_gameDataAssembly);
-
             SignatureDatabase = new SignatureDataBase();
 
-            return _gameDataAssembly;
+            // Instantiate the data root (which is the root DataUnit)
+            GameDataAssembly = LoadAssembly(gameDataDllFilename);
+            RootDataUnit = GameDataUnit.FindRoot(GameDataAssembly);
+            return GameDataAssembly;
         }
-
-        private Assembly _gameDataAssembly;
 
         private static Assembly LoadAssembly(string gameDataDllFilename)
         {
@@ -37,25 +35,6 @@ namespace DataBuildSystem
             var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemCompilerConfig.GddPath, gameDataDllFilename));
             Assembly gameDataAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
             return gameDataAssembly;
-        }
-
-
-        private void PrepareDataCooking(List<IDataFile> compilers)
-        {
-            if (compilers.Count == 0)
-                return;
-
-            var memoryStream = new MemoryStream();
-            var memoryWriter = new BinaryMemoryWriter();
-
-            var signatureList = new List<KeyValuePair<Hash160, IDataFile>>(compilers.Count);
-            foreach (var cl in compilers)
-            {
-                memoryWriter.Reset();
-                cl.BuildSignature(memoryWriter);
-                cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                signatureList.Add(new KeyValuePair<Hash160, IDataFile>(cl.Signature, cl));
-            }
         }
 
         public State Cook(string srcPath, string dstPath)
@@ -72,15 +51,14 @@ namespace DataBuildSystem
             // Collect the data units that need to be rebuilt
             List<GameDataUnit> rebuilt = new();
 
-            // For each data unit, using the loaded compiler log and a newly created compiler log, merge them
+            // For each data unit, using the loaded compiler log and a newly build compiler log, merge them
             // and use the merged compiler log to execute all compilers.
             foreach (var gdu in DataUnits)
             {
-                var currentCompilers = GameDataUnit.CollectDataCompilers(gdu.DataUnit);
-                var loadedCompilers = new List<IDataFile>(gdu.CompilerLog.CompilerLog);
-                gdu.CompilerLog.Merge(loadedCompilers, currentCompilers, out var mergedCompilers);
+                var currentLog = GameDataUnit.CollectDataCompilers(gdu.DataUnit);
+                GameDataCompilerLog.Merge(gdu.CompilerLog.CompilerLog, currentLog, out var mergedLog);
 
-                var result = gdu.CompilerLog.Cook(mergedCompilers, out var additionalDataFiles);
+                var result = GameDataCompilerLog.Cook(mergedLog, out var additionalDataFiles);
                 if (result.IsOk)
                 {
                     if (gdu.StateOf(EGameData.GameDataData).IsNotOk || gdu.StateOf(EGameData.BigFileData, EGameData.BigFileFilenames, EGameData.BigFileHashes, EGameData.BigFileToc).IsNotOk)
@@ -93,16 +71,22 @@ namespace DataBuildSystem
                     rebuilt.Add(gdu);
                 }
 
+                // Save the compiler log ?
+
                 gdu.DetermineState();
             }
-
-            // Update the SignatureDatabase to ensure all the signatures have a BigfileIndex + FileIndex
 
             // Save all the out-of-date GameDataUnits, this means saving
             // - Bigfile data
             // - Bigfile TOC
             // - Bigfile filenames
             // - Bigfile hashes
+
+            // For all Bigfiles that are up-to-date, do we still need to finalize the SignatureDatabase?
+            // Since we have a load/save mechanism for the SignatureDatabase, we should be Ok ?
+
+            // Save the SignatureDatabase
+            // - Signature = Bigfile index, Bigfile file index
 
             // Finally save the
             // - Game data file
@@ -113,6 +97,7 @@ namespace DataBuildSystem
         public void Load(string dstPath, string gddPath)
         {
             var idToDataUnit = new Dictionary<string, IDataUnit>();
+
             var currentDataUnits = GameDataUnit.CollectDataUnits(RootDataUnit);
             foreach (var cdu in currentDataUnits)
             {
@@ -154,7 +139,7 @@ namespace DataBuildSystem
                 index++;
             }
 
-            // Finally, build the list of DataUnits
+            // Finally, build the official list of DataUnits
             DataUnits = new List<GameDataUnit>(dataUnits.Count);
             foreach (var item in dataUnits)
             {
@@ -246,8 +231,13 @@ namespace DataBuildSystem
 
         public bool LoadCompilerLog(string filepath)
         {
-            CompilerLog = new GameDataCompilerLog(filepath);
-            return CompilerLog.Load();
+            CompilerLog = new GameDataCompilerLog();
+            return CompilerLog.Load(filepath);
+        }
+
+        public void SaveCompilerLog(string filepath)
+        {
+            CompilerLog.Save(filepath);
         }
 
         public void Save(IBinaryWriter writer)

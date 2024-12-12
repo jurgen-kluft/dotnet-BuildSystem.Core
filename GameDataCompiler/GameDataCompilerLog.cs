@@ -8,11 +8,9 @@ namespace DataBuildSystem
     {
         private Dictionary<Hash160, Type> mCompilerTypeSet = new ();
         private HashSet<Hash160> mCompilerSignatureSet = new ();
-        private string FilePath { get; set; }
 
-        public GameDataCompilerLog(string filepath)
+        public GameDataCompilerLog()
         {
-            FilePath = filepath;
             CompilerLog = new List<IDataFile>();
         }
 
@@ -28,7 +26,7 @@ namespace DataBuildSystem
             }
         }
 
-        public Result Merge(List<IDataFile> previousCompilers, List<IDataFile> currentCompilers, out List<IDataFile> mergedCompilers)
+        public static Result Merge(IReadOnlyList<IDataFile> previousCompilers, IReadOnlyList<IDataFile> currentCompilers, out List<IDataFile> mergedCompilers)
         {
             // Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into 'merged_compilers'.
 
@@ -82,7 +80,7 @@ namespace DataBuildSystem
             return Result.OutOfDate;
         }
 
-        private List<KeyValuePair<Hash160, IDataFile>> BuildCompilerSignatureList(List<IDataFile> compilers)
+        private static List<KeyValuePair<Hash160, IDataFile>> BuildCompilerSignatureList(IReadOnlyList<IDataFile> compilers)
         {
             var signatureList = new List<KeyValuePair<Hash160, IDataFile>>(compilers.Count);
             foreach (var cl in compilers)
@@ -100,7 +98,7 @@ namespace DataBuildSystem
             return signatureList;
         }
 
-        public Result Cook(List<IDataFile> compilers, out List<IDataFile> allDataFiles)
+        public static Result Cook(IReadOnlyList<IDataFile> compilers, out List<IDataFile> allDataFiles)
         {
             // Make sure the directory structure of @SrcPath is duplicated at @DstPath
             DirUtils.DuplicateFolderStructure(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
@@ -142,16 +140,16 @@ namespace DataBuildSystem
             }
         }
 
-        public Result Save(List<IDataFile> cl)
+        public Result Save(string filepath)
         {
-            var writer = ArchitectureUtils.CreateBinaryWriter(FilePath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
             if (writer == null) return Result.Error;
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
             if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
             {
-                foreach (var compiler in cl)
+                foreach (var compiler in CompilerLog)
                 {
                     memoryWriter.Reset();
 
@@ -175,12 +173,12 @@ namespace DataBuildSystem
             return Result.Error;
         }
 
-        public bool Load()
+        public bool Load(string filepath)
         {
             CompilerLog.Clear();
 
             BinaryFileReader reader = new();
-            if (!reader.Open(FilePath))
+            if (!reader.Open(filepath))
                 return false;
 
             while (reader.Position < reader.Length)

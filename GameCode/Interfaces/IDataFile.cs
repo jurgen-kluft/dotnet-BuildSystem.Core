@@ -27,6 +27,9 @@ namespace GameData
     {
         (uint bigfileIndex, uint fileIndex) GetFileId(Hash160 signature);
         bool Register(Hash160 signature, uint bigfileIndex, uint fileIndex);
+
+        bool Load(string filepath);
+        bool Save(string filepath);
     }
 
     public struct DataFile : IStruct, IFileId
