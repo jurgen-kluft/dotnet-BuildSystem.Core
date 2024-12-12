@@ -3,20 +3,7 @@ using DataBuildSystem;
 
 namespace GameData
 {
-
-    public sealed class CurveFile
-    {
-        public string m_language;
-        public IDataFile m_data;
-
-        public CurveFile(CurveDataFile data)
-        {
-            m_data = data;
-        }
-    }
-
-
-    public sealed class CurveDataFile : IDataFile
+    public sealed class CurveDataFile : IDataFile, ISignature
     {
         private string mSrcFilename;
         private string mDstFilename;
@@ -64,7 +51,7 @@ namespace GameData
         }
 
         public string CookedFilename => mDstFilename;
-        public object CookedObject => new DataFile(Signature, "curve_t");
+        public object CookedObject => new DataFile(this, "curve_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {

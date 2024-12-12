@@ -7,57 +7,12 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class CookedLanguageDataFile : IDataFile
-    {
-        private string mDstFilename;
-
-        public CookedLanguageDataFile(string cookedLocalizationFile)
-        {
-            mDstFilename = cookedLocalizationFile;
-        }
-
-        public Hash160 Signature { get; set; }
-
-        public void BuildSignature(IBinaryWriter stream)
-        {
-            stream.Write("CookedLanguageDataFile");
-            stream.Write(mDstFilename);
-        }
-
-        public void SaveState(IBinaryWriter stream)
-        {
-            stream.Write(mDstFilename);
-        }
-
-        public void LoadState(IBinaryReader stream)
-        {
-            mDstFilename = stream.ReadString();
-        }
-
-        public void CopyConstruct(IDataFile dc)
-        {
-            if (dc is CookedLanguageDataFile lc)
-            {
-                mDstFilename = lc.mDstFilename;
-            }
-        }
-
-        public string CookedFilename => mDstFilename;
-
-        public object CookedObject => new DataFile(Signature, "language_t");
-
-        public DataCookResult Cook(List<IDataFile> additionalDataFiles)
-        {
-            return DataCookResult.UpToDate;
-        }
-    }
-
     public sealed class GameLanguage
     {
         public string m_language;
-        public IDataFile m_data;
+        public DataFile m_data;
 
-        public GameLanguage(string language, CookedLanguageDataFile data)
+        public GameLanguage(string language, DataFile data)
         {
             m_language = language;
             m_data = data;
@@ -70,15 +25,20 @@ namespace GameData
         public List<GameLanguage> m_languages = new List<GameLanguage>();
     }
 
-    public sealed class LocalizationCompiler : IDataFile
+    public sealed class LocalizationCompiler : IDataFile, ISignature
     {
-        private string mSrcFilename;
-        private List<string> mDstFilenames;
-        private Dependency mDependency;
+        private string _srcFilename;
+        private readonly List<string> _srcFilenames;
+        private readonly List<string> _dstFilenames;
+        private readonly List<LanguageCompiler> _languageDataFiles;
+        private Dependency _dependency;
 
         public LocalizationCompiler(string localizationFile)
         {
-            mSrcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
+            _srcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
+            _srcFilenames = [];
+            _dstFilenames = [];
+            _languageDataFiles = [];
         }
 
         public Hash160 Signature { get; set; }
@@ -86,55 +46,75 @@ namespace GameData
         public void BuildSignature(IBinaryWriter stream)
         {
             stream.Write("LocalizationCompiler");
-            stream.Write(mSrcFilename);
+            stream.Write(_srcFilename);
         }
 
         public void SaveState(IBinaryWriter stream)
         {
-            stream.Write(mSrcFilename);
-            stream.Write(mDstFilenames.Count);
-            foreach (var filename in mDstFilenames)
+            stream.Write(_srcFilename);
+
+            stream.Write(_srcFilenames.Count);
+            foreach (var filename in _srcFilenames)
             {
                 stream.Write(filename);
             }
-            mDependency.WriteTo(stream);
+
+            stream.Write(_dstFilenames.Count);
+            foreach (var filename in _dstFilenames)
+            {
+                stream.Write(filename);
+            }
+
+            _dependency.WriteTo(stream);
         }
 
         public void LoadState(IBinaryReader stream)
         {
-            mSrcFilename = stream.ReadString();
-            var count = stream.ReadInt32();
-            mDstFilenames = new List<string>(count);
-            for (var i = 0; i < count; i++)
+            _srcFilename = stream.ReadString();
+
+            var srcCount = stream.ReadInt32();
+            _srcFilenames.Clear();
+            _srcFilenames.Capacity = srcCount;
+            for (var i = 0; i < srcCount; i++)
             {
-                mDstFilenames.Add(stream.ReadString());
+                _srcFilenames.Add(stream.ReadString());
             }
 
-            mDependency = Dependency.ReadFrom(stream);
+            var dstCount = stream.ReadInt32();
+            _dstFilenames.Clear();
+            _dstFilenames.Capacity = dstCount;
+            for (var i = 0; i < dstCount; i++)
+            {
+                _dstFilenames.Add(stream.ReadString());
+            }
+
+            _dependency = Dependency.ReadFrom(stream);
         }
 
         public void CopyConstruct(IDataFile dc)
         {
             if (dc is LocalizationCompiler lc)
             {
-                mSrcFilename = lc.mSrcFilename;
-                mDstFilenames = lc.mDstFilenames;
-                mDependency = lc.mDependency;
+                _srcFilename = lc._srcFilename;
+                _srcFilenames.Clear();
+                _srcFilenames.AddRange(lc._srcFilenames);
+                _dstFilenames.Clear();
+                _dstFilenames.AddRange(lc._dstFilenames);
+                _dependency = lc._dependency;
             }
         }
 
-        public string CookedFilename => mDstFilenames[0];
+        public string CookedFilename => string.Empty;
 
         public object CookedObject
         {
             get
             {
                 var languages = new GameLanguages();
-                languages.m_default = new GameLanguage("en", new CookedLanguageDataFile(mDstFilenames[0]));
-                foreach (var filename in mDstFilenames)
+                languages.m_default = new GameLanguage("en", new DataFile(_languageDataFiles[0], "language_t"));
+                foreach (var languageDataFile in _languageDataFiles)
                 {
-                    var language = Path.GetFileNameWithoutExtension(filename);
-                    languages.m_languages.Add(new GameLanguage(language, new CookedLanguageDataFile(filename)));
+                    languages.m_languages.Add(new GameLanguage(languageDataFile.Language, new DataFile( languageDataFile, "language_t")));
                 }
                 return languages;
             }
@@ -143,19 +123,22 @@ namespace GameData
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
             DataCookResult result;
-            if (mDependency == null)
+            if (_dependency == null)
             {
-                mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
+                _dependency = new Dependency(EGameDataPath.Src, _srcFilename);
                 // Load 'languages list' file
                 try
                 {
-                    var reader = TextStream.OpenForRead(mSrcFilename);
+                    var reader = TextStream.OpenForRead(_srcFilename);
                     while (!reader.EndOfStream)
                     {
                         var filename = reader.ReadLine();
                         if (string.IsNullOrEmpty(filename))
                         {
-                            mDstFilenames.Add(filename);
+                            LanguageCompiler language = new LanguageCompiler(filename);
+                            language.Language = Path.GetFileNameWithoutExtension(filename);
+                            _dstFilenames.Add(filename);
+                            _languageDataFiles.Add(language);
                         }
                     }
                     reader.Close();
@@ -171,7 +154,7 @@ namespace GameData
             }
             else
             {
-                result = mDependency.Update(delegate (short id, State state)
+                result = _dependency.Update(delegate (short id, State state)
                 {
                     var result2 = DataCookResult.UpToDate;
                     if (state == State.Missing)
@@ -195,6 +178,63 @@ namespace GameData
                 });
             }
 
+            return result;
+        }
+    }
+
+    public sealed class LanguageCompiler : IDataFile, ISignature
+    {
+        private Hash160 _signature;
+        private string _srcFilename;
+        private string _dstFilename;
+        private Dependency _dependency;
+
+        public LanguageCompiler(string localizationFile)
+        {
+            _srcFilename = localizationFile;
+            _dstFilename = localizationFile;
+        }
+
+        public Hash160 Signature { get; set; }
+
+        public string Language { get; set; }
+
+        public void BuildSignature(IBinaryWriter stream)
+        {
+            stream.Write("LanguageCompiler");
+            stream.Write(_srcFilename);
+        }
+
+        public void SaveState(IBinaryWriter stream)
+        {
+            stream.Write(_srcFilename);
+            stream.Write(_dstFilename);
+            _dependency.WriteTo(stream);
+        }
+
+        public void LoadState(IBinaryReader stream)
+        {
+            _srcFilename = stream.ReadString();
+            _dstFilename = stream.ReadString();
+            _dependency = Dependency.ReadFrom(stream);
+        }
+
+        public void CopyConstruct(IDataFile dc)
+        {
+            if (dc is LanguageCompiler lc)
+            {
+                _srcFilename = lc._srcFilename;
+                _dstFilename = lc._dstFilename;
+                _dependency = lc._dependency;
+            }
+        }
+
+        public string CookedFilename => _dstFilename;
+        public object CookedObject => new DataFile(new DataFileSignature(this), "language_t");
+
+        public DataCookResult Cook(List<IDataFile> additionalDataFiles)
+        {
+            DataCookResult result = DataCookResult.None;
             return result;
         }
     }

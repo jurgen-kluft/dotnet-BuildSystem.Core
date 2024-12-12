@@ -66,7 +66,7 @@ namespace DataBuildSystem
 
                 // Cook, fundamentally this will make sure all the cooked files are up-to-date
                 var cookResult = GameDataCompilerLog.Cook(mergedLog, out var finalDataFiles);
-                if (!cookResult.IsOk || !mergeResult.IsOk || gdu.OutOfDate)
+                if (cookResult != 0|| mergeResult != 0 || gdu.OutOfDate)
                 {
                     SignatureDatabase.RemoveBigfile(gdu.Index);
                     rebuilt.Add(gdu);

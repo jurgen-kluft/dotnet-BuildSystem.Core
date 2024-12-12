@@ -5,7 +5,7 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class FontDataFile : IDataFile
+    public sealed class FontDataFile : IDataFile, ISignature
     {
         private string mSrcFilename;
         private string mDstFilename;
@@ -54,7 +54,7 @@ namespace GameData
 
         public string CookedFilename => mDstFilename;
 
-        public object CookedObject => new DataFile(Signature, "font_t");
+        public object CookedObject => new DataFile(this, "font_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {

@@ -30,6 +30,11 @@ namespace MetaTest
         #endregion
         #region Main
 
+        public class FixedSignature : ISignature
+        {
+            public Hash160 Signature => HashUtility.Random();
+        }
+
         public enum ETestEnum : uint
         {
             EnumerationA = 0xFFFF0000,
@@ -76,7 +81,7 @@ namespace MetaTest
         public class TestData
         {
             public string Name = "A test string";
-            public DataFile File = new DataFile(Hash160.FromDateTime(DateTime.Now), "TestFile");
+            public DataFile File = new DataFile(new FixedSignature(), "TestFile");
 
             public float[] Floats = new float[8];
             public List<long> IntegerList = new() { 0,1,2,3,4 };

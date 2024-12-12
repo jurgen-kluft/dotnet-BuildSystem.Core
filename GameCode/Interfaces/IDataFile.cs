@@ -24,18 +24,19 @@ namespace GameData
     /// A data compiler is a class that takes one or more source files and compiles it into one or more destination files.
     /// The resulting FileId is the identifier and references one or more (compiled) files in the Bigfile.
     ///
+    /// The signature uniquely identifies the DataFile, mostly it is the hash of:
+    /// - The compiler type name
+    /// - The source filenames
+    /// See @BuildSignature
     /// </summary>
     public interface IDataFile
     {
         ///<summary>
-        /// A signature is generated from the 'stable' properties of a DataCompiler.
-        /// For example: The CopyCompiler should write 'CopyCompiler' and SrcFilename into the Writer stream.
+        /// A signature is generated from specific properties.
+        /// For example: The CopyCompiler should write the type name 'CopyCompiler' as well as the SrcFilename into the Writer stream.
         ///</summary>
         void BuildSignature(IBinaryWriter writer);
 
-        ///<summary>
-        /// A signature uniquely identifies a DataFile
-        ///</summary>
         Hash160 Signature { get; set; }
 
         ///<summary>

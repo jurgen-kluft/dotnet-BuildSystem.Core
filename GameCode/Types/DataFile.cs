@@ -5,15 +5,29 @@ using GameCore;
 
 namespace GameData
 {
-    public struct DataFile : IStruct, IFileId
+    public readonly struct DataFileSignature : ISignature
     {
-        public DataFile(Hash160 signature, string templateType)
+        private readonly IDataFile _dataFile;
+
+        public DataFileSignature(IDataFile datafile)
         {
-            Signature = signature;
+            _dataFile = datafile;
+        }
+
+        public Hash160 Signature => _dataFile.Signature;
+    }
+
+    public readonly struct DataFile : IStruct, ISignature
+    {
+        private readonly ISignature _signature;
+
+        public DataFile(ISignature signature, string templateType)
+        {
+            _signature = signature;
             StructTemplateType = templateType;
         }
 
-        public Hash160 Signature { get; set; }
+        public Hash160 Signature { get { return _signature.Signature; } }
 
         public bool StructIsTemplate => true; // This is a template struct
         public string StructTemplateType { get; init; }

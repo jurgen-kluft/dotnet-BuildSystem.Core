@@ -6,34 +6,31 @@ namespace DataBuildSystem
 {
     public sealed class GameDataCompilerLog
     {
-        private Dictionary<Hash160, Type> mCompilerTypeSet = new ();
-        private HashSet<Hash160> mCompilerSignatureSet = new ();
+        private readonly Dictionary<Hash160, Type> _compilerTypeSet = new ();
+        private readonly HashSet<Hash160> _compilerSignatureSet = new ();
 
         public GameDataCompilerLog()
         {
-            DataFiles = new List<IDataFile>();
+            DataFiles = [];
         }
 
         private EPlatform Platform { get; set; }
 
         public List<IDataFile> DataFiles { get; set; }
 
-        private class SignatureComparer
-        {
-            public int Compare(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
+            private static int Compare(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
             {
                 return Hash160.Compare(lhs.Key, rhs.Key);
             }
-        }
 
-        public static Result Merge(IReadOnlyList<IDataFile> previousCompilers, IReadOnlyList<IDataFile> currentCompilers, out List<IDataFile> mergedCompilers)
+        public static int Merge(IReadOnlyList<IDataFile> previousCompilers, IReadOnlyList<IDataFile> currentCompilers, out List<IDataFile> mergedCompilers)
         {
             // Cross-reference the 'previous_compilers' (loaded) with the 'current_compilers' (from GameData.___.dll) and combine into 'merged_compilers'.
 
             // We are doing this using sorted lists and binary search, since we need to be able to consider the order of the compilers.
             var previousCompilerSignatureList = BuildCompilerSignatureList(previousCompilers);
             var currentCompilerSignatureList = BuildCompilerSignatureList(currentCompilers);
-            var comparer = new SignatureComparer();
+            //var comparer = new SignatureComparer();
 
             // Maximum number of compilers that can be merged is the number of current compilers.
             mergedCompilers = new List<IDataFile>(currentCompilers.Count);
@@ -41,7 +38,6 @@ namespace DataBuildSystem
             var currentListIndex = 0;
             var previousListIndex = 0;
             var mergedPreviousCount = 0;
-            var result = Result.Ok;
             while (currentListIndex < currentCompilerSignatureList.Count)
             {
                 var signature = currentCompilerSignatureList[currentListIndex++];
@@ -50,7 +46,7 @@ namespace DataBuildSystem
                 int c = 1;
                 while (previousListIndex < previousCompilerSignatureList.Count)
                 {
-                    c = comparer.Compare(currentCompilerSignatureList[currentListIndex], previousCompilerSignatureList[previousListIndex]);
+                    c = Compare(currentCompilerSignatureList[currentListIndex], previousCompilerSignatureList[previousListIndex]);
                     if (c < 1)
                         break;
                     previousListIndex++;
@@ -72,12 +68,7 @@ namespace DataBuildSystem
                 }
             }
 
-            if (mergedPreviousCount == currentCompilers.Count)
-            {
-                return Result.Ok;
-            }
-
-            return Result.OutOfDate;
+            return (mergedPreviousCount == currentCompilers.Count) ? 0 : 1;
         }
 
         private static List<KeyValuePair<Hash160, IDataFile>> BuildCompilerSignatureList(IReadOnlyList<IDataFile> compilers)
@@ -88,17 +79,11 @@ namespace DataBuildSystem
                 signatureList.Add(new KeyValuePair<Hash160, IDataFile>(cl.Signature, cl));
             }
 
-            int Comparer(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
-            {
-                return Hash160.Compare(lhs.Key, rhs.Key);
-            }
-
-            signatureList.Sort(Comparer);
-
+            signatureList.Sort(Compare);
             return signatureList;
         }
 
-        public static Result Cook(IReadOnlyList<IDataFile> compilers, out List<IDataFile> allDataFiles)
+        public static int Cook(IReadOnlyList<IDataFile> compilers, out List<IDataFile> allDataFiles)
         {
             // This is a very simple single threaded compilation approach
             allDataFiles = new(compilers.Count);
@@ -120,12 +105,7 @@ namespace DataBuildSystem
                 }
             }
 
-            if (result == 0)
-            {
-                return Result.Ok;
-            }
-
-            return Result.OutOfDate;
+            return result;
         }
 
         private void RegisterCompilers(List<IDataFile> compilers)
@@ -133,14 +113,14 @@ namespace DataBuildSystem
             foreach (var cl in compilers)
             {
                 var typeSignature = HashUtility.Compute(cl.GetType());
-                mCompilerTypeSet.TryAdd(typeSignature, cl.GetType());
+                _compilerTypeSet.TryAdd(typeSignature, cl.GetType());
             }
         }
 
-        public Result Save(string filepath)
+        public bool Save(string filepath)
         {
             var writer = ArchitectureUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
-            if (writer == null) return Result.Error;
+            if (writer == null) return false;
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
@@ -163,11 +143,11 @@ namespace DataBuildSystem
 
                 memoryWriter.Close();
                 writer.Close();
-                return Result.Ok;
+                return true;
             }
 
             writer.Close();
-            return Result.Error;
+            return false;
         }
 
         public bool Load(string filepath)
@@ -188,10 +168,10 @@ namespace DataBuildSystem
                 // the name of the compiler has been changed. When this is the case we need to
                 // inform the user of this class that the log is out-of-date!
 
-                if (mCompilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
+                if (_compilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
                 {
                     var compiler = Activator.CreateInstance(type) as IDataFile;
-                    if (mCompilerSignatureSet.Add(compilerSignature))
+                    if (_compilerSignatureSet.Add(compilerSignature))
                     {
                         DataFiles.Add(compiler);
                     }
@@ -207,56 +187,6 @@ namespace DataBuildSystem
 
             reader.Close();
             return true;
-        }
-    }
-
-    public struct Result
-    {
-        private enum ResultEnum : int
-        {
-            Ok = 0,
-            OutOfDate = 1,
-            Error = 2,
-        }
-
-        private int ResultValue { get; set; }
-
-        private int AsInt => (int)ResultValue;
-
-        public static readonly Result Ok = new() { ResultValue = (int)ResultEnum.Ok };
-        public static readonly Result OutOfDate = new() { ResultValue = (int)ResultEnum.OutOfDate };
-        public static readonly Result Error = new() { ResultValue = (int)ResultEnum.Error };
-
-        public static Result FromRaw(int b)
-        {
-            return new() { ResultValue = (int)(b & 0x3) };
-        }
-
-        public bool IsOk => ResultValue == 0;
-        public bool IsNotOk => ResultValue != 0;
-        public bool IsOutOfDate => ((int)ResultValue & (int)(ResultEnum.OutOfDate)) != 0;
-
-        public static bool operator ==(Result b1, Result b2)
-        {
-            return b1.AsInt == b2.AsInt;
-        }
-
-        public static bool operator !=(Result b1, Result b2)
-        {
-            return b1.AsInt != b2.AsInt;
-        }
-
-        public override int GetHashCode()
-        {
-            return ResultValue;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            var other = (Result)obj;
-            return this.AsInt == other.AsInt;
-
         }
     }
 }

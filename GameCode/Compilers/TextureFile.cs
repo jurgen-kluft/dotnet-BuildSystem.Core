@@ -6,19 +6,19 @@ using DataBuildSystem;
 namespace GameData
 {
     // e.g. new FileId(new TextureCompiler("Textures/Background.PNG"));
-    public sealed class TextureCompiler : IDataFile
+    public sealed class TextureCompiler : IDataFile, ISignature
     {
-        private string mSrcFilename;
-        private string mDstFilename;
-        private Dependency mDependency;
+        private string _srcFilename;
+        private string _dstFilename;
+        private Dependency _dependency;
 
         public TextureCompiler(string filename) : this(filename, filename)
         {
         }
         public TextureCompiler(string srcFilename, string dstFilename)
         {
-            mSrcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            mDstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
         public Hash160 Signature { get; set; }
@@ -26,47 +26,47 @@ namespace GameData
         public void BuildSignature(IBinaryWriter stream)
         {
             stream.Write("TextureCompiler");
-            stream.Write(mSrcFilename);
+            stream.Write(_srcFilename);
         }
 
         public void SaveState(IBinaryWriter stream)
         {
-            stream.Write(mSrcFilename);
-            stream.Write(mDstFilename);
-            mDependency.WriteTo(stream);
+            stream.Write(_srcFilename);
+            stream.Write(_dstFilename);
+            _dependency.WriteTo(stream);
         }
 
         public void LoadState(IBinaryReader stream)
         {
-            mSrcFilename = stream.ReadString();
-            mDstFilename = stream.ReadString();
-            mDependency = Dependency.ReadFrom(stream);
+            _srcFilename = stream.ReadString();
+            _dstFilename = stream.ReadString();
+            _dependency = Dependency.ReadFrom(stream);
         }
 
         public void CopyConstruct(IDataFile dc)
         {
             if (dc is not TextureCompiler cc) return;
 
-            mSrcFilename = cc.mSrcFilename;
-            mDstFilename = cc.mDstFilename;
-            mDependency = cc.mDependency;
+            _srcFilename = cc._srcFilename;
+            _dstFilename = cc._dstFilename;
+            _dependency = cc._dependency;
         }
 
-        public string CookedFilename => mDstFilename;
-        public object CookedObject => new DataFile(Signature, "texture_t");
+        public string CookedFilename => _dstFilename;
+        public object CookedObject => new DataFile( this, "texture_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
             var result = DataCookResult.None;
-            if (mDependency == null)
+            if (_dependency == null)
             {
-                mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
-                mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
+                _dependency = new Dependency(EGameDataPath.Src, _srcFilename);
+                _dependency.Add(1, EGameDataPath.Dst, _dstFilename);
                 result = DataCookResult.DstMissing;
             }
             else
             {
-                var result3 = mDependency.Update(delegate(short id, State state)
+                var result3 = _dependency.Update(delegate(short id, State state)
                 {
                     var result2 = DataCookResult.None;
                     if (state == State.Missing)
@@ -101,10 +101,10 @@ namespace GameData
             try
             {
                 // Execute the actual purpose of this compiler
-                File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, mDstFilename), true);
+                File.Copy(Path.Join(BuildSystemCompilerConfig.SrcPath, _srcFilename), Path.Join(BuildSystemCompilerConfig.DstPath, _dstFilename), true);
 
                 // Execution is done, update the dependency to reflect the new state
-                result = mDependency.Update(null);
+                result = _dependency.Update(null);
             }
             catch (Exception)
             {

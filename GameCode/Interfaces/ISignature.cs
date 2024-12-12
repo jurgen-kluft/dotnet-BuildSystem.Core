@@ -5,9 +5,9 @@ using GameCore;
 
 namespace GameData
 {
-    public interface IFileId
+    public interface ISignature
     {
-        public Hash160 Signature { get; set; }
+        public Hash160 Signature { get; }
     }
 
 }

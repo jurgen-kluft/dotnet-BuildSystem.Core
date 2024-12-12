@@ -819,6 +819,7 @@ namespace GameData
                 var mt = MetaCode.MembersType[memberIndex];
 
                 var className = MetaCode.MembersObject[memberIndex].GetType().Name;
+                // TODO See if this Type has attributes that override the class name
 
                 writer.WriteLine($"class {className}");
                 writer.WriteLine("{");

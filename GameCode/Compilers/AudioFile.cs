@@ -6,7 +6,7 @@ using DataBuildSystem;
 namespace GameData
 {
     // e.g. new SoundDataFile("Sounds/Boot.wav");
-    public sealed class SoundDataFile : IDataFile
+    public sealed class SoundDataFile : IDataFile, ISignature
     {
         private string mSrcFilename;
         private string mDstFilename;
@@ -53,13 +53,7 @@ namespace GameData
         }
 
         public string CookedFilename => mDstFilename;
-        public object CookedObject
-        {
-            get
-            {
-                return new DataFile(Signature, "audio_t");
-            }
-        }
+        public object CookedObject=> new DataFile(this, "audio_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {

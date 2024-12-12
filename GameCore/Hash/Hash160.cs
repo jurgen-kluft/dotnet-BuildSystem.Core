@@ -342,6 +342,22 @@ namespace GameCore
     {
         #region Methods
 
+        public static Hash160 Random()
+        {
+            var hash = new byte[Hash160.Size];
+            var l1 = (long)0;
+            for (uint i = 0; i < Hash160.Size; i += 8)
+            {
+                if ((i & 7) == 0)
+                {
+                    l1 = System.Random.Shared.NextInt64();
+                }
+                hash[i] = (byte)l1;
+                l1 >>= 8;
+            }
+            return Hash160.ConstructTake(hash);
+        }
+
         public static Hash160 Compute(byte[] data)
         {
             return Sha1.Compute(data);
