@@ -87,7 +87,7 @@ namespace GameDataCompiler
             // - dstpath      %BASEPATH%\Bin.%PLATFORM%.%TARGET%
             // - pubpath      %BASEPATH%\Publish.%PLATFORM%.%TARGET%
             // - toolpath     %BASEPATH%\Tools
-            if (!BuildSystemCompilerConfig.Init(cmdLine.name, cmdLine.platform, cmdLine.target, cmdLine.territory, cmdLine.basepath, cmdLine.srcpath, cmdLine.gddpath, cmdLine.subpath, cmdLine.dstpath, cmdLine.pubpath, cmdLine.toolpath))
+            if (!BuildSystemDefaultConfig.Init(cmdLine.name, cmdLine.platform, cmdLine.target, cmdLine.territory, cmdLine.basepath, cmdLine.srcpath, cmdLine.gddpath, cmdLine.subpath, cmdLine.dstpath, cmdLine.pubpath, cmdLine.toolpath))
             {
                 Console.WriteLine("Usage: -name [NAME]");
                 Console.WriteLine("       -platform [PLATFORM]");
@@ -105,35 +105,35 @@ namespace GameDataCompiler
             }
 
             var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            Console.WriteLine("------ DataBuildSystem.NET - GameDataCompiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemCompilerConfig.Platform.ToString(), BuildSystemCompilerConfig.Target.ToString());
+            Console.WriteLine("------ DataBuildSystem.NET - GameDataCompiler: v{0} (Platform: {1}, Target: {2}) ------", version, BuildSystemDefaultConfig.Platform.ToString(), BuildSystemDefaultConfig.Target.ToString());
 
             // Record the total build time
             var buildStart = DateTime.Now;
 
             // Create the destination, gdd and publish output paths
-            DirUtils.Create(BuildSystemCompilerConfig.DstPath);
-            DirUtils.Create(BuildSystemCompilerConfig.PubPath);
+            DirUtils.Create(BuildSystemDefaultConfig.DstPath);
+            DirUtils.Create(BuildSystemDefaultConfig.PubPath);
 
             // GameDataUnits, have it initialize by loading the GameData.dll
             var gdus = new GameDataUnits();
             var gda = gdus.Initialize("GameData.dll");
 
             // BuildSystem.DataCompiler configuration
-            var configsForCompiler = AssemblyUtil.CreateN<IBuildSystemCompilerConfig>(gda);
+            var configsForCompiler = AssemblyUtil.CreateN<IBuildSystemConfig>(gda);
             if (configsForCompiler != null && configsForCompiler.Length > 0)
             {
                 foreach (var config in configsForCompiler)
                 {
-                    if (config.Platform.HasFlag(BuildSystemCompilerConfig.Platform))
+                    if (config.Platform.HasFlag(BuildSystemDefaultConfig.Platform))
                     {
-                        BuildSystemCompilerConfig.Init(config);
+                        BuildSystemDefaultConfig.Init(config);
                         break;
                     }
                 }
             }
             else
             {
-                Console.WriteLine($"Unable to find a 'BuildSystemCompilerConfig' for {BuildSystemCompilerConfig.Platform} -- error");
+                Console.WriteLine($"Unable to find a 'BuildSystemCompilerConfig' for {BuildSystemDefaultConfig.Platform} -- error");
                 return Error();
             }
 
@@ -143,7 +143,7 @@ namespace GameDataCompiler
             {
                 foreach (var config in configsForBigfileBuilder)
                 {
-                    if (config.Platform.HasFlag(BuildSystemCompilerConfig.Platform))
+                    if (config.Platform.HasFlag(BuildSystemDefaultConfig.Platform))
                     {
                         BigfileConfig.Init(config);
                         break;
@@ -152,7 +152,7 @@ namespace GameDataCompiler
             }
             else
             {
-                Console.WriteLine($"Unable to find a 'IBigfileConfig' for {BuildSystemCompilerConfig.Platform.ToString()} -- error");
+                Console.WriteLine($"Unable to find a 'IBigfileConfig' for {BuildSystemDefaultConfig.Platform.ToString()} -- error");
                 return Error();
             }
 
@@ -163,17 +163,17 @@ namespace GameDataCompiler
 
             var start = DateTime.Now;
             Console.WriteLine("------ Initializing data compilation units");
-            gdus.Load(BuildSystemCompilerConfig.DstPath, BuildSystemCompilerConfig.GddPath);
+            gdus.Load(BuildSystemDefaultConfig.DstPath, BuildSystemDefaultConfig.GddPath);
             var end = DateTime.Now;
             Console.WriteLine("Finished initialization -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 
             start = DateTime.Now;
-            Console.WriteLine("------ Data compilation started: {0}", BuildSystemCompilerConfig.Name);
-            gdus.Cook(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
+            Console.WriteLine("------ Data compilation started: {0}", BuildSystemDefaultConfig.Name);
+            gdus.Cook(BuildSystemDefaultConfig.SrcPath, BuildSystemDefaultConfig.DstPath);
             end = DateTime.Now;
             Console.WriteLine("Data compilation complete -- ok (Duration: {0}s)", (end - start).TotalSeconds);
 
-            gdus.Save(BuildSystemCompilerConfig.DstPath);
+            gdus.Save(BuildSystemDefaultConfig.DstPath);
             Console.WriteLine("Finished -- Total build time {0}s", (DateTime.Now - buildStart).TotalSeconds);
 
             return Success();

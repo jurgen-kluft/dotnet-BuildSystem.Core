@@ -32,7 +32,7 @@ namespace DataBuildSystem
         private static Assembly LoadAssembly(string gameDataDllFilename)
         {
             AssemblyLoadContext gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemCompilerConfig.GddPath, gameDataDllFilename));
+            var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemDefaultConfig.GddPath, gameDataDllFilename));
             Assembly gameDataAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
             return gameDataAssembly;
         }
@@ -40,7 +40,7 @@ namespace DataBuildSystem
         public State Cook(string srcPath, string dstPath)
         {
             // Make sure the directory structure of @SrcPath is duplicated at @DstPath
-            DirUtils.DuplicateFolderStructure(BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath);
+            DirUtils.DuplicateFolderStructure(BuildSystemDefaultConfig.SrcPath, BuildSystemDefaultConfig.DstPath);
 
             // Determine the state of each DataUnit and load their compiler log
             foreach (var gdu in DataUnits)
@@ -93,9 +93,9 @@ namespace DataBuildSystem
             SignatureDatabase.Save(GameDataPath.GetFilePathFor("SignatureDatabase", EGameData.SignatureDatabase));
 
             // Finally save the
-            // - Game Code data file
+            // - Game Code data file, this will be a Bigfile + Bigfile TOC
             // - Game Code header file
-            CppCodeStream2.Write2(BuildSystemCompilerConfig.Platform, RootDataUnit, GameDataPath.GetFilePathFor(BuildSystemCompilerConfig.Name, EGameData.GameCodeData), GameDataPath.GetFilePathFor(BuildSystemCompilerConfig.Name, EGameData.GameCodeHeader));
+            CppCodeStream2.Write2(BuildSystemDefaultConfig.Platform, RootDataUnit, GameDataPath.GetFilePathFor("GameData", EGameData.GameCodeData));
 
             return State.Ok;
         }
@@ -106,7 +106,7 @@ namespace DataBuildSystem
             var idToDataUnit = new Dictionary<string, IDataUnit>(currentDataUnits.Count);
             foreach (var cdu in currentDataUnits)
             {
-                idToDataUnit.Add(cdu.UnitId, cdu);
+                idToDataUnit.Add(cdu.GetType().GUID.ToString(), cdu);
             }
 
             var dataUnits = new Dictionary<uint, GameDataUnit>(currentDataUnits.Count + (currentDataUnits.Count / 4));
@@ -182,6 +182,7 @@ namespace DataBuildSystem
 
     public class GameDataUnit
     {
+        public string Name { get; private init; }
         public string Id { get; private init; }
         public uint Index { get; private init; }
         public IDataUnit DataUnit { get; set; }
@@ -209,7 +210,8 @@ namespace DataBuildSystem
         public GameDataUnit(string dirPath, uint index, IDataUnit dataUnit)
         {
             DataUnit = dataUnit;
-            Id = dataUnit.UnitId;
+            Name = dataUnit.GetType().Namespace + "." + dataUnit.GetType().Name;
+            Id = dataUnit.GetType().GUID.ToString();
             Index = index;
             Dep = new();
 
@@ -220,7 +222,7 @@ namespace DataBuildSystem
 
             foreach (var e in Enum.GetValues<EGameData>())
             {
-                var unitName = e == EGameData.GameDataDll ? "GameData" : dataUnit.UnitId;
+                var unitName = e == EGameData.GameDataDll ? "GameData" : Name;
                 var filename = Path.Join(dirPath, unitName) + GameDataPath.GetExtFor(e);
                 Dep.Add((short)e, GameDataPath.GetPathFor(e), filename);
             }
@@ -248,7 +250,8 @@ namespace DataBuildSystem
 
         public void Save(IBinaryWriter writer)
         {
-            writer.Write(DataUnit.UnitId);
+            writer.Write(Name);
+            writer.Write(Id);
             writer.Write(Index);
             foreach (var t in States)
                 writer.Write(t.AsInt8);
@@ -258,7 +261,7 @@ namespace DataBuildSystem
 
         public static GameDataUnit Load(IBinaryReader reader)
         {
-            GameDataUnit gdu = new() { DataUnit = null, Id = reader.ReadString(), Index = reader.ReadUInt32() };
+            GameDataUnit gdu = new() { DataUnit = null, Name = reader.ReadString(), Id = reader.ReadString(), Index = reader.ReadUInt32() };
             for (var i = 0; i < gdu.States.Length; ++i)
                 gdu.States[i] = new State(reader.ReadInt8());
             gdu.Dep = Dependency.ReadFrom(reader);
@@ -293,7 +296,7 @@ namespace DataBuildSystem
             }
 
             var bigFiles = new List<Bigfile>() { bigfile };
-            bfb.Save(BuildSystemCompilerConfig.PubPath, BuildSystemCompilerConfig.DstPath, filename, bigFiles);
+            bfb.Save(BuildSystemDefaultConfig.PubPath, BuildSystemDefaultConfig.DstPath, filename, bigFiles);
         }
 
         public static IDataUnit FindRoot(Assembly assembly)

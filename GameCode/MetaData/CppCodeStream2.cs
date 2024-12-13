@@ -37,7 +37,7 @@ namespace GameData
         // byte         -> 1 byte
         // bool         -> 1 byte (Note: 8 booleans are packed together in one byte)
 
-        public static void Write2(EPlatform platform, object data, string dataFilename, string codeFilename)
+        public static void Write2(EPlatform platform, object data, string filepath)
         {
             // Use string table in MetaCode
             var stringTable = new StringTable();
@@ -75,8 +75,10 @@ namespace GameData
             var dataStream = new CppDataStream2(platform, stringTable);
             CppDataStreamWriter2.Write(metaCode, stringTable, dataStream);
 
+            // @TODO: Write out the data units as 'files' as part of a Bigfile
+
             // Finalize the DataStream by writing the data to a file
-            var dataFileInfo = new FileInfo(dataFilename);
+            var dataFileInfo = new FileInfo(filepath);
             var dataFileStream = new FileStream(dataFileInfo.FullName, FileMode.Create);
             var dataFileStreamWriter = ArchitectureUtils.CreateBinaryWriter(dataFileStream, platform);
             dataStream.Finalize(dataFileStreamWriter);
@@ -84,7 +86,7 @@ namespace GameData
             dataFileStream.Close();
 
             // Generate the c++ code using the CppCodeWriter.
-            var codeFileInfo = new FileInfo(codeFilename);
+            var codeFileInfo = new FileInfo(Path.ChangeExtension(filepath, ".h"));
             var codeFileStream = codeFileInfo.Create();
             var codeFileStreamWriter = new StreamWriter(codeFileStream);
             var codeWriter = new CppCodeWriter2() { MetaCode = metaCode };

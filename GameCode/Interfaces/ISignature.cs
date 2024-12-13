@@ -7,7 +7,7 @@ namespace GameData
 {
     public interface ISignature
     {
-        public Hash160 Signature { get; }
+        Hash160 Signature { get; }
     }
 
 }

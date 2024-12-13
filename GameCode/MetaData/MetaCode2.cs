@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using System.Reflection;
 using TextStreamWriter = System.IO.StreamWriter;
 using GameCore;
 
@@ -61,7 +61,7 @@ namespace GameData
             public bool IsDictionary => Index == 18;
             public bool IsDataUnit => Index == 19;
 
-            private static readonly int[] sSizeInBits = new int[Count]
+            private static readonly int[] s_sizeInBits = new int[Count]
             {
                 0, // Unknown
                 1, // Bool
@@ -85,7 +85,7 @@ namespace GameData
                 64 + 32 + 32, // DataUnit (T*, offset, size)
             };
 
-            private static readonly sbyte[] sAlignment = new sbyte[Count]
+            private static readonly sbyte[] s_alignment = new sbyte[Count]
             {
                 1, // Unknown
                 1, // Bool
@@ -109,7 +109,7 @@ namespace GameData
                 16, // DataUnit (pointer, offset, size)
             };
 
-            private static readonly string[] sTypeNames = new string[Count]
+            private static readonly string[] s_typeNames = new string[Count]
             {
                 "unknown", // Unknown
                 "bool", // Bool
@@ -141,10 +141,10 @@ namespace GameData
                 private init => Value = (Value & 0xFFFFFF00) | value;
             }
 
-            public int SizeInBits => sSizeInBits[Index];
+            public int SizeInBits => s_sizeInBits[Index];
             public int SizeInBytes => (SizeInBits + 7) >> 3;
-            public int Alignment => sAlignment[Index];
-            public string NameOfType => sTypeNames[Index];
+            public int Alignment => s_alignment[Index];
+            public string NameOfType => s_typeNames[Index];
 
             private const uint FlagInPlace = 0x200000;
 
@@ -164,11 +164,12 @@ namespace GameData
             public readonly StringTable DataStrings;
             public readonly List<int> SortedMembersMap; // Sorted member index map
             public readonly List<string> MemberStrings;
-            public readonly List<MetaInfo> MembersType;
+            public readonly List<MetaInfo> MembersType; // Type of the member (int, float, string, class, struct, array, dictionary)
             public readonly List<int> MembersName;
             public readonly List<int> MembersStart; // If we are a Struct the members start here
             public readonly List<int> MembersCount; // If we are an Array/List/Dict/Struct we hold many elements/members
-            public readonly List<object> MembersObject; // This is to know the type of the class
+            public readonly List<string> MemberTypeName; // This is to know the type of the class
+            public readonly List<object> MembersObject; // This is to know content
 
             public MetaCode2(StringTable dataStrings, int estimatedCount)
             {
@@ -179,12 +180,13 @@ namespace GameData
                 MembersName = new List<int>(estimatedCount);
                 MembersStart = new List<int>(estimatedCount);
                 MembersCount = new List<int>(estimatedCount);
+                MemberTypeName = new List<string>(estimatedCount);
                 MembersObject = new List<object>(estimatedCount);
             }
 
             public int Count => MembersType.Count;
 
-            public int AddMember(MetaInfo info, int name, int startIndex, int count, object o)
+            public int AddMember(MetaInfo info, int name, int startIndex, int count, object o, string typeName)
             {
                 var index = Count;
                 SortedMembersMap.Add(index);
@@ -192,16 +194,18 @@ namespace GameData
                 MembersName.Add(name);
                 MembersStart.Add(startIndex);
                 MembersCount.Add(count);
+                MemberTypeName.Add(typeName);
                 MembersObject.Add(o);
                 return index;
             }
 
-            private void SetMember(int memberIndex, MetaInfo info, int name, int startIndex, int count, object o)
+            private void SetMember(int memberIndex, MetaInfo info, int name, int startIndex, int count, object o, string typeName)
             {
                 MembersType[memberIndex] = info;
                 MembersName[memberIndex] = name;
                 MembersStart[memberIndex] = startIndex;
                 MembersCount[memberIndex] = count;
+                MemberTypeName[memberIndex] = typeName;
                 MembersObject[memberIndex] = o;
             }
 
@@ -211,8 +215,9 @@ namespace GameData
                 var name = MembersName[memberIndex];
                 var startIndex = MembersStart[memberIndex];
                 var count = MembersCount[memberIndex];
+                var typeName = MemberTypeName[memberIndex];
                 var obj = MembersObject[memberIndex];
-                AddMember(type, name, startIndex, count, obj);
+                AddMember(type, name, startIndex, count, obj, typeName);
             }
 
             public void UpdateStartIndexAndCount(int memberIndex, int startIndex, int count)
@@ -335,7 +340,7 @@ namespace GameData
                 }
 
                 // We can combine booleans into a byte
-                var s = sizeof(byte) * 8;
+                const int s = sizeof(byte) * 8;
                 var n = MembersCount[classIndex] - (end - MembersStart[classIndex]);
                 var i = 0;
                 while (n > 0)
@@ -353,14 +358,14 @@ namespace GameData
                         DuplicateMember(mi);
 
                         // Depending on the boolean value we set the bit in the bitset
-                        value |= (bit * ((bool)MembersObject[mi] ? (uint)1 : (uint)0));
+                        value |= (bit * (uint)((bool)MembersObject[mi] ? 1 : 0));
 
                         bit <<= 1;
                         ++mi;
                     }
 
                     var mni = MembersName[end + i];
-                    SetMember(end + i, MetaInfo.AsBitSet, mni, startIndex, numBits, value);
+                    SetMember(end + i, MetaInfo.AsBitSet, mni, startIndex, numBits, value, "bool");
 
                     i += 1;
                     n -= s;
@@ -393,22 +398,20 @@ namespace GameData
             private static string GetEnumMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
                 var mt = metaCode2.MembersType[memberIndex];
-                var enumInstance = metaCode2.MembersObject[memberIndex];
-                var enumTypeName = enumInstance.GetType().Name;
+                var enumTypeName = metaCode2.MemberTypeName[memberIndex];
                 return $"{mt.NameOfType}<{enumTypeName},u32>";
             }
 
             private static string GetStructMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                var mi = metaCode2.MembersStart[memberIndex];
-                var os = metaCode2.MembersObject[mi] as IStruct;
-                return os.StructName;
+                var typeName = metaCode2.MemberTypeName[memberIndex];
+                return typeName;
             }
 
             private static string GetClassMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                var className = metaCode2.MembersObject[memberIndex].GetType().Name;
-                return $"{className}*";
+                var typeName = metaCode2.MemberTypeName[memberIndex];
+                return $"{typeName}*";
             }
 
             private static string GetArrayMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
@@ -416,7 +419,7 @@ namespace GameData
                 var mt = metaCode2.MembersType[memberIndex];
                 var msi = metaCode2.MembersStart[memberIndex];
                 var fet = metaCode2.MembersType[msi];
-                var elementTypeString = sGetMemberTypeString[fet.Index](msi, metaCode2, option); // recursive call
+                var elementTypeString = s_getMemberTypeString[fet.Index](msi, metaCode2, option); // recursive call
                 var memberTypeString = mt.NameOfType;
                 return $"{memberTypeString}<{elementTypeString}>";
             }
@@ -429,17 +432,15 @@ namespace GameData
 
                 var fk = metaCode2.MembersType[msi]; // first key element
                 var fv = metaCode2.MembersType[msi + count]; // first value element
-                var keyTypeString = sGetMemberTypeString[fk.Index](msi, metaCode2, option); // recursive call
-                var valueTypeString = sGetMemberTypeString[fv.Index](msi + count, metaCode2, option); // recursive call
+                var keyTypeString = s_getMemberTypeString[fk.Index](msi, metaCode2, option); // recursive call
+                var valueTypeString = s_getMemberTypeString[fv.Index](msi + count, metaCode2, option); // recursive call
                 var memberTypeString = mt.NameOfType;
                 return $"{memberTypeString}<{keyTypeString},{valueTypeString}>";
             }
 
             private static string GetDataUnitMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                var mt = metaCode2.MembersType[memberIndex];
-                var dataUnitInstance = metaCode2.MembersObject[memberIndex];
-                var dataUnitTypeName = dataUnitInstance != null ? dataUnitInstance.GetType().Name : "?";
+                var dataUnitTypeName = metaCode2.MemberTypeName[memberIndex];
                 return $"data_t<{dataUnitTypeName}>";
             }
 
@@ -447,12 +448,12 @@ namespace GameData
             private enum EOption
             {
                 None = 0,
-                InPlace = 1,
+                //InPlace = 1,
             }
 
             private delegate string GetMemberTypeStringDelegate(int memberIndex, MetaCode2 metaCode2, EOption option);
 
-            private static readonly GetMemberTypeStringDelegate[] sGetMemberTypeString = new GetMemberTypeStringDelegate[(int)MetaInfo.Count]
+            private static readonly GetMemberTypeStringDelegate[] s_getMemberTypeString = new GetMemberTypeStringDelegate[(int)MetaInfo.Count]
             {
                 null,
                 GetMemberTypeName,
@@ -490,14 +491,17 @@ namespace GameData
 
             private static string GetStructReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                var mi = metaCode2.MembersStart[memberIndex];
-                var ios = metaCode2.MembersObject[mi] as IStruct;
-                return ios != null ? ios.StructName : "?";
+                //var mi = metaCode2.MembersStart[memberIndex];
+                //var ios = metaCode2.MembersObject[mi] as IStruct;
+                //return ios != null ? ios.StructName : "?";
+                var typeName = metaCode2.MemberTypeName[memberIndex];
+                return typeName;
             }
 
             private static string GetClassReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                var className = metaCode2.MembersObject[memberIndex].GetType().Name;
+                //var className = metaCode2.MembersObject[memberIndex].GetType().Name;
+                var className = metaCode2.MemberTypeName[memberIndex];
                 return $"{className} const *";
             }
 
@@ -505,7 +509,7 @@ namespace GameData
             {
                 var msi = metaCode2.MembersStart[memberIndex];
                 var fet = metaCode2.MembersType[msi];
-                var elementTypeString = sGetMemberTypeString[fet.Index](msi, metaCode2, option); // recursive call
+                var elementTypeString = s_getMemberTypeString[fet.Index](msi, metaCode2, option); // recursive call
                 return $"raw_array_t<{elementTypeString}>";
             }
 
@@ -515,8 +519,8 @@ namespace GameData
                 var count = metaCode2.MembersCount[memberIndex];
                 var fkt = metaCode2.MembersType[msi]; // first key element
                 var fvt = metaCode2.MembersType[msi + count]; // first value element
-                var keyTypeString = sGetMemberTypeString[fkt.Index](msi, metaCode2, option); // recursive call
-                var valueTypeString = sGetMemberTypeString[fvt.Index](msi + count, metaCode2, option); // recursive call
+                var keyTypeString = s_getMemberTypeString[fkt.Index](msi, metaCode2, option); // recursive call
+                var valueTypeString = s_getMemberTypeString[fvt.Index](msi + count, metaCode2, option); // recursive call
                 return $"raw_dict_t<{keyTypeString}, {valueTypeString}>";
             }
 
@@ -528,7 +532,7 @@ namespace GameData
 
             private delegate string GetReturnTypeStringDelegate(int memberIndex, MetaCode2 metaCode2, EOption option);
 
-            private static readonly GetReturnTypeStringDelegate[] sGetReturnTypeString =
+            private static readonly GetReturnTypeStringDelegate[] s_getReturnTypeString =
                 new GetReturnTypeStringDelegate[(int)MetaInfo.Count]
                 {
                     null,
@@ -555,7 +559,7 @@ namespace GameData
 
             private delegate void WriteGetterDelegate(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option);
 
-            private static readonly WriteGetterDelegate[] sWriteGetterDelegates = new WriteGetterDelegate[(int)MetaInfo.Count]
+            private static readonly WriteGetterDelegate[] s_writeGetterDelegates = new WriteGetterDelegate[(int)MetaInfo.Count]
             {
                 null,
                 WritePrimitiveGetter,
@@ -581,7 +585,7 @@ namespace GameData
 
             private delegate void WriteMemberDelegate(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option);
 
-            private static readonly WriteMemberDelegate[] sWriteMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
+            private static readonly WriteMemberDelegate[] s_writeMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
             {
                 null,
                 WritePrimitiveMember,
@@ -655,8 +659,9 @@ namespace GameData
 
             private static void WriteEnumGetter(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option)
             {
-                var enumInstance = metaCode2.MembersObject[memberIndex];
-                var enumTypeName = enumInstance.GetType().Name;
+                //var enumInstance = metaCode2.MembersObject[memberIndex];
+                //var enumTypeName = enumInstance.GetType().Name;
+                var enumTypeName = metaCode2.MemberTypeName[memberIndex];
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
                 writer.WriteLine($"\tinline {enumTypeName} get{memberName}() const {{ return m_{memberName}.get(); }}");
@@ -664,8 +669,9 @@ namespace GameData
 
             private static void WriteEnumMember(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option)
             {
-                var enumInstance = metaCode2.MembersObject[memberIndex];
-                var enumTypeName = enumInstance.GetType().Name;
+                //var enumInstance = metaCode2.MembersObject[memberIndex];
+                //var enumTypeName = enumInstance.GetType().Name;
+                var enumTypeName = metaCode2.MemberTypeName[memberIndex];
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
                 writer.WriteLine($"\tenum_t<{enumTypeName}, u32> m_{memberName};");
@@ -675,9 +681,8 @@ namespace GameData
             {
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
-
-                var ios = metaCode2.MembersObject[memberIndex] as IStruct;
-                var className = ios.StructName;
+                //var ios = metaCode2.MembersObject[memberIndex] as IStruct;
+                var className = metaCode2.MemberTypeName[memberIndex];
 
                 writer.WriteLine($"\tinline {className} const& get{memberName}() const {{ return m_{memberName}; }}");
             }
@@ -686,8 +691,7 @@ namespace GameData
             {
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
-                var ios = metaCode2.MembersObject[memberIndex] as IStruct;
-                var className = ios.StructName;
+                var className = metaCode2.MemberTypeName[memberIndex];
                 writer.WriteLine($"\t{className} m_{memberName};");
             }
 
@@ -695,7 +699,8 @@ namespace GameData
             {
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
-                var className = metaCode2.MembersObject[memberIndex].GetType().Name;
+                //var memberObject = metaCode2.MembersObject[memberIndex];
+                var className = metaCode2.MemberTypeName[memberIndex];
                 writer.WriteLine($"\tinline {className} const* get{memberName}() const {{ return m_{memberName}; }}");
             }
 
@@ -703,7 +708,8 @@ namespace GameData
             {
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
-                var className = metaCode2.MembersObject[memberIndex].GetType().Name;
+                //var memberObject = metaCode2.MembersObject[memberIndex];
+                var className = metaCode2.MemberTypeName[memberIndex];
                 writer.WriteLine("\t" + className + "* m_" + memberName + ";");
             }
 
@@ -715,7 +721,7 @@ namespace GameData
                 var fet = metaCode2.MembersType[msi];
 
                 // figure out the element type of the array, could be a primitive, struct, class, enum or even another array
-                var returnTypeString = sGetReturnTypeString[fet.Index](msi, metaCode2, option);
+                var returnTypeString = s_getReturnTypeString[fet.Index](msi, metaCode2, option);
 
                 writer.WriteLine($"\tinline array_t<{returnTypeString}> const& get{memberName}() const {{ return m_{memberName}; }}");
             }
@@ -726,7 +732,7 @@ namespace GameData
                 var msi = metaCode2.MembersStart[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
                 var fet = metaCode2.MembersType[msi];
-                var elementName = sGetMemberTypeString[fet.Index](msi, metaCode2, option);
+                var elementName = s_getMemberTypeString[fet.Index](msi, metaCode2, option);
                 writer.WriteLine($"\tarray_t<{elementName}> m_{memberName};");
             }
 
@@ -741,8 +747,8 @@ namespace GameData
                 // figure out the key and value type of the dictionary, could be a primitive, struct, class, enum or even array
                 var keyElement = metaCode2.MembersType[msi];
                 var valueElement = metaCode2.MembersType[msi + count];
-                var keyTypeString = sGetReturnTypeString[keyElement.Index](msi, metaCode2, option);
-                var valueTypeString = sGetReturnTypeString[valueElement.Index](msi + count, metaCode2, option);
+                var keyTypeString = s_getReturnTypeString[keyElement.Index](msi, metaCode2, option);
+                var valueTypeString = s_getReturnTypeString[valueElement.Index](msi + count, metaCode2, option);
 
                 writer.WriteLine($"\tinline dict_t<{keyTypeString}, {valueTypeString}> const& get{memberName}() const {{ return m_{memberName}; }}");
             }
@@ -758,8 +764,8 @@ namespace GameData
                 // figure out the key and value type of the dictionary, could be a primitive, struct, class, enum or even array
                 var keyElement = metaCode2.MembersType[msi];
                 var valueElement = metaCode2.MembersType[msi + count];
-                var keyTypeString = sGetMemberTypeString[keyElement.Index](msi, metaCode2, option);
-                var valueTypeString = sGetMemberTypeString[valueElement.Index](msi + count, metaCode2, option);
+                var keyTypeString = s_getMemberTypeString[keyElement.Index](msi, metaCode2, option);
+                var valueTypeString = s_getMemberTypeString[valueElement.Index](msi + count, metaCode2, option);
 
                 writer.WriteLine($"\tdict_t<{keyTypeString}, {valueTypeString}> m_{memberName};");
             }
@@ -788,7 +794,7 @@ namespace GameData
                 writer.WriteLine("{");
                 foreach (var en in Enum.GetValues(e))
                 {
-                    var val = System.Convert.ChangeType(en, System.Enum.GetUnderlyingType(e));
+                    var val = Convert.ChangeType(en, Enum.GetUnderlyingType(e));
                     writer.WriteLine($"\t{Enum.GetName(e, en)} = {val},");
                 }
 
@@ -816,10 +822,10 @@ namespace GameData
             {
                 var msi = MetaCode.MembersStart[memberIndex];
                 var count = MetaCode.MembersCount[memberIndex];
-                var mt = MetaCode.MembersType[memberIndex];
+                //var mt = MetaCode.MembersType[memberIndex];
 
-                var className = MetaCode.MembersObject[memberIndex].GetType().Name;
-                // TODO See if this Type has attributes that override the class name
+                //var className = MetaCode.MembersObject[memberIndex].GetType().Name;
+                var className = MetaCode.MemberTypeName[memberIndex];
 
                 writer.WriteLine($"class {className}");
                 writer.WriteLine("{");
@@ -829,7 +835,7 @@ namespace GameData
                 for (var i = msi; i < msi + count; ++i)
                 {
                     var mmt = MetaCode.MembersType[i];
-                    sWriteGetterDelegates[mmt.Index](i, writer, MetaCode, option);
+                    s_writeGetterDelegates[mmt.Index](i, writer, MetaCode, option);
                 }
 
                 writer.WriteLine();
@@ -839,7 +845,7 @@ namespace GameData
                 for (var i = msi; i < msi + count; ++i)
                 {
                     var mmt = MetaCode.MembersType[i];
-                    sWriteMemberDelegates[mmt.Index](i, writer, MetaCode, EOption.None);
+                    s_writeMemberDelegates[mmt.Index](i, writer, MetaCode, EOption.None);
                 }
 
                 writer.WriteLine("};");
@@ -850,15 +856,16 @@ namespace GameData
             {
                 // Forward declares ?
                 writer.WriteLine("// Forward declares");
-                HashSet<string> writtenClasses = new();
+                HashSet<Type> writtenClasses = [];
                 for (var i = 0; i < MetaCode.MembersType.Count; ++i)
                 {
                     var mt = MetaCode.MembersType[i];
                     if (!mt.IsClass) continue;
-                    var cn = MetaCode.MembersObject[i].GetType().Name;
-                    if (writtenClasses.Contains(cn)) continue;
-                    writer.WriteLine($"class {cn};");
-                    writtenClasses.Add(cn);
+                    var ct = MetaCode.MembersObject[i].GetType();
+                    if (writtenClasses.Contains(ct)) continue;
+                    var className = MetaCode.MemberTypeName[i];
+                    writer.WriteLine($"class {className};");
+                    writtenClasses.Add(ct);
                 }
 
                 writer.WriteLine();
@@ -868,10 +875,10 @@ namespace GameData
                 {
                     var mt = MetaCode.MembersType[i];
                     if (!mt.IsClass) continue;
-                    var cn = MetaCode.MembersObject[i].GetType().Name;
-                    if (writtenClasses.Contains(cn)) continue;
+                    var ct = MetaCode.MembersObject[i].GetType();
+                    if (writtenClasses.Contains(ct)) continue;
                     WriteClass(i, writer, EOption.None);
-                    writtenClasses.Add(cn);
+                    writtenClasses.Add(ct);
                 }
 
                 writer.WriteLine();
@@ -904,62 +911,62 @@ namespace GameData
 
             public void NewBoolMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsBool, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsBool, RegisterCodeString(memberName), -1, 1, content, "bool");
             }
 
             public void NewInt8Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt8, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsInt8, RegisterCodeString(memberName), -1, 1, content, "s8");
             }
 
             public void NewUInt8Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt8, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsUInt8, RegisterCodeString(memberName), -1, 1, content, "u8");
             }
 
             public void NewInt16Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt16, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsInt16, RegisterCodeString(memberName), -1, 1, content, "s16");
             }
 
             public void NewUInt16Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt16, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsUInt16, RegisterCodeString(memberName), -1, 1, content, "u16");
             }
 
             public void NewInt32Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt32, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsInt32, RegisterCodeString(memberName), -1, 1, content, "s32");
             }
 
             public void NewUInt32Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt32, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsUInt32, RegisterCodeString(memberName), -1, 1, content, "u32");
             }
 
             public void NewInt64Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt64, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsInt64, RegisterCodeString(memberName), -1, 1, content, "s64");
             }
 
             public void NewUInt64Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt64, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsUInt64, RegisterCodeString(memberName), -1, 1, content, "u64");
             }
 
             public void NewFloatMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsFloat, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsFloat, RegisterCodeString(memberName), -1, 1, content, "f32");
             }
 
             public void NewDoubleMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsDouble, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(MetaInfo.AsDouble, RegisterCodeString(memberName), -1, 1, content, "f64");
             }
 
             public void NewStringMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsString, RegisterCodeString(memberName), RegisterDataString(content as string), 1, content);
+                _metaCode2.AddMember(MetaInfo.AsString, RegisterCodeString(memberName), RegisterDataString(content as string), 1, content, "string_t");
             }
 
             public void NewEnumMember(Type type, object content, string memberName)
@@ -967,39 +974,55 @@ namespace GameData
                 if (content is not Enum e)
                     return;
 
-                _metaCode2.AddMember(MetaInfo.AsEnum, RegisterCodeString(memberName), -1, 1, e);
+                _metaCode2.AddMember(MetaInfo.AsEnum, RegisterCodeString(memberName), -1, 1, e, e.GetType().Name);
             }
 
             public int NewArrayMember(Type type, object content, string memberName)
             {
-                return _metaCode2.AddMember(MetaInfo.AsArray, RegisterCodeString(memberName), -1, 0, content);
+                return _metaCode2.AddMember(MetaInfo.AsArray, RegisterCodeString(memberName), -1, 0, content, "array_t");
             }
 
             public int NewDictionaryMember(Type type, object content, string memberName)
             {
-                return _metaCode2.AddMember(MetaInfo.AsDictionary, RegisterCodeString(memberName), -1, 0, content);
+                return _metaCode2.AddMember(MetaInfo.AsDictionary, RegisterCodeString(memberName), -1, 0, content, "dict_t");
             }
 
             public void NewStructMember(Type type, object content, string memberName)
             {
                 // An IStruct is either a value type or a reference type, the C++ code is already 'known' in the codebase.
-                // Also the data of the 'members' of this struct are written by using the IStruct interface, so we do not
+                // The data of the 'members' of this struct are written by using the IStruct interface, so we do not
                 // need to 'parse' the members of this struct, we will just write the data as is.
                 if (content is not IStruct o)
                     return;
 
                 var metaType = MetaInfo.AsStruct;
-                _metaCode2.AddMember(metaType, RegisterCodeString(memberName), -1, 1, content);
+                _metaCode2.AddMember(metaType, RegisterCodeString(memberName), -1, 1, content, o.StructName);
             }
 
             public int NewClassMember(Type type, object content, string memberName)
             {
-                return _metaCode2.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content);
+                // Should we check for Name override attribute here?
+                var className = type.Name;
+                if (type.GetCustomAttribute<NameAttribute>() is { } nameAttribute)
+                {
+                    className = nameAttribute.Name;
+                }
+
+                // If content == null, change the type to 'void'
+
+                return _metaCode2.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content, className);
             }
 
             public void NewDataUnitMember(Type type, object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsDataUnit, RegisterCodeString(memberName), -1, 0, content);
+                // Should we check for Name override attribute here?
+                var className = type.Name;
+                if (type.GetCustomAttribute<NameAttribute>() is { } nameAttribute)
+                {
+                    className = nameAttribute.Name;
+                }
+
+                _metaCode2.AddMember(MetaInfo.AsDataUnit, RegisterCodeString(memberName), -1, 0, content, className);
             }
         }
     }

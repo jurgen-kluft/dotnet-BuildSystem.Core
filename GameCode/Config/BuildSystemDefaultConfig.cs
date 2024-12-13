@@ -3,61 +3,26 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    public interface IBuildSystemCompilerConfig
-    {
-        /// <summary>
-        /// The platform this configuration is for
-        /// </summary>
-        EPlatform Platform { get; }
-
-        /// <summary>
-        /// The resource data file name
-        /// </summary>
-        string DataFilename(string name);
-
-        /// <summary>
-        /// The resource data file extension
-        /// </summary>
-        string DataFileExtension { get; }
-
-        /// <summary>
-        /// Write the BigfileToc and Resource data in which endian
-        /// </summary>
-        bool LittleEndian { get; }
-
-        /// <summary>
-        /// Treat every enum as a 32 bit integer
-        /// </summary>
-        bool EnumIsInt32 { get; }
-
-        /// <summary>
-        /// Treat every bool as a n byte value (1, 2 or 4)
-        /// </summary>
-        int SizeOfBool { get; }
-    }
-
-    public class BuildSystemCompilerConfigDefault : IBuildSystemCompilerConfig
+    public class BuildSystemConfigDefault : IBuildSystemConfig
     {
         public EPlatform Platform => EPlatform.Win64;
-        public string DataFilename(string name) { return "Game" + "." + name; }
-        public string DataFileExtension => ".gdd";
-        public string DataRelocFileExtension => ".gdr";
+        public string Name => "Game";
         public bool LittleEndian => true;
         public bool EnumIsInt32 => false;
         public int SizeOfBool => 1;
     }
 
-    public static class BuildSystemCompilerConfig
+    public static class BuildSystemDefaultConfig
     {
-        private static IBuildSystemCompilerConfig _sConfig = new BuildSystemCompilerConfigDefault();
+        private static IBuildSystemConfig s_config = new BuildSystemConfigDefault();
 
-        public static bool LittleEndian => _sConfig.LittleEndian;
+        public static bool LittleEndian => s_config.LittleEndian;
         public static string Name { get; private set; }
         public static EPlatform Platform { get; private set; } = EPlatform.Win64;
         public static EPlatform Target { get; private set; } = EPlatform.Win64;
         public static ETerritory Territory { get; private set; } = ETerritory.Europe;
-        public static bool EnumIsInt32 => _sConfig.EnumIsInt32;
-        public static int SizeOfBool => _sConfig.SizeOfBool;
+        public static bool EnumIsInt32 => s_config.EnumIsInt32;
+        public static int SizeOfBool => s_config.SizeOfBool;
         public static string BasePath { get; private set;}
         public static string SrcPath { get; private set;}
         public static string GddPath { get; private set;}
@@ -65,7 +30,6 @@ namespace DataBuildSystem
         public static string DstPath { get; private set;}
         public static string PubPath { get; private set;}
         public static string ToolPath{ get; private set;}
-        public static string DataFileExtension => _sConfig.DataFileExtension;
 
         public static bool FolderFilter(string folder)
         {
@@ -89,7 +53,7 @@ namespace DataBuildSystem
             var platformStr = Path.GetExtension(filename).TrimStart('.');
 
             // Name.%PLATFORM%.cs
-            var platform = FromString(platformStr, Platform);
+            var platform = EnumFromString(platformStr, Platform);
             if (platform != Platform)
                 return true;
 
@@ -132,9 +96,9 @@ namespace DataBuildSystem
             GameCore.Environment.addVariable("TERRITORY", territory);
             GameCore.Environment.addVariable("BASEPATH", GameCore.Environment.expandVariables(basePath));
 
-            Platform = FromString(platform, EPlatform.Win64);
-            Target = FromString(target, EPlatform.Win64);
-            Territory = FromString(territory, ETerritory.USA);
+            Platform = EnumFromString(platform, EPlatform.Win64);
+            Target = EnumFromString(target, EPlatform.Win64);
+            Territory = EnumFromString(territory, ETerritory.USA);
 
             Name = name;
             BasePath = GameCore.Environment.expandVariables(basePath);
@@ -148,12 +112,12 @@ namespace DataBuildSystem
             return true;
         }
 
-        public static void Init(IBuildSystemCompilerConfig config)
+        public static void Init(IBuildSystemConfig config)
         {
-            _sConfig = config ?? new BuildSystemCompilerConfigDefault();
+            s_config = config ?? new BuildSystemConfigDefault();
         }
 
-        private static T FromString<T>(string @string, T @default)
+        private static T EnumFromString<T>(string @string, T @default)
         {
             var names = Enum.GetNames(typeof(T));
             var name = string.Empty;
@@ -167,11 +131,6 @@ namespace DataBuildSystem
                 return @default;
 
             return (T)Enum.Parse(typeof(T), name);
-        }
-
-        public static string DataFilename(string name)
-        {
-            return _sConfig.DataFilename(name);
         }
     }
 }

@@ -1,43 +1,40 @@
-using System;
 using GameCore;
 using BigfileBuilder;
 using DataBuildSystem;
 
 namespace GameData
 {
-    public class BigfileCustomConfigPC : IBigfileConfig
+    public sealed class BigfileConfigPc : IBigfileConfig
     {
         public EPlatform Platform { get { return EPlatform.Win64; } }
-        public string BigfileName { get { return "Game"; } }
+        public string BigfileName { get { return "TestGame"; } }
         public string BigFileExtension { get { return ".bfd"; } }
         public string BigFileTocExtension { get { return ".bft"; } }
         public string BigFileFdbExtension { get { return ".bff"; } }
-		public string BigFileHdbExtension { get { return ".bfh"; } }
+        public string BigFileHdbExtension { get { return ".bfh"; } }
         public uint FileAlignment { get { return 256; } }
         public bool AllowDuplicateFiles { get { return false; } }
-        public bool WriteAsync { get { return true; } }
         public uint ReadBufferSize { get { return 8 * 1024 * 1024; } }
         public uint WriteBufferSize { get { return 48 * 1024 * 1024; } }
     }
 
-    public class BuildSystemCompilerCustomConfigPC : IBuildSystemCompilerConfig
+    public sealed class BuildSystemConfigPc : IBuildSystemConfig
     {
-        public EPlatform Platform { get { return EPlatform.Win64; } }
-        public string DataFilename(string name) { return name; }
-        public string DataFileExtension { get { return ".gdf"; } }
-        public bool LittleEndian { get { return true; } }
-        public bool EnumIsInt32 { get { return true; } }
-		public int SizeOfBool { get { return 4; } }
+        public string Name =>  "TestGame";
+        public EPlatform Platform => EPlatform.Win64;
+        public bool LittleEndian => true;
+        public bool EnumIsInt32 => true;
+        public int SizeOfBool => 4;
     }
 
-    public class BuildSystemLocalizerConfigPC : IBuildSystemLocalizerConfig
+    public sealed class LocalizerConfigPc : ILocalizerConfig
     {
-        public EPlatform Platform { get { return EPlatform.Win64; } }
-        public bool LittleEndian { get { return true; } }
-        public bool Unicode { get { return false; } }
-        public string SubDepFileExtension { get { return ".sdep"; } }
-        public string MainDepFileExtension { get { return ".dep"; } }
-        public string SubLocFileExtension { get { return ".sloc"; } }
-        public string MainLocFileExtension { get { return ".loc"; } }
+        public EPlatform Platform => EPlatform.Win64;
+        public bool LittleEndian => true;
+        public bool Unicode => false;
+        public string SubDepFileExtension => ".sdep";
+        public string MainDepFileExtension => ".dep";
+        public string SubLocFileExtension => ".sloc";
+        public string MainLocFileExtension => ".loc";
     }
 }

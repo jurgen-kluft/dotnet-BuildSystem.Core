@@ -15,15 +15,14 @@ namespace GameData
 	public enum EGameData : int
 	{
 		GameDataDll = 0,
-        SignatureDatabase = 1,
-		GameDataCompilerLog = 2,
-		GameDataData = 3,
-		BigFileData = 4,
-		BigFileToc = 5,
-		BigFileFilenames = 6,
-		BigFileHashes = 7,
-        GameCodeData = 8,
-        GameCodeHeader = 9,
+        SignatureDatabase,
+		GameDataCompilerLog,
+		BigFileData,
+		BigFileToc,
+		BigFileFilenames,
+		BigFileHashes,
+        GameCodeData,
+        GameCodeHeader,
 	}
 
 	public static class GameDataPath
@@ -37,10 +36,10 @@ namespace GameData
 		{
 			return p switch
 			{
-				EGameDataPath.Src => BuildSystemCompilerConfig.SrcPath,
-				EGameDataPath.Gdd => BuildSystemCompilerConfig.GddPath,
-				EGameDataPath.Dst => BuildSystemCompilerConfig.DstPath,
-				EGameDataPath.Pub => BuildSystemCompilerConfig.PubPath,
+				EGameDataPath.Src => BuildSystemDefaultConfig.SrcPath,
+				EGameDataPath.Gdd => BuildSystemDefaultConfig.GddPath,
+				EGameDataPath.Dst => BuildSystemDefaultConfig.DstPath,
+				EGameDataPath.Pub => BuildSystemDefaultConfig.PubPath,
 				_ => string.Empty
 			};
 		}
@@ -57,7 +56,6 @@ namespace GameData
                 EGameData.GameDataDll => ".dll",
                 EGameData.SignatureDatabase => ".sdb",
 				EGameData.GameDataCompilerLog => ".gdl",
-				EGameData.GameDataData => BuildSystemCompilerConfig.DataFileExtension,
 				EGameData.BigFileData => BigFileExtension,
 				EGameData.BigFileToc => BigFileTocExtension,
 				EGameData.BigFileFilenames => BigFileFdbExtension,

@@ -45,7 +45,8 @@ namespace MetaTest
 
         public class TestDataUnit : IDataUnit
         {
-            public string UnitId => "TestDataUnit";
+            public string Name => "TestDataUnit";
+            public string Signature => "c90d7236-b441-497e-a3a8-c84c17981777";
 
             public float m_Float = 3.14f;
             public int m_Int = 1;
@@ -56,7 +57,8 @@ namespace MetaTest
 
         public class TestRoot : IRootDataUnit
         {
-            public string UnitId => "TestRoot";
+            public string Name => "TestRoot";
+            public string Signature => "6e65acae-6ba3-48f9-9ea3-c4194ce3103a";
 
             public float m_Float = 3.14f;
             public int m_Int = 1;
@@ -97,7 +99,7 @@ namespace MetaTest
 
         static int Main(string[] args)
         {
-            CppCodeStream2.Write2(EPlatform.Win64, new TestRoot(), "metatest.cdd", "metatest.h");
+            CppCodeStream2.Write2(EPlatform.Win64, new TestRoot(), "metatest.bfd");
             return Success();
         }
 

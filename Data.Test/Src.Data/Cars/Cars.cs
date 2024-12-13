@@ -16,8 +16,6 @@ namespace GameData
 
     public partial class Cars : IDataUnit
     {
-        public string UnitId { get; } = "Cars-56e889c7-1051-4147-9544-c37ee7bc927e";
-
         public Car[] m_cars;
 
         public Cars()

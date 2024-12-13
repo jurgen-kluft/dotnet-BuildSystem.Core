@@ -26,6 +26,7 @@ namespace GameData
         bool IsClass(Type t);
         bool IsStruct(Type t);
         bool IsIStruct(Type t);
+        bool IsDataFile(Type t);
         bool IsDataUnit(Type t);
     }
 
@@ -129,6 +130,11 @@ namespace GameData
         public bool IsIStruct(Type t)
         {
             return HasGenericInterface(t, typeof(GameData.IStruct));
+        }
+
+        public bool IsDataFile(Type t)
+        {
+            return !t.IsPrimitive && HasGenericInterface(t, typeof(GameData.IDataFile));
         }
 
         public bool IsDataUnit(Type t)

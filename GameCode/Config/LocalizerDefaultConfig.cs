@@ -3,52 +3,8 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    public interface IExcelCharConversion
-    {
-        char From { get; }
-        char To { get; }
-    }
 
-    public interface IExcelSheetColumn
-    {
-        string Name { get; }
-        int Column { get; }
-        int BeginRow { get; }
-        int EndRow { get; }
-        byte[] AsciiSet { get; }
-    }
-
-    public interface IExcelSheetConfig
-    {
-        int BeginRow { get; }
-        int EndRow { get; }
-        IExcelSheetColumn[] Columns { get; }
-    }
-
-    public interface IBuildSystemLocalizerConfig
-    {
-        /// <summary>
-        /// The platform this configuration is for
-        /// </summary>
-        EPlatform Platform { get; }
-
-        /// <summary>
-        /// Endianness of the build
-        /// </summary>
-        bool LittleEndian { get; }
-
-        /// <summary>
-        /// Write the .loc file strings in unicode instead of ascii
-        /// </summary>
-        bool Unicode { get; }
-
-        string SubDepFileExtension { get; }
-        string MainDepFileExtension { get; }
-        string SubLocFileExtension { get; }
-        string MainLocFileExtension { get; }
-    }
-
-    public class BuildSystemLocalizerDefaultConfig : IBuildSystemLocalizerConfig
+    public class LocalizerDefaultConfig : ILocalizerConfig
     {
         public EPlatform Platform => EPlatform.Win64;
 
@@ -67,7 +23,7 @@ namespace DataBuildSystem
 
     public static class LocalizerConfig
     {
-        private static IBuildSystemLocalizerConfig _sConfig = new BuildSystemLocalizerDefaultConfig();
+        private static ILocalizerConfig _sConfig = new LocalizerDefaultConfig();
 
         public static string Name { get; private set; } = string.Empty;
 
@@ -164,7 +120,7 @@ namespace DataBuildSystem
             return true;
         }
 
-        public static void SetConfig(IBuildSystemLocalizerConfig config)
+        public static void SetConfig(ILocalizerConfig config)
         {
             if (config != null)
                 _sConfig = config;

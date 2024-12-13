@@ -1,9 +1,11 @@
 
+using GameCore;
+
 namespace GameData
 {
     public interface IDataUnit
     {
-        string UnitId { get; }
+        // We use the Type.Name and Type.Namespace to identify the data unit
     }
 
     public interface IRootDataUnit : IDataUnit

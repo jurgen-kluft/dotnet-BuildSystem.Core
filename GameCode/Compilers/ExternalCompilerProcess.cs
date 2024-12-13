@@ -46,9 +46,9 @@ namespace GameData
 
         private void ConstructProcess(Filename binarizer, Dirname workDir, int timeOutInMinutes)
         {
-            mProcess = new Process(BuildSystemCompilerConfig.ToolPath+binarizer, workDir, timeOutInMinutes);
+            mProcess = new Process(BuildSystemDefaultConfig.ToolPath+binarizer, workDir, timeOutInMinutes);
 
-            FileCommander.createDirectoryOnDisk(BuildSystemCompilerConfig.DstPath);
+            FileCommander.createDirectoryOnDisk(BuildSystemDefaultConfig.DstPath);
 
             //const string additionalExtension = ".tdep";
 
@@ -57,7 +57,7 @@ namespace GameData
 
         public string Arguments(string filename)
         {
-            return string.Format("-srcpath \"{0}\" -dstpath \"{1}\" -srcfile \"{2}\"", BuildSystemCompilerConfig.SrcPath, BuildSystemCompilerConfig.DstPath, filename, BuildSystemCompilerConfig.Platform.ToString());
+            return string.Format("-srcpath \"{0}\" -dstpath \"{1}\" -srcfile \"{2}\"", BuildSystemDefaultConfig.SrcPath, BuildSystemDefaultConfig.DstPath, filename, BuildSystemDefaultConfig.Platform.ToString());
         }
 
         public string Arguments(string filename, string appendToCmdLine)

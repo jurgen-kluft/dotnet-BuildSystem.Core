@@ -155,7 +155,12 @@ namespace GameData
                 }
             }
 
-            if (_typeInformation.IsIStruct(dataObjectFieldType))
+            if (_typeInformation.IsDataUnit(dataObjectFieldType))
+            {
+                // A DataUnit is a class derived from IDataUnit and will be emitted as
+                // a pointer + data-unit-index
+            }
+            else if (_typeInformation.IsIStruct(dataObjectFieldType))
             {
                 _memberFactory.NewStructMember(dataObjectFieldType, dataObjectFieldValue, memberName);
             }

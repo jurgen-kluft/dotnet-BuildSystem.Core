@@ -136,9 +136,9 @@ namespace DataBuildSystem
             }
 
             // Configuration for data build system compiler
-            var configForBuildSystemCompiler = AssemblyUtil.Create1<IBuildSystemCompilerConfig>(configDataAssembly);
+            var configForBuildSystemCompiler = AssemblyUtil.Create1<IBuildSystemConfig>(configDataAssembly);
             if (configForBuildSystemCompiler != null)
-                BuildSystemCompilerConfig.Init(configForBuildSystemCompiler);
+                BuildSystemDefaultConfig.Init(configForBuildSystemCompiler);
 
             // Configuration for dependency system
             //IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
@@ -146,7 +146,7 @@ namespace DataBuildSystem
             //    DependencySystemConfig.Init(configForDependencySystem);
 
             // Configuration for localizer
-            var buildSystemLocalizerConfig = AssemblyUtil.Create1<IBuildSystemLocalizerConfig>(configDataAssembly) ?? new BuildSystemLocalizerDefaultConfig();
+            var buildSystemLocalizerConfig = AssemblyUtil.Create1<ILocalizerConfig>(configDataAssembly) ?? new LocalizerDefaultConfig();
             if (buildSystemLocalizerConfig!=null)
                 LocalizerConfig.SetConfig(buildSystemLocalizerConfig);
 

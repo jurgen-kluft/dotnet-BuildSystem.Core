@@ -4,8 +4,6 @@ namespace GameData
 {
 	public class GameRoot : IRootDataUnit
 	{
-        public string UnitId { get; } = "GameData";
-
 		public SoundDataFile BootSound = new ("Sound/BootChime.wav");
 
 		public AI AI = new AI();

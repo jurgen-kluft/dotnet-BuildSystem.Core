@@ -25,17 +25,9 @@ Every IDataFile generates a CookedObject, and the game code/data generator will 
 - A normal class
 - A class derived from IGenericStruct
 
-## IGenericStruct (the other way)
+## DataFile, IStruct (the other way)
 
-```csharp
-interface IGenericStruct
-{
-    string StructTypeName { get; }     // e.g. datafile_t<>
-    string GenericTypeName { get; }    // e.g. shader_t
-}
-```
-
-A IDataFile can also return an object derived from IGenericStruct, by doing this it will be used to have the generated code/data appear in C++ as a kind of fileid_t:
+A IDataFile can also return an object that is a DataFile (IStruct), by doing this it will be used to have the generated code/data appear in C++ as a kind of fileid_t:
 
 ```c++
 template<typename T>
