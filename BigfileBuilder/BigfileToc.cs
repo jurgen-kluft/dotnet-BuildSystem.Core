@@ -1,18 +1,33 @@
 using System.Diagnostics;
 using System.Text;
-using GameCore;
-using GameData;
 
 namespace BigfileBuilder
 {
+    interface IBinaryStreamReader
+    {
+        long Position { get; set; }
+
+        void Close();
+
+        int ReadInt32();
+        uint ReadUInt32();
+        int Read(byte[] bytes, int index, int count);
+    }
+
+    interface IBinaryStreamWriter
+    {
+        long Position { get; set; }
+
+        void Close();
+
+        void Write(int value);
+        void Write(uint value);
+        void Write(byte[] bytes, int index, int count);
+    }
+
     public sealed class BigfileToc
     {
-        [Flags]
-        public enum ETocFlags : byte
-        {
-            None = 0,
-            Compressed = 1,
-        }
+        private const int HashSize = 20;
 
         private interface IReadContext
         {
@@ -87,11 +102,6 @@ namespace BigfileBuilder
                 writer.Write((int)offset);
             }
 
-            public void WriteChildFileId(IBinaryStreamWriter writer, ulong childFileId)
-            {
-                writer.Write(childFileId);
-            }
-
             public void WriteFileSize(IBinaryStreamWriter writer, ITocEntry entry)
             {
                 var fileSize = entry.FileSize;
@@ -112,12 +122,11 @@ namespace BigfileBuilder
         public interface ITocEntry
         {
             ulong Offset { get; set; }
-            ETocFlags Flags { get; set; }
             string Filename { get; set; }
             uint FilenameOffset { get; set; }
             ulong FileOffset { get; set; }
             uint FileSize { get; set; }
-            Hash160 FileContentHash { get; set; }
+            byte[] FileContentHash { get; set; }
         }
 
         /// <summary>
@@ -125,9 +134,9 @@ namespace BigfileBuilder
         /// </summary>
         private static class Factory
         {
-            public static ITocEntry Create(ulong fileOffset, uint fileSize, string filename, ETocFlags type, Hash160 contentHash)
+            public static ITocEntry Create(ulong fileOffset, uint fileSize, string filename, byte[] contentHash)
             {
-                return new TocEntry(fileOffset, fileSize, filename, type, contentHash);
+                return new TocEntry(fileOffset, fileSize, filename, contentHash);
             }
 
             public static IReadContext CreateReadTocContext(List<TocSection> sections, ITocEntryReader tocEntryReader)
@@ -184,13 +193,12 @@ namespace BigfileBuilder
         private sealed class TocEntry : ITocEntry
         {
             public TocEntry()
-                : this(ulong.MaxValue, 0, string.Empty, ETocFlags.None, Hash160.Empty)
+                : this(ulong.MaxValue, 0, string.Empty, new byte[HashSize])
             {
             }
 
-            public TocEntry(ulong fileOffset, uint fileSize, string filename, ETocFlags tocFlags, Hash160 contentHash)
+            public TocEntry(ulong fileOffset, uint fileSize, string filename, byte[] contentHash)
             {
-                Flags = tocFlags;
                 Filename = filename;
                 FilenameOffset = 0;
                 FileOffset = fileOffset;
@@ -199,12 +207,11 @@ namespace BigfileBuilder
             }
 
             public ulong Offset { get; set; } // Offset of this struct in the stream
-            public ETocFlags Flags { get; set; }
             public string Filename { get; set; }
             public uint FilenameOffset { get; set; }
             public ulong FileOffset { get; set; }
             public uint FileSize { get; set; }
-            public Hash160 FileContentHash { get; set; }
+            public byte[] FileContentHash { get; set; }
         }
 
         // <summary>
@@ -247,7 +254,7 @@ namespace BigfileBuilder
 
                 if (outerIter < Sections.Count)
                 {
-                    if (outerIter.IsEven())
+                    if ((outerIter&1) == 0)
                     {
                         // iterate for Sections[block].Toc.Count;
                     }
@@ -279,7 +286,7 @@ namespace BigfileBuilder
                     case >= 0:
                         var sectionIndex = (outerIter / 2);
 
-                        if (outerIter.IsEven())
+                        if ((outerIter & 1) == 0)
                         {
                             // Read Toc Entries
                             var e = Sections[sectionIndex].Toc[innerIter];
@@ -434,11 +441,11 @@ namespace BigfileBuilder
 
                     case >= 0:
                         // Read Toc Entry content hash
-                        var hash = new byte[Hash160.Size];
+                        var hash = new byte[HashSize];
                         reader.Read(hash, 0, hash.Length);
 
                         var te = Sections[outerIter].Toc[innerIter];
-                        te.FileContentHash = Hash160.ConstructTake(hash);
+                        te.FileContentHash = hash;
 
                         return innerIter < Sections[outerIter].Toc.Count;
                 }
@@ -507,7 +514,7 @@ namespace BigfileBuilder
                         {
                             var section = Sections[outerIter / 2];
                             var e = section.Toc[innerIter];
-                            if (outerIter.IsEven())
+                            if ((outerIter & 1) == 0)
                             {
                                 TocEntryWriter.WriteFileOffset(writer, e);
                                 TocEntryWriter.WriteFileSize(writer, e);
@@ -566,7 +573,8 @@ namespace BigfileBuilder
                             offset += sizeof(uint);
                             offset += sizeof(uint);
                             offset += strByteLen + 1;
-                            offset = CMath.AlignUp32(offset, 4);
+                            //offset = CMath.AlignUp32(offset, 4);
+                            offset = (offset + (4 - 1)) & ~(uint)(4 - 1);
                         }
                     }
 
@@ -577,7 +585,7 @@ namespace BigfileBuilder
                         writer.Write(section.TocOffset);
                     }
 
-                    StringByteBuffer = new byte[CMath.AlignUp32(maxStrByteLen + 64, 256)];
+                    StringByteBuffer = new byte[(maxStrByteLen + 64 + (256-1)) & ~(256-1)];
                 }
                 else
                 {
@@ -647,14 +655,14 @@ namespace BigfileBuilder
                     {
                         writer.Write(offset); // Write the offset of this section
                         writer.Write(section.TocCount); // Write the count of this section
-                        offset += (uint)(section.TocCount * Hash160.Size); // The size of Hash160
+                        offset += (uint)(section.TocCount * HashSize); // The size of Hash160
                     }
                     // Per section, write the hash of each TocEntry
                     foreach (var section in Sections)
                     {
                         foreach (var te in section.Toc)
                         {
-                            te.FileContentHash.WriteTo(writer);
+                            writer.Write(te.FileContentHash, 0, HashSize);
                         }
                     }
                 }
@@ -672,9 +680,18 @@ namespace BigfileBuilder
             }
         }
 
-        private static void ReadTable(IReadContext context, Stream stream, EPlatform platform)
+        private static IBinaryStreamReader CreateBinaryFileReader(FileStream fileStream, bool isLittleEndian)
         {
-            var binaryReader = ArchitectureUtils.CreateBinaryReader(stream, platform);
+            return null;
+        }
+        private static IBinaryStreamWriter CreateBinaryFileWriter(FileStream fileStream, bool isLittleEndian)
+        {
+            return null;
+        }
+
+        private static void ReadTable(IReadContext context, FileStream fileStream, bool isLittleEndian)
+        {
+            var binaryReader = CreateBinaryFileReader(fileStream, isLittleEndian);
             {
                 var block = -1;
                 do
@@ -704,9 +721,9 @@ namespace BigfileBuilder
             return fileStream;
         }
 
-        private static void WriteTable(IWriteContext context, Stream stream, EPlatform platform)
+        private static void WriteTable(IWriteContext context, FileStream fileStream, bool isLittleEndian)
         {
-            var binaryWriter = ArchitectureUtils.CreateBinaryWriter(stream, platform);
+            var binaryWriter = CreateBinaryFileWriter(fileStream, isLittleEndian);
             {
                 var block = -1;
                 do
@@ -736,8 +753,9 @@ namespace BigfileBuilder
             return fileStream;
         }
 
-        public bool Load(string filename, EPlatform platform, List<Bigfile> bigFiles)
+        public static bool Load(string filename, List<Bigfile> bigFiles)
         {
+            const bool isLittleEndian = true;
             var sections = new List<TocSection>();
 
             try
@@ -752,9 +770,9 @@ namespace BigfileBuilder
                 {
                     try
                     {
-                        ReadTable(Factory.CreateReadTocContext(sections, tocEntryReader), bigFileTocFileStream, platform);
-                        ReadTable(Factory.CreateReadFdbContext(sections), bigFileFdbFileStream, platform);
-                        ReadTable(Factory.CreateReadHdbContext(sections), bigFileHdbFileStream, platform);
+                        ReadTable(Factory.CreateReadTocContext(sections, tocEntryReader), bigFileTocFileStream, isLittleEndian);
+                        ReadTable(Factory.CreateReadFdbContext(sections), bigFileFdbFileStream, isLittleEndian);
+                        ReadTable(Factory.CreateReadHdbContext(sections), bigFileHdbFileStream, isLittleEndian);
                     }
                     catch (Exception e)
                     {
@@ -775,8 +793,10 @@ namespace BigfileBuilder
             return true;
         }
 
-        public static bool Save(EPlatform platform, string bigfileFilename, List<Bigfile> bigFiles)
+        public static bool Save(string bigfileFilename, List<Bigfile> bigFiles)
         {
+            const bool isLittleEndian = true;
+
             // Create all TocEntry items in the same order as the Bigfile files which is important
             // because the FileId is equal to the location(index) in the List/Array.
             var totalNumEntries = 0;
@@ -791,7 +811,7 @@ namespace BigfileBuilder
                 var section = new TocSection(bf.Files.Count);
                 foreach (var file in bf.Files)
                 {
-                    var fileEntry = Factory.Create(file.Offset, (uint)file.Size, file.Filename, ETocFlags.None, file.ContentHash);
+                    var fileEntry = Factory.Create(file.Offset, (uint)file.Size, file.Filename, file.ContentHash);
                     section.Toc.Add(fileEntry);
                 }
 
@@ -810,9 +830,9 @@ namespace BigfileBuilder
                 {
                     try
                     {
-                        WriteTable(Factory.CreateWriteTocContext(sections, tocEntryWriter), bigFileTocFileStream, platform);
-                        WriteTable(Factory.CreateWriteFdbContext(sections), bigFileFdbFileStream, platform);
-                        WriteTable(Factory.CreateWriteHdbContext(sections), bigFileHdbFileStream, platform);
+                        WriteTable(Factory.CreateWriteTocContext(sections, tocEntryWriter), bigFileTocFileStream, isLittleEndian);
+                        WriteTable(Factory.CreateWriteFdbContext(sections), bigFileFdbFileStream, isLittleEndian);
+                        WriteTable(Factory.CreateWriteHdbContext(sections), bigFileHdbFileStream, isLittleEndian);
                     }
                     catch (Exception e)
                     {

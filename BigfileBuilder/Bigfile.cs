@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using GameCore;
 
 namespace BigfileBuilder
 {
@@ -48,7 +47,7 @@ namespace BigfileBuilder
             offset = Offset;
             var fi = new FileInfo(filepath);
             size = (ulong)fi.Length;
-            Offset += CMath.AlignUp(offset, BigfileConfig.FileAlignment);
+            Offset += (offset + (BigfileConfig.FileAlignment - 1)) & ~(BigfileConfig.FileAlignment - 1);
             return true;
         }
     }
@@ -66,7 +65,6 @@ namespace BigfileBuilder
 
                 var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 var bigfileInfo = new FileInfo(bigfileFilepath);
-                DirUtils.Create(bigfileInfo.DirectoryName);
                 BigfileFileStream = new FileStream(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (int)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
 
                 // Reserve this file size on disk to speed up the writing of many files
@@ -125,7 +123,7 @@ namespace BigfileBuilder
             }
 
             // Align the file, gap should be filled with zeros (for compression and hashing to be deterministic between runs)
-            var alignedPosition = CMath.AlignUp((position + fileSize), BigfileConfig.FileAlignment);
+            var alignedPosition = ((position + fileSize) + (BigfileConfig.FileAlignment - 1)) & ~(BigfileConfig.FileAlignment - 1);
             var aligningBytesToWrite = (int)(alignedPosition - position);
             if (aligningBytesToWrite>0)
             {

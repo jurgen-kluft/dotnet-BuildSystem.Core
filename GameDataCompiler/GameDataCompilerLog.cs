@@ -119,7 +119,7 @@ namespace DataBuildSystem
 
         public bool Save(string filepath)
         {
-            var writer = ArchitectureUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, LocalizerConfig.Platform);
             if (writer == null) return false;
 
             MemoryStream memoryStream = new();

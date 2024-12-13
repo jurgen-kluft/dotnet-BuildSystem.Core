@@ -195,7 +195,7 @@ namespace DataBuildSystem
         public bool Save()
         {
             var filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), FilePaths[0] + ".dep");
-            var writer = ArchitectureUtils.CreateBinaryWriter(filepath, Platform.Current);
+            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, Platform.Current);
             if (writer != null)
             {
                 writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));

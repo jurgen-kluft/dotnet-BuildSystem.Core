@@ -38,12 +38,162 @@ namespace GameCore
     {
     }
 
-    public class BinaryStreamWriter : IBinaryStreamWriter
+    public class BinaryFileStreamWriter : IBinaryStreamWriter
     {
-        private readonly Stream _stream;
+        private readonly FileStream _stream;
         private readonly byte[] _buffer = new byte[256];
 
-        public BinaryStreamWriter(Stream stream)
+        public BinaryFileStreamWriter(FileStream stream)
+        {
+            _stream = stream;
+        }
+
+        public void Write(sbyte v)
+        {
+            _stream.WriteByte((byte)v);
+        }
+
+        public void Write(byte v)
+        {
+            _stream.WriteByte(v);
+        }
+
+        public void Write(short v)
+        {
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _stream.Write(_buffer, 0, 2);
+        }
+
+        public void Write(ushort v)
+        {
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _stream.Write(_buffer, 0, 2);
+        }
+
+        public void Write(int v)
+        {
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _stream.Write(_buffer, 0, 4);
+        }
+
+        public void Write(uint v)
+        {
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _stream.Write(_buffer, 0, 4);
+        }
+
+        public void Write(long v)
+        {
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _buffer[4] = (byte)(v >> 32);
+            _buffer[5] = (byte)(v >> 40);
+            _buffer[6] = (byte)(v >> 48);
+            _buffer[7] = (byte)(v >> 56);
+            _stream.Write(_buffer, 0, 8);
+        }
+
+        public void Write(ulong v)
+        {
+            _buffer[0] = (byte)v;
+            _buffer[1] = (byte)(v >> 8);
+            _buffer[2] = (byte)(v >> 16);
+            _buffer[3] = (byte)(v >> 24);
+            _buffer[4] = (byte)(v >> 32);
+            _buffer[5] = (byte)(v >> 40);
+            _buffer[6] = (byte)(v >> 48);
+            _buffer[7] = (byte)(v >> 56);
+            _stream.Write(_buffer, 0, 8);
+        }
+
+        public void Write(float v)
+        {
+            if (BitConverter.TryWriteBytes(_buffer, v))
+                _stream.Write(_buffer, 0, 4);
+        }
+
+        public void Write(double v)
+        {
+            if (BitConverter.TryWriteBytes(_buffer, v))
+                _stream.Write(_buffer, 0, 8);
+        }
+
+        public void Write(byte[] data)
+        {
+            _stream.Write(data, 0, data.Length);
+        }
+
+        public void Write(byte[] data, int index, int count)
+        {
+            _stream.Write(data, index, count);
+        }
+
+        public void Write(ReadOnlySpan<byte> span)
+        {
+            _stream.Write(span);
+        }
+
+        public void Write(string v)
+        {
+            var byteCount = System.Text.Encoding.UTF8.GetByteCount(v);
+            if (byteCount < _buffer.Length)
+            {
+                System.Text.Encoding.UTF8.GetBytes(v, _buffer);
+                _buffer[byteCount] = 0;
+                Write(byteCount + 1);
+                _stream.Write(_buffer, 0, byteCount+1);
+            }
+            else
+            {
+                var buffer = new byte[byteCount + 1];
+                System.Text.Encoding.UTF8.GetBytes(v, buffer);
+                buffer[byteCount] = 0;
+                Write(byteCount+1);
+                _stream.Write(buffer, 0, byteCount+1);
+            }
+        }
+
+        public IArchitecture Architecture => ArchitectureUtils.LittleArchitecture64;
+
+        public long Position
+        {
+            get => _stream.Position;
+            set => _stream.Position = value;
+        }
+
+        public long Length
+        {
+            get => _stream.Length;
+            set => _stream.SetLength(value);
+        }
+
+        public long Seek(long offset)
+        {
+            return _stream.Seek(offset, SeekOrigin.Begin);
+        }
+
+        public void Close()
+        {
+            _stream.Close();
+        }
+    }
+
+    public class BinaryMemoryStreamWriter : IBinaryStreamWriter
+    {
+        private readonly MemoryStream _stream;
+        private readonly byte[] _buffer = new byte[256];
+
+        public BinaryMemoryStreamWriter(MemoryStream stream)
         {
             _stream = stream;
         }
@@ -313,14 +463,14 @@ namespace GameCore
     public sealed class BinaryFileWriter : IBinaryWriter
     {
         private BinaryEndianWriter _binaryWriter;
-        private BinaryStreamWriter _binaryStreamWriter;
-        private Stream mStream;
+        private BinaryFileStreamWriter _binaryFileStreamWriter;
+        private FileStream _fileStream;
 
-        public void Open(Stream s, IArchitecture architecture)
+        public void Open(FileStream s, IArchitecture architecture)
         {
-            mStream = s;
-            _binaryStreamWriter = new(mStream);
-            _binaryWriter = new(architecture, _binaryStreamWriter);
+            _fileStream = s;
+            _binaryFileStreamWriter = new(_fileStream);
+            _binaryWriter = new(architecture, _binaryFileStreamWriter);
         }
 
         public void Write(byte[] data)
@@ -399,39 +549,39 @@ namespace GameCore
 
         public long Position
         {
-            get => _binaryStreamWriter.Position;
-            set => _binaryStreamWriter.Position = value;
+            get => _binaryFileStreamWriter.Position;
+            set => _binaryFileStreamWriter.Position = value;
         }
 
         public long Length
         {
-            get => _binaryStreamWriter.Length;
-            set => _binaryStreamWriter.Length = value;
+            get => _binaryFileStreamWriter.Length;
+            set => _binaryFileStreamWriter.Length = value;
         }
 
         public long Seek(long offset)
         {
-            return _binaryStreamWriter.Seek(offset);
+            return _binaryFileStreamWriter.Seek(offset);
         }
 
         public void Close()
         {
-            _binaryStreamWriter.Close();
-            mStream.Close();
+            _binaryFileStreamWriter.Close();
+            _fileStream.Close();
         }
     }
 
     public class BinaryMemoryWriter : IBinaryStreamWriter
     {
         private BinaryEndianWriter _binaryWriter;
-        private BinaryStreamWriter _binaryStreamWriter;
+        private BinaryMemoryStreamWriter _binaryFileStreamWriter;
         private MemoryStream _stream;
 
         public bool Open(MemoryStream ms, IArchitecture architecture)
         {
             _stream = ms;
-            _binaryStreamWriter = new(ms);
-            _binaryWriter = new(architecture, _binaryStreamWriter);
+            _binaryFileStreamWriter = new(ms);
+            _binaryWriter = new(architecture, _binaryFileStreamWriter);
             return true;
         }
 
@@ -514,28 +664,28 @@ namespace GameCore
             Write((byte)0);
         }
 
-        public IArchitecture Architecture => _binaryStreamWriter.Architecture;
+        public IArchitecture Architecture => _binaryFileStreamWriter.Architecture;
 
         public long Position
         {
-            get => _binaryStreamWriter.Position;
-            set => _binaryStreamWriter.Position = value;
+            get => _binaryFileStreamWriter.Position;
+            set => _binaryFileStreamWriter.Position = value;
         }
 
         public long Length
         {
-            get => _binaryStreamWriter.Length;
-            set => _binaryStreamWriter.Length = (value);
+            get => _binaryFileStreamWriter.Length;
+            set => _binaryFileStreamWriter.Length = (value);
         }
 
         public long Seek(long offset)
         {
-            return _binaryStreamWriter.Seek(offset);
+            return _binaryFileStreamWriter.Seek(offset);
         }
 
         public void Close()
         {
-            _binaryStreamWriter.Close();
+            _binaryFileStreamWriter.Close();
             _stream.Close();
         }
     }

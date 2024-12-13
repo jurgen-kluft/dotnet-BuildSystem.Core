@@ -1,18 +1,9 @@
-﻿using GameCore;
-
-namespace BigfileBuilder
+﻿namespace BigfileBuilder
 {
-    public sealed class BigfileBuilder
+    public static class BigfileBuilder
     {
-        public BigfileBuilder(EPlatform platform)
-        {
-            Platform = platform;
-        }
-
-        private EPlatform Platform { get; }
-
         // Returns the size of the final Bigfile
-        private ulong Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
+        private static ulong Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
         {
             // Simulation:
             // Compute the final file size of the bigfile
@@ -31,7 +22,7 @@ namespace BigfileBuilder
         }
 
         // return true if build was successful
-        public bool Save(string pubPath, string dstPath, string mainBigfileFilename, List<Bigfile> bigFiles)
+        public static bool Save(string pubPath, string dstPath, string mainBigfileFilename, List<Bigfile> bigFiles)
         {
             var writer = new BigfileWriter();
 
@@ -50,7 +41,7 @@ namespace BigfileBuilder
             {
                 foreach (var bigfileFile in bigfile.Files)
                 {
-                    var ok = writer.WriteFile(Path.Join(dstPath, bigfileFile.Filename), out var fileOffset, out var fileSize);
+                    writer.WriteFile(Path.Join(dstPath, bigfileFile.Filename), out var fileOffset, out var fileSize);
                     bigfileFile.Size = fileSize;
                     bigfileFile.Offset = fileOffset;
                 }
@@ -59,20 +50,19 @@ namespace BigfileBuilder
             writer.Close();
 
             var mainBigfileTocFilename = Path.ChangeExtension(mainBigfileFilename, BigfileConfig.BigFileTocExtension);
-            if (BigfileToc.Save(Platform, Path.Join(pubPath, mainBigfileTocFilename), bigFiles))
+            if (BigfileToc.Save(Path.Join(pubPath, mainBigfileTocFilename), bigFiles))
                 return true;
 
             Console.WriteLine("Error saving BigFileToc: {0}", mainBigfileTocFilename);
             return false;
         }
 
-        public bool Load(string pubPath, string dstPath, string bigfileFilename, List<Bigfile> bigFiles)
+        public static bool Load(string pubPath, string dstPath, string bigfileFilename, List<Bigfile> bigFiles)
         {
             BigfileReader reader = new();
             reader.Open(Path.Join(pubPath, bigfileFilename));
 
-            BigfileToc bigFileToc = new();
-            if (!bigFileToc.Load(Path.Join(pubPath, bigfileFilename), Platform, bigFiles))
+            if (!BigfileToc.Load(Path.Join(pubPath, bigfileFilename), bigFiles))
                 return false;
 
             foreach(var bf in bigFiles)

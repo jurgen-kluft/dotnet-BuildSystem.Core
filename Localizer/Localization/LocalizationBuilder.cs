@@ -463,7 +463,7 @@ namespace DataBuildSystem
                     }
 
                     FileStream fileStream = new(fileInfo.FullName, FileMode.OpenOrCreate, FileAccess.Write);
-                    var writer = ArchitectureUtils.CreateBinaryWriter(fileStream, LocalizerConfig.Platform);
+                    var writer = ArchitectureUtils.CreateBinaryFileWriter(fileStream, LocalizerConfig.Platform);
 
                     writer.Write((int)(magic >> 32));
                     writer.Write((int)(magic));
@@ -569,7 +569,7 @@ namespace DataBuildSystem
                         mFileSize = fileinfoXlsIds.Length;
 
                         var filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        var filestreamXlsIdsReader = ArchitectureUtils.CreateBinaryReader(filestreamXlsIds, LocalizerConfig.Platform);
+                        var filestreamXlsIdsReader = ArchitectureUtils.CreateBinaryFileReader(filestreamXlsIds, LocalizerConfig.Platform);
 
                         var magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);
@@ -593,7 +593,7 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    var writer = ArchitectureUtils.CreateBinaryWriter(mFolder + mFilename, Platform.Current);
+                    var writer = ArchitectureUtils.CreateBinaryFileWriter(mFolder + mFilename, Platform.Current);
 
                     writer.Write(magic);
                     mStrTable.Write(writer);
@@ -730,7 +730,7 @@ namespace DataBuildSystem
                         mFileSize = fileinfoXlsIds.Length;
 
                         var filestreamXlsIds = new FileStream(fileinfoXlsIds.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        var filestreamXlsIdsReader = ArchitectureUtils.CreateBinaryReader(filestreamXlsIds, Platform.Current);
+                        var filestreamXlsIdsReader = ArchitectureUtils.CreateBinaryFileReader(filestreamXlsIds, Platform.Current);
 
                         var magic = filestreamXlsIdsReader.ReadInt64();
                         mStrTable.Read(filestreamXlsIdsReader);
@@ -759,7 +759,7 @@ namespace DataBuildSystem
             {
                 try
                 {
-                    var writer = ArchitectureUtils.CreateBinaryWriter(Path.Join(mFolder, mFilename), Platform.Current);
+                    var writer = ArchitectureUtils.CreateBinaryFileWriter(Path.Join(mFolder, mFilename), Platform.Current);
 
                     writer.Write(magic);
                     mStrTable.Write(writer);

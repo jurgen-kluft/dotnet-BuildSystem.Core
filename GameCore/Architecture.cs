@@ -67,22 +67,28 @@ namespace GameCore
             return (platform & EPlatform.Arch64) != 0;
         }
 
-        public static IBinaryStreamReader CreateBinaryReader(Stream s, EPlatform platform)
+        public static IBinaryStreamReader CreateBinaryFileReader(FileStream s, EPlatform platform)
         {
             var bs = new BinaryStreamReader(s);
             return new BinaryEndianReader(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
         }
 
-        public static IBinaryStreamWriter CreateBinaryWriter(Stream s, EPlatform platform)
+        public static IBinaryStreamWriter CreateBinaryFileWriter(FileStream s, EPlatform platform)
         {
-            var bs = new BinaryStreamWriter(s);
+            var bs = new BinaryFileStreamWriter(s);
             return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
         }
 
-        public static IBinaryStreamWriter CreateBinaryWriter(string filepath, EPlatform platform)
+        public static IBinaryStreamWriter CreateBinaryMemoryWriter(MemoryStream s, EPlatform platform)
         {
-            Stream s = new FileStream(filepath, FileMode.Create, FileAccess.Write);
-            BinaryStreamWriter bs = new(s);
+            var bs = new BinaryMemoryStreamWriter(s);
+            return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
+        }
+
+        public static IBinaryStreamWriter CreateBinaryFileWriter(string filepath, EPlatform platform)
+        {
+            FileStream fs = new FileStream(filepath, FileMode.Create, FileAccess.Write);
+            BinaryFileStreamWriter bs = new(fs);
             return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
         }
     }

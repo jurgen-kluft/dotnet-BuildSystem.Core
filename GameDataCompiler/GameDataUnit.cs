@@ -102,7 +102,7 @@ namespace DataBuildSystem
             var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.BigFileData);
             var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
             var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
-            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryWriter(bigfileDataStream, BuildSystemDefaultConfig.Platform);
+            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, BuildSystemDefaultConfig.Platform);
 
             CppCodeStream2.Write2(BuildSystemDefaultConfig.Platform, RootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             bigfileDataStreamWriter.Close();
@@ -117,7 +117,7 @@ namespace DataBuildSystem
             }
             var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
             var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.BigFileToc);
-            BigfileToc.Save(BuildSystemDefaultConfig.Platform, bigfileGameCodeTocFilepath, [bigfileGameCode]);
+            BigfileToc.Save(bigfileGameCodeTocFilepath, [bigfileGameCode]);
 
             return State.Ok;
         }
@@ -177,7 +177,7 @@ namespace DataBuildSystem
         public void Save(string dstPath)
         {
             var filepath = Path.Join(dstPath, "GameDataUnits.log");
-            var writer = ArchitectureUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, LocalizerConfig.Platform);
 
             writer.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
             writer.Write(DataUnits.Count);
@@ -298,8 +298,6 @@ namespace DataBuildSystem
 
         private static void SaveBigfile(uint bigfileIndex, string filename, List<IDataFile> dataFiles, ISignatureDataBase database)
         {
-            var bfb = new BigfileBuilder.BigfileBuilder(BigfileConfig.Platform);
-
             var memoryStream = new MemoryStream();
             var memoryWriter = new BinaryMemoryWriter();
 
@@ -320,7 +318,7 @@ namespace DataBuildSystem
             var bigfile = new Bigfile(bigfileIndex, bigfileFiles);
 
             var bigFiles = new List<Bigfile>() { bigfile };
-            bfb.Save(BuildSystemDefaultConfig.PubPath, BuildSystemDefaultConfig.DstPath, filename, bigFiles);
+            BigfileBuilder.BigfileBuilder.Save(BuildSystemDefaultConfig.PubPath, BuildSystemDefaultConfig.DstPath, filename, bigFiles);
         }
 
         public static IDataUnit FindRoot(Assembly assembly)

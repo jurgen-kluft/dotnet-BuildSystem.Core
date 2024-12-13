@@ -60,9 +60,11 @@ namespace DataBuildSystem
 
         public bool Load(string filepath)
         {
-            BinaryFileReader reader = new();
-            if (!reader.Open(filepath))
+            if (!File.Exists(filepath))
                 return false;
+
+            var fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
+            var reader = ArchitectureUtils.CreateBinaryFileReader(fileStream, LocalizerConfig.Platform);
 
             _signatureToEntry.Clear();
             _entries.Clear();
@@ -101,7 +103,7 @@ namespace DataBuildSystem
 
         public bool Save(string filepath)
         {
-            var writer = ArchitectureUtils.CreateBinaryWriter(filepath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, LocalizerConfig.Platform);
             if (writer == null) return false;
 
             writer.Write(_signatureToEntry.Count);

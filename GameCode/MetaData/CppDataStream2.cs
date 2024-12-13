@@ -510,7 +510,7 @@ namespace GameData
                 mReferenceToBlock = new();
                 mStringTable = strTable;
                 mMemoryStream = new();
-                mDataWriter = ArchitectureUtils.CreateBinaryWriter(mMemoryStream, platform);
+                mDataWriter = ArchitectureUtils.CreateBinaryMemoryWriter(mMemoryStream, platform);
             }
 
             private class DataBlock

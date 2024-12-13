@@ -102,7 +102,7 @@ namespace MetaTest
             var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.BigFileData);
             var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
             var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
-            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryWriter(bigfileDataStream, platform);
+            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, platform);
 
             CppCodeStream2.Write2(platform, rootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             bigfileDataStreamWriter.Close();
@@ -117,7 +117,7 @@ namespace MetaTest
             }
             var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
             var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.BigFileToc);
-            BigfileToc.Save(platform, bigfileGameCodeTocFilepath, [bigfileGameCode]);
+            BigfileToc.Save(bigfileGameCodeTocFilepath, [bigfileGameCode]);
 
 
             return Success();
