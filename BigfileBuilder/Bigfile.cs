@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
 using GameCore;
 
 namespace BigfileBuilder
@@ -21,7 +19,7 @@ namespace BigfileBuilder
     {
         bool Open(string filepath, ulong reserveSize);
         void Close();
-        bool Write(string filepath, out ulong offset, out ulong size);
+        bool WriteFile(string filepath, out ulong offset, out ulong size);
     }
 
     internal sealed class BigfileWriterSimulator : IBigfileWriter
@@ -40,7 +38,7 @@ namespace BigfileBuilder
             FinalSize = Offset;
         }
 
-        public bool Write(string filepath, out ulong offset, out ulong size)
+        public bool WriteFile(string filepath, out ulong offset, out ulong size)
         {
             offset = ulong.MaxValue;
             size = 0;
@@ -57,7 +55,7 @@ namespace BigfileBuilder
 
     internal sealed class BigfileWriter : IBigfileWriter
     {
-        private FileStream FileStream { get; set; }
+        private FileStream BigfileFileStream { get; set; }
         private byte[] ReadCache { get; set; } = new byte[BigfileConfig.ReadBufferSize];
 
         public bool Open(string filepath, ulong reserveSize)
@@ -69,10 +67,10 @@ namespace BigfileBuilder
                 var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 var bigfileInfo = new FileInfo(bigfileFilepath);
                 DirUtils.Create(bigfileInfo.DirectoryName);
-                FileStream = new(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (int)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
+                BigfileFileStream = new FileStream(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (int)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
 
                 // Reserve this file size on disk to speed up the writing of many files
-                FileStream.SetLength((long)reserveSize);
+                BigfileFileStream.SetLength((long)reserveSize);
             }
             catch (Exception e)
             {
@@ -90,14 +88,14 @@ namespace BigfileBuilder
         /// <param name="filepath">The name of the Bigfile</param>
         /// <param name="offset">The offset of the file in the Bigfile</param>
         /// <param name="size">The size of the file in the Bigfile</param>
-        public bool Write(string filepath, out ulong offset, out ulong size)
+        public bool WriteFile(string filepath, out ulong offset, out ulong size)
         {
             try
             {
-                FileStream inputStream = new(filepath, FileMode.Open, FileAccess.Read, FileShare.Read, (int)BigfileConfig.ReadBufferSize);
-                var fileSize = (ulong)inputStream.Length;
-                var fileOffset = (ulong)Write(inputStream, (long)fileSize);
-                inputStream.Close();
+                var fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read, (int)BigfileConfig.ReadBufferSize);
+                var fileSize = (ulong)fileStream.Length;
+                var fileOffset = (ulong)Write(fileStream, (long)fileSize, BigfileFileStream, ReadCache);
+                fileStream.Close();
                 offset = fileOffset;
                 size = fileSize;
                 return true;
@@ -111,18 +109,18 @@ namespace BigfileBuilder
             }
         }
 
-        private long Write(Stream readStream, long fileSize)
+        private static long Write(FileStream readStream, long fileSize, FileStream writeStream, byte[] readCache)
         {
-            var position = FileStream.Position;
+            var position = writeStream.Position;
 
             Debug.Assert(fileSize < int.MaxValue);
 
             var sizeToWrite = fileSize;
             while (sizeToWrite > 0)
             {
-                var sizeToRead = (int)Math.Min(sizeToWrite, ReadCache.Length);
-                var actualRead = readStream.Read(ReadCache, 0, sizeToRead);
-                FileStream.Write(ReadCache, 0, actualRead);
+                var sizeToRead = (int)Math.Min(sizeToWrite, readCache.Length);
+                var actualRead = readStream.Read(readCache, 0, sizeToRead);
+                writeStream.Write(readCache, 0, actualRead);
                 sizeToWrite -= actualRead;
             }
 
@@ -131,8 +129,8 @@ namespace BigfileBuilder
             var aligningBytesToWrite = (int)(alignedPosition - position);
             if (aligningBytesToWrite>0)
             {
-                Array.Fill<byte>(ReadCache, 0, 0, aligningBytesToWrite);
-                FileStream.Write(ReadCache, 0, aligningBytesToWrite);
+                Array.Fill<byte>(readCache, 0, 0, aligningBytesToWrite);
+                writeStream.Write(readCache, 0, aligningBytesToWrite);
             }
             return position;
         }
@@ -140,17 +138,17 @@ namespace BigfileBuilder
 
         public void Close()
         {
-            if (FileStream == null) return;
+            if (BigfileFileStream == null) return;
 
-            FileStream.Close();
-            FileStream = null;
+            BigfileFileStream.Close();
+            BigfileFileStream = null;
         }
     }
 
     public sealed class BigfileReader
     {
-        private FileStream mFileStream;
-        private BinaryReader mBinaryReader;
+        private FileStream _fileStream;
+        private BinaryReader _binaryReader;
 
         public bool Open(string filepath)
         {
@@ -161,8 +159,8 @@ namespace BigfileBuilder
                 var bigfileFilepath = Path.ChangeExtension(filepath, BigfileConfig.BigFileExtension);
                 var bigfileInfo = new FileInfo(bigfileFilepath);
 
-                mFileStream = new(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (int)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
-                mBinaryReader = new(mFileStream);
+                _fileStream = new FileStream(bigfileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, (int)BigfileConfig.ReadBufferSize, FileOptions.Asynchronous);
+                _binaryReader = new BinaryReader(_fileStream);
             }
             catch (Exception e)
             {
@@ -175,16 +173,16 @@ namespace BigfileBuilder
 
         public void Close()
         {
-            if (mFileStream == null) return;
+            if (_fileStream == null) return;
 
-            if (mBinaryReader != null)
+            if (_binaryReader != null)
             {
-                mBinaryReader.Close();
-                mBinaryReader = null;
+                _binaryReader.Close();
+                _binaryReader = null;
             }
 
-            mFileStream.Close();
-            mFileStream = null;
+            _fileStream.Close();
+            _fileStream = null;
         }
     }
 

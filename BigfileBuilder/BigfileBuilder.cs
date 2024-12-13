@@ -23,7 +23,7 @@ namespace BigfileBuilder
                 foreach (var bigfileFile in bigfile.Files)
                 {
                     var filename = Path.Join(dstPath, bigfileFile.Filename);
-                    simulator.Write(filename, out var _, out var _);
+                    simulator.WriteFile(filename, out var _, out var _);
                 }
             }
             simulator.Close();
@@ -50,7 +50,7 @@ namespace BigfileBuilder
             {
                 foreach (var bigfileFile in bigfile.Files)
                 {
-                    var ok = writer.Write(Path.Join(dstPath, bigfileFile.Filename), out var fileOffset, out var fileSize);
+                    var ok = writer.WriteFile(Path.Join(dstPath, bigfileFile.Filename), out var fileOffset, out var fileSize);
                     bigfileFile.Size = fileSize;
                     bigfileFile.Offset = fileOffset;
                 }

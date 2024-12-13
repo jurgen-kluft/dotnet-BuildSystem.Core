@@ -1,5 +1,11 @@
 # Bigfile
 
+## Data
+
+The Bigfile data file is simply storing all files right after one another.
+Using file alignment specified in the IBigfileConfig, files are aligned in the Bigfile data file.
+Each file written to the Bigfile will remember the position and size in the Bigfile data file which are used to build the TOC.
+
 ## TOC
 
 The TOC file can contain multiple TOC-Sections.

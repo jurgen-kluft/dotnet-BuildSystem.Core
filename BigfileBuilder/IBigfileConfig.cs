@@ -73,22 +73,22 @@ namespace BigfileBuilder
 
     public static class BigfileConfig
     {
-        private static IBigfileConfig sConfig = new BigfileDefaultConfig();
+        private static IBigfileConfig Config { get; set; } = new BigfileDefaultConfig();
 
         public static void Init(IBigfileConfig config)
         {
-            sConfig = config;
+            Config = config;
         }
 
-        public static string BigfileName => sConfig.BigfileName;
-        public static string BigFileExtension => sConfig.BigFileExtension;
-        public static string BigFileTocExtension => sConfig.BigFileTocExtension;
-        public static string BigFileFdbExtension => sConfig.BigFileFdbExtension;
-        public static string BigFileHdbExtension => sConfig.BigFileHdbExtension;
-        public static EPlatform Platform => sConfig.Platform;
-        public static uint FileAlignment => sConfig.FileAlignment;
-        public static bool AllowDuplicateFiles => sConfig.AllowDuplicateFiles;
-        public static uint ReadBufferSize => sConfig.ReadBufferSize;
-        public static uint WriteBufferSize => sConfig.WriteBufferSize;
+        public static string BigfileName => Config.BigfileName;
+        public static string BigFileExtension => Config.BigFileExtension;
+        public static string BigFileTocExtension => Config.BigFileTocExtension;
+        public static string BigFileFdbExtension => Config.BigFileFdbExtension;
+        public static string BigFileHdbExtension => Config.BigFileHdbExtension;
+        public static EPlatform Platform => Config.Platform;
+        public static uint FileAlignment => Config.FileAlignment;
+        public static bool AllowDuplicateFiles => Config.AllowDuplicateFiles;
+        public static uint ReadBufferSize => Config.ReadBufferSize;
+        public static uint WriteBufferSize => Config.WriteBufferSize;
     }
 }
