@@ -93,9 +93,31 @@ namespace DataBuildSystem
             SignatureDatabase.Save(GameDataPath.GetFilePathFor("SignatureDatabase", EGameData.SignatureDatabase));
 
             // Finally save the
-            // - Game Code data file, this will be a Bigfile + Bigfile TOC
             // - Game Code header file
-            CppCodeStream2.Write2(BuildSystemDefaultConfig.Platform, RootDataUnit, GameDataPath.GetFilePathFor("GameData", EGameData.GameCodeData));
+            // - Game Code data file, this will be a Bigfile + Bigfile TOC
+            var codeFileInfo = new FileInfo(GameDataPath.GetFilePathFor("GameData", EGameData.GameCodeHeader));
+            var codeFileStream = codeFileInfo.Create();
+            var codeFileWriter = new StreamWriter(codeFileStream);
+
+            var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.BigFileData);
+            var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
+            var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
+            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryWriter(bigfileDataStream, BuildSystemDefaultConfig.Platform);
+
+            CppCodeStream2.Write2(BuildSystemDefaultConfig.Platform, RootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            bigfileDataStreamWriter.Close();
+            bigfileDataStream.Close();
+            codeFileWriter.Close();
+            codeFileStream.Close();
+
+            var bigfileGameCodeFiles = new List<BigfileFile>();
+            for (int i=0; i<dataUnitsStreamPositions.Count; ++i)
+            {
+                bigfileGameCodeFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
+            }
+            var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
+            var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.BigFileToc);
+            BigfileToc.Save(BuildSystemDefaultConfig.Platform, bigfileGameCodeTocFilepath, [bigfileGameCode]);
 
             return State.Ok;
         }
@@ -281,19 +303,21 @@ namespace DataBuildSystem
             var memoryStream = new MemoryStream();
             var memoryWriter = new BinaryMemoryWriter();
 
-            var bigfile = new Bigfile(bigfileIndex);
+            var bigfileFiles = new List<BigfileFile>();
             foreach (var cl in dataFiles)
             {
-                var mainBigfileFile = new BigfileFile(cl.CookedFilename);
+                var bigfileFile = new BigfileFile() { Filename = cl.CookedFilename };
 
                 memoryWriter.Reset();
                 cl.BuildSignature(memoryWriter);
                 cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-                if (database.Register(cl.Signature, bigfile.Index, (uint)bigfile.Files.Count))
+                if (database.Register(cl.Signature, bigfileIndex, (uint)bigfileFiles.Count))
                 {
-                    bigfile.Files.Add(mainBigfileFile);
+                    bigfileFiles.Add(bigfileFile);
                 }
             }
+
+            var bigfile = new Bigfile(bigfileIndex, bigfileFiles);
 
             var bigFiles = new List<Bigfile>() { bigfile };
             bfb.Save(BuildSystemDefaultConfig.PubPath, BuildSystemDefaultConfig.DstPath, filename, bigFiles);

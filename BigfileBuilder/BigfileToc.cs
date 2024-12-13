@@ -71,7 +71,7 @@ namespace BigfileBuilder
             public void ReadFileOffset(IBinaryStreamReader reader, ITocEntry entry)
             {
                 var fileOffset = reader.ReadUInt32() << 6;
-                entry.FileOffset = new StreamOffset(fileOffset);
+                entry.FileOffset = fileOffset;
             }
         }
 
@@ -100,7 +100,7 @@ namespace BigfileBuilder
 
             public void WriteFileOffset(IBinaryStreamWriter writer, ITocEntry entry)
             {
-                writer.Write((int)(entry.FileOffset.Offset >> 6));
+                writer.Write((uint)(entry.FileOffset >> 6));
             }
 
             public int CountInBytes => 4;
@@ -111,11 +111,11 @@ namespace BigfileBuilder
 
         public interface ITocEntry
         {
-            StreamOffset Offset { get; set; }
+            ulong Offset { get; set; }
             ETocFlags Flags { get; set; }
             string Filename { get; set; }
             uint FilenameOffset { get; set; }
-            StreamOffset FileOffset { get; set; }
+            ulong FileOffset { get; set; }
             uint FileSize { get; set; }
             Hash160 FileContentHash { get; set; }
         }
@@ -125,7 +125,7 @@ namespace BigfileBuilder
         /// </summary>
         private static class Factory
         {
-            public static ITocEntry Create(StreamOffset fileOffset, uint fileSize, string filename, ETocFlags type, Hash160 contentHash)
+            public static ITocEntry Create(ulong fileOffset, uint fileSize, string filename, ETocFlags type, Hash160 contentHash)
             {
                 return new TocEntry(fileOffset, fileSize, filename, type, contentHash);
             }
@@ -184,11 +184,11 @@ namespace BigfileBuilder
         private sealed class TocEntry : ITocEntry
         {
             public TocEntry()
-                : this(StreamOffset.sEmpty, 0, string.Empty, ETocFlags.None, Hash160.Empty)
+                : this(ulong.MaxValue, 0, string.Empty, ETocFlags.None, Hash160.Empty)
             {
             }
 
-            public TocEntry(StreamOffset fileOffset, uint fileSize, string filename, ETocFlags tocFlags, Hash160 contentHash)
+            public TocEntry(ulong fileOffset, uint fileSize, string filename, ETocFlags tocFlags, Hash160 contentHash)
             {
                 Flags = tocFlags;
                 Filename = filename;
@@ -198,11 +198,11 @@ namespace BigfileBuilder
                 FileContentHash = contentHash;
             }
 
-            public StreamOffset Offset { get; set; } // Offset of this struct in the stream
+            public ulong Offset { get; set; } // Offset of this struct in the stream
             public ETocFlags Flags { get; set; }
             public string Filename { get; set; }
             public uint FilenameOffset { get; set; }
-            public StreamOffset FileOffset { get; set; }
+            public ulong FileOffset { get; set; }
             public uint FileSize { get; set; }
             public Hash160 FileContentHash { get; set; }
         }
@@ -283,7 +283,7 @@ namespace BigfileBuilder
                         {
                             // Read Toc Entries
                             var e = Sections[sectionIndex].Toc[innerIter];
-                            e.Offset = new StreamOffset(reader.Position);
+                            e.Offset = (ulong)reader.Position;
                             TocEntryReader.ReadFileOffset(reader, e);
                             TocEntryReader.ReadFileSize(reader, e);
 
@@ -775,7 +775,7 @@ namespace BigfileBuilder
             return true;
         }
 
-        public bool Save(string bigfileFilename, EPlatform platform, List<Bigfile> bigFiles)
+        public static bool Save(EPlatform platform, string bigfileFilename, List<Bigfile> bigFiles)
         {
             // Create all TocEntry items in the same order as the Bigfile files which is important
             // because the FileId is equal to the location(index) in the List/Array.
@@ -791,7 +791,7 @@ namespace BigfileBuilder
                 var section = new TocSection(bf.Files.Count);
                 foreach (var file in bf.Files)
                 {
-                    var fileEntry = Factory.Create(file.FileOffset, (uint)file.FileSize, file.Filename, ETocFlags.None, file.FileContentHash);
+                    var fileEntry = Factory.Create(file.Offset, (uint)file.Size, file.Filename, ETocFlags.None, file.ContentHash);
                     section.Toc.Add(fileEntry);
                 }
 

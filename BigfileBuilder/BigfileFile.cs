@@ -5,18 +5,10 @@ namespace BigfileBuilder
 {
     public sealed class BigfileFile
     {
-        public static readonly BigfileFile sEmpty = new(string.Empty);
-
-        public BigfileFile(string filename)
-        {
-            Filename = filename;
-        }
-
-        public string Filename { get; }
-        public long FileSize { get; set; } = 0;
-        public StreamOffset FileOffset { get; set; } = StreamOffset.sEmpty;
-        public ulong FileId2 { get; init; } = ulong.MaxValue;
-        public Hash160 FileContentHash { get; set; } = Hash160.Empty;
-        public List<BigfileFile> Children { get; set; } = new ();
+        public string Filename { get; set; }
+        public ulong Size { get; set; } = 0;
+        public ulong Offset { get; set; } = long.MaxValue;
+        public bool IsValid => Size > 0 && Offset != long.MaxValue;
+        public Hash160 ContentHash { get; set; } = Hash160.Empty;
     }
 }

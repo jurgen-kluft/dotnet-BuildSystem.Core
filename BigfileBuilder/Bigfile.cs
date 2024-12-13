@@ -5,19 +5,31 @@ using GameCore;
 
 namespace BigfileBuilder
 {
-    public interface IBigfileWriter
+    public sealed class Bigfile
     {
-        bool Open(string filepath, long reserveSize);
-        void Close();
-        (bool, long, long) Save(string filepath); // Success=true, Offset, Size
+        public uint Index { get; set; }
+        public IReadOnlyList<BigfileFile> Files { get; set; }
+
+        public Bigfile(uint index, IReadOnlyList<BigfileFile> files)
+        {
+            Index = index;
+            Files = files;
+        }
     }
 
-    public sealed class BigfileWriterSimulator : IBigfileWriter
+    internal interface IBigfileWriter
     {
-        private long Offset { get; set; }
-        public long FinalSize { get; private set; }
+        bool Open(string filepath, ulong reserveSize);
+        void Close();
+        bool Write(string filepath, out ulong offset, out ulong size);
+    }
 
-        public bool Open(string filepath, long reserveSize)
+    internal sealed class BigfileWriterSimulator : IBigfileWriter
+    {
+        private ulong Offset { get; set; }
+        public ulong FinalSize { get; private set; }
+
+        public bool Open(string filepath, ulong reserveSize)
         {
             Offset = 0;
             return true;
@@ -28,26 +40,27 @@ namespace BigfileBuilder
             FinalSize = Offset;
         }
 
-        public (bool, long, long) Save(string filepath)
+        public bool Write(string filepath, out ulong offset, out ulong size)
         {
+            offset = ulong.MaxValue;
+            size = 0;
             if (!File.Exists(filepath))
-                return (false, -1, 0);
+                return false;
 
-            var fo = Offset;
+            offset = Offset;
             var fi = new FileInfo(filepath);
-            Offset += fi.Length;
-            Offset = CMath.AlignUp(Offset, BigfileConfig.FileAlignment);
-            return (true, fo, fi.Length);
+            size = (ulong)fi.Length;
+            Offset += CMath.AlignUp(offset, BigfileConfig.FileAlignment);
+            return true;
         }
     }
 
-    public sealed class BigfileWriter : IBigfileWriter
+    internal sealed class BigfileWriter : IBigfileWriter
     {
         private FileStream FileStream { get; set; }
         private byte[] ReadCache { get; set; } = new byte[BigfileConfig.ReadBufferSize];
 
-
-        public bool Open(string filepath, long reserveSize)
+        public bool Open(string filepath, ulong reserveSize)
         {
             try
             {
@@ -59,7 +72,7 @@ namespace BigfileBuilder
                 FileStream = new(bigfileInfo.FullName, FileMode.Create, FileAccess.Write, FileShare.None, (int)BigfileConfig.WriteBufferSize, FileOptions.Asynchronous);
 
                 // Reserve this file size on disk to speed up the writing of many files
-                FileStream.SetLength(reserveSize);
+                FileStream.SetLength((long)reserveSize);
             }
             catch (Exception e)
             {
@@ -75,21 +88,26 @@ namespace BigfileBuilder
         /// and then use seek to write all the BigfileFiles.
         /// </summary>
         /// <param name="filepath">The name of the Bigfile</param>
-        /// <returns>(success, offset, size)</returns>
-        public (bool,long,long) Save(string filepath)
+        /// <param name="offset">The offset of the file in the Bigfile</param>
+        /// <param name="size">The size of the file in the Bigfile</param>
+        public bool Write(string filepath, out ulong offset, out ulong size)
         {
             try
             {
                 FileStream inputStream = new(filepath, FileMode.Open, FileAccess.Read, FileShare.Read, (int)BigfileConfig.ReadBufferSize);
-                var fileSize = inputStream.Length;
-                var fileOffset = Write(inputStream, fileSize);
+                var fileSize = (ulong)inputStream.Length;
+                var fileOffset = (ulong)Write(inputStream, (long)fileSize);
                 inputStream.Close();
-                return (true, fileOffset, fileSize);
+                offset = fileOffset;
+                size = fileSize;
+                return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return (false, -1, 0);
+                offset = ulong.MaxValue;
+                size = 0;
+                return false;
             }
         }
 
@@ -170,31 +188,4 @@ namespace BigfileBuilder
         }
     }
 
-    public sealed class Bigfile
-    {
-        public List<BigfileFile> Files { get; } = new();
-        public uint Index { get; set; }
-
-        public Bigfile(uint index)
-        {
-            Index = index;
-        }
-
-        public void Write(IBigfileWriter writer)
-        {
-            var additionalSize = (long)0;
-            foreach (var bff in Files)
-            {
-                additionalSize += bff.FileSize;
-                additionalSize = CMath.AlignUp(additionalSize, BigfileConfig.FileAlignment);
-            }
-
-            foreach (var bff in Files)
-            {
-                var (ok, fileOffset, fileSize) = writer.Save(bff.Filename);
-                bff.FileSize = fileSize;
-                bff.FileOffset = ok ? new StreamOffset(fileOffset) : StreamOffset.sEmpty;
-            }
-        }
-    }
 }

@@ -12,7 +12,7 @@ namespace BigfileBuilder
         private EPlatform Platform { get; }
 
         // Returns the size of the final Bigfile
-        private long Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
+        private ulong Simulate(string dstPath, IReadOnlyList<Bigfile> bigFiles)
         {
             // Simulation:
             // Compute the final file size of the bigfile
@@ -23,7 +23,7 @@ namespace BigfileBuilder
                 foreach (var bigfileFile in bigfile.Files)
                 {
                     var filename = Path.Join(dstPath, bigfileFile.Filename);
-                    simulator.Save(filename);
+                    simulator.Write(filename, out var _, out var _);
                 }
             }
             simulator.Close();
@@ -50,17 +50,16 @@ namespace BigfileBuilder
             {
                 foreach (var bigfileFile in bigfile.Files)
                 {
-                    var (ok, fileOffset, fileSize) = writer.Save(Path.Join(dstPath, bigfileFile.Filename));
-                    bigfileFile.FileSize = fileSize;
-                    bigfileFile.FileOffset = ok ? new StreamOffset(fileOffset) : StreamOffset.sEmpty;
+                    var ok = writer.Write(Path.Join(dstPath, bigfileFile.Filename), out var fileOffset, out var fileSize);
+                    bigfileFile.Size = fileSize;
+                    bigfileFile.Offset = fileOffset;
                 }
             }
 
             writer.Close();
 
-            var bft = new BigfileToc();
             var mainBigfileTocFilename = Path.ChangeExtension(mainBigfileFilename, BigfileConfig.BigFileTocExtension);
-            if (bft.Save(Path.Join(pubPath, mainBigfileTocFilename), Platform, bigFiles))
+            if (BigfileToc.Save(Platform, Path.Join(pubPath, mainBigfileTocFilename), bigFiles))
                 return true;
 
             Console.WriteLine("Error saving BigFileToc: {0}", mainBigfileTocFilename);
@@ -80,7 +79,7 @@ namespace BigfileBuilder
             {
                 foreach(var bff in bf.Files)
                 {
-                    if (bff.FileOffset != StreamOffset.sEmpty) continue;
+                    if (bff.IsValid) continue;
 
                     Console.WriteLine("No data for file {0}", dstPath + bff.Filename);
                     return false;

@@ -492,7 +492,6 @@ namespace GameData
         {
             private int mCurrent;
             private int mOffset;
-            private readonly EPlatform mPlatform;
             private readonly Dictionary<StreamReference, int> mReferenceToChunk;
             private readonly Stack<StreamReference> mDataUnitStack;
             private readonly List<DataBlock> mDataBlocks;
@@ -505,14 +504,13 @@ namespace GameData
             {
                 mCurrent = -1;
                 mOffset = 0;
-                mPlatform = platform;
                 mReferenceToChunk = new();
                 mDataUnitStack = new();
                 mDataBlocks = new();
                 mReferenceToBlock = new();
                 mStringTable = strTable;
                 mMemoryStream = new();
-                mDataWriter = ArchitectureUtils.CreateBinaryWriter(mMemoryStream, mPlatform);
+                mDataWriter = ArchitectureUtils.CreateBinaryWriter(mMemoryStream, platform);
             }
 
             private class DataBlock
@@ -1076,7 +1074,7 @@ namespace GameData
                 return memoryBlock;
             }
 
-            public void Finalize(IBinaryStreamWriter dataWriter)
+            public void Finalize(IBinaryStreamWriter dataWriter, List<ulong> dataUnitStreamPositions, List<ulong> dataUnitStreamSizes)
             {
                 // NEW, DataUnits!
                 // A DataUnit consists of Blocks.
@@ -1087,8 +1085,6 @@ namespace GameData
                 // patching them.
                 var blockDataBases = new List<Dictionary<StreamReference, DataBlock>>();
                 var dataUnitDataBase = new Dictionary<StreamReference, int>(mDataBlocks.Count);
-                var dataUnitStreamPositions = new List<long>();
-                var dataUnitStreamSizes = new List<long>();
                 foreach (var d in mDataBlocks)
                 {
                     Dictionary<StreamReference, DataBlock> blockDatabase;
@@ -1102,21 +1098,12 @@ namespace GameData
                     blockDataBases[blockDatabaseIndex].Add(d.Reference, d);
                 }
 
-                dataWriter.Write((uint)dataUnitDataBase.Count); // Number of DataUnits
-
-                var dataUnitsHeaderOffset = dataWriter.Position;
-                for (var i=0; i<dataUnitDataBase.Count; ++i)
-                {
-                    dataWriter.Write((ulong)0); // DataUnit*
-                    dataWriter.Write((uint)0); // DataUnit Offset
-                    dataWriter.Write((uint)0); // DataUnit Size
-                }
-
                 var readWriteBuffer = new byte[65536];
                 foreach (var cdb in dataUnitDataBase)
                 {
                     // Store the start of the DataUnit
                     var dataUnitBeginPos = dataWriter.Position;
+                    dataUnitStreamPositions.Add((ulong)dataUnitBeginPos);
 
                     // Dictionary for mapping a Reference to a DataBlock
                     var blockDataBase = blockDataBases[cdb.Value];
@@ -1171,22 +1158,12 @@ namespace GameData
                     // Restore the position
                     dataWriter.Position = dataUnitEndPos;
 
+                    // Align to N bytes
+                    StreamUtils.Align(dataWriter, 256);
+
                     // Store the position and size of this DataUnit
-                    dataUnitStreamPositions.Add(dataUnitBeginPos);
-                    dataUnitStreamSizes.Add(dataUnitEndPos - dataUnitBeginPos);
+                    dataUnitStreamSizes.Add((ulong)dataUnitEndPos - (ulong)dataUnitBeginPos);
                 }
-
-                var dataEnd = dataWriter.Position;
-
-                dataWriter.Position = dataUnitsHeaderOffset;
-                for (var i = 0; i < dataUnitDataBase.Count; ++i)
-                {
-                    dataWriter.Write((ulong)0);                         // DataUnit*
-                    dataWriter.Write((uint)dataUnitStreamPositions[i]); // DataUnit Offset
-                    dataWriter.Write((uint)dataUnitStreamSizes[i]);     // DataUnit Size
-                }
-
-                dataWriter.Position = dataEnd;
             }
 
             public IArchitecture Architecture => mDataWriter.Architecture;

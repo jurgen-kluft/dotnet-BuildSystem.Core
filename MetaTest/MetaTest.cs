@@ -1,13 +1,6 @@
-using System;
-using System.IO;
-using System.Reflection;
-using System.Collections.Generic;
-using System.Data;
-using System.Runtime.Loader;
-
 using GameCore;
 using GameData;
-using GameData.MetaCode;
+using BigfileBuilder;
 
 namespace MetaTest
 {
@@ -99,7 +92,34 @@ namespace MetaTest
 
         static int Main(string[] args)
         {
-            CppCodeStream2.Write2(EPlatform.Win64, new TestRoot(), "metatest.bfd");
+            var platform = EPlatform.Win64;
+            var rootDataUnit = new TestRoot();
+
+            var codeFileInfo = new FileInfo(GameDataPath.GetFilePathFor("TestData", EGameData.GameCodeHeader));
+            var codeFileStream = codeFileInfo.Create();
+            var codeFileWriter = new StreamWriter(codeFileStream);
+
+            var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.BigFileData);
+            var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
+            var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
+            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryWriter(bigfileDataStream, platform);
+
+            CppCodeStream2.Write2(platform, rootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            bigfileDataStreamWriter.Close();
+            bigfileDataStream.Close();
+            codeFileWriter.Close();
+            codeFileStream.Close();
+
+            var bigfileGameCodeFiles = new List<BigfileFile>();
+            for (int i=0; i<dataUnitsStreamPositions.Count; ++i)
+            {
+                bigfileGameCodeFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
+            }
+            var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
+            var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.BigFileToc);
+            BigfileToc.Save(platform, bigfileGameCodeTocFilepath, [bigfileGameCode]);
+
+
             return Success();
         }
 
