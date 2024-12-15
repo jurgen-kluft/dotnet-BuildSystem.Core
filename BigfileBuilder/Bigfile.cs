@@ -47,7 +47,7 @@ namespace BigfileBuilder
             offset = Offset;
             var fi = new FileInfo(filepath);
             size = (ulong)fi.Length;
-            Offset += (offset + (BigfileConfig.FileAlignment - 1)) & ~(BigfileConfig.FileAlignment - 1);
+            Offset += (size + (BigfileConfig.FileAlignment - 1)) & ~(BigfileConfig.FileAlignment - 1);
             return true;
         }
     }
@@ -109,7 +109,7 @@ namespace BigfileBuilder
 
         private static long Write(FileStream readStream, long fileSize, FileStream writeStream, byte[] readCache)
         {
-            var position = writeStream.Position;
+            var startPosition = writeStream.Position;
 
             Debug.Assert(fileSize < int.MaxValue);
 
@@ -123,14 +123,14 @@ namespace BigfileBuilder
             }
 
             // Align the file, gap should be filled with zeros (for compression and hashing to be deterministic between runs)
-            var alignedPosition = ((position + fileSize) + (BigfileConfig.FileAlignment - 1)) & ~(BigfileConfig.FileAlignment - 1);
-            var aligningBytesToWrite = (int)(alignedPosition - position);
+            var alignedPosition = ((startPosition + fileSize) + (BigfileConfig.FileAlignment - 1)) & ~(BigfileConfig.FileAlignment - 1);
+            var aligningBytesToWrite = (int)(alignedPosition - writeStream.Position);
             if (aligningBytesToWrite>0)
             {
                 Array.Fill<byte>(readCache, 0, 0, aligningBytesToWrite);
                 writeStream.Write(readCache, 0, aligningBytesToWrite);
             }
-            return position;
+            return startPosition;
         }
 
 

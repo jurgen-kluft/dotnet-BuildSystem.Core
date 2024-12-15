@@ -3,7 +3,6 @@ using System.Runtime.Loader;
 using GameCore;
 using GameData;
 using BigfileBuilder;
-using DataBuildSystem;
 
 namespace DataBuildSystem
 {
@@ -38,7 +37,7 @@ namespace DataBuildSystem
             return gameDataAssembly;
         }
 
-        private static void BuildCompilerSignatures(List<IDataFile> dataFiles)
+        private static void BuildDataFileSignatures(List<IDataFile> dataFiles)
         {
             var memoryStream = new MemoryStream();
             var memoryWriter = new BinaryMemoryWriter();
@@ -64,40 +63,38 @@ namespace DataBuildSystem
             }
 
             // Load the SignatureDatabase
-            SignatureDatabase.Load(GameDataPath.GameDataSignatureDb("GameData"));
+            SignatureDatabase.Load(GameDataPath.GameDataSignatureDb.GetFilePath("GameData"));
 
             // For each data unit, using the loaded compiler log and a newly build compiler log, merge them
             // and use the merged compiler log to execute all compilers.
-            List<List<IDataFile>> dataFileLogs = [];
+            //List<List<IDataFile>> dataFileLogs = [];
 
             // Collect the data units that need to be rebuilt
             List<GameDataUnit> dataUnitsOod = [];
-            List<List<IDataFile>> dataFileLogOod = [];
+            List<List<IDataFile>> dataFileLogsOod = [];
 
-            for (int i=0; i<DataUnits.Count; ++i)
+            foreach (var gdu in DataUnits)
             {
-                var gdu = DataUnits[i];
-
                 // Collect the data compilers and build their signatures
-                var currentLog = GameDataUnit.CollectDataCompilers(gdu.DataUnit);
-                BuildCompilerSignatures(currentLog);
+                var gduCurrentLog = GameDataUnit.CollectDataFiles(gdu.DataUnit);
+                BuildDataFileSignatures(gduCurrentLog);
 
                 // Load the compiler log so that they can be used to verify the source files
-                var loadedLog = GameDataUnit.LoadDataFileLog(GameDataPath.GduDataFileLog(gdu.Filename), currentLog);
+                var gduLoadedLog = GameDataUnit.LoadDataFileLog(GameDataPath.GameDataUnitDataFileLog.GetFilePath(gdu.Filename), gduCurrentLog);
 
-                var mergeResult = GameDataFileLog.Merge(loadedLog, currentLog, out var mergedLog);
+                var gduMergeResult = GameDataFileLog.Merge(gduLoadedLog, gduCurrentLog, out var mergedLog);
 
                 // Cook, fundamentally this will make sure all the cooked files are up-to-date
                 var cookResult = GameDataFileLog.Cook(mergedLog, out var finalDataFiles);
-                if (cookResult != 0|| mergeResult != 0 || gdu.OutOfDate)
+                if (cookResult != 0|| gduMergeResult != 0 || gdu.OutOfDate)
                 {
                     SignatureDatabase.RemovePrimary(gdu.Index);
                     dataUnitsOod.Add(gdu);
-                    dataFileLogOod.Add(finalDataFiles);
+                    dataFileLogsOod.Add(finalDataFiles);
                 }
 
                 // Save the compiler log ?
-                dataFileLogs.Add(finalDataFiles);
+                //dataFileLogs.Add(finalDataFiles);
                 gdu.DetermineState();
             }
 
@@ -105,40 +102,38 @@ namespace DataBuildSystem
             for (int i=0; i<dataUnitsOod.Count; ++i)
             {
                 var dataUnit = dataUnitsOod[i];
-                var dataFiles = dataFileLogOod[i];
+                var dataFiles = dataFileLogsOod[i];
                 GameDataUnit.SaveBigfile(dataUnit.Index, dataUnit.Filename, dataFiles, SignatureDatabase);
-                GameDataFileLog.Save(BuildSystemConfig.Platform, GameDataPath.GduDataFileLog(dataUnit.Filename), dataFiles);
+                GameDataFileLog.Save(BuildSystemConfig.Platform, GameDataPath.GameDataUnitDataFileLog.GetFilePath(dataUnit.Filename), dataFiles);
             }
 
             // Save the SignatureDatabase now that it has been updated by saving the out-of-date Bigfile(s)
             // - Signature = Primary (Bigfile) index, Secondary (file) index
-            SignatureDatabase.Save(GameDataPath.GameDataSignatureDb("GameData"));
+            SignatureDatabase.Save(GameDataPath.GameDataSignatureDb.GetFilePath("GameData"));
 
             // Finally save the
             // - Game Code header file
             // - Game Code data file, this will be a Bigfile + Bigfile TOC
-            var codeFileInfo = new FileInfo(GameDataPath.GameDataCppCode("GameData"));
-            var codeFileStream = codeFileInfo.Create();
-            var codeFileWriter = new StreamWriter(codeFileStream);
+            var cppHeaderFileInfo = new FileInfo(GameDataPath.GameDataCppCode.GetFilePath("GameData"));
+            var cppHeaderFileStream = cppHeaderFileInfo.Create();
+            var cppHeaderFileWriter = new StreamWriter(cppHeaderFileStream);
+            var cppDataFilepath = GameDataPath.GameDataCppData.GetFilePath("GameData");
+            var cppDataFileInfo = new FileInfo(cppDataFilepath);
+            var cppDataStream = new FileStream(cppDataFileInfo.FullName, FileMode.Create);
+            var cppDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(cppDataStream, BuildSystemConfig.Platform);
+            CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, cppHeaderFileWriter, cppDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            cppDataStreamWriter.Close();
+            cppDataStream.Close();
+            cppHeaderFileWriter.Close();
+            cppHeaderFileStream.Close();
 
-            var bigfileGameCodeDataFilepath = GameDataPath.GameDataCppData("GameData");
-            var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
-            var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
-            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, BuildSystemConfig.Platform);
-
-            CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
-            bigfileDataStreamWriter.Close();
-            bigfileDataStream.Close();
-            codeFileWriter.Close();
-            codeFileStream.Close();
-
-            var bigfileGameCodeDataFiles = new List<BigfileFile>();
+            var cppDataFiles = new List<BigfileFile>();
             for (int i=0; i<dataUnitsStreamPositions.Count; ++i)
             {
-                bigfileGameCodeDataFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
+                cppDataFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
             }
-            var bigfileGameCode = new Bigfile(0, bigfileGameCodeDataFiles);
-            var bigfileGameCodeTocFilepath = Path.ChangeExtension(bigfileGameCodeDataFilepath, BigfileConfig.BigFileTocExtension);
+            var bigfileGameCode = new Bigfile(0, cppDataFiles);
+            var bigfileGameCodeTocFilepath = Path.ChangeExtension(cppDataFilepath, BigfileConfig.BigFileTocExtension);
             BigfileToc.Save(bigfileGameCodeTocFilepath, [bigfileGameCode]);
 
             return State.Ok;
@@ -183,7 +178,10 @@ namespace DataBuildSystem
             {
                 while (dataUnits.ContainsKey(index))
                     index++;
-                var gdu = new GameDataUnit { Id = id, Name = gddPath, Index = index, DataUnit = du };
+
+                var name = du.GetType().FullName;
+                var gdu = new GameDataUnit { Id = id, Name = name, Index = index, DataUnit = du };
+                gdu.SetupState();
                 dataUnits.Add(gdu.Index, gdu);
                 index++;
             }
@@ -230,8 +228,8 @@ namespace DataBuildSystem
         public string Filename => Name + "." + Id;
         public uint Index { get;  init; }
         public IDataUnit DataUnit { get; set; }
-        private State[] States { get; init; }
-        private Dependency Dep { get; init; }
+        private State[] States { get; set; }
+        private Dependency Dep { get; set; }
 
         public bool OutOfDate
         {
@@ -247,6 +245,47 @@ namespace DataBuildSystem
             }
         }
 
+        private static readonly GameDataPath GameDataUnitBigFileData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileData, ScopeId = GameDataPath.GameDataScopeUnit};
+        private static readonly GameDataPath GameDataUnitBigFileToc = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileToc, ScopeId = GameDataPath.GameDataScopeUnit};
+        private static readonly GameDataPath GameDataUnitBigFileFilenames = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileFilenames, ScopeId = GameDataPath.GameDataScopeUnit};
+        private static readonly GameDataPath GameDataUnitBigFileHashes = new GameDataPath { PathId =EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileHashes, ScopeId = GameDataPath.GameDataScopeUnit};
+        private static readonly GameDataPath GameDataUnitDataFileLog = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGduDataFileLog, ScopeId = GameDataPath.GameDataScopeUnit};
+        private static readonly GameDataPath GameDataDll = new GameDataPath { PathId = EGameDataPath.GameDataSrcPath, FileId = GameDataPath.GameDataGameDataDll, ScopeId = GameDataPath.GameDataScopeGlobal};
+        private static readonly GameDataPath GameDataSignatureDb = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGameDataSignatureDb, ScopeId = GameDataPath.GameDataScopeGlobal};
+        private static readonly GameDataPath GameDataCppData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppData, ScopeId = GameDataPath.GameDataScopeGlobal};
+        private static readonly GameDataPath GameDataCppCode = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppCode, ScopeId = GameDataPath.GameDataScopeGlobal};
+        private static readonly GameDataPath GameDataSrcDataPath = new GameDataPath { PathId = EGameDataPath.GameDataSrcPath, FileId = GameDataPath.GameDataSrcData, ScopeId = GameDataPath.GameDataScopeGlobal};
+        private static readonly GameDataPath GameDataDstDataPath = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataDstData, ScopeId = GameDataPath.GameDataScopeGlobal};
+
+        private static readonly GameDataPath[] GameDataPaths = new GameDataPath[]
+        {
+            GameDataUnitBigFileData,
+            GameDataUnitBigFileToc,
+            GameDataUnitBigFileFilenames,
+            GameDataUnitBigFileHashes,
+            GameDataUnitDataFileLog,
+            GameDataDll,
+            GameDataSignatureDb,
+            GameDataCppData,
+            GameDataCppCode,
+        };
+
+        public void SetupState()
+        {
+            Dep = new Dependency();
+            for (ushort i = 0; i < GameDataPaths.Length; i++)
+            {
+                var gdp = GameDataPaths[i];
+                var unitName = gdp.IsGameData ? "GameData" : Filename;
+                var filepath = gdp.GetRelativeFilePath(unitName);
+                Dep.Add(i, gdp.PathId, filepath);
+            }
+
+            States = new State[GameDataPaths.Length];
+            for (var i = 0; i < States.Length; ++i)
+                States[i] = State.Missing;
+        }
+
         public void DetermineState()
         {
             Dep.Update(delegate(ushort idx, State state)
@@ -254,11 +293,6 @@ namespace DataBuildSystem
                 States[idx] = state;
                 return DataCookResult.None;
             });
-        }
-
-        public static List<IDataFile> LoadDataFileLog(string filepath, List<IDataFile> currentDataFileLog)
-        {
-            return GameDataFileLog.Load(filepath, currentDataFileLog);
         }
 
         public void Save(IBinaryWriter writer)
@@ -272,9 +306,15 @@ namespace DataBuildSystem
             Dep.WriteTo(writer);
         }
 
+
+        public static List<IDataFile> LoadDataFileLog(string filepath, List<IDataFile> currentDataFileLog)
+        {
+            return GameDataFileLog.Load(filepath, currentDataFileLog);
+        }
+
         public static GameDataUnit Load(IBinaryReader reader)
         {
-            var states = new State[Enum.GetValues<EGameData>().Length];
+            var states = new State[GameDataPaths.Length];
             for (var i = 0; i < states.Length; ++i)
                 states[i] = new State(reader.ReadInt8());
             var dep = Dependency.ReadFrom(reader);
@@ -295,17 +335,10 @@ namespace DataBuildSystem
 
         public static void SaveBigfile(uint bigfileIndex, string filename, List<IDataFile> dataFiles, ISignatureDataBase database)
         {
-            var memoryStream = new MemoryStream();
-            var memoryWriter = new BinaryMemoryWriter();
-
             var bigfileFiles = new List<BigfileFile>();
             foreach (var cl in dataFiles)
             {
                 var bigfileFile = new BigfileFile() { Filename = cl.CookedFilename };
-
-                memoryWriter.Reset();
-                cl.BuildSignature(memoryWriter);
-                cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
                 if (database.Register(cl.Signature, bigfileIndex, (uint)bigfileFiles.Count))
                 {
                     bigfileFiles.Add(bigfileFile);
@@ -332,7 +365,7 @@ namespace DataBuildSystem
             return null;
         }
 
-        public static List<IDataFile> CollectDataCompilers(IDataUnit dataUnit)
+        public static List<IDataFile> CollectDataFiles(IDataUnit dataUnit)
         {
             var compilers = new List<IDataFile>();
             {

@@ -125,7 +125,7 @@ namespace GameData
             DataCookResult result;
             if (_dependency == null)
             {
-                _dependency = new Dependency(EGameDataPath.Src, _srcFilename);
+                _dependency = new Dependency(EGameDataPath.GameDataSrcPath, _srcFilename);
                 // Load 'languages list' file
                 try
                 {

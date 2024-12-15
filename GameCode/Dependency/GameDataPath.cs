@@ -3,122 +3,94 @@ using DataBuildSystem;
 
 namespace GameData
 {
-	public enum EGameDataPath : ushort
-	{
-		Src=0x0000,
-		Gdd=0x1000,
-		Dst=0x2000,
-		Pub=0x3000,
-	}
-
-    public enum EGameDataScope : ushort
+    public enum EGameDataPath : byte
     {
-        DataUnit=0x0000,
-        GameData=0x0100
+        GameDataSrcPath,
+        GameDataGddPath,
+        GameDataDstPath,
+        GameDataPubPath,
     }
 
-    [Flags]
-    public enum EGameData : ushort
+    public readonly struct GameDataPath
     {
-        GduBigFileData = EGameDataPath.Pub | EGameDataScope.DataUnit | 0,
-        GduBigFileToc = EGameDataPath.Pub | EGameDataScope.DataUnit | 1,
-        GduBigFileFilenames = EGameDataPath.Pub | EGameDataScope.DataUnit | 2,
-        GduBigFileHashes = EGameDataPath.Pub | EGameDataScope.DataUnit | 3,
-        GduDataFileLog = EGameDataPath.Dst | EGameDataScope.DataUnit | 4,
-        GameDataCppData = EGameDataPath.Pub | EGameDataScope.GameData | 5,
-        GameDataCppCode = EGameDataPath.Pub | EGameDataScope.GameData | 6,
-        GameDataSignatureDb = EGameDataPath.Dst | EGameDataScope.GameData | 7,
-        GameDataDll = EGameDataPath.Gdd | EGameDataScope.GameData | 8,
-    }
-
-    public static class GameDataPath
-	{
         public static string BigFileExtension { get; set; }
         public static string BigFileTocExtension { get; set; }
         public static string BigFileFdbExtension { get; set; }
         public static string BigFileHdbExtension { get; set; }
 
-		public static string GetPath(EGameDataPath p)
-		{
-			return p switch
-			{
-				EGameDataPath.Src => BuildSystemConfig.SrcPath,
-				EGameDataPath.Gdd => BuildSystemConfig.GddPath,
-				EGameDataPath.Dst => BuildSystemConfig.DstPath,
-				EGameDataPath.Pub => BuildSystemConfig.PubPath,
-				_ => string.Empty
-			};
-		}
+        public const byte GameDataSrcPath = 0;
+        public const byte GameDataGddPath = 1;
+        public const byte GameDataDstPath = 2;
+        public const byte GameDataPubPath = 3;
 
-        public static EGameDataPath GetPathFor(EGameData unit)
-		{
-            var path = (uint)unit & 0xF000;
-            return (EGameDataPath)path;
-		}
+        public const byte GameDataScopeUnit = 0;
+        public const byte GameDataScopeGlobal = 1;
 
-        public static bool IsGameData(EGameData e)
+        public const byte GameDataGduBigFileData = 0;
+        public const byte GameDataGduBigFileToc = 1;
+        public const byte GameDataGduBigFileFilenames = 2;
+        public const byte GameDataGduBigFileHashes = 3;
+        public const byte GameDataGduDataFileLog = 4;
+        public const byte GameDataGameDataDll = 5;
+        public const byte GameDataGameDataSignatureDb = 6;
+        public const byte GameDataGameDataCppData = 7;
+        public const byte GameDataGameDataCppCode = 8;
+        public const byte GameDataSrcData = 9;
+        public const byte GameDataDstData = 10;
+
+        public EGameDataPath PathId { get; init; }
+        public byte FileId { get; init; }
+        public byte ScopeId { get; init; }
+
+        public bool IsGameData => ScopeId == GameDataScopeGlobal;
+
+        public string GetDirPath()
         {
-            return ((uint)e & 0x0F00) == (uint)EGameDataScope.GameData;
+            return (byte)PathId switch
+            {
+                GameDataSrcPath => BuildSystemConfig.SrcPath,
+                GameDataGddPath => BuildSystemConfig.GddPath,
+                GameDataDstPath => BuildSystemConfig.DstPath,
+                GameDataPubPath => BuildSystemConfig.PubPath,
+                _ => string.Empty
+            };
         }
 
-		public static string GetExtFor(EGameData unit)
-		{
-			return unit switch
-			{
-				EGameData.GduBigFileData => BigFileExtension,
-				EGameData.GduBigFileToc => BigFileTocExtension,
-				EGameData.GduBigFileFilenames => BigFileFdbExtension,
-				EGameData.GduBigFileHashes => BigFileHdbExtension,
-                EGameData.GduDataFileLog => ".dfl",
-                EGameData.GameDataDll => ".dll",
-                EGameData.GameDataSignatureDb => ".sdb",
-                EGameData.GameDataCppData => BigFileExtension,
-                EGameData.GameDataCppCode => ".h",
-				_ => string.Empty
-			};
-		}
-		private static string GetFilePathFor(string name, EGameData unit)
-		{
-			var path = GetPathFor(unit);
-			var dirPath = GetPath(path);
-			return Path.Join(dirPath, name + GetExtFor(unit));
-		}
+        public string GetFilePath(string name)
+        {
+            return Path.Join(GetDirPath(), name + GetFileExt());
+        }
 
-        public static string GduBigFileData(string name)
+        public string GetRelativeFilePath(string name)
         {
-            return GetFilePathFor(name, EGameData.GduBigFileData);
+            return name + GetFileExt();
         }
-        public static string GduBigFileToc(string name)
+
+        private string GetFileExt()
         {
-            return GetFilePathFor(name, EGameData.GduBigFileToc);
+            return FileId switch
+            {
+                GameDataGduBigFileData => BigFileExtension,
+                GameDataGduBigFileToc => BigFileTocExtension,
+                GameDataGduBigFileFilenames => BigFileFdbExtension,
+                GameDataGduBigFileHashes => BigFileHdbExtension,
+                GameDataGduDataFileLog => ".dfl",
+                GameDataGameDataDll => ".dll",
+                GameDataGameDataSignatureDb => ".sdb",
+                GameDataGameDataCppData => BigFileExtension,
+                GameDataGameDataCppCode => ".h",
+                _ => string.Empty
+            };
         }
-        public static string GduBigFileFilenames(string name)
-        {
-            return GetFilePathFor(name, EGameData.GduBigFileFilenames);
-        }
-        public static string GduBigFileHashes(string name)
-        {
-            return GetFilePathFor(name, EGameData.GduBigFileHashes);
-        }
-        public static string GduDataFileLog(string name)
-        {
-            return GetFilePathFor(name, EGameData.GduDataFileLog);
-        }
-        public static string GameDataDll(string name)
-        {
-            return GetFilePathFor(name, EGameData.GameDataDll);
-        }
-        public static string GameDataSignatureDb(string name)
-        {
-            return GetFilePathFor(name, EGameData.GameDataSignatureDb);
-        }
-        public static string GameDataCppData(string name)
-        {
-            return GetFilePathFor(name, EGameData.GameDataCppData);
-        }
-        public static string GameDataCppCode(string name)
-        {
-            return GetFilePathFor(name, EGameData.GameDataCppCode);
-        }
+
+        public static readonly GameDataPath GameDataUnitBigFileData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataGduBigFileData, ScopeId = GameDataScopeUnit};
+        public static readonly GameDataPath GameDataUnitBigFileToc = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataGduBigFileToc, ScopeId = GameDataScopeUnit};
+        public static readonly GameDataPath GameDataUnitBigFileFilenames = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataGduBigFileFilenames, ScopeId = GameDataScopeUnit};
+        public static readonly GameDataPath GameDataUnitBigFileHashes = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataGduBigFileHashes, ScopeId = GameDataScopeUnit};
+        public static readonly GameDataPath GameDataUnitDataFileLog = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataGduDataFileLog, ScopeId = GameDataScopeUnit};
+        public static readonly GameDataPath GameDataDll = new GameDataPath { PathId = EGameDataPath.GameDataGddPath, FileId = GameDataGameDataDll, ScopeId = GameDataScopeGlobal};
+        public static readonly GameDataPath GameDataSignatureDb = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataGameDataSignatureDb, ScopeId = GameDataScopeGlobal};
+        public static readonly GameDataPath GameDataCppData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataGameDataCppData, ScopeId = GameDataScopeGlobal};
+        public static readonly GameDataPath GameDataCppCode = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataGameDataCppCode, ScopeId = GameDataScopeGlobal};
     }
 }

@@ -75,7 +75,7 @@ namespace DataBuildSystem
 
         private readonly struct Info
         {
-            public EGameDataPath Path { get; init; }
+            public EGameDataPath DataPath { get; init; }
             public ushort Id { get; init; }
             public EMethod Method { get; init; }
         }
@@ -88,14 +88,31 @@ namespace DataBuildSystem
         {
         }
 
+        private static string GetGameDataPath(EGameDataPath dp)
+        {
+            switch (dp)
+            {
+                case EGameDataPath.GameDataSrcPath:
+                    return BuildSystemConfig.SrcPath;
+                case EGameDataPath.GameDataGddPath:
+                    return BuildSystemConfig.GddPath;
+                case EGameDataPath.GameDataDstPath:
+                    return BuildSystemConfig.DstPath;
+                case EGameDataPath.GameDataPubPath:
+                    return BuildSystemConfig.PubPath;
+                default:
+                    return string.Empty;
+            }
+        }
+
         public Dependency(EGameDataPath path, string filepath)
         {
             Add(0, path, filepath);
         }
 
-        public void Add(ushort id, EGameDataPath p, string filepath)
+        public void Add(ushort id, EGameDataPath gdp, string filepath)
         {
-            Infos.Add(new Info { Path = p, Id = id, Method = EMethod.ContentHash });
+            Infos.Add(new Info { DataPath = gdp, Id = id, Method = EMethod.ContentHash });
             FilePaths.Add(filepath);
             Hashes.Add(Hash160.Empty);
         }
@@ -113,7 +130,8 @@ namespace DataBuildSystem
 
                 // Return ids of dependencies that have changed
                 var newHash = Hash160.Null;
-                var filepath = Path.Join(GameDataPath.GetPath(Infos[i].Path), FilePaths[i]);
+                var gdp = GetGameDataPath(Infos[i].DataPath);
+                var filepath = Path.Join(gdp, FilePaths[i]);
                 switch (method)
                 {
                     case EMethod.ContentHash:
@@ -153,10 +171,11 @@ namespace DataBuildSystem
             return result;
         }
 
-        public static Dependency Load(EGameDataPath path, string filePath)
+        public static Dependency Load(GameDataPath path, string relativeFilepath)
         {
             BinaryFileReader reader = new();
-            var filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), filePath, ".dep"));
+            //var filepath = Path.Join(GameDataPath.GetPath(GameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), filePath, ".dep"));
+            var filepath = Path.Join(path.GetDirPath(), relativeFilepath);
             if (reader.Open(filepath))
             {
                 var magic = reader.ReadInt64();
@@ -173,7 +192,8 @@ namespace DataBuildSystem
 
         public bool Save()
         {
-            var filepath = Path.Join(GameDataPath.GetPath(EGameDataPath.Dst), FilePaths[0] + ".dep");
+            var dirpath = BuildSystemConfig.DstPath;
+            var filepath = Path.Join(dirpath, FilePaths[0] + ".dep");
             var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, Platform.Current);
             if (writer != null)
             {
@@ -198,11 +218,11 @@ namespace DataBuildSystem
 
                 for (var i = 0; i < count; i++)
                 {
-                    var gdp = reader.ReadUInt16();
                     var id = reader.ReadUInt16();
+                    var gdp = reader.ReadUInt8();
                     var method = reader.ReadInt8();
 
-                    dep.Infos.Add(new Info() { Path = (EGameDataPath)gdp, Id = id, Method = (EMethod)method });
+                    dep.Infos.Add(new Info() { DataPath = (EGameDataPath)gdp, Id = id, Method = (EMethod)method });
                     dep.Hashes.Add(Hash160.ReadFrom(reader));
                 }
 
@@ -221,8 +241,8 @@ namespace DataBuildSystem
             writer.Write(Count);
             for (var i = 0; i < Count; i++)
             {
-                writer.Write((ushort)Infos[i].Path);
-                writer.Write((ushort)Infos[i].Id);
+                writer.Write(Infos[i].Id);
+                writer.Write((byte)Infos[i].DataPath);
                 writer.Write((byte)Infos[i].Method);
                 Hashes[i].WriteTo(writer);
             }

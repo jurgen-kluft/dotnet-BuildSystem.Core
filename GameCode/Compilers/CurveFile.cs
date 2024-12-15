@@ -58,8 +58,8 @@ namespace GameData
             var result = DataCookResult.None;
             if (mDependency == null)
             {
-                mDependency = new Dependency(EGameDataPath.Src, mSrcFilename);
-                mDependency.Add(1, EGameDataPath.Dst, mDstFilename);
+                mDependency = new Dependency(EGameDataPath.GameDataSrcPath, mSrcFilename);
+                mDependency.Add(1, EGameDataPath.GameDataDstPath, mDstFilename);
                 result = DataCookResult.DstMissing;
             }
             else
