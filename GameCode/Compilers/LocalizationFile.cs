@@ -154,7 +154,7 @@ namespace GameData
             }
             else
             {
-                result = _dependency.Update(delegate (short id, State state)
+                result = _dependency.Update(delegate (ushort id, State state)
                 {
                     var result2 = DataCookResult.UpToDate;
                     if (state == State.Missing)

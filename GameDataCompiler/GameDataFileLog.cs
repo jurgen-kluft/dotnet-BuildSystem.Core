@@ -6,8 +6,6 @@ namespace DataBuildSystem
 {
     public sealed class GameDataFileLog
     {
-        public List<IDataFile> DataFiles { get; set; } = [];
-
         private static int Compare(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
         {
             return Hash160.Compare(lhs.Key, rhs.Key);

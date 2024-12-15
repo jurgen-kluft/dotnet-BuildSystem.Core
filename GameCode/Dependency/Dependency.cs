@@ -73,37 +73,16 @@ namespace DataBuildSystem
         // Note: We could make each entry just a byte Array, this would be
         // a very specific optimizations which will speed up the loading.
 
-        private struct Info
+        private readonly struct Info
         {
-            public readonly uint Value;
-
-            public Info(uint value)
-            {
-                Value = value;
-            }
-
-            public EGameDataPath Path
-            {
-                get => (EGameDataPath)(Value & 0xFF);
-                init => Value = (Value & 0xFFFFFF00) | (uint)value;
-            }
-
-            public short Id
-            {
-                get => (short)((Value >> 8) & 0xFFFF);
-                init => Value = (Value & 0xFFFF00FF) | ((uint)value << 8);
-            }
-
-            public EMethod Method
-            {
-                get => (EMethod)((Value >> 24) & 0xFF);
-                init => Value = (Value & 0x00FFFFFF) | ((uint)value << 24);
-            }
+            public EGameDataPath Path { get; init; }
+            public ushort Id { get; init; }
+            public EMethod Method { get; init; }
         }
 
-        private List<Info> Infos { get; set; } = new();
-        private List<Hash160> Hashes { get; set; } = new();
-        private List<string> FilePaths { get; set; } = new();
+        private List<Info> Infos { get; set; } = [];
+        private List<Hash160> Hashes { get; set; } = [];
+        private List<string> FilePaths { get; set; } = [];
 
         public Dependency()
         {
@@ -114,7 +93,7 @@ namespace DataBuildSystem
             Add(0, path, filepath);
         }
 
-        public void Add(short id, EGameDataPath p, string filepath)
+        public void Add(ushort id, EGameDataPath p, string filepath)
         {
             Infos.Add(new Info { Path = p, Id = id, Method = EMethod.ContentHash });
             FilePaths.Add(filepath);
@@ -123,7 +102,7 @@ namespace DataBuildSystem
 
         // Return false if dependencies are up-to-date
         // Return true if dependencies where updated
-        public delegate DataCookResult DataCompilerOutputUpdateDelegate(short id, State state);
+        public delegate DataCookResult DataCompilerOutputUpdateDelegate(ushort id, State state);
         public DataCookResult Update(DataCompilerOutputUpdateDelegate ood)
         {
             var result = DataCookResult.None;
@@ -138,20 +117,20 @@ namespace DataBuildSystem
                 switch (method)
                 {
                     case EMethod.ContentHash:
-                    {
-                        var fileInfo = new FileInfo(filepath);
-                        if (fileInfo.Exists)
-                            newHash = HashUtility.Compute(fileInfo);
-                    }
+                        {
+                            var fileInfo = new FileInfo(filepath);
+                            if (fileInfo.Exists)
+                                newHash = HashUtility.Compute(fileInfo);
+                        }
                         break;
                     case EMethod.TimestampHash:
-                    {
-                        var fileInfo = new FileInfo(filepath);
-                        if (fileInfo.Exists)
                         {
-                            newHash = Hash160.FromDateTime(File.GetLastWriteTime(filepath));
+                            var fileInfo = new FileInfo(filepath);
+                            if (fileInfo.Exists)
+                            {
+                                newHash = Hash160.FromDateTime(File.GetLastWriteTime(filepath));
+                            }
                         }
-                    }
                         break;
                 }
 
@@ -219,7 +198,11 @@ namespace DataBuildSystem
 
                 for (var i = 0; i < count; i++)
                 {
-                    dep.Infos.Add(new Info(reader.ReadUInt32()));
+                    var gdp = reader.ReadUInt16();
+                    var id = reader.ReadUInt16();
+                    var method = reader.ReadInt8();
+
+                    dep.Infos.Add(new Info() { Path = (EGameDataPath)gdp, Id = id, Method = (EMethod)method });
                     dep.Hashes.Add(Hash160.ReadFrom(reader));
                 }
 
@@ -238,7 +221,9 @@ namespace DataBuildSystem
             writer.Write(Count);
             for (var i = 0; i < Count; i++)
             {
-                writer.Write(Infos[i].Value);
+                writer.Write((ushort)Infos[i].Path);
+                writer.Write((ushort)Infos[i].Id);
+                writer.Write((byte)Infos[i].Method);
                 Hashes[i].WriteTo(writer);
             }
 
