@@ -3,29 +3,35 @@ using DataBuildSystem;
 
 namespace GameData
 {
-	public enum EGameDataPath : byte
+	public enum EGameDataPath : uint
 	{
-		Src,
-		Gdd,
-		Dst,
-		Pub,
+		Src=0x00000,
+		Gdd=0x10000,
+		Dst=0x20000,
+		Pub=0x30000,
 	}
 
-	[Flags]
-	public enum EGameData : int
-	{
-		GameDataDll = 0,
-        SignatureDatabase,
-		GameDataCompilerLog,
-		BigFileData,
-		BigFileToc,
-		BigFileFilenames,
-		BigFileHashes,
-        GameCodeData,
-        GameCodeHeader,
-	}
+    public enum EGameDataScope : uint
+    {
+        DataUnit=0x000,
+        GameData=0x100
+    }
 
-	public static class GameDataPath
+    [Flags]
+    public enum EGameData : uint
+    {
+        GduBigFileData = EGameDataPath.Pub | EGameDataScope.DataUnit | 0,
+        GduBigFileToc = EGameDataPath.Pub | EGameDataScope.DataUnit | 1,
+        GduBigFileFilenames = EGameDataPath.Pub | EGameDataScope.DataUnit | 2,
+        GduBigFileHashes = EGameDataPath.Pub | EGameDataScope.DataUnit | 3,
+        GameDataCompilerLog = EGameDataPath.Dst | EGameDataScope.GameData | 0,
+        GameDataCppData = EGameDataPath.Pub | EGameDataScope.GameData | 1,
+        GameDataCppCode = EGameDataPath.Pub | EGameDataScope.GameData | 2,
+        GameDataDll = EGameDataPath.Gdd | EGameDataScope.GameData | 3,
+        GameDataSignatureDb = EGameDataPath.Dst | EGameDataScope.GameData | 4,
+    }
+
+    public static class GameDataPath
 	{
         public static string BigFileExtension { get; set; }
         public static string BigFileTocExtension { get; set; }
@@ -36,32 +42,38 @@ namespace GameData
 		{
 			return p switch
 			{
-				EGameDataPath.Src => BuildSystemDefaultConfig.SrcPath,
-				EGameDataPath.Gdd => BuildSystemDefaultConfig.GddPath,
-				EGameDataPath.Dst => BuildSystemDefaultConfig.DstPath,
-				EGameDataPath.Pub => BuildSystemDefaultConfig.PubPath,
+				EGameDataPath.Src => BuildSystemConfig.SrcPath,
+				EGameDataPath.Gdd => BuildSystemConfig.GddPath,
+				EGameDataPath.Dst => BuildSystemConfig.DstPath,
+				EGameDataPath.Pub => BuildSystemConfig.PubPath,
 				_ => string.Empty
 			};
 		}
 
-        private static EGameDataPath[] _sGameDataUnitToEPath = [EGameDataPath.Gdd, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Dst, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub, EGameDataPath.Pub];
-		public static EGameDataPath GetPathFor(EGameData unit)
+        public static EGameDataPath GetPathFor(EGameData unit)
 		{
-			return _sGameDataUnitToEPath[(int)unit];
+            var path = (uint)unit & 0xFF0000;
+            return (EGameDataPath)path;
 		}
+
+        public static bool IsGameData(EGameData e)
+        {
+            return ((uint)e & 0xFF00) == (uint)EGameDataScope.GameData;
+        }
+
 		public static string GetExtFor(EGameData unit)
 		{
 			return unit switch
 			{
+				EGameData.GduBigFileData => BigFileExtension,
+				EGameData.GduBigFileToc => BigFileTocExtension,
+				EGameData.GduBigFileFilenames => BigFileFdbExtension,
+				EGameData.GduBigFileHashes => BigFileHdbExtension,
                 EGameData.GameDataDll => ".dll",
-                EGameData.SignatureDatabase => ".sdb",
-				EGameData.GameDataCompilerLog => ".gdl",
-				EGameData.BigFileData => BigFileExtension,
-				EGameData.BigFileToc => BigFileTocExtension,
-				EGameData.BigFileFilenames => BigFileFdbExtension,
-				EGameData.BigFileHashes => BigFileHdbExtension,
-                EGameData.GameCodeData => ".gcd",
-                EGameData.GameCodeHeader => ".h",
+                EGameData.GameDataSignatureDb => ".sdb",
+                EGameData.GameDataCompilerLog => ".gdcl",
+                EGameData.GameDataCppData => BigFileExtension,
+                EGameData.GameDataCppCode => ".h",
 				_ => string.Empty
 			};
 		}
@@ -71,5 +83,16 @@ namespace GameData
 			var dirPath = GetPath(path);
 			return Path.Join(dirPath, name + GetExtFor(unit));
 		}
-	}
+
+        EGameData.GduBigFileData => BigFileExtension,
+        EGameData.GduBigFileToc => BigFileTocExtension,
+        EGameData.GduBigFileFilenames => BigFileFdbExtension,
+        EGameData.GduBigFileHashes => BigFileHdbExtension,
+        EGameData.GameDataDll => ".dll",
+        EGameData.GameDataSignatureDb => ".sdb",
+        EGameData.GameDataCompilerLog => ".gdcl",
+        EGameData.GameDataCppData => BigFileExtension,
+        EGameData.GameDataCppCode => ".h",
+
+    }
 }

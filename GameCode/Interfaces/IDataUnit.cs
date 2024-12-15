@@ -5,10 +5,10 @@ namespace GameData
 {
     public interface IDataUnit
     {
-        // We use the Type.Name and Type.Namespace to identify the data unit
+        string Signature { get; }
     }
 
-    public interface IRootDataUnit : IDataUnit
+    public interface IRootDataUnit
     {
 
     }

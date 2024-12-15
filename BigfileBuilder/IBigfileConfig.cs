@@ -1,6 +1,4 @@
-﻿using GameCore;
-
-namespace BigfileBuilder
+﻿namespace BigfileBuilder
 {
     public interface IBigfileConfig
     {
@@ -28,11 +26,6 @@ namespace BigfileBuilder
         /// The extension of the Bigfile Hash Database (.gdh)
         /// </summary>
         string BigFileHdbExtension { get; }
-
-        /// <summary>
-        /// The platform for the Toc and Fdb
-        /// </summary>
-        EPlatform Platform { get; }
 
         /// <summary>
         /// The alignment of every file in the bigfile
@@ -63,7 +56,6 @@ namespace BigfileBuilder
         public string BigFileTocExtension => ".gdt";
         public string BigFileFdbExtension => ".gdf";
         public string BigFileHdbExtension => ".gdh";
-        public EPlatform Platform => EPlatform.Win64;
         public uint FileAlignment => 256;
         public bool AllowDuplicateFiles => false;
         public uint ReadBufferSize => 1 * 1024 * 1024;
@@ -85,7 +77,6 @@ namespace BigfileBuilder
         public static string BigFileTocExtension => Config.BigFileTocExtension;
         public static string BigFileFdbExtension => Config.BigFileFdbExtension;
         public static string BigFileHdbExtension => Config.BigFileHdbExtension;
-        public static EPlatform Platform => Config.Platform;
         public static uint FileAlignment => Config.FileAlignment;
         public static bool AllowDuplicateFiles => Config.AllowDuplicateFiles;
         public static uint ReadBufferSize => Config.ReadBufferSize;

@@ -136,9 +136,8 @@ namespace DataBuildSystem
             }
 
             // Configuration for data build system compiler
-            var configForBuildSystemCompiler = AssemblyUtil.Create1<IBuildSystemConfig>(configDataAssembly);
-            if (configForBuildSystemCompiler != null)
-                BuildSystemDefaultConfig.Init(configForBuildSystemCompiler);
+            var configForBuildSystemCompiler = AssemblyUtil.Create1<IBuildSystemConfig>(configDataAssembly) ?? new BuildSystemDefaultConfig();
+            BuildSystemConfig.Init(configForBuildSystemCompiler);
 
             // Configuration for dependency system
             //IDependencySystemConfig configForDependencySystem = AssemblyUtil.Create1<IDependencySystemConfig>(configDataAssembly);
@@ -147,8 +146,7 @@ namespace DataBuildSystem
 
             // Configuration for localizer
             var buildSystemLocalizerConfig = AssemblyUtil.Create1<ILocalizerConfig>(configDataAssembly) ?? new LocalizerDefaultConfig();
-            if (buildSystemLocalizerConfig!=null)
-                LocalizerConfig.SetConfig(buildSystemLocalizerConfig);
+            LocalizerConfig.SetConfig(buildSystemLocalizerConfig);
 
             // Manually supplied additional excel files
             var sourceFiles = new List<string>() { cmdLine.excel0 };

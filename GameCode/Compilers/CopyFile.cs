@@ -100,7 +100,7 @@ namespace GameData
             try
             {
                 // Execute the actual purpose of this compiler
-                File.Copy(Path.Join(BuildSystemDefaultConfig.SrcPath, _srcFilename), Path.Join(BuildSystemDefaultConfig.DstPath, _dstFilename), true);
+                File.Copy(Path.Join(BuildSystemConfig.SrcPath, _srcFilename), Path.Join(BuildSystemConfig.DstPath, _dstFilename), true);
 
                 // Execution is done, update the dependency to reflect the new state
                 result = _dependency.Update(null);

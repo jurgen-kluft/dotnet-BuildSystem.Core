@@ -95,11 +95,11 @@ namespace MetaTest
             var platform = EPlatform.Win64;
             var rootDataUnit = new TestRoot();
 
-            var codeFileInfo = new FileInfo(GameDataPath.GetFilePathFor("TestData", EGameData.GameCodeHeader));
+            var codeFileInfo = new FileInfo(GameDataPath.GetFilePathFor("TestData", EGameData.GameDataCppCode));
             var codeFileStream = codeFileInfo.Create();
             var codeFileWriter = new StreamWriter(codeFileStream);
 
-            var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.BigFileData);
+            var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.GduBigFileData);
             var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
             var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
             var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, platform);
@@ -116,7 +116,7 @@ namespace MetaTest
                 bigfileGameCodeFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
             }
             var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
-            var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.BigFileToc);
+            var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("TestData", EGameData.GduBigFileToc);
             BigfileToc.Save(bigfileGameCodeTocFilepath, [bigfileGameCode]);
 
 

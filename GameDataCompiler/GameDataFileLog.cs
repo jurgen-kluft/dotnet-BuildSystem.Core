@@ -4,24 +4,14 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    public sealed class GameDataCompilerLog
+    public sealed class GameDataFileLog
     {
-        private readonly Dictionary<Hash160, Type> _compilerTypeSet = new ();
-        private readonly HashSet<Hash160> _compilerSignatureSet = new ();
+        public List<IDataFile> DataFiles { get; set; } = [];
 
-        public GameDataCompilerLog()
+        private static int Compare(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
         {
-            DataFiles = [];
+            return Hash160.Compare(lhs.Key, rhs.Key);
         }
-
-        private EPlatform Platform { get; set; }
-
-        public List<IDataFile> DataFiles { get; set; }
-
-            private static int Compare(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
-            {
-                return Hash160.Compare(lhs.Key, rhs.Key);
-            }
 
         public static int Merge(IReadOnlyList<IDataFile> previousCompilers, IReadOnlyList<IDataFile> currentCompilers, out List<IDataFile> mergedCompilers)
         {
@@ -108,25 +98,16 @@ namespace DataBuildSystem
             return result;
         }
 
-        private void RegisterCompilers(List<IDataFile> compilers)
+        public static bool Save(EPlatform platform, string filepath, List<IDataFile> dataFiles)
         {
-            foreach (var cl in compilers)
-            {
-                var typeSignature = HashUtility.Compute(cl.GetType());
-                _compilerTypeSet.TryAdd(typeSignature, cl.GetType());
-            }
-        }
-
-        public bool Save(string filepath)
-        {
-            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, platform);
             if (writer == null) return false;
 
             MemoryStream memoryStream = new();
             BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(Platform)))
+            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(platform)))
             {
-                foreach (var compiler in DataFiles)
+                foreach (var compiler in dataFiles)
                 {
                     memoryWriter.Reset();
 
@@ -150,13 +131,21 @@ namespace DataBuildSystem
             return false;
         }
 
-        public bool Load(string filepath)
+        public static List<IDataFile> Load(string filepath, List<IDataFile> currentDataFileLog)
         {
-            DataFiles.Clear();
+            var loadedDataFilelog = new List<IDataFile>();
 
             BinaryFileReader reader = new();
             if (!reader.Open(filepath))
-                return false;
+                return loadedDataFilelog;
+
+            var compilerSignatureSet = new HashSet<Hash160>(currentDataFileLog.Count);
+            var compilerTypeSet = new Dictionary<Hash160, Type>(currentDataFileLog.Count);
+            foreach (var cl in currentDataFileLog)
+            {
+                var typeSignature = HashUtility.Compute(cl.GetType());
+                compilerTypeSet.TryAdd(typeSignature, cl.GetType());
+            }
 
             while (reader.Position < reader.Length)
             {
@@ -168,12 +157,12 @@ namespace DataBuildSystem
                 // the name of the compiler has been changed. When this is the case we need to
                 // inform the user of this class that the log is out-of-date!
 
-                if (_compilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
+                if (compilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
                 {
                     var compiler = Activator.CreateInstance(type) as IDataFile;
-                    if (_compilerSignatureSet.Add(compilerSignature))
+                    if (compilerSignatureSet.Add(compilerSignature))
                     {
-                        DataFiles.Add(compiler);
+                        loadedDataFilelog.Add(compiler);
                     }
 
                     compiler.LoadState(reader);
@@ -186,7 +175,7 @@ namespace DataBuildSystem
             }
 
             reader.Close();
-            return true;
+            return loadedDataFilelog;
         }
     }
 }

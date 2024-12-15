@@ -100,7 +100,7 @@ namespace GameData
             try
             {
                 // Execute the actual purpose of this compiler
-                File.Copy(Path.Join(BuildSystemDefaultConfig.SrcPath, _srcFilename), Path.Join(BuildSystemDefaultConfig.DstPath, _dstFilename), true);
+                File.Copy(Path.Join(BuildSystemConfig.SrcPath, _srcFilename), Path.Join(BuildSystemConfig.DstPath, _dstFilename), true);
 
                 // Note: On Windows we have different tools than on Mac/Linux
                 // Note: Shaders are in HLSL and for Mac (Metal) need to be compiled

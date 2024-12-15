@@ -8,10 +8,6 @@ namespace DataBuildSystem
     {
         public EPlatform Platform => EPlatform.Win64;
 
-        public bool LittleEndian => true;
-
-        public bool Unicode => false;
-
         public string SubDepFileExtension => ".sdep";
 
         public string MainDepFileExtension => ".dep";
@@ -23,11 +19,9 @@ namespace DataBuildSystem
 
     public static class LocalizerConfig
     {
-        private static ILocalizerConfig _sConfig = new LocalizerDefaultConfig();
+        private static ILocalizerConfig s_config = new LocalizerDefaultConfig();
 
         public static string Name { get; private set; } = string.Empty;
-
-        public static bool LittleEndian => _sConfig.LittleEndian;
 
         public static EPlatform Platform { get; private set; } = EPlatform.Win64;
 
@@ -57,13 +51,13 @@ namespace DataBuildSystem
 
         public static Dirname ToolPath { get; private set; }
 
-        public static string SubDepFileExtension => _sConfig.SubDepFileExtension;
+        public static string SubDepFileExtension => s_config.SubDepFileExtension;
 
-        public static string MainDepFileExtension => _sConfig.MainDepFileExtension;
+        public static string MainDepFileExtension => s_config.MainDepFileExtension;
 
-        public static string SubLocFileExtension => _sConfig.SubLocFileExtension;
+        public static string SubLocFileExtension => s_config.SubLocFileExtension;
 
-        public static string MainLocFileExtension => _sConfig.MainLocFileExtension;
+        public static string MainLocFileExtension => s_config.MainLocFileExtension;
 
         public static bool FolderFilter(string folder)
         {
@@ -123,7 +117,7 @@ namespace DataBuildSystem
         public static void SetConfig(ILocalizerConfig config)
         {
             if (config != null)
-                _sConfig = config;
+                s_config = config;
         }
 
         public static T FromString<T>(string @string, T @default)

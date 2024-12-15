@@ -7,54 +7,54 @@ namespace DataBuildSystem
 {
     public class SignatureDataBase : ISignatureDataBase
     {
-        private class BigfileEntry
+        private class PrimaryEntry
         {
-            public List<uint> FileIndexList = new();
-            public List<Hash160> SignatureList = new();
+            public readonly List<uint> IndexList = [];
+            public readonly List<Hash160> SignatureList = [];
         }
 
         private struct Entry
         {
-            public uint BigfileIndex;
-            public uint FileIndex;
+            public uint Primary;
+            public uint Secondary;
         }
 
-        private readonly List<BigfileEntry> _entries = [];
+        private readonly List<PrimaryEntry> _entries = [];
         private readonly Dictionary<Hash160, Entry> _signatureToEntry = [];
 
-        public (uint bigfileIndex, uint fileIndex) GetFileId(Hash160 signature)
+        public (uint primary, uint secondary) GetEntry(Hash160 signature)
         {
             if (_signatureToEntry.TryGetValue(signature, out var e))
-                return (e.BigfileIndex, e.FileIndex);
+                return (e.Primary, e.Secondary);
             return (uint.MaxValue, uint.MaxValue);
         }
 
-        public bool Register(Hash160 signature, uint bigfileIndex, uint fileIndex)
+        public bool Register(Hash160 signature, uint primary, uint secondary)
         {
             if (_signatureToEntry.TryGetValue(signature, out var e))
                 return false;
 
-            if (bigfileIndex > _entries.Capacity)
-                _entries.Capacity = (int)bigfileIndex + 16;
-            while (bigfileIndex >= _entries.Count)
-                _entries.Add(new BigfileEntry());
+            if (primary > _entries.Capacity)
+                _entries.Capacity = (int)primary + 16;
+            while (primary >= _entries.Count)
+                _entries.Add(new PrimaryEntry());
 
-            _signatureToEntry.Add(signature, new Entry { BigfileIndex = bigfileIndex, FileIndex = fileIndex });
-            BigfileEntry bfe = _entries[(int)bigfileIndex];
+            _signatureToEntry.Add(signature, new Entry { Primary = primary, Secondary = secondary });
+            PrimaryEntry bfe = _entries[(int)primary];
             bfe.SignatureList.Add(signature);
-            bfe.FileIndexList.Add(fileIndex);
+            bfe.IndexList.Add(secondary);
             return true; // Success registering this signature
         }
 
-        public void RemoveBigfile(uint index)
+        public void RemovePrimary(uint index)
         {
             if (index < _entries.Count)
             {
-                BigfileEntry bfe = _entries[(int)index];
+                PrimaryEntry bfe = _entries[(int)index];
                 foreach (var signature in bfe.SignatureList)
                     _signatureToEntry.Remove(signature);
                 bfe.SignatureList.Clear();
-                bfe.FileIndexList.Clear();
+                bfe.IndexList.Clear();
             }
         }
 
@@ -75,7 +75,7 @@ namespace DataBuildSystem
             _entries.Capacity = numEntries;
             for (var i = 0; i < numEntries; i++)
             {
-                _entries.Add(new BigfileEntry());
+                _entries.Add(new PrimaryEntry());
             }
 
             for (var i = 0; i < numEntries; i++)
@@ -84,16 +84,16 @@ namespace DataBuildSystem
                 var entryCapacity = reader.ReadInt32();
                 var bfe = _entries[entryIndex];
                 bfe.SignatureList.Capacity = entryCapacity;
-                bfe.FileIndexList.Capacity = entryCapacity;
+                bfe.IndexList.Capacity = entryCapacity;
                 for (var j = 0; j < entryCapacity; j++)
                 {
                     var signature = Hash160.ReadFrom(reader);
                     var bigfileIndex = reader.ReadUInt32();
                     var fileIndex = reader.ReadUInt32();
                     bfe.SignatureList.Add(signature);
-                    bfe.FileIndexList.Add(fileIndex);
+                    bfe.IndexList.Add(fileIndex);
 
-                    _signatureToEntry.Add(signature, new Entry { BigfileIndex = bigfileIndex, FileIndex = fileIndex });
+                    _signatureToEntry.Add(signature, new Entry { Primary = bigfileIndex, Secondary = fileIndex });
                 }
             }
 
@@ -111,14 +111,14 @@ namespace DataBuildSystem
             writer.Write(_entries.Count);
             for (var i = 0; i < _entries.Count; i++)
             {
-                BigfileEntry bfe = _entries[i];
+                PrimaryEntry bfe = _entries[i];
                 writer.Write(i);
-                writer.Write(bfe.FileIndexList.Count);
+                writer.Write(bfe.IndexList.Count);
                 for (var j = 0; j < bfe.SignatureList.Count; j++)
                 {
                     bfe.SignatureList[j].WriteTo(writer);
                     writer.Write(i);
-                    writer.Write(bfe.FileIndexList[j]);
+                    writer.Write(bfe.IndexList[j]);
                 }
             }
 

@@ -15,11 +15,6 @@ namespace DataBuildSystem
         EPlatform Platform { get; }
 
         /// <summary>
-        /// Write the BigfileToc and Resource data in which endian
-        /// </summary>
-        bool LittleEndian { get; }
-
-        /// <summary>
         /// Treat every enum as a 32 bit integer
         /// </summary>
         bool EnumIsInt32 { get; }
@@ -29,5 +24,4 @@ namespace DataBuildSystem
         /// </summary>
         int SizeOfBool { get; }
     }
-
 }

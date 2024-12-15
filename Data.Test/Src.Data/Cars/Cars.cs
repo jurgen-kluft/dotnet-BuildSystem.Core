@@ -16,6 +16,7 @@ namespace GameData
 
     public partial class Cars : IDataUnit
     {
+        public string Signature => "918ca960-1ceb-45f8-96df-c29690bb8619";
         public Car[] m_cars;
 
         public Cars()

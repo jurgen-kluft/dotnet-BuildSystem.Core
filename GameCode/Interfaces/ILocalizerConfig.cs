@@ -32,16 +32,6 @@ namespace DataBuildSystem
         /// </summary>
         EPlatform Platform { get; }
 
-        /// <summary>
-        /// Endianness of the build
-        /// </summary>
-        bool LittleEndian { get; }
-
-        /// <summary>
-        /// Write the .loc file strings in unicode instead of ascii
-        /// </summary>
-        bool Unicode { get; }
-
         string SubDepFileExtension { get; }
         string MainDepFileExtension { get; }
         string SubLocFileExtension { get; }

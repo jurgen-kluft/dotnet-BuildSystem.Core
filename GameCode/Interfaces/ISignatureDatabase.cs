@@ -7,10 +7,10 @@ namespace GameData
 {
     public interface ISignatureDataBase
     {
-        (uint bigfileIndex, uint fileIndex) GetFileId(Hash160 signature);
-        bool Register(Hash160 signature, uint bigfileIndex, uint fileIndex);
+        (uint primary, uint secondary) GetEntry(Hash160 signature);
+        bool Register(Hash160 signature, uint primary, uint secondary);
 
-        void RemoveBigfile(uint index);
+        void RemovePrimary(uint index);
 
         bool Load(string filepath);
         bool Save(string filepath);

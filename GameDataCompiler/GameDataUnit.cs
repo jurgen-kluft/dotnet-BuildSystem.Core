@@ -3,6 +3,7 @@ using System.Runtime.Loader;
 using GameCore;
 using GameData;
 using BigfileBuilder;
+using DataBuildSystem;
 
 namespace DataBuildSystem
 {
@@ -13,7 +14,7 @@ namespace DataBuildSystem
 
     public class GameDataUnits
     {
-        private IDataUnit RootDataUnit { get; set; }
+        private IRootDataUnit RootDataUnit { get; set; }
         private List<GameDataUnit> DataUnits { get; set; }
         private SignatureDataBase SignatureDatabase { get; set; }
 
@@ -32,48 +33,65 @@ namespace DataBuildSystem
         private static Assembly LoadAssembly(string gameDataDllFilename)
         {
             AssemblyLoadContext gameDataAssemblyContext = new AssemblyLoadContext("GameData", true);
-            var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemDefaultConfig.GddPath, gameDataDllFilename));
+            var dllBytes = File.ReadAllBytes(Path.Join(BuildSystemConfig.GddPath, gameDataDllFilename));
             Assembly gameDataAssembly = gameDataAssemblyContext.LoadFromStream(new MemoryStream(dllBytes));
             return gameDataAssembly;
+        }
+
+        private static void BuildCompilerSignatures(List<IDataFile> dataFiles)
+        {
+            var memoryStream = new MemoryStream();
+            var memoryWriter = new BinaryMemoryWriter();
+            memoryWriter.Open(memoryStream, ArchitectureUtils.LittleArchitecture64);
+            foreach (var cl in dataFiles)
+            {
+                memoryWriter.Reset();
+                cl.BuildSignature(memoryWriter);
+                cl.Signature = HashUtility.Compute(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+            }
+            memoryWriter.Close();
         }
 
         public State Cook(string srcPath, string dstPath)
         {
             // Make sure the directory structure of @SrcPath is duplicated at @DstPath
-            DirUtils.DuplicateFolderStructure(BuildSystemDefaultConfig.SrcPath, BuildSystemDefaultConfig.DstPath);
+            DirUtils.DuplicateFolderStructure(BuildSystemConfig.SrcPath, BuildSystemConfig.DstPath);
 
             // Determine the state of each DataUnit and load their compiler log
             foreach (var gdu in DataUnits)
             {
                 gdu.DetermineState();
-
-                // Load the compiler log so that they can be used to verify the source files
-                gdu.LoadCompilerLog(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
             }
 
             // Collect the data units that need to be rebuilt
             List<GameDataUnit> rebuilt = new();
 
             // Load the SignatureDatabase
-            SignatureDatabase.Load(GameDataPath.GetFilePathFor("SignatureDatabase", EGameData.SignatureDatabase));
+            SignatureDatabase.Load(GameDataPath.GetFilePathFor("GameData", EGameData.GameDataSignatureDb));
 
             // For each data unit, using the loaded compiler log and a newly build compiler log, merge them
             // and use the merged compiler log to execute all compilers.
             foreach (var gdu in DataUnits)
             {
+                // Collect the data compilers and build their signatures
                 var currentLog = GameDataUnit.CollectDataCompilers(gdu.DataUnit);
-                var mergeResult = GameDataCompilerLog.Merge(gdu.CompilerLog.DataFiles, currentLog, out var mergedLog);
+                BuildCompilerSignatures(currentLog);
+
+                // Load the compiler log so that they can be used to verify the source files
+                var loadedLog = GameDataUnit.LoadDataFileLog(GameDataPath.GetFilePathFor(gdu.Name+"."+gdu.Id, EGameData.GameDataCompilerLog), currentLog);
+
+                var mergeResult = GameDataFileLog.Merge(loadedLog, currentLog, out var mergedLog);
 
                 // Cook, fundamentally this will make sure all the cooked files are up-to-date
-                var cookResult = GameDataCompilerLog.Cook(mergedLog, out var finalDataFiles);
+                var cookResult = GameDataFileLog.Cook(mergedLog, out var finalDataFiles);
                 if (cookResult != 0|| mergeResult != 0 || gdu.OutOfDate)
                 {
-                    SignatureDatabase.RemoveBigfile(gdu.Index);
+                    SignatureDatabase.RemovePrimary(gdu.Index);
                     rebuilt.Add(gdu);
                 }
 
                 // Save the compiler log ?
-                gdu.CompilerLog.DataFiles = finalDataFiles;
+                gdu.DataFileLog.DataFiles = finalDataFiles;
                 gdu.DetermineState();
             }
 
@@ -81,8 +99,9 @@ namespace DataBuildSystem
             // the compiler log and the bigfile
             foreach (var gdu in rebuilt)
             {
-                gdu.CompilerLog.Save(GameDataPath.GetFilePathFor(gdu.Id, EGameData.GameDataCompilerLog));
+                GameDataFileLog.Save(BuildSystemConfig.Platform, GameDataPath.GetFilePathFor(gdu.Name+"."+gdu.Id, EGameData.GameDataCompilerLog), gdu.DataFileLog.DataFiles);
             }
+
             foreach (var gdu in rebuilt)
             {
                 gdu.SaveBigfile(gdu.Id, SignatureDatabase);
@@ -90,21 +109,21 @@ namespace DataBuildSystem
 
             // Save the SignatureDatabase
             // - Signature = Bigfile index, Bigfile file index
-            SignatureDatabase.Save(GameDataPath.GetFilePathFor("SignatureDatabase", EGameData.SignatureDatabase));
+            SignatureDatabase.Save(GameDataPath.GetFilePathFor("GameData", EGameData.GameDataSignatureDb));
 
             // Finally save the
             // - Game Code header file
             // - Game Code data file, this will be a Bigfile + Bigfile TOC
-            var codeFileInfo = new FileInfo(GameDataPath.GetFilePathFor("GameData", EGameData.GameCodeHeader));
+            var codeFileInfo = new FileInfo(GameDataPath.GetFilePathFor("GameData", EGameData.GameDataCppCode));
             var codeFileStream = codeFileInfo.Create();
             var codeFileWriter = new StreamWriter(codeFileStream);
 
-            var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.BigFileData);
+            var bigfileGameCodeDataFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.GameDataCppData);
             var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
             var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
-            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, BuildSystemDefaultConfig.Platform);
+            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, BuildSystemConfig.Platform);
 
-            CppCodeStream2.Write2(BuildSystemDefaultConfig.Platform, RootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             bigfileDataStreamWriter.Close();
             bigfileDataStream.Close();
             codeFileWriter.Close();
@@ -116,7 +135,8 @@ namespace DataBuildSystem
                 bigfileGameCodeFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
             }
             var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
-            var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.BigFileToc);
+            var bigfileGameCodeTocFilepath = GameDataPath.GetFilePathFor("GameData", EGameData.GameDataCppData);
+            bigfileGameCodeTocFilepath = Path.ChangeExtension(bigfileGameCodeTocFilepath, BigfileConfig.BigFileTocExtension);
             BigfileToc.Save(bigfileGameCodeTocFilepath, [bigfileGameCode]);
 
             return State.Ok;
@@ -128,7 +148,7 @@ namespace DataBuildSystem
             var idToDataUnit = new Dictionary<string, IDataUnit>(currentDataUnits.Count);
             foreach (var cdu in currentDataUnits)
             {
-                idToDataUnit.Add(cdu.GetType().GUID.ToString(), cdu);
+                idToDataUnit.Add(cdu.Signature, cdu);
             }
 
             var dataUnits = new Dictionary<uint, GameDataUnit>(currentDataUnits.Count + (currentDataUnits.Count / 4));
@@ -157,11 +177,11 @@ namespace DataBuildSystem
 
             // Any new DataUnit? -> create them with an index that is not used
             var index = (uint)0;
-            foreach (var item in idToDataUnit)
+            foreach ((string id, IDataUnit du) in idToDataUnit)
             {
                 while (dataUnits.ContainsKey(index))
                     index++;
-                var gdu = new GameDataUnit(gddPath, index, item.Value);
+                var gdu = new GameDataUnit { Id = id, Name = gddPath, Index = index, DataUnit = du };
                 dataUnits.Add(gdu.Index, gdu);
                 index++;
             }
@@ -194,24 +214,23 @@ namespace DataBuildSystem
     //    GameDataDll
     //    GameDataCompilerLog
     //    GameDataData
-    //    GameDataRelocation
+    //
     //    BigFileData
     //    BigFileToc
     //    BigFileFilenames
     //    BigFileHashes
     //
-    // The name of the file will come from the IDataUnit.UnitId.
 
     public class GameDataUnit
     {
-        public string Name { get; private init; }
-        public string Id { get; private init; }
-        public uint Index { get; private init; }
+        public string Name { get;  init; }
+        public string Id { get;  init; }
+        public uint Index { get;  init; }
         public IDataUnit DataUnit { get; set; }
-        private State[] States { get; set; } = new State[Enum.GetValues<EGameData>().Length];
-        private Dependency Dep { get; set; }
+        private State[] States { get; init; }
+        private Dependency Dep { get; init; }
 
-        public GameDataCompilerLog CompilerLog { get; set; }
+        public GameDataFileLog DataFileLog { get; init; }
 
         public bool OutOfDate
         {
@@ -227,29 +246,6 @@ namespace DataBuildSystem
             }
         }
 
-        private GameDataUnit() : this(string.Empty, uint.MaxValue, null) { }
-
-        public GameDataUnit(string dirPath, uint index, IDataUnit dataUnit)
-        {
-            DataUnit = dataUnit;
-            Name = dataUnit.GetType().Namespace + "." + dataUnit.GetType().Name;
-            Id = dataUnit.GetType().GUID.ToString();
-            Index = index;
-            Dep = new();
-
-            for (var i = 0; i < States.Length; ++i)
-            {
-                States[i] = State.Missing;
-            }
-
-            foreach (var e in Enum.GetValues<EGameData>())
-            {
-                var unitName = e == EGameData.GameDataDll ? "GameData" : Name;
-                var filename = Path.Join(dirPath, unitName) + GameDataPath.GetExtFor(e);
-                Dep.Add((short)e, GameDataPath.GetPathFor(e), filename);
-            }
-        }
-
         public void DetermineState()
         {
             Dep.Update(delegate(short idx, State state)
@@ -259,15 +255,9 @@ namespace DataBuildSystem
             });
         }
 
-        public bool LoadCompilerLog(string filepath)
+        public static List<IDataFile> LoadDataFileLog(string filepath, List<IDataFile> currentDataFileLog)
         {
-            CompilerLog = new GameDataCompilerLog();
-            return CompilerLog.Load(filepath);
-        }
-
-        public void SaveCompilerLog(string filepath)
-        {
-            CompilerLog.Save(filepath);
+            return GameDataFileLog.Load(filepath, currentDataFileLog);
         }
 
         public void Save(IBinaryWriter writer)
@@ -283,17 +273,29 @@ namespace DataBuildSystem
 
         public static GameDataUnit Load(IBinaryReader reader)
         {
-            GameDataUnit gdu = new() { DataUnit = null, Name = reader.ReadString(), Id = reader.ReadString(), Index = reader.ReadUInt32() };
-            for (var i = 0; i < gdu.States.Length; ++i)
-                gdu.States[i] = new State(reader.ReadInt8());
-            gdu.Dep = Dependency.ReadFrom(reader);
+            var states = new State[Enum.GetValues<EGameData>().Length];
+            for (var i = 0; i < states.Length; ++i)
+                states[i] = new State(reader.ReadInt8());
+            var dep = Dependency.ReadFrom(reader);
+
+            var name = reader.ReadString();
+            var id = reader.ReadString(); var index = reader.ReadUInt32();
+            var gdu = new GameDataUnit()
+            {
+                DataUnit = null,
+                Id = id,
+                Name = name,
+                Index = index,
+                States = states,
+                Dep = dep
+            };
             return gdu;
         }
 
         public void SaveBigfile(string name, ISignatureDataBase database)
         {
-            var filename = name + GameDataPath.GetExtFor(EGameData.BigFileData);
-            SaveBigfile(Index, filename, CompilerLog.DataFiles, database);
+            var filename = name + GameDataPath.GetExtFor(EGameData.GduBigFileData);
+            SaveBigfile(Index, filename, DataFileLog.DataFiles, database);
         }
 
         private static void SaveBigfile(uint bigfileIndex, string filename, List<IDataFile> dataFiles, ISignatureDataBase database)
@@ -318,14 +320,14 @@ namespace DataBuildSystem
             var bigfile = new Bigfile(bigfileIndex, bigfileFiles);
 
             var bigFiles = new List<Bigfile>() { bigfile };
-            BigfileBuilder.BigfileBuilder.Save(BuildSystemDefaultConfig.PubPath, BuildSystemDefaultConfig.DstPath, filename, bigFiles);
+            BigfileBuilder.BigfileBuilder.Save(BuildSystemConfig.PubPath, BuildSystemConfig.DstPath, filename, bigFiles);
         }
 
-        public static IDataUnit FindRoot(Assembly assembly)
+        public static IRootDataUnit FindRoot(Assembly assembly)
         {
             try
             {
-                IDataUnit root = AssemblyUtil.Create1<IRootDataUnit>(assembly);
+                IRootDataUnit root = AssemblyUtil.Create1<IRootDataUnit>(assembly);
                 return root;
             }
             catch (Exception)
@@ -343,24 +345,40 @@ namespace DataBuildSystem
                     {
                         var compoundType = compound.GetType();
                         if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
-                            return true;
+                            return false;
 
                         // TODO what about Array's or List<>'s of DataCompilers?
 
                         if (compound is IDataFile c)
                         {
                             compilers.Add(c);
-                            return true;
+                            return false;
                         }
 
-                        return false;
+                        return true;
+                    },
+                    delegate(Type type)
+                    {
+                        if (type  == null)
+                            return false;
+
+                        if (type.IsPrimitive || type.IsEnum || type == typeof(string))
+                            return true;
+
+                        foreach (var i in type.GetInterfaces())
+                        {
+                            if (i == typeof(IDataUnit))
+                                return false;
+                        }
+
+                        return true;
                     }
                 );
             }
             return compilers;
         }
 
-        public static List<IDataUnit> CollectDataUnits(IDataUnit dataUnit)
+        public static List<IDataUnit> CollectDataUnits(IRootDataUnit dataUnit)
         {
             var dataUnits = new List<IDataUnit>();
             {
@@ -368,7 +386,7 @@ namespace DataBuildSystem
                     {
                         var compoundType = compound.GetType();
                         if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
-                            return true;
+                            return false;
 
                         // TODO what about Array's or List<>'s of DataCompilers?
 
@@ -377,7 +395,10 @@ namespace DataBuildSystem
                             dataUnits.Add(du);
                         }
 
-                        return false;
+                        return true;
+                    }, delegate(Type type)
+                    {
+                        return (type != null && !type.IsPrimitive && !type.IsEnum);
                     }
                 );
             }
@@ -385,50 +406,29 @@ namespace DataBuildSystem
         }
 
         private delegate bool OnObjectDelegate(object compound);
+        private delegate bool OnTypeDelegate(Type type);
 
-        private static bool ElementRequiresWalking(Type type)
-        {
-            if (type != null && !type.IsPrimitive && !type.IsEnum)
-            {
-                return !TypeInfo2.HasGenericInterface(type, typeof(IDataUnit));
-            }
 
-            return false;
-        }
-
-        private static bool ObjectRequiresWalking(Type type)
-        {
-            if (type != null && !type.IsPrimitive && !type.IsEnum)
-            {
-                return !TypeInfo2.HasGenericInterface(type, typeof(IDataUnit));
-            }
-
-            return false;
-        }
-
-        private static bool Walk(object compound, OnObjectDelegate ood)
+        private static bool Walk(object compound, OnObjectDelegate ood, OnTypeDelegate ocw)
         {
             try
             {
-                Stack<object> compounds = new();
-                compounds.Push(compound);
+                Queue<object> compounds = new();
+                compounds.Enqueue(compound);
 
                 while (compounds.Count > 0)
                 {
-                    compound = compounds.Pop();
+                    compound = compounds.Dequeue();
                     var compoundTypeInfo = compound.GetType();
 
-                    if (ood(compound))
-                        continue;
-
-                    if (compound is IDataFile)
+                    if (!ood(compound))
                         continue;
 
                     if (compoundTypeInfo.IsArray)
                     {
                         // Analyze element type
                         var elementType = compoundTypeInfo.GetElementType();
-                        if (ElementRequiresWalking(elementType))
+                        if (ocw(elementType))
                         {
                             if (compound is Array objectArray)
                             {
@@ -437,8 +437,8 @@ namespace DataBuildSystem
                                     var e = objectArray.GetValue(i);
                                     if (e != null)
                                     {
-                                        if (ObjectRequiresWalking(e.GetType()))
-                                            compounds.Push(e);
+                                        if (ocw(e.GetType()))
+                                            compounds.Enqueue(e);
                                     }
                                 }
                             }
@@ -463,7 +463,7 @@ namespace DataBuildSystem
                             {
                                 // Analyze element type
                                 var elementType = objectTypeInfo.GetElementType();
-                                if (ElementRequiresWalking(elementType))
+                                if (ocw(elementType))
                                 {
                                     if (o is Array objectArray)
                                     {
@@ -472,8 +472,8 @@ namespace DataBuildSystem
                                             var e = objectArray.GetValue(i);
                                             if (e != null)
                                             {
-                                                if (ObjectRequiresWalking(e.GetType()))
-                                                    compounds.Push(e);
+                                                if (ocw(e.GetType()))
+                                                    compounds.Enqueue(e);
                                             }
                                         }
                                     }
@@ -481,9 +481,9 @@ namespace DataBuildSystem
                             }
                             else
                             {
-                                if (ObjectRequiresWalking(o.GetType()))
+                                if (ocw(o.GetType()))
                                 {
-                                    compounds.Push(o);
+                                    compounds.Enqueue(o);
                                 }
                             }
                         }

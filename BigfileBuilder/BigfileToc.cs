@@ -3,60 +3,38 @@ using System.Text;
 
 namespace BigfileBuilder
 {
-    interface IBinaryStreamReader
-    {
-        long Position { get; set; }
-
-        void Close();
-
-        int ReadInt32();
-        uint ReadUInt32();
-        int Read(byte[] bytes, int index, int count);
-    }
-
-    interface IBinaryStreamWriter
-    {
-        long Position { get; set; }
-
-        void Close();
-
-        void Write(int value);
-        void Write(uint value);
-        void Write(byte[] bytes, int index, int count);
-    }
-
     public sealed class BigfileToc
     {
         private const int HashSize = 20;
 
         private interface IReadContext
         {
-            void Begin(int outerIter, IBinaryStreamReader reader);
-            bool Read(int outerIter, int innerIter, IBinaryStreamReader reader);
+            void Begin(int outerIter, IBinaryFileReader reader);
+            bool Read(int outerIter, int innerIter, IBinaryFileReader reader);
             bool Next(ref int outerIter);
         }
 
         private interface IWriteContext
         {
-            void Begin(int outerIter, IBinaryStreamWriter writer);
-            bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer);
+            void Begin(int outerIter, IBinaryFileWriter writer);
+            bool Write(int outerIter, int innerIter, IBinaryFileWriter writer);
             bool Next(ref int outerIter);
         }
 
         private interface ITocEntryReader
         {
-            int ReadCount(IBinaryStreamReader reader);
-            uint ReadOffset(IBinaryStreamReader reader);
-            void ReadFileSize(IBinaryStreamReader reader, ITocEntry entry);
-            void ReadFileOffset(IBinaryStreamReader reader, ITocEntry entry);
+            int ReadCount(IBinaryFileReader reader);
+            uint ReadOffset(IBinaryFileReader reader);
+            void ReadFileSize(IBinaryFileReader reader, ITocEntry entry);
+            void ReadFileOffset(IBinaryFileReader reader, ITocEntry entry);
         }
 
         private interface ITocEntryWriter
         {
-            void WriteCount(IBinaryStreamWriter writer, int count);
-            void WriteOffset(IBinaryStreamWriter writer, long offset);
-            void WriteFileSize(IBinaryStreamWriter writer, ITocEntry entry);
-            void WriteFileOffset(IBinaryStreamWriter writer, ITocEntry entry);
+            void WriteCount(IBinaryFileWriter writer, int count);
+            void WriteOffset(IBinaryFileWriter writer, long offset);
+            void WriteFileSize(IBinaryFileWriter writer, ITocEntry entry);
+            void WriteFileOffset(IBinaryFileWriter writer, ITocEntry entry);
             int CountInBytes { get; } // Size of this in the data stream
             int OffsetInBytes { get; } // Size of this in the data stream
             int FileOffsetInBytes { get; } // Size of this in the data stream
@@ -68,22 +46,22 @@ namespace BigfileBuilder
             // The file offset is aligned to 64 to enable the BigFile size to be maximum 4 GB * 64 = 256 GB
             // Max file size = 2 GB, we use the highest bit to indicate compression
             // Children offset uses the highest bit to indicate if it has children
-            public int ReadCount(IBinaryStreamReader reader)
+            public int ReadCount(IBinaryFileReader reader)
             {
                 return reader.ReadInt32();
             }
 
-            public uint ReadOffset(IBinaryStreamReader reader)
+            public uint ReadOffset(IBinaryFileReader reader)
             {
                 return reader.ReadUInt32();
             }
 
-            public void ReadFileSize(IBinaryStreamReader reader, ITocEntry entry)
+            public void ReadFileSize(IBinaryFileReader reader, ITocEntry entry)
             {
                 entry.FileSize = reader.ReadUInt32();
             }
 
-            public void ReadFileOffset(IBinaryStreamReader reader, ITocEntry entry)
+            public void ReadFileOffset(IBinaryFileReader reader, ITocEntry entry)
             {
                 var fileOffset = reader.ReadUInt32() << 6;
                 entry.FileOffset = fileOffset;
@@ -92,23 +70,23 @@ namespace BigfileBuilder
 
         private sealed class TocEntryWriter32 : ITocEntryWriter
         {
-            public void WriteCount(IBinaryStreamWriter writer, int count)
+            public void WriteCount(IBinaryFileWriter writer, int count)
             {
                 writer.Write(count);
             }
 
-            public void WriteOffset(IBinaryStreamWriter writer, long offset)
+            public void WriteOffset(IBinaryFileWriter writer, long offset)
             {
                 writer.Write((int)offset);
             }
 
-            public void WriteFileSize(IBinaryStreamWriter writer, ITocEntry entry)
+            public void WriteFileSize(IBinaryFileWriter writer, ITocEntry entry)
             {
                 var fileSize = entry.FileSize;
                 writer.Write(fileSize);
             }
 
-            public void WriteFileOffset(IBinaryStreamWriter writer, ITocEntry entry)
+            public void WriteFileOffset(IBinaryFileWriter writer, ITocEntry entry)
             {
                 writer.Write((uint)(entry.FileOffset >> 6));
             }
@@ -236,7 +214,7 @@ namespace BigfileBuilder
                 TocEntryReader = tocEntryReader;
             }
 
-            public void Begin(int outerIter, IBinaryStreamReader reader)
+            public void Begin(int outerIter, IBinaryFileReader reader)
             {
                 if (outerIter == -1)
                 {
@@ -267,7 +245,7 @@ namespace BigfileBuilder
                 // iterate for 0
             }
 
-            public bool Read(int outerIter, int innerIter, IBinaryStreamReader reader)
+            public bool Read(int outerIter, int innerIter, IBinaryFileReader reader)
             {
                 switch (outerIter)
                 {
@@ -341,7 +319,7 @@ namespace BigfileBuilder
 
             private int NumSections { get; set; }
 
-            public void Begin(int outerIter, IBinaryStreamReader reader)
+            public void Begin(int outerIter, IBinaryFileReader reader)
             {
                 if (outerIter == -1)
                 {
@@ -368,7 +346,7 @@ namespace BigfileBuilder
                 }
             }
 
-            public bool Read(int outerIter, int innerIter, IBinaryStreamReader reader)
+            public bool Read(int outerIter, int innerIter, IBinaryFileReader reader)
             {
                 switch (outerIter)
                 {
@@ -418,7 +396,7 @@ namespace BigfileBuilder
 
             private int NumSections { get; set; }
 
-            public void Begin(int outerIter, IBinaryStreamReader reader)
+            public void Begin(int outerIter, IBinaryFileReader reader)
             {
                 if (outerIter == -1)
                 {
@@ -432,7 +410,7 @@ namespace BigfileBuilder
                 }
             }
 
-            public bool Read(int outerIter, int innerIter, IBinaryStreamReader reader)
+            public bool Read(int outerIter, int innerIter, IBinaryFileReader reader)
             {
                 switch (outerIter)
                 {
@@ -490,7 +468,7 @@ namespace BigfileBuilder
                 }
             }
 
-            public void Begin(int outerIter, IBinaryStreamWriter writer)
+            public void Begin(int outerIter, IBinaryFileWriter writer)
             {
                 if (outerIter == -1)
                 {
@@ -499,7 +477,7 @@ namespace BigfileBuilder
                 }
             }
 
-            public bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer)
+            public bool Write(int outerIter, int innerIter, IBinaryFileWriter writer)
             {
                 switch (outerIter)
                 {
@@ -549,7 +527,7 @@ namespace BigfileBuilder
                 Sections = sections;
             }
 
-            public void Begin(int outerIter, IBinaryStreamWriter writer)
+            public void Begin(int outerIter, IBinaryFileWriter writer)
             {
                 if (outerIter == -1)
                 {
@@ -600,7 +578,7 @@ namespace BigfileBuilder
                 }
             }
 
-            public bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer)
+            public bool Write(int outerIter, int innerIter, IBinaryFileWriter writer)
             {
                 if (outerIter < 0 || outerIter >= Sections.Count)
                     return false;
@@ -641,7 +619,7 @@ namespace BigfileBuilder
                 Sections = sections;
             }
 
-            public void Begin(int outerIter, IBinaryStreamWriter writer)
+            public void Begin(int outerIter, IBinaryFileWriter writer)
             {
                 if (outerIter == -1)
                 {
@@ -668,7 +646,7 @@ namespace BigfileBuilder
                 }
             }
 
-            public bool Write(int outerIter, int innerIter, IBinaryStreamWriter writer)
+            public bool Write(int outerIter, int innerIter, IBinaryFileWriter writer)
             {
                 return false;
             }
@@ -680,18 +658,9 @@ namespace BigfileBuilder
             }
         }
 
-        private static IBinaryStreamReader CreateBinaryFileReader(FileStream fileStream, bool isLittleEndian)
-        {
-            return null;
-        }
-        private static IBinaryStreamWriter CreateBinaryFileWriter(FileStream fileStream, bool isLittleEndian)
-        {
-            return null;
-        }
-
         private static void ReadTable(IReadContext context, FileStream fileStream, bool isLittleEndian)
         {
-            var binaryReader = CreateBinaryFileReader(fileStream, isLittleEndian);
+            var binaryReader = new BinaryFileReader(fileStream, isLittleEndian);
             {
                 var block = -1;
                 do
@@ -723,7 +692,7 @@ namespace BigfileBuilder
 
         private static void WriteTable(IWriteContext context, FileStream fileStream, bool isLittleEndian)
         {
-            var binaryWriter = CreateBinaryFileWriter(fileStream, isLittleEndian);
+            var binaryWriter = new BinaryFileWriter(fileStream, isLittleEndian);
             {
                 var block = -1;
                 do
@@ -749,7 +718,7 @@ namespace BigfileBuilder
                 fileCreationStream.Close();
             }
 
-            var fileStream = new FileStream(fileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.Write, 1 * 1024 * 1024, FileOptions.Asynchronous);
+            var fileStream = new FileStream(fileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.Write, 16 * 1024);
             return fileStream;
         }
 

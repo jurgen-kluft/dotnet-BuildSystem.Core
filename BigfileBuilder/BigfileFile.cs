@@ -1,6 +1,3 @@
-using System;
-using GameCore;
-
 namespace BigfileBuilder
 {
     public sealed class BigfileFile

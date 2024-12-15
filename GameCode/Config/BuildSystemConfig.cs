@@ -3,7 +3,7 @@ using GameCore;
 
 namespace DataBuildSystem
 {
-    public class BuildSystemConfigDefault : IBuildSystemConfig
+    public class BuildSystemDefaultConfig : IBuildSystemConfig
     {
         public EPlatform Platform => EPlatform.Win64;
         public string Name => "Game";
@@ -12,11 +12,9 @@ namespace DataBuildSystem
         public int SizeOfBool => 1;
     }
 
-    public static class BuildSystemDefaultConfig
+    public static class BuildSystemConfig
     {
-        private static IBuildSystemConfig s_config = new BuildSystemConfigDefault();
-
-        public static bool LittleEndian => s_config.LittleEndian;
+        private static IBuildSystemConfig s_config = new BuildSystemDefaultConfig();
         public static string Name { get; private set; }
         public static EPlatform Platform { get; private set; } = EPlatform.Win64;
         public static EPlatform Target { get; private set; } = EPlatform.Win64;
@@ -114,7 +112,7 @@ namespace DataBuildSystem
 
         public static void Init(IBuildSystemConfig config)
         {
-            s_config = config ?? new BuildSystemConfigDefault();
+            s_config = config ?? new BuildSystemDefaultConfig();
         }
 
         private static T EnumFromString<T>(string @string, T @default)
