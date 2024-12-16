@@ -94,7 +94,7 @@ namespace GameCore
                 var idReference = StreamReference.NewReference;
 
                 writer.Write((long)Count);
-                writer.WriteBlockReference(idReference);
+                writer.WriteDataBlockReference(idReference);
 
                 writer.NewBlock(idReference, 8, mItems.Count * sizeof(long));
                 writer.OpenBlock(idReference);

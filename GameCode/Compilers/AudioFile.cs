@@ -12,6 +12,9 @@ namespace GameData
         private string mDstFilename;
         private Dependency mDependency;
 
+        public SoundDataFile() : this(string.Empty, string.Empty)
+        {
+        }
         public SoundDataFile(string filename) : this(filename, filename)
         {
         }

@@ -31,11 +31,14 @@ namespace GameData
             Mat[1] = y;
         }
 
-        public bool StructIsTemplate => false;
-        public string StructTemplateType => string.Empty;
         public int StructSize => 2*2*4;
         public int StructAlign => 4;
-        public string StructName => "fmat22_t";
+        public string StructMember => "fmat22_t";
+
+        public void StructCode(StreamWriter writer)
+        {
+            // already defined in C++ library charon
+        }
 
         public void StructWrite(IGameDataWriter writer)
         {

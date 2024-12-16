@@ -5,13 +5,25 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    // e.g. new FileId(new TextureCompiler("Textures/Background.PNG"));
+    public class TextureDataFile : DataFile
+    {
+        public TextureDataFile() : base(null, "texture_t")
+        {
+        }
+        public TextureDataFile(TextureCompiler compiler) : base(compiler, "texture_t")
+        {
+        }
+    }
+
     public sealed class TextureCompiler : IDataFile, ISignature
     {
         private string _srcFilename;
         private string _dstFilename;
         private Dependency _dependency;
 
+        public TextureCompiler() : this(string.Empty, string.Empty)
+        {
+        }
         public TextureCompiler(string filename) : this(filename, filename)
         {
         }
@@ -53,7 +65,7 @@ namespace GameData
         }
 
         public string CookedFilename => _dstFilename;
-        public object CookedObject => new DataFile( this, "texture_t");
+        public object CookedObject => new TextureDataFile( this);
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {

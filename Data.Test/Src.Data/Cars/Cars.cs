@@ -2,26 +2,29 @@ using System;
 
 namespace GameData
 {
+    [NameAttribute("car_t")]
     public class Car
     {
-        public CarConfiguration Configuration { get; set; }
-        public string ModelPath { get; set; }
+        public CarConfiguration Configuration;
+        public ModelCompiler ModelPath;
 
         public Car(CarConfiguration config, string modelPath)
         {
             Configuration = config;
-            ModelPath = modelPath;
+            ModelPath = new ModelCompiler(modelPath);
         }
     }
 
+    [NameAttribute("cars_t")]
     public partial class Cars : IDataUnit
     {
         public string Signature => "918ca960-1ceb-45f8-96df-c29690bb8619";
-        public Car[] m_cars;
+
+        public Car[] cars;
 
         public Cars()
         {
-            m_cars = new Car[]
+            cars = new Car[]
             {
                 new(GetBMWConfig(), "Cars\\BMW\\BMW.glTF"), // BMW
                 new(GetLexusConfig(), "Cars\\Lexus\\Lexus.glTF"), // Lexus
@@ -30,15 +33,16 @@ namespace GameData
         }
     }
 
+    [NameAttribute("car_config_t")]
     public class CarConfiguration
     {
-        public string Name { get; set; }
-        public float Weight { get; set; }
-        public float MaxSpeed { get; set; }
-        public float Acceleration { get; set; }
-        public float Braking { get; set; }
-        public float Cornering { get; set; }
-        public float Stability { get; set; }
-        public float Traction { get; set; }
+        public string Name;
+        public float Weight;
+        public float MaxSpeed;
+        public float Acceleration;
+        public float Braking;
+        public float Cornering;
+        public float Stability;
+        public float Traction;
     };
 }

@@ -69,10 +69,12 @@ namespace DataBuildSystem
             _signatureToEntry.Clear();
             _entries.Clear();
 
-            _signatureToEntry.EnsureCapacity(reader.ReadInt32());
+            var numSignatures = reader.ReadInt32();
+            _signatureToEntry.EnsureCapacity(numSignatures);
 
             var numEntries = reader.ReadInt32();
             _entries.Capacity = numEntries;
+
             for (var i = 0; i < numEntries; i++)
             {
                 _entries.Add(new PrimaryEntry());
@@ -82,18 +84,17 @@ namespace DataBuildSystem
             {
                 var entryIndex = reader.ReadInt32();
                 var entryCapacity = reader.ReadInt32();
-                var bfe = _entries[entryIndex];
-                bfe.SignatureList.Capacity = entryCapacity;
-                bfe.IndexList.Capacity = entryCapacity;
+                var primaryEntry = _entries[entryIndex];
+                primaryEntry.SignatureList.Capacity = entryCapacity;
+                primaryEntry.IndexList.Capacity = entryCapacity;
+                var primaryIndex = (uint)entryIndex;
                 for (var j = 0; j < entryCapacity; j++)
                 {
                     var signature = Hash160.ReadFrom(reader);
-                    var bigfileIndex = reader.ReadUInt32();
-                    var fileIndex = reader.ReadUInt32();
-                    bfe.SignatureList.Add(signature);
-                    bfe.IndexList.Add(fileIndex);
-
-                    _signatureToEntry.Add(signature, new Entry { Primary = bigfileIndex, Secondary = fileIndex });
+                    var secondaryIndex = reader.ReadUInt32();
+                    primaryEntry.SignatureList.Add(signature);
+                    primaryEntry.IndexList.Add(secondaryIndex);
+                    _signatureToEntry.Add(signature, new Entry { Primary = primaryIndex, Secondary = secondaryIndex });
                 }
             }
 
@@ -107,18 +108,16 @@ namespace DataBuildSystem
             if (writer == null) return false;
 
             writer.Write(_signatureToEntry.Count);
-
             writer.Write(_entries.Count);
             for (var i = 0; i < _entries.Count; i++)
             {
-                PrimaryEntry bfe = _entries[i];
-                writer.Write(i);
-                writer.Write(bfe.IndexList.Count);
-                for (var j = 0; j < bfe.SignatureList.Count; j++)
+                PrimaryEntry primaryEntry = _entries[i];
+                writer.Write(i); // primaryIndex
+                writer.Write(primaryEntry.IndexList.Count); // entryCapacity
+                for (var j = 0; j < primaryEntry.SignatureList.Count; j++)
                 {
-                    bfe.SignatureList[j].WriteTo(writer);
-                    writer.Write(i);
-                    writer.Write(bfe.IndexList[j]);
+                    primaryEntry.SignatureList[j].WriteTo(writer); // signature
+                    writer.Write(primaryEntry.IndexList[j]); // secondaryIndex
                 }
             }
 

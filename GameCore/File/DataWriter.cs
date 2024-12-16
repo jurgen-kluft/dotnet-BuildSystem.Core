@@ -6,7 +6,7 @@ namespace GameCore
         void OpenDataUnit(StreamReference reference);
         StreamReference NewBlock(StreamReference reference, int alignment, int size);
         void OpenBlock(StreamReference reference);
-        void WriteBlockReference(StreamReference v);
+        void WriteDataBlockReference(StreamReference v);
         void Mark(StreamReference reference);
         void CloseBlock();
         void CloseDataUnit();

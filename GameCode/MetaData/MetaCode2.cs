@@ -25,7 +25,7 @@ namespace GameData
             int NewDictionaryMember(Type type, object content, string memberName);
             int NewClassMember(Type type, object content, string memberName);
             void NewStructMember(Type type, object content, string memberName);
-            void NewDataUnitMember(Type type, object content, string memberName);
+            int NewDataUnitMember(Type type, object content, string memberName);
         }
 
         public struct MetaInfo
@@ -527,7 +527,7 @@ namespace GameData
             private static string GetDataUnitReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
                 var dataUnitTypeName = metaCode2.MembersObject[memberIndex];
-                return $"data_t<{dataUnitTypeName.GetType().Name}>&";
+                return $"data_t<{dataUnitTypeName.GetType().Name}>";
             }
 
             private delegate string GetReturnTypeStringDelegate(int memberIndex, MetaCode2 metaCode2, EOption option);
@@ -719,10 +719,7 @@ namespace GameData
                 var memberName = metaCode2.MemberStrings[mni];
                 var msi = metaCode2.MembersStart[memberIndex];
                 var fet = metaCode2.MembersType[msi];
-
-                // figure out the element type of the array, could be a primitive, struct, class, enum or even another array
                 var returnTypeString = s_getReturnTypeString[fet.Index](msi, metaCode2, option);
-
                 writer.WriteLine($"\tinline array_t<{returnTypeString}> const& get{memberName}() const {{ return m_{memberName}; }}");
             }
 
@@ -776,7 +773,7 @@ namespace GameData
                 var memberName = metaCode2.MemberStrings[mni];
                 var dataUnit = metaCode2.MembersObject[memberIndex];
                 var dataUnitTypeName = dataUnit.GetType().Name;
-                writer.WriteLine($"\tinline data_t<{dataUnitTypeName}>& get{memberName}() const {{ return m_{memberName}; }}");
+                writer.WriteLine($"\tinline data_t<{dataUnitTypeName}> const& get{memberName}() const {{ return m_{memberName}; }}");
             }
 
             private static void WriteDataUnitMember(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option)
@@ -860,12 +857,14 @@ namespace GameData
                 for (var i = 0; i < MetaCode.MembersType.Count; ++i)
                 {
                     var mt = MetaCode.MembersType[i];
-                    if (!mt.IsClass) continue;
-                    var ct = MetaCode.MembersObject[i].GetType();
-                    if (writtenClasses.Contains(ct)) continue;
-                    var className = MetaCode.MemberTypeName[i];
-                    writer.WriteLine($"class {className};");
-                    writtenClasses.Add(ct);
+                    if (mt.IsClass || mt.IsDataUnit)
+                    {
+                        var ct = MetaCode.MembersObject[i].GetType();
+                        if (writtenClasses.Contains(ct)) continue;
+                        var className = MetaCode.MemberTypeName[i];
+                        writer.WriteLine($"class {className};");
+                        writtenClasses.Add(ct);
+                    }
                 }
 
                 writer.WriteLine();
@@ -874,11 +873,13 @@ namespace GameData
                 for (var i = MetaCode.MembersType.Count - 1; i >= 0; --i)
                 {
                     var mt = MetaCode.MembersType[i];
-                    if (!mt.IsClass) continue;
-                    var ct = MetaCode.MembersObject[i].GetType();
-                    if (writtenClasses.Contains(ct)) continue;
-                    WriteClass(i, writer, EOption.None);
-                    writtenClasses.Add(ct);
+                    if (mt.IsClass || mt.IsDataUnit)
+                    {
+                        var ct = MetaCode.MembersObject[i].GetType();
+                        if (writtenClasses.Contains(ct)) continue;
+                        WriteClass(i, writer, EOption.None);
+                        writtenClasses.Add(ct);
+                    }
                 }
 
                 writer.WriteLine();
@@ -996,7 +997,7 @@ namespace GameData
                     return;
 
                 var metaType = MetaInfo.AsStruct;
-                _metaCode2.AddMember(metaType, RegisterCodeString(memberName), -1, 1, content, o.StructName);
+                _metaCode2.AddMember(metaType, RegisterCodeString(memberName), -1, 1, content, o.StructMember);
             }
 
             public int NewClassMember(Type type, object content, string memberName)
@@ -1013,7 +1014,7 @@ namespace GameData
                 return _metaCode2.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content, className);
             }
 
-            public void NewDataUnitMember(Type type, object content, string memberName)
+            public int NewDataUnitMember(Type type, object content, string memberName)
             {
                 // Should we check for Name override attribute here?
                 var className = type.Name;
@@ -1022,7 +1023,7 @@ namespace GameData
                     className = nameAttribute.Name;
                 }
 
-                _metaCode2.AddMember(MetaInfo.AsDataUnit, RegisterCodeString(memberName), -1, 0, content, className);
+                return _metaCode2.AddMember(MetaInfo.AsDataUnit, RegisterCodeString(memberName), -1, 0, content, className);
             }
         }
     }

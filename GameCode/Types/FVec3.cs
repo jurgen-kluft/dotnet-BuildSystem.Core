@@ -29,11 +29,13 @@ namespace GameData
             Z = (float)z;
         }
 
-        public bool StructIsTemplate => false;
-        public string StructTemplateType => string.Empty;
         public int StructSize => 3 * sizeof(float);
         public int StructAlign => 4;
-        public string StructName => "fvec3_t";
+        public string StructMember => "fvec3_t";
+        public void StructCode(StreamWriter writer)
+        {
+            // already defined in C++ library charon
+        }
 
         public void StructWrite(IGameDataWriter writer)
         {

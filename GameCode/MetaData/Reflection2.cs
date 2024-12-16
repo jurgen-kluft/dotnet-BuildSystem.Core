@@ -35,6 +35,9 @@ namespace GameData
             if (m.Object is not Array array)
                 return;
 
+            // Even though the array is empty, we still want a way to recognize the type of members in the array.
+            // So we put the count of the array to 0, start index to an entry that can identify the type of the array
+
             var startIndex = _metaCode2.MembersType.Count;
             var elementType = array.GetType().GetElementType();
             var elementName = string.Empty;
@@ -49,7 +52,8 @@ namespace GameData
             if (count == 0)
             {
                 // We will still emit an element because we need to know the type
-                CreateMember(null, elementType, elementName);
+                var instance = Activator.CreateInstance(elementType);
+                CreateMember(instance, elementType, elementName);
             }
 
             _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, count);
@@ -157,8 +161,26 @@ namespace GameData
 
             if (_typeInformation.IsDataUnit(dataObjectFieldType))
             {
-                // A DataUnit is a class derived from IDataUnit and will be emitted as
-                // a pointer + data-unit-index
+                var member = _memberFactory.NewDataUnitMember(dataObjectFieldType, dataObjectFieldValue, memberName);
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
+            }
+            else if (_typeInformation.IsDataFile(dataObjectFieldType))
+            {
+                // The DataFile provides a CookedObject which always has to be a class or an IStruct
+                if (dataObjectFieldValue is IDataFile dataFile)
+                {
+                    var cookedObject = dataFile.CookedObject;
+                    var cookedObjectType = cookedObject.GetType();
+                    if (_typeInformation.IsIStruct(cookedObjectType))
+                    {
+                        _memberFactory.NewStructMember(cookedObjectType, cookedObject, memberName);
+                    }
+                    else
+                    {
+                        var member = _memberFactory.NewClassMember(cookedObjectType, cookedObject, memberName);
+                        _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = cookedObject, Type = cookedObjectType, Process = ProcessClass });
+                    }
+                }
             }
             else if (_typeInformation.IsIStruct(dataObjectFieldType))
             {

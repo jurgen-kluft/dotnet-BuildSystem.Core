@@ -13,7 +13,7 @@ namespace DataBuildSystem
         }
 
         private sbyte StateValue { get; set; }
-        public int AsInt8 => StateValue;
+        public sbyte AsInt8 => StateValue;
 
         public static readonly State Ok = new() { StateValue = (sbyte)StateEnum.Ok };
         public static readonly State Missing = new() { StateValue = (sbyte)StateEnum.Missing };

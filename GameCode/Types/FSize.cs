@@ -15,11 +15,14 @@ namespace GameData
             Height = height;
         }
 
-        public bool StructIsTemplate => false;
-        public string StructTemplateType => string.Empty;
         public int StructSize => 2 * sizeof(float);
         public int StructAlign => 4;
-        public string StructName => "fsize_t";
+        public string StructMember => "fsize_t";
+
+        public void StructCode(StreamWriter writer)
+        {
+            // already defined in C++ library charon
+        }
 
         public void StructWrite(IGameDataWriter writer)
         {

@@ -33,6 +33,9 @@ namespace GameData
         private readonly List<LanguageCompiler> _languageDataFiles;
         private Dependency _dependency;
 
+        public LocalizationCompiler() : this("Localization.loc")
+        {
+        }
         public LocalizationCompiler(string localizationFile)
         {
             _srcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";

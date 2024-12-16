@@ -60,11 +60,13 @@ namespace GameData
             return array;
         }
 
-        public bool StructIsTemplate => false;
-        public string StructTemplateType => string.Empty;
         public int StructSize => sizeof(short);
         public int StructAlign => 2;
-        public string StructName => "fx16_t";
+        public string StructMember => "fx16_t";
+        public void StructCode(StreamWriter writer)
+        {
+            // already defined in C++ library charon
+        }
 
         public void StructWrite(IGameDataWriter writer)
         {

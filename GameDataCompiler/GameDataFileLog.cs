@@ -108,16 +108,20 @@ namespace DataBuildSystem
                 foreach (var compiler in dataFiles)
                 {
                     memoryWriter.Reset();
+                    compiler.SaveState(memoryWriter);
 
                     // byte[20]: IDataFile Type Signature
                     // byte[20]: IDataFile Signature
                     // byte[]: IDataFile State
+
                     var compilerTypeSignature = HashUtility.Compute(compiler.GetType());
-                    compilerTypeSignature.WriteTo(memoryWriter);
-                    compiler.Signature.WriteTo(memoryWriter);
-                    compiler.SaveState(memoryWriter);
-                    writer.Write(memoryStream.Length);
-                    writer.Write(memoryStream.GetBuffer().AsSpan());
+                    compilerTypeSignature.WriteTo(writer);
+                    compiler.Signature.WriteTo(writer);
+
+                    // state
+                    writer.Write(memoryStream.Length); // state size
+                    var memoryStreamBuffer = memoryStream.GetBuffer();
+                    writer.Write(memoryStreamBuffer, 0, (int)memoryStream.Length);
                 }
 
                 memoryWriter.Close();
@@ -147,7 +151,6 @@ namespace DataBuildSystem
 
             while (reader.Position < reader.Length)
             {
-                var blockSize = reader.ReadUInt32();
                 var compilerTypeSignature = Hash160.ReadFrom(reader);
                 var compilerSignature = Hash160.ReadFrom(reader);
 
@@ -163,11 +166,13 @@ namespace DataBuildSystem
                         loadedDataFilelog.Add(compiler);
                     }
 
+                    var stateSize = reader.ReadUInt32();
                     compiler.LoadState(reader);
                 }
                 else
                 {
-                    if (!reader.SkipBytes(blockSize))
+                    var stateSize = reader.ReadUInt32();
+                    if (!reader.SkipBytes(stateSize))
                         break;
                 }
             }

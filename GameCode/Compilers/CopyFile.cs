@@ -11,6 +11,9 @@ namespace GameData
         private string _dstFilename;
         private Dependency _dependency;
 
+        public CopyDataFile() : this(string.Empty, string.Empty)
+        {
+        }
         public CopyDataFile(string filename) : this(filename, filename)
         {
         }

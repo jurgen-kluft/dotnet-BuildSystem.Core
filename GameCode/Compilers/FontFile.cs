@@ -11,6 +11,9 @@ namespace GameData
         private string mDstFilename;
         private Dependency mDependency;
 
+        public FontDataFile() : this(string.Empty, string.Empty)
+        {
+        }
         public FontDataFile(string filename) : this(filename, filename)
         {
         }

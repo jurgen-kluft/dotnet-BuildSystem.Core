@@ -9,6 +9,9 @@ namespace GameData
         private string mDstFilename;
         private Dependency mDependency;
 
+        public CurveDataFile() : this(string.Empty, string.Empty)
+        {
+        }
         public CurveDataFile(string filename) : this(filename, filename)
         {
         }

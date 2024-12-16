@@ -9,12 +9,11 @@ namespace GameData
     /// from the declared struct and can be overriden by using an attribute.
     public interface IStruct
     {
-        bool StructIsTemplate { get; } // This is true if the struct is a template
-        string StructTemplateType { get; } // This is the templated type of the struct
-
         int StructAlign { get; } // This is the required memory alignment of the struct
         int StructSize { get; } // This is the memory size of the struct
-        string StructName { get; } // This is the name of the struct in the target code-base
+        string StructMember { get; } // This is the member string of the struct in the target code-base
+
+        void StructCode(StreamWriter writer); // This is the code that generates the code in the target code-base
 
         void StructWrite(IGameDataWriter writer);
     }

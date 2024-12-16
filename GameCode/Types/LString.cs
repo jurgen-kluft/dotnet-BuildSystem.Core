@@ -21,11 +21,13 @@ namespace GameData
         public string LStringText { get; private set; }
         public long LStringId { get; set; }
 
-        public bool StructIsTemplate => false;
-        public string StructTemplateType => string.Empty;
         public int StructSize => sizeof(long);
         public int StructAlign => 8;
-        public string StructName => "lstring_t";
+        public string StructMember => "lstring_t";
+        public void StructCode(StreamWriter writer)
+        {
+            // already defined in C++ library charon
+        }
 
         public void StructWrite(IGameDataWriter writer)
         {

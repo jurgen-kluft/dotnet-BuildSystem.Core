@@ -90,6 +90,34 @@ namespace MetaTest
             public TestDataUnit TestDataUnit = new TestDataUnit();
         }
 
+        public class TestSignatureDb : ISignatureDataBase
+        {
+            public (uint primary, uint secondary) GetEntry(Hash160 signature)
+            {
+                return (0, 0);
+            }
+
+            public bool Register(Hash160 signature, uint primary, uint secondary)
+            {
+                return true;
+            }
+
+            public void RemovePrimary(uint index)
+            {
+
+            }
+
+            public bool Load(string filepath)
+            {
+                return true;
+            }
+
+            public bool Save(string filepath)
+            {
+                return true;
+            }
+        }
+
         static int Main(string[] args)
         {
             const EPlatform platform = EPlatform.Win64;
@@ -104,7 +132,9 @@ namespace MetaTest
             var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
             var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, platform);
 
-            CppCodeStream2.Write2(platform, rootDataUnit, codeFileWriter, bigfileDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            var signatureDb = new TestSignatureDb();
+
+            CppCodeStream2.Write2(platform, rootDataUnit, codeFileWriter, bigfileDataStreamWriter, signatureDb, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             bigfileDataStreamWriter.Close();
             bigfileDataStream.Close();
             codeFileWriter.Close();

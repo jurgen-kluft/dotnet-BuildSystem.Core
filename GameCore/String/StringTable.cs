@@ -101,6 +101,13 @@ namespace GameCore
             foreach (var s in _byteLengths)
                 stringsSize += s;
 
+            // u32         mMagic;  // 'STRT'
+            // u32         mNumStrings;
+            // u32 const*  mHashes;
+            // u32 const*  mOffsets;
+            // u32 const*  mCharLengths;
+            // u32 const*  mByteLengths;
+            // const char* mStrings;
             const int mainSize = sizeof(int) + sizeof(int) + sizeof(ulong) + sizeof(ulong) + sizeof(ulong) + sizeof(ulong) + sizeof(ulong);
 
             // Write StringTable
@@ -116,11 +123,11 @@ namespace GameCore
                 writer.OpenBlock(Reference);
                 writer.Write(StringTools.Encode_32_5('S','T','R','T','B'));
                 writer.Write(count);
-                writer.WriteBlockReference(HashesReference);
-                writer.WriteBlockReference(OffsetsReference);
-                writer.WriteBlockReference(RuneLengthsReference);
-                writer.WriteBlockReference(ByteLengthsReference);
-                writer.WriteBlockReference(StringsReference);
+                writer.WriteDataBlockReference(HashesReference);
+                writer.WriteDataBlockReference(OffsetsReference);
+                writer.WriteDataBlockReference(RuneLengthsReference);
+                writer.WriteDataBlockReference(ByteLengthsReference);
+                writer.WriteDataBlockReference(StringsReference);
                 writer.CloseBlock();
 
                 // String Hashes

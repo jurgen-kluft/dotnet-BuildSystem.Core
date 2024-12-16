@@ -107,6 +107,16 @@ namespace DataBuildSystem
                 GameDataFileLog.Save(BuildSystemConfig.Platform, GameDataPath.GameDataUnitDataFileLog.GetFilePath(dataUnit.Filename), dataFiles);
             }
 
+            // Register the signatures of the DataUnits, their data is written to a Bigfile with
+            // index 0.
+            var dataUnitFileIndex = (uint)0;
+            foreach (var gdu in DataUnits)
+            {
+                var signature = HashUtility.Compute_ASCII(gdu.DataUnit.Signature);
+                SignatureDatabase.Register(signature, 0, dataUnitFileIndex);
+                dataUnitFileIndex += 1;
+            }
+
             // Save the SignatureDatabase now that it has been updated by saving the out-of-date Bigfile(s)
             // - Signature = Primary (Bigfile) index, Secondary (file) index
             SignatureDatabase.Save(GameDataPath.GameDataSignatureDb.GetFilePath("GameData"));
@@ -121,7 +131,7 @@ namespace DataBuildSystem
             var cppDataFileInfo = new FileInfo(cppDataFilepath);
             var cppDataStream = new FileStream(cppDataFileInfo.FullName, FileMode.Create);
             var cppDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(cppDataStream, BuildSystemConfig.Platform);
-            CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, cppHeaderFileWriter, cppDataStreamWriter, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, cppHeaderFileWriter, cppDataStreamWriter, SignatureDatabase, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             cppDataStreamWriter.Close();
             cppDataStream.Close();
             cppHeaderFileWriter.Close();
@@ -172,8 +182,9 @@ namespace DataBuildSystem
                 binaryFile.Close();
             }
 
-            // Any new DataUnit? -> create them with an index that is not used
-            var index = (uint)0;
+            // Any new DataUnit? -> create them with an index that is not used.
+            // Reserve index=0 for the bigfile that contains the GameDataUnit(s) data for the code.
+            var index = (uint)1;
             foreach ((string id, IDataUnit du) in idToDataUnit)
             {
                 while (dataUnits.ContainsKey(index))
@@ -250,10 +261,11 @@ namespace DataBuildSystem
         private static readonly GameDataPath GameDataUnitBigFileFilenames = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileFilenames, ScopeId = GameDataPath.GameDataScopeUnit};
         private static readonly GameDataPath GameDataUnitBigFileHashes = new GameDataPath { PathId =EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileHashes, ScopeId = GameDataPath.GameDataScopeUnit};
         private static readonly GameDataPath GameDataUnitDataFileLog = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGduDataFileLog, ScopeId = GameDataPath.GameDataScopeUnit};
-        private static readonly GameDataPath GameDataDll = new GameDataPath { PathId = EGameDataPath.GameDataSrcPath, FileId = GameDataPath.GameDataGameDataDll, ScopeId = GameDataPath.GameDataScopeGlobal};
+        private static readonly GameDataPath GameDataDll = new GameDataPath { PathId = EGameDataPath.GameDataGddPath, FileId = GameDataPath.GameDataGameDataDll, ScopeId = GameDataPath.GameDataScopeGlobal};
         private static readonly GameDataPath GameDataSignatureDb = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGameDataSignatureDb, ScopeId = GameDataPath.GameDataScopeGlobal};
         private static readonly GameDataPath GameDataCppData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppData, ScopeId = GameDataPath.GameDataScopeGlobal};
         private static readonly GameDataPath GameDataCppCode = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppCode, ScopeId = GameDataPath.GameDataScopeGlobal};
+
         private static readonly GameDataPath GameDataSrcDataPath = new GameDataPath { PathId = EGameDataPath.GameDataSrcPath, FileId = GameDataPath.GameDataSrcData, ScopeId = GameDataPath.GameDataScopeGlobal};
         private static readonly GameDataPath GameDataDstDataPath = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataDstData, ScopeId = GameDataPath.GameDataScopeGlobal};
 
@@ -295,32 +307,38 @@ namespace DataBuildSystem
             });
         }
 
-        public void Save(IBinaryWriter writer)
-        {
-            writer.Write(Name);
-            writer.Write(Id);
-            writer.Write(Index);
-            foreach (var t in States)
-                writer.Write(t.AsInt8);
-
-            Dep.WriteTo(writer);
-        }
-
 
         public static List<IDataFile> LoadDataFileLog(string filepath, List<IDataFile> currentDataFileLog)
         {
             return GameDataFileLog.Load(filepath, currentDataFileLog);
         }
 
+        public void Save(IBinaryWriter writer)
+        {
+            writer.Write(Name);
+            writer.Write(Id);
+            writer.Write(Index);
+
+            writer.Write(States.Length);
+            foreach (var t in States)
+                writer.Write(t.AsInt8);
+
+            Dep.WriteTo(writer);
+        }
+
         public static GameDataUnit Load(IBinaryReader reader)
         {
-            var states = new State[GameDataPaths.Length];
-            for (var i = 0; i < states.Length; ++i)
+            var name = reader.ReadString();
+            var id = reader.ReadString();
+            var index = reader.ReadUInt32();
+
+            var numStates = reader.ReadInt32();
+            var states = new State[numStates];
+            for (var i = 0; i < numStates; ++i)
                 states[i] = new State(reader.ReadInt8());
+
             var dep = Dependency.ReadFrom(reader);
 
-            var name = reader.ReadString();
-            var id = reader.ReadString(); var index = reader.ReadUInt32();
             var gdu = new GameDataUnit()
             {
                 DataUnit = null,

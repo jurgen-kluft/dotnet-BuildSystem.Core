@@ -33,11 +33,13 @@ namespace GameData
             W = (float)w;
         }
 
-        public bool StructIsTemplate => false;
-        public string StructTemplateType => string.Empty;
         public int StructSize => 4*sizeof(float);
         public int StructAlign => 4;
-        public string StructName => "fvec4_t";
+        public string StructMember => "fvec4_t";
+        public void StructCode(StreamWriter writer)
+        {
+            // already defined in C++ library charon
+        }
 
         public void StructWrite(IGameDataWriter writer)
         {

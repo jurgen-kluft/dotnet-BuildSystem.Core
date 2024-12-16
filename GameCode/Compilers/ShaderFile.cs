@@ -11,6 +11,9 @@ namespace GameData
         private string _dstFilename;
         private Dependency _dependency;
 
+        public ShaderCompiler() : this(string.Empty, string.Empty)
+        {
+        }
         public ShaderCompiler(string filename) : this(filename, filename)
         {
         }

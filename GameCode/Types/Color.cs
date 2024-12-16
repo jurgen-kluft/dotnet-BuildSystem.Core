@@ -166,12 +166,14 @@ namespace GameData
         {
         }
 
-        public bool StructIsTemplate => false;
-        public string StructTemplateType => string.Empty;
-
         public int StructSize => 4;
         public int StructAlign => 4;
-        public string StructName => "color_t";
+        public string StructMember => "color_t";
+
+        public void StructCode(StreamWriter writer)
+        {
+            // already defined in C++ library charon
+        }
 
         public void StructWrite(IGameDataWriter writer)
         {

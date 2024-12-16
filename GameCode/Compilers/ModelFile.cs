@@ -5,12 +5,22 @@ using DataBuildSystem;
 
 namespace GameData
 {
+    public class StaticMeshDataFile : DataFile
+    {
+        public StaticMeshDataFile() : base(null, "staticmesh_t")
+        {
+        }
+        public StaticMeshDataFile(ModelCompiler compiler) : base(compiler, "staticmesh_t")
+        {
+        }
+    }
+
     public sealed class ModelData
     {
-        public DataFile StaticMesh;
-        public DataFile[] Textures;
+        public StaticMeshDataFile StaticMesh;
+        public TextureDataFile[] Textures;
 
-        public ModelData(DataFile staticMesh, DataFile[] textures)
+        public ModelData(StaticMeshDataFile staticMesh, TextureDataFile[] textures)
         {
             StaticMesh = staticMesh;
             Textures = textures;
@@ -22,9 +32,12 @@ namespace GameData
     {
         private string _srcFilename;
         private string _dstFilename;
-        private readonly DataFile[] _textures;
+        private readonly TextureDataFile[] _textures;
         private Dependency _dependency;
 
+        public ModelCompiler() : this(string.Empty, string.Empty)
+        {
+        }
         public ModelCompiler(string filename) : this(filename, filename)
         {
         }
@@ -72,7 +85,7 @@ namespace GameData
         {
             get
             {
-                return new ModelData(new DataFile(this, "staticmesh_t"), _textures);
+                return new ModelData(new StaticMeshDataFile(this), _textures);
             }
         }
 
