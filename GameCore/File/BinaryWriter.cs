@@ -149,17 +149,15 @@ namespace GameCore
             if (byteCount < _buffer.Length)
             {
                 System.Text.Encoding.UTF8.GetBytes(v, _buffer);
-                _buffer[byteCount] = 0;
-                Write(byteCount + 1);
-                _stream.Write(_buffer, 0, byteCount+1);
+                Write(byteCount);
+                _stream.Write(_buffer, 0, byteCount);
             }
             else
             {
-                var buffer = new byte[byteCount + 1];
+                var buffer = new byte[byteCount];
                 System.Text.Encoding.UTF8.GetBytes(v, buffer);
-                buffer[byteCount] = 0;
-                Write(byteCount+1);
-                _stream.Write(buffer, 0, byteCount+1);
+                Write(byteCount);
+                _stream.Write(buffer, 0, byteCount);
             }
         }
 
@@ -299,17 +297,15 @@ namespace GameCore
             if (byteCount < _buffer.Length)
             {
                 System.Text.Encoding.UTF8.GetBytes(v, _buffer);
-                _buffer[byteCount] = 0;
-                Write(byteCount + 1);
-                _stream.Write(_buffer, 0, byteCount+1);
+                Write(byteCount);
+                _stream.Write(_buffer, 0, byteCount);
             }
             else
             {
-                var buffer = new byte[byteCount + 1];
+                var buffer = new byte[byteCount];
                 System.Text.Encoding.UTF8.GetBytes(v, buffer);
-                buffer[byteCount] = 0;
-                Write(byteCount+1);
-                _stream.Write(buffer, 0, byteCount+1);
+                Write(byteCount);
+                _stream.Write(buffer, 0, byteCount);
             }
         }
 
@@ -432,7 +428,6 @@ namespace GameCore
             var data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
-            Write((byte)0);
         }
 
         public IArchitecture Architecture => _architecture;
@@ -544,7 +539,6 @@ namespace GameCore
             var data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
-            Write((byte)0);
         }
 
         public long Position
@@ -661,7 +655,6 @@ namespace GameCore
             var data = System.Text.Encoding.UTF8.GetBytes(s);
             Write(data.Length);
             Write(data);
-            Write((byte)0);
         }
 
         public IArchitecture Architecture => _binaryFileStreamWriter.Architecture;
@@ -947,9 +940,8 @@ namespace GameCore
         public void Write(string v)
         {
             var data = System.Text.Encoding.UTF8.GetBytes(v);
-            Write(data.Length + 1);
+            Write(data.Length);
             Write(data, 0, data.Length);
-            Write((byte)0);
         }
     }
 }

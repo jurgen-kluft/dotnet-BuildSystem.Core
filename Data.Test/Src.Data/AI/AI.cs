@@ -3,7 +3,7 @@ using GameCore;
 
 namespace GameData
 {
-    public enum EEnemyType
+    public enum EnemyType
     {
         Soldier,
         Archer,
@@ -16,13 +16,13 @@ namespace GameData
         public CurveDataFile ReactionCurve = new("AI\\ReactionCurve.curve");
         public string Description = "This is AI data";
 
-        public Enemy[] BlueprintsAsArray = { new Enemy() };
-        public List<Enemy> BlueprintsAsList = new() { new Enemy() };
+        public Enemy[] BlueprintsAsArray = { new Enemy(), new Enemy() };
+        public List<Enemy> BlueprintsAsList = new() { new Enemy(), new Enemy() };
     }
 
     public class Enemy
     {
-        public EEnemyType EnemyType = EEnemyType.Soldier;
+        public EnemyType EnemyType = EnemyType.Soldier;
         public float Speed = 1.1f;
         public float Aggresiveness = 0.8f;
     }

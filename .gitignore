@@ -6,6 +6,8 @@ bin/
 obj/
 target/
 packages/
+Data.Test/Bin.PC/
+Data.Test/Publish.PC/
 
 #except the following files
 !.gitignore

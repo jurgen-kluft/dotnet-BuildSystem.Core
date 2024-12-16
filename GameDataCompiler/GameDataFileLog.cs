@@ -28,9 +28,10 @@ namespace DataBuildSystem
             var mergedPreviousCount = 0;
             while (currentListIndex < currentCompilerSignatureList.Count)
             {
-                var signature = currentCompilerSignatureList[currentListIndex++];
-                // We can just advance the index of the previous compiler signature list until the comparison returns that the current signature is bigger
-                // because that means that the current compiler is not in the previous list.
+                var signature = currentCompilerSignatureList[currentListIndex];
+                // We can just advance the index of the previous compiler signature list until the comparison returns
+                // that the current signature is bigger, because that means that the current compiler is not in the
+                // previous list.
                 int c = 1;
                 while (previousListIndex < previousCompilerSignatureList.Count)
                 {
@@ -54,6 +55,8 @@ namespace DataBuildSystem
                     // The current compiler is not in the previous list so add it to the merged list.
                     mergedCompilers.Add(signature.Value);
                 }
+
+                currentListIndex += 1;
             }
 
             return (mergedPreviousCount == currentCompilers.Count) ? 0 : 1;
@@ -119,9 +122,10 @@ namespace DataBuildSystem
                     compiler.Signature.WriteTo(writer);
 
                     // state
-                    writer.Write(memoryStream.Length); // state size
+                    var stateLen = (int)memoryStream.Length;
+                    writer.Write(stateLen); // state size
                     var memoryStreamBuffer = memoryStream.GetBuffer();
-                    writer.Write(memoryStreamBuffer, 0, (int)memoryStream.Length);
+                    writer.Write(memoryStreamBuffer, 0, stateLen);
                 }
 
                 memoryWriter.Close();
@@ -163,6 +167,7 @@ namespace DataBuildSystem
                     var compiler = Activator.CreateInstance(type) as IDataFile;
                     if (compilerSignatureSet.Add(compilerSignature))
                     {
+                        compiler.Signature = compilerSignature;
                         loadedDataFilelog.Add(compiler);
                     }
 

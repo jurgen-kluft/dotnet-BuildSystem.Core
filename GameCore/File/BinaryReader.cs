@@ -93,8 +93,8 @@ namespace GameCore
         public string ReadString()
         {
             var length = ReadInt32();
-            var data = new byte[length + 1]; // There is also a null terminator in the stream
-            Read(data, 0, length + 1);
+            var data = new byte[length]; // There is also a null terminator in the stream
+            Read(data, 0, length);
             return System.Text.Encoding.UTF8.GetString(data, 0, length);
         }
 
@@ -241,8 +241,8 @@ namespace GameCore
         public string ReadString()
         {
             var len = ReadInt32();
-            var data = new byte[len + 1];
-            Read(data, 0, len + 1);
+            var data = new byte[len];
+            Read(data, 0, len);
             return System.Text.Encoding.UTF8.GetString(data, 0, len);
         }
 

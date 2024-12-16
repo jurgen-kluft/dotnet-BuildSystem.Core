@@ -526,8 +526,8 @@ namespace GameData
 
             private static string GetDataUnitReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                var dataUnitTypeName = metaCode2.MembersObject[memberIndex];
-                return $"data_t<{dataUnitTypeName.GetType().Name}>";
+                var dataUnitTypeName = metaCode2.MemberTypeName[memberIndex];
+                return $"data_t<{dataUnitTypeName}>";
             }
 
             private delegate string GetReturnTypeStringDelegate(int memberIndex, MetaCode2 metaCode2, EOption option);
@@ -772,7 +772,7 @@ namespace GameData
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
                 var dataUnit = metaCode2.MembersObject[memberIndex];
-                var dataUnitTypeName = dataUnit.GetType().Name;
+                var dataUnitTypeName = metaCode2.MemberTypeName[memberIndex];
                 writer.WriteLine($"\tinline data_t<{dataUnitTypeName}> const& get{memberName}() const {{ return m_{memberName}; }}");
             }
 
@@ -781,7 +781,7 @@ namespace GameData
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
                 var dataUnit = metaCode2.MembersObject[memberIndex];
-                var dataUnitTypeName = dataUnit.GetType().Name;
+                var dataUnitTypeName = metaCode2.MemberTypeName[memberIndex];
                 writer.WriteLine("\t" + "data_t<" + dataUnitTypeName + "> m_" + memberName + ";");
             }
 
@@ -853,13 +853,13 @@ namespace GameData
             {
                 // Forward declares ?
                 writer.WriteLine("// Forward declares");
-                HashSet<Type> writtenClasses = [];
+                HashSet<string> writtenClasses = [];
                 for (var i = 0; i < MetaCode.MembersType.Count; ++i)
                 {
                     var mt = MetaCode.MembersType[i];
                     if (mt.IsClass || mt.IsDataUnit)
                     {
-                        var ct = MetaCode.MembersObject[i].GetType();
+                        var ct = MetaCode.MemberTypeName[i];
                         if (writtenClasses.Contains(ct)) continue;
                         var className = MetaCode.MemberTypeName[i];
                         writer.WriteLine($"class {className};");
@@ -875,7 +875,7 @@ namespace GameData
                     var mt = MetaCode.MembersType[i];
                     if (mt.IsClass || mt.IsDataUnit)
                     {
-                        var ct = MetaCode.MembersObject[i].GetType();
+                        var ct = MetaCode.MemberTypeName[i];
                         if (writtenClasses.Contains(ct)) continue;
                         WriteClass(i, writer, EOption.None);
                         writtenClasses.Add(ct);
@@ -1010,6 +1010,7 @@ namespace GameData
                 }
 
                 // If content == null, change the type to 'void'
+                className = className.ToLower() + "_t";
 
                 return _metaCode2.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content, className);
             }
@@ -1022,6 +1023,8 @@ namespace GameData
                 {
                     className = nameAttribute.Name;
                 }
+
+                className = className.ToLower() + "_t";
 
                 return _metaCode2.AddMember(MetaInfo.AsDataUnit, RegisterCodeString(memberName), -1, 0, content, className);
             }
