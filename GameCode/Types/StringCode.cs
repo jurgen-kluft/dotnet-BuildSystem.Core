@@ -9,16 +9,12 @@ namespace GameData
                                 struct string_t
                                 {
                                     inline string_t()
-                                        : m_bytes(0)
-                                        , m_count(0)
-                                        , m_array("")
+                                        : m_bytes(0), m_count(0), m_array("")
                                     {
                                     }
 
                                     inline string_t(u32 byteLength, u32 charLength, const char* data)
-                                        : m_bytes(byteLength)
-                                        , m_count(charLength)
-                                        , m_array(data)
+                                        : m_bytes(byteLength), m_count(charLength), m_array(data)
                                     {
                                     }
 

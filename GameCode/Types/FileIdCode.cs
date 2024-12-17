@@ -14,7 +14,8 @@ namespace GameData
                                 struct fileid_t
                                 {
                                     explicit fileid_t(u64 id) : id(id) {}
-                                    inline u64 GetId() const { return id; }
+                                    inline u64 getId() const { return id; }
+
                                 private:
                                     u64 id;
                                 };

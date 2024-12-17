@@ -9,23 +9,17 @@ namespace GameData
                                 struct array_t
                                 {
                                     inline array_t()
-                                        : m_array(nullptr)
-                                        , m_bytes(0)
-                                        , m_count(0)
+                                        : m_array(nullptr), m_bytes(0), m_count(0)
                                     {
                                     }
 
                                     inline array_t(const u32 count, T const* data)
-                                        : m_array(data)
-                                        , m_bytes(count * sizeof(T))
-                                        , m_count(count)
+                                        : m_array(data), m_bytes(count * sizeof(T)), m_count(count)
                                     {
                                     }
 
                                     inline array_t(const u32 count, const u32 bytes, T const* data)
-                                        : m_array(data)
-                                        , m_bytes(bytes)
-                                        , m_count(count)
+                                        : m_array(data), m_bytes(bytes), m_count(count)
                                     {
                                     }
 
