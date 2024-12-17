@@ -7,36 +7,36 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class GameLanguage
+    public sealed class Language
     {
-        public string m_language;
-        public DataFile m_data;
+        public string Name;
+        public DataFile Data;
 
-        public GameLanguage(string language, DataFile data)
+        public Language(string language, DataFile data)
         {
-            m_language = language;
-            m_data = data;
+            Name = language;
+            Data = data;
         }
     }
 
-    public sealed class GameLanguages
+    public sealed class Languages
     {
-        public GameLanguage m_default;
-        public List<GameLanguage> m_languages = new List<GameLanguage>();
+        public Language Default_Language;
+        public List<Language> Language_Array = new List<Language>();
     }
 
-    public sealed class LocalizationCompiler : IDataFile, ISignature
+    public sealed class LocalizationDataFile : IDataFile, ISignature
     {
         private string _srcFilename;
         private readonly List<string> _srcFilenames;
         private readonly List<string> _dstFilenames;
-        private readonly List<LanguageCompiler> _languageDataFiles;
+        private readonly List<LanguageDataFile> _languageDataFiles;
         private Dependency _dependency;
 
-        public LocalizationCompiler() : this("Localization.loc")
+        public LocalizationDataFile() : this("Localization.loc")
         {
         }
-        public LocalizationCompiler(string localizationFile)
+        public LocalizationDataFile(string localizationFile)
         {
             _srcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
             _srcFilenames = [];
@@ -96,7 +96,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is LocalizationCompiler lc)
+            if (dc is LocalizationDataFile lc)
             {
                 _srcFilename = lc._srcFilename;
                 _srcFilenames.Clear();
@@ -113,11 +113,11 @@ namespace GameData
         {
             get
             {
-                var languages = new GameLanguages();
-                languages.m_default = new GameLanguage("en", new DataFile(_languageDataFiles[0], "language_t"));
+                var languages = new Languages();
+                languages.Default_Language = new Language("en", new DataFile(_languageDataFiles[0], "language_t"));
                 foreach (var languageDataFile in _languageDataFiles)
                 {
-                    languages.m_languages.Add(new GameLanguage(languageDataFile.Language, new DataFile( languageDataFile, "language_t")));
+                    languages.Language_Array.Add(new Language(languageDataFile.Language, new DataFile( languageDataFile, "language_t")));
                 }
                 return languages;
             }
@@ -138,7 +138,7 @@ namespace GameData
                         var filename = reader.ReadLine();
                         if (string.IsNullOrEmpty(filename))
                         {
-                            LanguageCompiler language = new LanguageCompiler(filename);
+                            LanguageDataFile language = new LanguageDataFile(filename);
                             language.Language = Path.GetFileNameWithoutExtension(filename);
                             _dstFilenames.Add(filename);
                             _languageDataFiles.Add(language);
@@ -185,14 +185,13 @@ namespace GameData
         }
     }
 
-    public sealed class LanguageCompiler : IDataFile, ISignature
+    public sealed class LanguageDataFile : IDataFile, ISignature
     {
-        private Hash160 _signature;
         private string _srcFilename;
         private string _dstFilename;
         private Dependency _dependency;
 
-        public LanguageCompiler(string localizationFile)
+        public LanguageDataFile(string localizationFile)
         {
             _srcFilename = localizationFile;
             _dstFilename = localizationFile;
@@ -224,7 +223,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is LanguageCompiler lc)
+            if (dc is LanguageDataFile lc)
             {
                 _srcFilename = lc._srcFilename;
                 _dstFilename = lc._dstFilename;
@@ -233,7 +232,7 @@ namespace GameData
         }
 
         public string CookedFilename => _dstFilename;
-        public object CookedObject => new DataFile(new DataFileSignature(this), "language_t");
+        public object CookedObject => new DataFile(this, "language_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {

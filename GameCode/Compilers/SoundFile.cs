@@ -5,7 +5,6 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    // e.g. new SoundDataFile("Sounds/Boot.wav");
     public sealed class SoundDataFile : IDataFile, ISignature
     {
         private string mSrcFilename;

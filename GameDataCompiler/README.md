@@ -1,5 +1,13 @@
 # GameDataCompiler
 
+## TODO
+
+What about writing 2 functions in each class:
+
+- preload(loader_t& loader) { register all the file_id_t's to load, also call any other preload() functions on the other member objects }
+- postload(loader_t& loader) { populate the pointers to the loaded data, also call any other postload() functions on the other member objects }
+
+
 ## Signature DB
 
 We are going to maintain a signature database that contains the signature of every IDataFile

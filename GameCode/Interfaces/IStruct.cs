@@ -13,7 +13,7 @@ namespace GameData
         int StructSize { get; } // This is the memory size of the struct
         string StructMember { get; } // This is the member string of the struct in the target code-base
 
-        void StructCode(StreamWriter writer); // This is the code that generates the code in the target code-base
+        void StructCode(StreamWriter writer); // This is a function that may generate C++ code
 
         void StructWrite(IGameDataWriter writer);
     }

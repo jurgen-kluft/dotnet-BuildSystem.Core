@@ -1,3 +1,4 @@
+using System.Drawing;
 using GameCore;
 using DataBuildSystem;
 
@@ -104,6 +105,8 @@ namespace GameData
                 // Execute the actual purpose of this compiler
                 File.Copy(Path.Join(BuildSystemConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemConfig.DstPath, mDstFilename), true);
 
+                //
+
                 // Execution is done, update the dependency to reflect the new state
                 result = mDependency.Update(null);
             }
@@ -117,86 +120,150 @@ namespace GameData
         }
     }
 
-    public class CurvePoint
+    public class Curve_Point
     {
         public double mX;
         public double mY;
     }
 
-    public class CurveControlPoint
+    public class Curve_Control_Point
     {
-        public CurvePoint mControlPoint = new CurvePoint();
-        public CurvePoint mTangentBegin = new CurvePoint();
-        public CurvePoint mTangentEnd = new CurvePoint();
+        public Curve_Point mControlPoint = new Curve_Point();
+        public Curve_Point mTangentBegin = new Curve_Point();
+        public Curve_Point mTangentEnd = new Curve_Point();
     }
 
     public sealed class Curve
     {
-        #region Fields
+        public double MinX;
+        public double MaxX;
+        public double MinY;
+        public double MaxY;
 
-        public double mMinX;
-        public double mMaxX;
-        public double mMinY;
-        public double mMaxY;
+        public int NumControlPoints;
+        public Curve_Control_Point[] ControlPoints;
+        public int InterpolationFlag;
 
-        public int mNumControlPoints;
-        public CurveControlPoint[] mControlPoints;
-        public int mInterpolationFlag;
+        public int NumCurvePoints;
+        public Curve_Point[] CurvePoints;
 
-        public int mNumCurvePoints;
-        public CurvePoint[] mCurve;
-
-        #endregion
-        #region Save Binary
-
-        public void SaveBinary(string filename)
+        private static bool ReadCurveControlPoint(StreamReader reader, out Curve_Control_Point point)
         {
-            try
+            point = new Curve_Control_Point();
+            var line = reader.ReadLine();
+            if (line == null)
+                return false;
+
+            // We need to read 6 double values:
+            // - ControlPoint X/Y
+            // - TangentBegin X/Y
+            // - TangentEnd X/Y
+            //
+            // The format is:
+            // ControlPointX, ControlPointY, TangentBeginX, TangentBeginY, TangentEndX, TangentEndY
+            //
+
+            var span = line.AsSpan();
+            var begin = 0;
+            for (int i = 0; i < 6; i++)
             {
-                FileInfo fileInfo = new FileInfo(filename);
-                FileStream fileStream;
-                if (!fileInfo.Exists)
-                    fileStream = fileInfo.Create();
-                else
-                    fileStream = new FileStream(fileInfo.FullName, FileMode.Truncate, FileAccess.Write, FileShare.None);
-                BinaryWriter writer = new BinaryWriter(fileStream);
+                while (begin < span.Length && (span[begin] == ' ' || span[begin] == '\t'))
+                    begin++;
 
-                writer.Write((float)mMinX);
-                writer.Write((float)mMaxX);
-                writer.Write((float)mMinY);
-                writer.Write((float)mMaxY);
+                var end = begin;
+                while (end < span.Length && span[end] != ',')
+                    end++;
 
-                writer.Write(mNumCurvePoints);
-                foreach (CurvePoint p in mCurve)
+                var value = double.Parse(span.Slice(begin, end - begin));
+
+                switch (i)
                 {
-                    writer.Write((float)p.mX);
-                    writer.Write((float)p.mY);
+                    case 0:
+                        point.mControlPoint.mX = value;
+                        break;
+                    case 1:
+                        point.mControlPoint.mY = value;
+                        break;
+                    case 2:
+                        point.mTangentBegin.mX = value;
+                        break;
+                    case 3:
+                        point.mTangentBegin.mY = value;
+                        break;
+                    case 4:
+                        point.mTangentEnd.mX = value;
+                        break;
+                    case 5:
+                        point.mTangentEnd.mY = value;
+                        break;
                 }
 
-                writer.Close();
-                fileStream.Close();
+                begin = end + 1;
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.StackTrace + " - " + e.Message);
-            }
+
+
+            return true;
         }
 
-        #endregion
-        #region Load Text
-
-        private static string sGetWordSimple(string strText, ref int iStartingPoint)
+        private static bool ReadCurvePoint(StreamReader reader, out Curve_Point point)
         {
-            string strReturn = "";
-            int I = iStartingPoint;
-            while (I < strText.Length && (strText[I] == ' ' || strText[I] == '	')) { I++; }
-            while (I < strText.Length && strText[I] != ' ' && strText[I] != '	')
+            point = new Curve_Point();
+            var line = reader.ReadLine();
+            if (line == null)
+                return false;
+
+            // We need to read 2 double values:
+            // - Point X/Y
+            //
+            // The format is:
+            // PointX, PointY
+            //
+
+            var span = line.AsSpan();
+            var begin = 0;
+            for (int i = 0; i < 2; i++)
             {
-                strReturn += strText[I];
-                I++;
+                while (begin < span.Length && (span[begin] == ' ' || span[begin] == '\t'))
+                    begin++;
+
+                var end = begin;
+                while (end < span.Length && span[end] != ',')
+                    end++;
+
+                var value = double.Parse(span.Slice(begin, end - begin));
+
+                switch (i)
+                {
+                    case 0:
+                        point.mX = value;
+                        break;
+                    case 1:
+                        point.mY = value;
+                        break;
+                }
+
+                begin = end + 1;
             }
-            iStartingPoint = I;
-            return strReturn;
+
+            return true;
+        }
+        private static string ReadLine(StreamReader reader)
+        {
+            string line;
+            do
+            {
+                line = reader.ReadLine();
+                if (string.IsNullOrEmpty(line))
+                    return string.Empty;
+            } while (line[0] == ';');
+
+            return line;
+        }
+
+        private static double ReadDouble(StreamReader reader)
+        {
+            var line = ReadLine(reader);
+            return double.Parse(line);
         }
 
         public bool LoadText(string filename)
@@ -210,131 +277,33 @@ namespace GameData
                     StreamReader reader = new StreamReader(fileStream);
 
                     // The X information.
-                    string line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    //string legendX = line;		// X legend.
-
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    mMinX = Double.Parse(line);	// X min.
-
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    mMaxX = Double.Parse(line);	// X max.
+                    ReadLine(reader); // legend (ignored)
+                    MinX = ReadDouble(reader); // min.
+                    MaxX = ReadDouble(reader); // max.
 
                     // The Y information.
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    //string legendY = line;		// Y legend.
-
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    mMinY = Double.Parse(line);	// Y min.
-
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    mMaxY = Double.Parse(line);	// Y max.
+                    ReadLine(reader); //  legend (ignored)
+                    MinY = ReadDouble(reader); // min.
+                    MaxY = ReadDouble(reader); // max.
 
                     // The control points.
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
+                    NumControlPoints = (int)ReadDouble(reader); // Number of control points.
+                    ControlPoints = new Curve_Control_Point[NumControlPoints];
+                    for (int i = 0; i < NumControlPoints; i++)
                     {
-                        line = reader.ReadLine();
+                        ReadCurveControlPoint(reader, out var point);
+                        ControlPoints[i] = point;
                     }
 
-                    mNumControlPoints = (int)Double.Parse(line);	// Number of control points.
-                    mControlPoints = new CurveControlPoint[mNumControlPoints];
+                    ReadDouble(reader); // Interpolation (ignored)
 
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
+                    // The curve itself
+                    NumCurvePoints = (int)ReadDouble(reader); // Number of curve points.
+                    CurvePoints = new Curve_Point[NumCurvePoints];
+                    for (int i = 0; i < NumCurvePoints; i++)
                     {
-                        line = reader.ReadLine();
-                    }
-                    for (int I = 0; I < mNumControlPoints; I++)		// Load each control point.
-                    {
-                        mControlPoints[I] = new CurveControlPoint();
-
-                        int iPos = 0;
-                        string strTemp1 = sGetWordSimple(line, ref iPos);
-                        strTemp1 += " ";
-                        strTemp1 += sGetWordSimple(line, ref iPos);
-
-                        string strTemp2 = sGetWordSimple(line, ref iPos);
-                        strTemp2 += " " + sGetWordSimple(line, ref iPos);
-
-                        string strTemp3 = sGetWordSimple(line, ref iPos);
-                        strTemp3 += " " + sGetWordSimple(line, ref iPos);
-
-                        iPos = 0;
-                        mControlPoints[I].mControlPoint.mX = Double.Parse(sGetWordSimple(strTemp1, ref iPos));
-                        mControlPoints[I].mControlPoint.mY = Double.Parse(sGetWordSimple(strTemp1, ref iPos));
-
-                        iPos = 0;
-                        mControlPoints[I].mTangentBegin.mX = Double.Parse(sGetWordSimple(strTemp2, ref iPos));
-                        mControlPoints[I].mTangentBegin.mY = Double.Parse(sGetWordSimple(strTemp2, ref iPos));
-
-                        iPos = 0;
-                        mControlPoints[I].mTangentEnd.mX = Double.Parse(sGetWordSimple(strTemp3, ref iPos));
-                        mControlPoints[I].mTangentEnd.mY = Double.Parse(sGetWordSimple(strTemp3, ref iPos));
-
-                        line = reader.ReadLine();
-                    }
-
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    //int interpolate = (int)Double.Parse(line);	// Interpolation.
-
-                    // The points.
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-                    mNumCurvePoints = (int)Double.Parse(line);	// Number of points.
-
-                    line = reader.ReadLine();
-                    while (line[0] == ';')
-                    {
-                        line = reader.ReadLine();
-                    }
-
-                    mCurve = new CurvePoint[mNumCurvePoints];
-
-                    for (int I = 0; I < mNumCurvePoints; I++)		// Load each point.
-                        mCurve[I] = new CurvePoint();
-
-                    for (int I = 0; I < mNumCurvePoints; I++)		// Load each point.
-                    {
-                        int iPos = 0;
-                        string strTemp1 = sGetWordSimple(line, ref iPos);
-                        strTemp1 += " ";
-                        strTemp1 += sGetWordSimple(line, ref iPos);
-
-                        iPos = 0;
-                        mCurve[I].mX = Double.Parse(sGetWordSimple(strTemp1, ref iPos));
-                        mCurve[I].mY = Double.Parse(sGetWordSimple(strTemp1, ref iPos));
-
-                        line = reader.ReadLine();
+                        ReadCurvePoint(reader, out var point);
+                        CurvePoints[i] = point;
                     }
 
                     reader.Close();
@@ -348,13 +317,11 @@ namespace GameData
             catch (Exception e)
             {
                 Console.WriteLine(e.StackTrace + " - " + e.Message);
-                e.ToString();
                 return false;
             }
+
             return true;
         }
-
-        #endregion
     }
 
 #if CURVE_COMPILER

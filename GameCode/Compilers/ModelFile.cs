@@ -5,22 +5,12 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public class StaticMeshDataFile : DataFile
-    {
-        public StaticMeshDataFile() : base(null, "staticmesh_t")
-        {
-        }
-        public StaticMeshDataFile(ModelCompiler compiler) : base(compiler, "staticmesh_t")
-        {
-        }
-    }
-
     public sealed class ModelData
     {
-        public StaticMeshDataFile StaticMesh;
-        public TextureDataFile[] Textures;
+        public DataFile StaticMesh;
+        public DataFile[] Textures;
 
-        public ModelData(StaticMeshDataFile staticMesh, TextureDataFile[] textures)
+        public ModelData(DataFile staticMesh, DataFile[] textures)
         {
             StaticMesh = staticMesh;
             Textures = textures;
@@ -28,21 +18,21 @@ namespace GameData
     }
 
     // e.g. new FileId(new ModelCompiler("Models/Teapot.glTF"));
-    public sealed class ModelCompiler : IDataFile, ISignature
+    public sealed class ModelDataFile : IDataFile, ISignature
     {
         private string _srcFilename;
         private string _dstFilename;
         private readonly TextureDataFile[] _textures;
         private Dependency _dependency;
 
-        public ModelCompiler() : this(string.Empty, string.Empty)
+        public ModelDataFile() : this(string.Empty, string.Empty)
         {
         }
-        public ModelCompiler(string filename) : this(filename, filename)
+        public ModelDataFile(string filename) : this(filename, filename)
         {
         }
 
-        private ModelCompiler(string srcFilename, string dstFilename)
+        private ModelDataFile(string srcFilename, string dstFilename)
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -73,7 +63,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not ModelCompiler cc) return;
+            if (dc is not ModelDataFile cc) return;
 
             _srcFilename = cc._srcFilename;
             _dstFilename = cc._dstFilename;
@@ -85,7 +75,12 @@ namespace GameData
         {
             get
             {
-                return new ModelData(new StaticMeshDataFile(this), _textures);
+                var textures = new DataFile[_textures.Length];
+                for (var i = 0; i < _textures.Length; i++)
+                {
+                    textures[i] = new DataFile(_textures[i], "texture_t");
+                }
+                return new ModelData(new DataFile(this, "staticmesh_t"), textures);
             }
         }
 
@@ -137,7 +132,7 @@ namespace GameData
                 // Execute the actual purpose of this compiler
                 File.Copy(Path.Join(BuildSystemConfig.SrcPath, _srcFilename), Path.Join(BuildSystemConfig.DstPath, _dstFilename), true);
 
-                // Get the texture, material datafiles
+                // Generate the texture data files (these textures need to be cooked)
 
                 // Execution is done, update the dependency to reflect the new state
                 result = _dependency.Update(null);

@@ -5,19 +5,19 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class ShaderCompiler : IDataFile, ISignature
+    public sealed class ShaderDataFile : IDataFile, ISignature
     {
         private string _srcFilename;
         private string _dstFilename;
         private Dependency _dependency;
 
-        public ShaderCompiler() : this(string.Empty, string.Empty)
+        public ShaderDataFile() : this(string.Empty, string.Empty)
         {
         }
-        public ShaderCompiler(string filename) : this(filename, filename)
+        public ShaderDataFile(string filename) : this(filename, filename)
         {
         }
-        public ShaderCompiler(string srcFilename, string dstFilename)
+        public ShaderDataFile(string srcFilename, string dstFilename)
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -47,7 +47,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not ShaderCompiler cc) return;
+            if (dc is not ShaderDataFile cc) return;
 
             _srcFilename = cc._srcFilename;
             _dstFilename = cc._dstFilename;
