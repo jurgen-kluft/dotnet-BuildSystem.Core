@@ -274,7 +274,7 @@ namespace GameData
                     var count = ctx.MetaCode2.MembersCount[memberIndex];
                     for (var mi = msi; mi < msi + count; ++mi)
                     {
-                        var rmi = ctx.MetaCode2.SortedMembersMap[mi];
+                        var rmi = ctx.MetaCode2.MemberSorted[mi];
                         var et = ctx.MetaCode2.MembersType[rmi];
                         ctx.WriteMemberDelegates[et.Index](rmi, ctx);
                     }
@@ -369,8 +369,6 @@ namespace GameData
 
                 var mr = StreamReference.NewReference;
                 ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
-
-                var cr = StreamReference.NewReference;
 
                 var dataUnit = ctx.MetaCode2.MembersObject[memberIndex] as IDataUnit;
                 var signature = HashUtility.Compute_ASCII(dataUnit.Signature);

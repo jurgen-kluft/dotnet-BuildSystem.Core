@@ -23,10 +23,22 @@ namespace GameData
 
         public int StructSize => sizeof(long);
         public int StructAlign => 8;
-        public string StructMember => "lstring_t";
-        public void StructCode(StreamWriter writer)
+        public string StructMember => "locstr_t";
+
+        public string[] StructCode()
         {
-            // already defined in C++ library charon
+            const string code = """
+                                struct locstr_t
+                                {
+                                    explicit locstr_t(u64 id) : id(id) {}
+                                    inline u64 GetId() const { return id; }
+                                private:
+                                    u64 id;
+                                };
+                                const locstr_t INVALID_LOCSTR((u64)-1);
+
+                                """;
+            return code.Split("\n");
         }
 
         public void StructWrite(IGameDataWriter writer)

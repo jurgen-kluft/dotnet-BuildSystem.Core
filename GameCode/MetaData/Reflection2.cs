@@ -32,7 +32,7 @@ namespace GameData
 
         private void ProcessArray(MemberProcessor m)
         {
-            if (m.Object is not Array array)
+            if (m.Object is not System.Array array)
                 return;
 
             // Even though the array is empty, we still want a way to recognize the type of members in the array.
@@ -114,6 +114,59 @@ namespace GameData
                 var fieldType = dataObjectFieldInfo.FieldType;
                 var fieldValue = dataObjectFieldInfo.GetValue(m.Object);
                 CreateMember(fieldValue, fieldType, fieldName);
+            }
+
+            var endIndex = _metaCode2.MembersType.Count;
+            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, endIndex - startIndex);
+        }
+
+        private void ProcessEnum(MemberProcessor m)
+        {
+            var startIndex = _metaCode2.MembersType.Count;
+
+            if (m.Object is System.Enum e)
+            {
+                var primitiveType = Enum.GetUnderlyingType(e.GetType());
+                if (primitiveType == typeof(byte))
+                {
+                    _memberFactory.NewUInt8Member(e, string.Empty);
+                }
+                else if (primitiveType == typeof(sbyte))
+                {
+                    _memberFactory.NewInt8Member(e, string.Empty);
+                }
+                else if (primitiveType == typeof(short))
+                {
+                    _memberFactory.NewInt16Member(e, string.Empty);
+                }
+                else if (primitiveType == typeof(ushort))
+                {
+                    _memberFactory.NewUInt16Member(e, string.Empty);
+                }
+                else if (primitiveType == typeof(int))
+                {
+                    _memberFactory.NewInt32Member(e, string.Empty);
+                }
+                else if (primitiveType == typeof(uint))
+                {
+                    _memberFactory.NewUInt32Member(e, string.Empty);
+                }
+                else if (primitiveType == typeof(long))
+                {
+                    _memberFactory.NewInt64Member(e, string.Empty);
+                }
+                else if (primitiveType == typeof(ulong))
+                {
+                    _memberFactory.NewUInt64Member(e, string.Empty);
+                }
+                else
+                {
+                    _memberFactory.NewInt32Member(0, string.Empty);
+                }
+            }
+            else
+            {
+                _memberFactory.NewInt32Member(0, string.Empty);
             }
 
             var endIndex = _metaCode2.MembersType.Count;
@@ -261,7 +314,8 @@ namespace GameData
             }
             else if (_typeInformation.IsEnum(dataObjectFieldType))
             {
-                _memberFactory.NewEnumMember(dataObjectFieldType, dataObjectFieldValue, memberName);
+                var member = _memberFactory.NewEnumMember(dataObjectFieldType, dataObjectFieldValue, memberName);
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessEnum });
             }
         }
 

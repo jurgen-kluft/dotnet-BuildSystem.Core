@@ -28,9 +28,10 @@ namespace GameData
         public int StructSize => 2 * sizeof(float);
         public int StructAlign => 4;
         public string StructMember => "fvec2_t";
-        public void StructCode(StreamWriter writer)
+        public string[] StructCode()
         {
             // already defined in C++ library charon
+            return [];
         }
 
         public void StructWrite(IGameDataWriter writer)

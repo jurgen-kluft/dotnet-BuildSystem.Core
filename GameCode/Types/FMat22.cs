@@ -35,9 +35,23 @@ namespace GameData
         public int StructAlign => 4;
         public string StructMember => "fmat22_t";
 
-        public void StructCode(StreamWriter writer)
+        public string[] StructCode()
         {
-            // already defined in C++ library charon
+            const string code = """
+                                  struct fmat22_t
+                                  {
+                                      explicit fmat22_t(f32 e00 = 1.0f, f32 e01 = 0.0f, f32 e10 = 0.0f, f32 e11 = 1.0f)
+                                          : m_data{{e00, e01}, {e10, e11}}
+                                      {
+                                      }
+
+
+                                  private:
+                                        f32 m_data[2][2];
+                                  };
+
+                                """;
+            return code.Split("\n");
         }
 
         public void StructWrite(IGameDataWriter writer)

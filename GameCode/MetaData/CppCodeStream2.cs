@@ -52,8 +52,10 @@ namespace GameData
             for (var ci = 0; ci < metaCode.Count; ++ci)
             {
                 var mt = metaCode.MembersType[ci];
-                if (!mt.IsClass) continue;
-                metaCode.CombineBooleans(ci);
+                if (mt.IsClass || mt.IsDataUnit)
+                {
+                    metaCode.CombineBooleans(ci);
+                }
             }
 
             // Sort the members on every class so that we do not have to consider member alignment
@@ -61,12 +63,11 @@ namespace GameData
             //   In the list of classes we have many 'duplicates', classes of the same type that are emitted
             //   multiple times. We need to make sure the sorting of members is stable and predictable.
             var memberSortPredicate = new MetaCode2.SortMembersPredicate(metaCode);
-            for (var i = 0; i < 2; ++i)
+            for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
             {
-                for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
+                var mt = metaCode.MembersType[ci];
+                if (mt.IsClass || mt.IsDataUnit)
                 {
-                    var mt = metaCode.MembersType[ci];
-                    if (!mt.IsClass) continue;
                     metaCode.SortMembers(ci, memberSortPredicate);
                 }
             }
@@ -83,7 +84,7 @@ namespace GameData
             // Generate the c++ code using the CppCodeWriter.
             var codeWriter = new CppCodeWriter2() { MetaCode = metaCode };
             codeWriter.WriteEnums(codeFileWriter);
-            codeWriter.WriteClasses(codeFileWriter);
+            codeWriter.WriteStructs(codeFileWriter);
         }
     }
 }

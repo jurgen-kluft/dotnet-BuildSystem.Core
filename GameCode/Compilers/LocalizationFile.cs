@@ -12,6 +12,12 @@ namespace GameData
         public string Name;
         public DataFile Data;
 
+        public Language()
+        {
+            Name = "en";
+            Data = new DataFile(null, "language_t");
+        }
+
         public Language(string language, DataFile data)
         {
             Name = language;
@@ -21,8 +27,7 @@ namespace GameData
 
     public sealed class Languages
     {
-        public Language Default_Language;
-        public List<Language> Language_Array = new List<Language>();
+        public List<Language> Language_Array = [];
     }
 
     public sealed class LocalizationDataFile : IDataFile, ISignature
@@ -114,7 +119,8 @@ namespace GameData
             get
             {
                 var languages = new Languages();
-                languages.Default_Language = new Language("en", new DataFile(_languageDataFiles[0], "language_t"));
+                if (_languageDataFiles.Count == 0)
+                    return languages;
                 foreach (var languageDataFile in _languageDataFiles)
                 {
                     languages.Language_Array.Add(new Language(languageDataFile.Language, new DataFile( languageDataFile, "language_t")));

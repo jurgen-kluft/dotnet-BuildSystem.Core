@@ -476,7 +476,7 @@ namespace DataBuildSystem
                         var elementType = compoundTypeInfo.GetElementType();
                         if (ocw(elementType))
                         {
-                            if (compound is Array objectArray)
+                            if (compound is System.Array objectArray)
                             {
                                 for (var i = 0; i < objectArray.Length; i++)
                                 {
@@ -511,7 +511,7 @@ namespace DataBuildSystem
                                 var elementType = objectTypeInfo.GetElementType();
                                 if (ocw(elementType))
                                 {
-                                    if (o is Array objectArray)
+                                    if (o is System.Array objectArray)
                                     {
                                         for (var i = 0; i < objectArray.Length; i++)
                                         {

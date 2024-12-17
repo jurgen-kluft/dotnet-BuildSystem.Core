@@ -10,6 +10,7 @@ namespace GameData
 		public AI AI = new AI();
 		public Fonts Fonts = new Fonts();
 		public Menu Menu = new Menu();
+        public Localization Localization = new Localization();
 
 		public Cars Cars = new Cars();
 		public Tracks Tracks = new Tracks();

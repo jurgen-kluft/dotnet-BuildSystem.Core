@@ -63,9 +63,9 @@ namespace GameData
         public int StructSize => sizeof(uint);
         public int StructAlign => 4;
         public string StructMember => "fx32_t";
-        public void StructCode(StreamWriter writer)
+        public string[] StructCode()
         {
-            // already defined in C++ library charon
+            return [];
         }
 
         public void StructWrite(IGameDataWriter writer)

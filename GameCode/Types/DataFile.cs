@@ -1,25 +1,16 @@
-using System.Collections.Generic;
-using System.Buffers;
-using DataBuildSystem;
 using GameCore;
 
 namespace GameData
 {
-    public readonly struct DataFileSignature : ISignature
-    {
-        private readonly IDataFile _dataFile;
-
-        public DataFileSignature(IDataFile datafile)
-        {
-            _dataFile = datafile;
-        }
-
-        public Hash160 Signature => _dataFile.Signature;
-    }
-
     public class DataFile : IStruct, ISignature
     {
         private readonly ISignature _signature;
+
+        public DataFile()
+        {
+            _signature = null;
+            StructMember = "datafile_t<void>";
+        }
 
         public DataFile(ISignature signature, string templateType)
         {
@@ -29,14 +20,22 @@ namespace GameData
 
         public Hash160 Signature { get { return _signature.Signature; } }
 
-
         public int StructAlign => 8; // This is the required memory alignment of the struct
         public int StructSize => 16; // This is the memory size of the struct
         public string StructMember { get; set; }
 
-        public void StructCode(StreamWriter writer)
+        public string[] StructCode()
         {
-            // already defined in C++ library charon
+            const string code = """
+                                template <typename T>
+                                struct datafile_t
+                                {
+                                    T*             m_ptr;
+                                    const fileid_t m_fileid;
+                                };
+
+                                """;
+            return code.Split("\n");
         }
 
         public void StructWrite(IGameDataWriter writer)

@@ -3,7 +3,7 @@ using GameCore;
 
 namespace GameData
 {
-    public enum EnemyType
+    public enum EnemyType : byte
     {
         Soldier,
         Archer,
@@ -23,8 +23,12 @@ namespace GameData
     public class Enemy
     {
         public EnemyType EnemyType = EnemyType.Soldier;
+        public short Health = 100;
         public float Speed = 1.1f;
         public float Aggresiveness = 0.8f;
+        public bool IsAggressive = true;
+        public bool WillFollowPlayer = true;
+        public bool WillCallReinforcements = false;
     }
 
 }
