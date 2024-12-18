@@ -101,12 +101,36 @@ namespace GameData
                 sizeof(float), // Float
                 sizeof(double), // Double
                 16, // String (pointer, byte length, rune length)
-                4, // Enum
+                0, // Enum (depends on the enum type)
                 0, // Struct (depends on the struct type)
                 8, // Class (pointer)
                 16, // Array (pointer, byte length, item count)
                 16, // Dictionary (pointer, byte length, item count)
                 16, // DataUnit (pointer, offset, size)
+            };
+
+            private static readonly bool[] s_signed = new bool[Count]
+            {
+                false, // Unknown
+                false, // Bool
+                false, // BitSet
+                true, // Int8
+                false, // UInt8
+                true, // Int16
+                false, // UInt16
+                true, // Int32
+                false, // UInt32
+                true, // Int64
+                false, // UInt64
+                true, // Float
+                true, // Double
+                false, // String (pointer, byte length, rune length)
+                false, // Enum
+                false, // Struct (unknown)
+                false, // Class (offset)
+                false, // Array (pointer, byte length, item count)
+                false, // Dictionary (pointer, byte length, item count)
+                false // DataUnit (pointer, offset, size)
             };
 
             private static readonly string[] s_typeNames = new string[Count]
@@ -143,6 +167,7 @@ namespace GameData
 
             public int SizeInBits => s_sizeInBits[Index];
             public int SizeInBytes => (SizeInBits + 7) >> 3;
+            public bool IsSigned => s_signed[Index];
             public int Alignment => s_alignment[Index];
             public string NameOfType => s_typeNames[Index];
 
@@ -237,6 +262,14 @@ namespace GameData
                 {
                     alignment = ios.StructAlign;
                 }
+                else if (mt.IsEnum)
+                {
+                    // An enum is a special case, it can be any of the primitive types
+                    // u8, s8, u16, s16, u32, s32, u64, s64.
+                    var msi = MembersStart[memberIndex];
+                    var fet = MembersType[msi];
+                    alignment = fet.Alignment;
+                }
 
                 return alignment;
             }
@@ -253,6 +286,14 @@ namespace GameData
                     {
                         alignment = ios.StructAlign;
                     }
+                }
+                else if (mt.IsEnum)
+                {
+                    // An enum is a special case, it can be any of the primitive types
+                    // u8, s8, u16, s16, u32, s32, u64, s64.
+                    var msi = MembersStart[memberIndex];
+                    var fet = MembersType[msi];
+                    alignment = fet.Alignment;
                 }
                 else if (mt.IsClass || mt.IsArray || mt.IsDictionary)
                 {

@@ -9,7 +9,7 @@ namespace GameData
         /// The LString Id is set by and outside process and this id is used to connect to a localization
         /// string that exists in the Localization Database.
         /// </summary>
-        string LStringText { get; }
-        long LStringId { set; }
+        string LocStrText { get; }
+        long LocStrId { set; }
     }
 }

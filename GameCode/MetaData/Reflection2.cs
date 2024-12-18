@@ -36,7 +36,7 @@ namespace GameData
                 return;
 
             // Even though the array is empty, we still want a way to recognize the type of members in the array.
-            // So we put the count of the array to 0, start index to an entry that can identify the type of the array
+            // So we put the count of the array to 0, start index to an entry that serves as the type of the array
 
             var startIndex = _metaCode2.MembersType.Count;
             var elementType = array.GetType().GetElementType();
@@ -64,6 +64,9 @@ namespace GameData
             if (m.Object is not IList list)
                 return;
 
+            // Even though the array is empty, we still want a way to recognize the type of members in the array.
+            // So we put the count of the array to 0, start index to an entry that serves as the type of the array
+
             var startIndex = _metaCode2.MembersType.Count;
             var elementType = m.Type.GetGenericArguments()[0];
             var elementName = string.Empty;
@@ -73,8 +76,15 @@ namespace GameData
             }
 
             var endIndex = _metaCode2.MembersType.Count;
+            var count = endIndex - startIndex;
+            if (count == 0)
+            {
+                // We will still emit an element because we need to know the type
+                var instance = Activator.CreateInstance(elementType);
+                CreateMember(instance, elementType, elementName);
+            }
 
-            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, endIndex - startIndex);
+            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, count);
         }
 
         private void ProcessDictionary(MemberProcessor m)

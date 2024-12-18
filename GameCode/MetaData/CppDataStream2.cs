@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using GameCore;
+using Process = System.Diagnostics.Process;
 
 namespace GameData
 {
@@ -9,15 +10,24 @@ namespace GameData
         public static class CppDataStreamWriter2
         {
             private delegate void WriteMemberDelegate(int memberIndex, WriteContext ctx);
+
             private delegate int CalcSizeOfTypeDelegate(int memberIndex, WriteContext ctx);
+
             private delegate void WriteProcessDelegate(int memberIndex, StreamReference br, StreamReference cr, WriteContext ctx);
 
-            private struct WriteProcess
+            private struct ProcessObject
             {
                 public int MemberIndex { get; init; }
                 public WriteProcessDelegate Process { get; init; }
                 public StreamReference BlockReference { get; init; }
                 public StreamReference DataUnitReference { get; init; }
+            }
+
+            private struct ProcessDataUnit
+            {
+                public int MemberIndex { get; init; }
+                public StreamReference DataUnitReference { get; set; }
+                public Hash160 Signature { get; set; }
             }
 
             private class WriteContext
@@ -29,7 +39,8 @@ namespace GameData
                 public CalcSizeOfTypeDelegate[] CalcSizeOfTypeDelegates { get; init; }
                 public CalcSizeOfTypeDelegate[] CalcDataSizeOfTypeDelegates { get; init; }
                 public WriteMemberDelegate[] WriteMemberDelegates { get; init; }
-                public Queue<WriteProcess> WriteProcessQueue { get; init; }
+                public Queue<ProcessObject> ProcessObjectQueue { get; init; }
+                public Queue<ProcessDataUnit> ProcessDataUnitQueue { get; init; }
             }
 
             public static void Write(MetaCode2 metaCode2, StringTable stringTable, ISignatureDataBase signatureDb, CppDataStream2 dataStream)
@@ -40,103 +51,58 @@ namespace GameData
                     StringTable = stringTable,
                     SignatureDataBase = signatureDb,
                     GameDataStream = dataStream,
-                    WriteProcessQueue = new Queue<WriteProcess>(),
-
+                    ProcessObjectQueue = new Queue<ProcessObject>(),
                     WriteMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
                     {
-                        null,
-                        WriteBool,
-                        WriteBitset,
-                        WriteInt8,
-                        WriteUInt8,
-                        WriteInt16,
-                        WriteUInt16,
-                        WriteInt32,
-                        WriteUInt32,
-                        WriteInt64,
-                        WriteUInt64,
-                        WriteFloat,
-                        WriteDouble,
-                        WriteString,
-                        WriteEnum,
-                        WriteStruct,
-                        WriteClass,
-                        WriteArray,
-                        WriteDictionary,
-                        WriteDataUnit
+                        null, WriteBool, WriteBitset, WriteInt8, WriteUInt8, WriteInt16, WriteUInt16, WriteInt32, WriteUInt32, WriteInt64, WriteUInt64, WriteFloat, WriteDouble, WriteString, WriteEnum, WriteStruct, WriteClass, WriteArray,
+                        WriteDictionary, WriteDataUnit
                     },
-
                     CalcSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
                     {
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfStruct,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType,
-                        GetMemberSizeOfType
+                        GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType,
+                        GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfEnum, GetMemberSizeOfStruct, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType
                     },
-
                     CalcDataSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
                     {
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        GetDataSizeOfType,
-                        CalcDataSizeOfString,
-                        GetDataSizeOfType,
-                        CalcDataSizeOfStruct,
-                        CalcDataSizeOfClass,
-                        CalcDataSizeOfArray,
-                        CalcDataSizeOfDictionary,
-                        GetDataSizeOfDataUnit
+                        GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType,
+                        GetDataSizeOfType, CalcDataSizeOfString, CalcDataSizeOfEnum, CalcDataSizeOfStruct, CalcDataSizeOfClass, CalcDataSizeOfArray, CalcDataSizeOfDictionary, GetDataSizeOfDataUnit
                     }
                 };
 
-                var rootUnitRef = StreamReference.NewReference;
-                ctx.GameDataStream.OpenDataUnit(rootUnitRef);
+                try
                 {
-                    ctx.StringTable.Write(ctx.GameDataStream);
+                    // Write the data of the MetaCode to the DataStream
+                    ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = 0, DataUnitReference = StreamReference.NewReference, Signature = signature });
 
-                    var rootBlockRef = StreamReference.NewReference;
-                    ctx.GameDataStream.NewBlock(rootBlockRef, 8, 2 * 8);
-                    ctx.GameDataStream.OpenBlock(rootBlockRef);
+                    // Whenever we encounter a DataUnit we need to write the data of the DataUnit to the DataStream
+                    while (ctx.ProcessDataUnitQueue.Count > 0)
                     {
-                        ctx.GameDataStream.WriteDataBlockReference(stringTable.Reference); // String Table pointer
-                        WriteClass(0, ctx); // Root Class pointer
-                        ctx.GameDataStream.CloseBlock();
+                        var du = ctx.ProcessDataUnitQueue.Dequeue();
 
-                        while (ctx.WriteProcessQueue.Count > 0)
+                        ctx.GameDataStream.OpenDataUnit(du.DataUnitReference);
                         {
-                            var wp = ctx.WriteProcessQueue.Dequeue();
-                            wp.Process(wp.MemberIndex, wp.BlockReference, wp.DataUnitReference, ctx);
+                            var mt = ctx.MetaCode2.MembersType[du.MemberIndex];
+                            var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](du.MemberIndex, ctx);
+                            var mr = StreamReference.NewReference;
+                            var cr = ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(du.MemberIndex), ms);
+                            ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = du.MemberIndex, Process = WriteClassDataProcess, BlockReference = mr, DataUnitReference = cr});
+
+                            while (ctx.ProcessObjectQueue.Count > 0)
+                            {
+                                var wp = ctx.ProcessObjectQueue.Dequeue();
+                                wp.Process(wp.MemberIndex, wp.BlockReference, wp.DataUnitReference, ctx);
+                            }
                         }
+                        ctx.GameDataStream.CloseDataUnit();
                     }
                 }
-                ctx.GameDataStream.CloseDataUnit();
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
             }
+
 
             private static void WriteBool(int memberIndex, WriteContext ctx)
             {
@@ -245,13 +211,64 @@ namespace GameData
                 ctx.GameDataStream.Write(rl); // Length in runes
 
                 // We need to schedule the content of this class to be written
-                ctx.WriteProcessQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteStringDataProcess, BlockReference = br, DataUnitReference = dur });
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteStringDataProcess, BlockReference = br, DataUnitReference = dur });
             }
 
 
             private static void WriteEnum(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
+                var msi = ctx.MetaCode2.MembersStart[memberIndex];
+                var fet = ctx.MetaCode2.MembersType[msi];
+
+                ctx.GameDataStream.Align(fet.SizeInBytes);
+                switch (fet.SizeInBytes)
+                {
+                    case 1:
+                        switch (fet.IsSigned)
+                        {
+                            case true:
+                                ctx.GameDataStream.Write((sbyte)member);
+                                break;
+                            case false:
+                                ctx.GameDataStream.Write((byte)member);
+                                break;
+                        }
+                        break;
+                    case 2:
+                        switch (fet.IsSigned)
+                        {
+                            case true:
+                                ctx.GameDataStream.Write((short)member);
+                                break;
+                            case false:
+                                ctx.GameDataStream.Write((ushort)member);
+                                break;
+                        }
+                        break;
+                    case 4:
+                        switch (fet.IsSigned)
+                        {
+                            case true:
+                                ctx.GameDataStream.Write((int)member);
+                                break;
+                            case false:
+                                ctx.GameDataStream.Write((uint)member);
+                                break;
+                        }
+                        break;
+                    case 8:
+                        switch (fet.IsSigned)
+                        {
+                            case true:
+                                ctx.GameDataStream.Write((long)member);
+                                break;
+                            case false:
+                                ctx.GameDataStream.Write((ulong)member);
+                                break;
+                        }
+                        break;
+                }
                 ctx.GameDataStream.AlignWrite((uint)member);
             }
 
@@ -274,9 +291,9 @@ namespace GameData
                     var count = ctx.MetaCode2.MembersCount[memberIndex];
                     for (var mi = msi; mi < msi + count; ++mi)
                     {
-                        var rmi = ctx.MetaCode2.MemberSorted[mi];
-                        var et = ctx.MetaCode2.MembersType[rmi];
-                        ctx.WriteMemberDelegates[et.Index](rmi, ctx);
+                        var mis = ctx.MetaCode2.MemberSorted[mi];
+                        var et = ctx.MetaCode2.MembersType[mis];
+                        ctx.WriteMemberDelegates[et.Index](mis, ctx);
                     }
                 }
                 ctx.GameDataStream.CloseBlock();
@@ -291,7 +308,7 @@ namespace GameData
                 ctx.GameDataStream.WriteDataBlockReference(mr);
 
                 // We need to schedule the content of this class to be written
-                ctx.WriteProcessQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteClassDataProcess, BlockReference = mr, DataUnitReference = cr});
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteClassDataProcess, BlockReference = mr, DataUnitReference = cr});
             }
 
             private static void WriteArrayDataProcess(int memberIndex, StreamReference br, StreamReference cr, WriteContext ctx)
@@ -320,7 +337,7 @@ namespace GameData
                 ctx.GameDataStream.Write(mr, count);
 
                 // We need to schedule this array to be written
-                ctx.WriteProcessQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteArrayDataProcess, BlockReference = mr, DataUnitReference = cr});
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteArrayDataProcess, BlockReference = mr, DataUnitReference = cr});
             }
 
             private static void WriteDictionaryDataProcess(int memberIndex, StreamReference br, StreamReference cr, WriteContext ctx)
@@ -359,7 +376,7 @@ namespace GameData
                 ctx.GameDataStream.Write(mr, count);
 
                 // We need to schedule this array to be written
-                ctx.WriteProcessQueue.Enqueue(new WriteProcess() { MemberIndex = memberIndex, Process = WriteDictionaryDataProcess, BlockReference = mr, DataUnitReference = cr});
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteDictionaryDataProcess, BlockReference = mr, DataUnitReference = cr});
             }
 
             private static void WriteDataUnit(int memberIndex, WriteContext ctx)
@@ -377,6 +394,8 @@ namespace GameData
                 ctx.GameDataStream.Write((ulong)0);   // T*
                 ctx.GameDataStream.Write(bigfileIndex); // fileid_t
                 ctx.GameDataStream.Write(fileIndex);
+
+                ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = memberIndex, DataUnitReference = StreamReference.NewReference, Signature = signature });
             }
 
             private static int GetMemberSizeOfType(int memberIndex, WriteContext ctx)
@@ -390,6 +409,12 @@ namespace GameData
                 return xi.StructSize;
             }
 
+            private static int GetMemberSizeOfEnum(int memberIndex, WriteContext ctx)
+            {
+                var msi = ctx.MetaCode2.MembersStart[memberIndex];
+                var fet = ctx.MetaCode2.MembersType[msi];
+                return fet.SizeInBytes;
+            }
 
             private static int GetDataSizeOfType(int memberIndex, WriteContext ctx)
             {
@@ -400,6 +425,12 @@ namespace GameData
             {
                 var member = ctx.MetaCode2.MembersStart[memberIndex];
                 return ctx.StringTable.ByteCountForIndex(member);
+            }
+
+            private static int CalcDataSizeOfEnum(int memberIndex, WriteContext ctx)
+            {
+                var member = ctx.MetaCode2.MembersStart[memberIndex];
+                return ctx.MetaCode2.MembersType[member].SizeInBytes;
             }
 
             private static int CalcDataSizeOfStruct(int memberIndex, WriteContext ctx)
@@ -413,13 +444,11 @@ namespace GameData
                 var msi = ctx.MetaCode2.MembersStart[memberIndex];
                 var count = ctx.MetaCode2.MembersCount[memberIndex];
 
-                // Alignment of this class is determined by the first member
-                var classAlign = ctx.MetaCode2.GetMemberAlignment(msi);
-
                 var size = 0;
-                for (var mi = msi; mi < msi + count; ++mi)
+                for (var tmi = msi; tmi < msi + count; ++tmi)
                 {
                     // Obtain the size of this member
+                    var mi = ctx.MetaCode2.MemberSorted[tmi];
                     var ms = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[mi].Index](mi, ctx);
 
                     // Align the size based on the member type alignment
@@ -428,6 +457,8 @@ namespace GameData
                     size += ms;
                 }
 
+                // Alignment of a class is fixed to 8 bytes
+                var classAlign = ctx.MetaCode2.GetMemberAlignment(msi);
                 size = CMath.AlignUp32(size, classAlign);
 
                 return size;

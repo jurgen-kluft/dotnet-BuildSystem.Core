@@ -1,33 +1,40 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
-
 using GameCore;
 using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class Language
+    public enum ELanguage : short
     {
-        public string Name;
-        public DataFile Data;
-
-        public Language()
-        {
-            Name = "en";
-            Data = new DataFile(null, "language_t");
-        }
-
-        public Language(string language, DataFile data)
-        {
-            Name = language;
-            Data = data;
-        }
-    }
+        LanguageInvalid = -1,
+        LanguageEnglish = 0,
+        LanguageChinese = 1,
+        LanguageItalian = 2,
+        LanguageGerman = 3,
+        LanguageDutch = 4,
+        LanguageEnglishUs = 5,
+        LanguageSpanish = 6,
+        LanguageFrenchUs = 7,
+        LanguagePortuguese = 8,
+        LanguageBrazilian = 9, // Brazilian Portuguese
+        LanguageJapanese = 10, //
+        LanguageKorean = 11, // Korean
+        LanguageRussian = 12, // Russian
+        LanguageGreek = 13,
+        LanguageChineseT = 14, // Traditional Chinese
+        LanguageChineseS = 15, // Simplified Chinese
+        LanguageFinnish = 16,
+        LanguageSwedish = 17,
+        LanguageDanish = 18,
+        LanguageNorwegian = 19,
+        LanguagePolish = 20,
+        LanguageCount,
+        LanguageDefault = LanguageEnglish
+    };
 
     public sealed class Languages
     {
-        public List<Language> Language_Array = [];
+        public ELanguage DefaultLanguage = ELanguage.LanguageDefault;
+        public LanguageDataFile[] LanguageArray = new LanguageDataFile[(int)ELanguage.LanguageCount];
     }
 
     public sealed class LocalizationDataFile : IDataFile, ISignature
@@ -35,7 +42,7 @@ namespace GameData
         private string _srcFilename;
         private readonly List<string> _srcFilenames;
         private readonly List<string> _dstFilenames;
-        private readonly List<LanguageDataFile> _languageDataFiles;
+        private readonly LanguageDataFile[] _languageDataFiles;
         private Dependency _dependency;
 
         public LocalizationDataFile() : this("Localization.loc")
@@ -45,8 +52,8 @@ namespace GameData
         {
             _srcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
             _srcFilenames = [];
-            _dstFilenames = [];
-            _languageDataFiles = [];
+            _dstFilenames = new List<string>((int)ELanguage.LanguageCount);
+            _languageDataFiles= new LanguageDataFile[(int)ELanguage.LanguageCount];
         }
 
         public Hash160 Signature { get; set; }
@@ -113,21 +120,7 @@ namespace GameData
         }
 
         public string CookedFilename => string.Empty;
-
-        public object CookedObject
-        {
-            get
-            {
-                var languages = new Languages();
-                if (_languageDataFiles.Count == 0)
-                    return languages;
-                foreach (var languageDataFile in _languageDataFiles)
-                {
-                    languages.Language_Array.Add(new Language(languageDataFile.Language, new DataFile( languageDataFile, "language_t")));
-                }
-                return languages;
-            }
-        }
+        public object CookedObject => new Languages() { LanguageArray = _languageDataFiles};
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
@@ -144,10 +137,10 @@ namespace GameData
                         var filename = reader.ReadLine();
                         if (string.IsNullOrEmpty(filename))
                         {
-                            LanguageDataFile language = new LanguageDataFile(filename);
-                            language.Language = Path.GetFileNameWithoutExtension(filename);
+                            // Decode language from filename
+                            Enum.TryParse(Path.GetFileNameWithoutExtension(filename), out ELanguage lang);
                             _dstFilenames.Add(filename);
-                            _languageDataFiles.Add(language);
+                            _languageDataFiles[(int)lang] = new LanguageDataFile(filename);
                         }
                     }
                     reader.Close();
@@ -197,6 +190,12 @@ namespace GameData
         private string _dstFilename;
         private Dependency _dependency;
 
+        public LanguageDataFile()
+        {
+            _srcFilename = string.Empty;
+            _dstFilename = string.Empty;
+        }
+
         public LanguageDataFile(string localizationFile)
         {
             _srcFilename = localizationFile;
@@ -204,8 +203,6 @@ namespace GameData
         }
 
         public Hash160 Signature { get; set; }
-
-        public string Language { get; set; }
 
         public void BuildSignature(IBinaryWriter stream)
         {
@@ -238,7 +235,7 @@ namespace GameData
         }
 
         public string CookedFilename => _dstFilename;
-        public object CookedObject => new DataFile(this, "language_t");
+        public object CookedObject => new DataFile(this, "strtable_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
