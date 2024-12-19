@@ -273,7 +273,6 @@ namespace GameData
                         }
                         break;
                 }
-                ctx.GameDataStream.AlignWrite((uint)member);
             }
 
             private static void WriteStruct(int memberIndex, WriteContext ctx)
