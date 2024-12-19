@@ -80,9 +80,9 @@ namespace DataBuildSystem
             public EMethod Method { get; init; }
         }
 
-        private List<Info> Infos { get; set; } = [];
-        private List<Hash160> Hashes { get; set; } = [];
-        private List<string> FilePaths { get; set; } = [];
+        private List<Info> Infos { get; set; } = new();
+        private List<Hash160> Hashes { get; set; } = new();
+        private List<string> FilePaths { get; set; } = new();
 
         public Dependency()
         {

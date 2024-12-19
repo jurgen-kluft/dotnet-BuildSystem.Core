@@ -65,7 +65,7 @@ namespace GameData
         public string StructMember => "fx16_t";
         public string[] StructCode()
         {
-            return [];
+            return Array.Empty<string>();
         }
 
         public void StructWrite(IGameDataWriter writer)

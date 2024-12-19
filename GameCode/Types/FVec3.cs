@@ -34,8 +34,7 @@ namespace GameData
         public string StructMember => "fvec3_t";
         public string[] StructCode()
         {
-            // already defined in C++ library charon
-            return [];
+            return Array.Empty<string>();
         }
 
         public void StructWrite(IGameDataWriter writer)

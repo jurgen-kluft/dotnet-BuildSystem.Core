@@ -27,7 +27,7 @@ namespace GameData
 
         public string[] StructCode()
         {
-            return [];
+            return Array.Empty<string>();
         }
 
         public void StructWrite(IGameDataWriter writer)

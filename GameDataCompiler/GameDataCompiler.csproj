@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <LangVersion>11</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

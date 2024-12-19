@@ -36,7 +36,7 @@ namespace GameData
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            _textures = [];
+            _textures = new TextureDataFile[0];
         }
 
         public Hash160 Signature { get; set; }

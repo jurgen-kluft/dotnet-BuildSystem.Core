@@ -147,8 +147,7 @@ namespace MetaTest
             }
             var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
             var bigfileGameCodeTocFilepath = GameDataPath.GameDataUnitBigFileToc.GetFilePath("TestData");
-            BigfileToc.Save(bigfileGameCodeTocFilepath, [bigfileGameCode]);
-
+            BigfileToc.Save(bigfileGameCodeTocFilepath, new List<Bigfile>() { bigfileGameCode });
 
             return Success();
         }

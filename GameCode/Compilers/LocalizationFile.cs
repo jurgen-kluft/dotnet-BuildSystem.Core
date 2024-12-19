@@ -51,7 +51,7 @@ namespace GameData
         public LocalizationDataFile(string localizationFile)
         {
             _srcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
-            _srcFilenames = [];
+            _srcFilenames = new List<string>();
             _dstFilenames = new List<string>((int)ELanguage.LanguageCount);
             _languageDataFiles= new LanguageDataFile[(int)ELanguage.LanguageCount];
         }

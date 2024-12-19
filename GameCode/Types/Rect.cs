@@ -24,7 +24,7 @@ namespace GameData
         public string StructMember => "rect_t";
         public string[] StructCode()
         {
-            return [];
+            return Array.Empty<string>();
         }
 
         public void StructWrite(IGameDataWriter writer)

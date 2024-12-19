@@ -70,8 +70,8 @@ namespace DataBuildSystem
             //List<List<IDataFile>> dataFileLogs = [];
 
             // Collect the data units that need to be rebuilt
-            List<GameDataUnit> dataUnitsOod = [];
-            List<List<IDataFile>> dataFileLogsOod = [];
+            var dataUnitsOod = new List<GameDataUnit>();
+            var dataFileLogsOod = new List<List<IDataFile>>();
 
             foreach (var gdu in DataUnits)
             {
@@ -86,7 +86,7 @@ namespace DataBuildSystem
 
                 // Cook, fundamentally this will make sure all the cooked files are up-to-date
                 var cookResult = GameDataFileLog.Cook(mergedLog, out var finalDataFiles);
-                if (cookResult != 0|| gduMergeResult != 0 || gdu.OutOfDate)
+                if (cookResult != 0 || gduMergeResult != 0 || gdu.OutOfDate)
                 {
                     SignatureDatabase.RemovePrimary(gdu.Index);
                     dataUnitsOod.Add(gdu);
@@ -99,7 +99,7 @@ namespace DataBuildSystem
             }
 
             // Save all the out-of-date GameDataUnits, this means saving the DataFileLog and their Bigfile.
-            for (int i=0; i<dataUnitsOod.Count; ++i)
+            for (int i = 0; i < dataUnitsOod.Count; ++i)
             {
                 var dataUnit = dataUnitsOod[i];
                 var dataFiles = dataFileLogsOod[i];
@@ -131,20 +131,22 @@ namespace DataBuildSystem
             var cppDataFileInfo = new FileInfo(cppDataFilepath);
             var cppDataStream = new FileStream(cppDataFileInfo.FullName, FileMode.Create);
             var cppDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(cppDataStream, BuildSystemConfig.Platform);
-            CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, cppHeaderFileWriter, cppDataStreamWriter, SignatureDatabase, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, cppHeaderFileWriter, cppDataStreamWriter, SignatureDatabase, out var dataUnitsSignatures, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             cppDataStreamWriter.Close();
             cppDataStream.Close();
             cppHeaderFileWriter.Close();
             cppHeaderFileStream.Close();
 
-            var cppDataFiles = new List<BigfileFile>();
-            for (int i=0; i<dataUnitsStreamPositions.Count; ++i)
+            var cppDataFiles = new BigfileFile[dataUnitsSignatures.Count];
+            for (var i = 0; i < dataUnitsStreamPositions.Count; ++i)
             {
-                cppDataFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
+                var (_, fileIndex) = SignatureDatabase.GetEntry(dataUnitsSignatures[i]);
+                cppDataFiles[fileIndex] = (new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });
             }
+
             var bigfileGameCode = new Bigfile(0, cppDataFiles);
             var bigfileGameCodeTocFilepath = Path.ChangeExtension(cppDataFilepath, BigfileConfig.BigFileTocExtension);
-            BigfileToc.Save(bigfileGameCodeTocFilepath, [bigfileGameCode]);
+            BigfileToc.Save(bigfileGameCodeTocFilepath, new List<Bigfile>() { bigfileGameCode });
 
             return State.Ok;
         }

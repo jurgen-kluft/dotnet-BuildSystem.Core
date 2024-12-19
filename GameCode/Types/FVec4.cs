@@ -38,7 +38,7 @@ namespace GameData
         public string StructMember => "fvec4_t";
         public string[] StructCode()
         {
-            return [];
+            return Array.Empty<string>();
         }
 
         public void StructWrite(IGameDataWriter writer)

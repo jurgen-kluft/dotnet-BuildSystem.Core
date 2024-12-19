@@ -10,7 +10,7 @@ namespace GameData
 
     public interface IRootDataUnit
     {
-
+        string Signature { get; }
     }
 
 }

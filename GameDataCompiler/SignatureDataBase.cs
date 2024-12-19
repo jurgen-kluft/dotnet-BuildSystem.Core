@@ -9,8 +9,8 @@ namespace DataBuildSystem
     {
         private class PrimaryEntry
         {
-            public readonly List<uint> IndexList = [];
-            public readonly List<Hash160> SignatureList = [];
+            public readonly List<uint> IndexList = new();
+            public readonly List<Hash160> SignatureList = new();
         }
 
         private struct Entry
@@ -19,8 +19,8 @@ namespace DataBuildSystem
             public uint Secondary;
         }
 
-        private readonly List<PrimaryEntry> _entries = [];
-        private readonly Dictionary<Hash160, Entry> _signatureToEntry = [];
+        private readonly List<PrimaryEntry> _entries = new();
+        private readonly Dictionary<Hash160, Entry> _signatureToEntry = new();
 
         public (uint primary, uint secondary) GetEntry(Hash160 signature)
         {

@@ -939,7 +939,7 @@ namespace GameData
             {
                 // Forward declares ?
                 writer.WriteLine("// Forward declares");
-                HashSet<string> writtenClasses = [];
+                var writtenClasses = new HashSet<string>();
                 for (var i = 0; i < MetaCode.MembersType.Count; ++i)
                 {
                     var mt = MetaCode.MembersType[i];

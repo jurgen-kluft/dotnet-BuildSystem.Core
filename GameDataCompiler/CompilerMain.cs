@@ -66,11 +66,7 @@ namespace GameDataCompiler
             public string toolpath;
         }
 
-        // -name track3 -platform PC -target PC -territory Europe -srcpath i:\Data\Assets -gddpath i:\Data\Gdd -subpath Tracks\Track3 -dstpath i:\Data\Bin.PC -pubpath i:\Data\Publish.PC -toolpath i:\Data\Tools
-        // -name MJ -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
-
-        // -name MJ -platform PC -territory Europe -srcpath E:\GameData\Assets -gddpath E:\GameData\Dlls -dstpath E:\GameData\Bin.%PLATFORM% -pubPath E:\GameData\Publish.%PLATFORM% -toolpath E:\GameData\Tools
-        // -name "MJ" -platform "MAC" -territory "Europe" -basepath "/Users/obnosis1" -srcpath "/Users/obnosis1/Data/Assets" -gddpath "/Users/obnosis1/Data/GameData" -pubpath "/Users/obnosis1/Data/Publish.%PLATFORM%" -dstpath "/Users/obnosis1/Data/Bin.%PLATFORM%" -toolpath "/Users/obnosis1/Data/Tools"
+        // -name Game -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
         static int Main(string[] args)
         {
             var cmdLine = GameDataCompilerArgs.Parse(args);
