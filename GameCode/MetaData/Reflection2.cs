@@ -114,6 +114,22 @@ namespace GameData
             _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, endIndex - startIndex);
         }
 
+        private void ProcessDataUnit(MemberProcessor m)
+        {
+            var startIndex = _metaCode2.Count;
+            var fieldName = "DataUnit";
+            var fieldType = _metaCode2.MembersObject[m.Index].GetType();
+            var fieldValue = _metaCode2.MembersObject[m.Index];
+            {
+                var member = _memberFactory.NewClassMember(fieldType, fieldValue, fieldName);
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = fieldValue, Type = fieldType, Process = ProcessClass });
+            }
+            var endIndex = _metaCode2.Count;
+            
+            // So the DataUnit member has one member which is the class itself
+            _metaCode2.UpdateStartIndexAndCount(m.Index, startIndex, endIndex - startIndex);
+        }
+        
         private void ProcessClass(MemberProcessor m)
         {
             var startIndex = _metaCode2.MembersType.Count;
@@ -225,7 +241,7 @@ namespace GameData
             if (_typeInformation.IsDataUnit(dataObjectFieldType))
             {
                 var member = _memberFactory.NewDataUnitMember(dataObjectFieldType, dataObjectFieldValue, memberName);
-                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessClass });
+                _memberProcessQueue.Enqueue(new MemberProcessor { Index = member, Object = dataObjectFieldValue, Type = dataObjectFieldType, Process = ProcessDataUnit });
             }
             else if (_typeInformation.IsDataFile(dataObjectFieldType))
             {

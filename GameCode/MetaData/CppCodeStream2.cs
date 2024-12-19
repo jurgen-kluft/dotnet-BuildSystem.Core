@@ -52,7 +52,7 @@ namespace GameData
             for (var ci = 0; ci < metaCode.Count; ++ci)
             {
                 var mt = metaCode.MembersType[ci];
-                if (mt.IsClass || mt.IsDataUnit)
+                if (mt.IsClass)
                 {
                     metaCode.CombineBooleans(ci);
                 }
@@ -66,7 +66,7 @@ namespace GameData
             for (var ci = 0; ci < metaCode.MembersType.Count; ++ci)
             {
                 var mt = metaCode.MembersType[ci];
-                if (mt.IsClass || mt.IsDataUnit)
+                if (mt.IsClass)
                 {
                     metaCode.SortMembers(ci, memberSortPredicate);
                 }

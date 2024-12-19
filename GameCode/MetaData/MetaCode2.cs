@@ -77,7 +77,7 @@ namespace GameData
                 sizeof(float) * 8, // Float
                 sizeof(double) * 8, // Double
                 64 + 64, // String (length, pointer)
-                32, // Enum
+                0, // Enum
                 0, // Struct (unknown)
                 64, // Class (pointer)
                 64 + 64, // Array (length, pointer)
@@ -1100,9 +1100,9 @@ namespace GameData
 
             public int NewEnumMember(Type type, object content, string memberName)
             {
-                if (content is not Enum e)
+                if (content is not System.Enum e)
                     return -1;
-                return _metaCode2.AddMember(MetaInfo.AsEnum, RegisterCodeString(memberName), -1, 1, e, e.GetType().Name);
+                return _metaCode2.AddMember(MetaInfo.AsEnum, RegisterCodeString(memberName), -1, 0, e, e.GetType().Name);
             }
 
             public int NewArrayMember(Type type, object content, string memberName)
@@ -1152,7 +1152,6 @@ namespace GameData
                 }
 
                 className = className.ToLower() + "_t";
-
                 return _metaCode2.AddMember(MetaInfo.AsDataUnit, RegisterCodeString(memberName), -1, 0, content, className);
             }
         }

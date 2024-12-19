@@ -25,7 +25,7 @@
       <DataFiles Include="$(OutputPath)\$(AssemblyName).dll" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\GameData.Compiled" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DataFiles)" DestinationFolder="$(SolutionDir)\Data.Test\Gdd.Data" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

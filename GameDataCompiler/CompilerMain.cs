@@ -66,7 +66,7 @@ namespace GameDataCompiler
             public string toolpath;
         }
 
-        // -name Game -platform PC -territory Europe -srcpath i:\Data\Assets -pubPath i:\Data\Publish.%PLATFORM% -dstpath i:\Data\Bin.%PLATFORM% -toolpath i:\Data\Tools
+        // --name Game --platform PC --territory Europe --basepath E:\Dev.Net\.NET_BuildSystem\Data.Test --srcpath %BASEPATH%\Src.Data --gddpath %BASEPATH%\Gdd.Data --pubPath %BASEPATH%\Publish.%PLATFORM% --dstpath %BASEPATH%\Bin.%PLATFORM% --toolpath %BASEPATH%\Tools
         static int Main(string[] args)
         {
             var cmdLine = GameDataCompilerArgs.Parse(args);

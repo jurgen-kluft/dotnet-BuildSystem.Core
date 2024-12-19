@@ -53,6 +53,7 @@ namespace GameData
                     SignatureDataBase = signatureDb,
                     GameDataStream = dataStream,
                     ProcessObjectQueue = new Queue<ProcessObject>(),
+                    ProcessDataUnitQueue = new Queue<ProcessDataUnit>(),
                     WriteMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
                     {
                         null, WriteBool, WriteBitset, WriteInt8, WriteUInt8, WriteInt16, WriteUInt16, WriteInt32, WriteUInt32, WriteInt64, WriteUInt64, WriteFloat, WriteDouble, WriteString, WriteEnum, WriteStruct, WriteClass, WriteArray,
@@ -116,7 +117,7 @@ namespace GameData
             private static void WriteBitset(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((uint)member);
+                ctx.GameDataStream.AlignWrite((byte)member);
             }
 
             private static void WriteInt8(int memberIndex, WriteContext ctx)
@@ -308,6 +309,8 @@ namespace GameData
                 var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
                 var mr = StreamReference.NewReference;
                 var cr = ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
+                
+                // A class as a member is just a pointer (Type* member)
                 ctx.GameDataStream.WriteDataBlockReference(mr);
 
                 // We need to schedule the content of this class to be written
@@ -384,22 +387,20 @@ namespace GameData
 
             private static void WriteDataUnit(int memberIndex, WriteContext ctx)
             {
-                var mt = ctx.MetaCode2.MembersType[memberIndex];
-                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
-
-                var mr = StreamReference.NewReference;
-                ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
-
                 var dataUnit = ctx.MetaCode2.MembersObject[memberIndex] as IDataUnit;
                 var signature = HashUtility.Compute_ASCII(dataUnit.Signature);
-                (uint bigfileIndex, uint fileIndex) = ctx.SignatureDataBase.GetEntry(signature);
+                var (bigfileIndex, fileIndex) = ctx.SignatureDataBase.GetEntry(signature);
 
-                ctx.GameDataStream.Write((ulong)0);   // T*
-                ctx.GameDataStream.Write(bigfileIndex); // fileid_t
-                ctx.GameDataStream.Write(fileIndex);
+                ctx.GameDataStream.Write((ulong)0);   // T* (8 bytes)
+                ctx.GameDataStream.Write(bigfileIndex); // (4 bytes)
+                ctx.GameDataStream.Write(fileIndex);    // (4 bytes)
 
                 var dataUnitIndex = ctx.GameDataStream.GetDataUnitIndex(signature);
-                ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = memberIndex, DataUnitIndex = dataUnitIndex, Signature = signature });
+
+                // The 'class' member of this DataUnit is the (only) member
+                var dataUnitClassMemberIndex = ctx.MetaCode2.MembersStart[memberIndex];
+                
+                ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = dataUnitClassMemberIndex, DataUnitIndex = dataUnitIndex, Signature = signature });
             }
 
             private static int GetMemberSizeOfType(int memberIndex, WriteContext ctx)
@@ -505,8 +506,8 @@ namespace GameData
             {
                 // A DataUnit is:
                 //   - A pointer to a type
-                //   - FileId
-                return 2 * sizeof(ulong);
+                //   - FileId (uint BigfileIndex, uint fileIndex)
+                return sizeof(ulong) + sizeof(uint) + sizeof(uint);
             }
         }
 
