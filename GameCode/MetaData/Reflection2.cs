@@ -342,7 +342,7 @@ namespace GameData
             return sortedFields;
         }
 
-        public void Analyze(IRootDataUnit root)
+        public void Analyze(IDataUnit root)
         {
             // Ok, so every class has fields, and we can reflect on the type of the field.
             // When the field is a normal primitive we know what to do and when it is a

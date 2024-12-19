@@ -21,6 +21,7 @@ namespace MetaTest
         }
 
         #endregion
+
         #region Main
 
         public class FixedSignature : ISignature
@@ -48,7 +49,7 @@ namespace MetaTest
             public bool m_Bool3 = true;
         }
 
-        public class TestRoot : IRootDataUnit
+        public class TestRoot : IRootDataUnit, IDataUnit
         {
             public string Name => "TestRoot";
             public string Signature => "6e65acae-6ba3-48f9-9ea3-c4194ce3103a";
@@ -64,7 +65,7 @@ namespace MetaTest
             public Color m_Color = Colors.Aliceblue;
 
             public TestHandle? m_Handle = 55; // Pointer
-            public TestData m_Data = new(); // Pointer
+            public TestData m_Data = new();   // Pointer
         }
 
         public class TestArrayElement
@@ -79,11 +80,10 @@ namespace MetaTest
             public DataFile File = new DataFile(new FixedSignature(), "TestFile");
 
             public float[] Floats = new float[8];
-            public List<long> IntegerList = new() { 0,1,2,3,4 };
+            public List<long> IntegerList = new() { 0, 1, 2, 3, 4 };
 
-			// The classes/structs are serialized in-place (not as a pointer)
-			[ArrayElementsInPlace]
-            public TestArrayElement[] ObjectArray = new TestArrayElement[2] { new(), new() };
+            // The classes/structs are serialized in-place (not as a pointer)
+            [ArrayElementsInPlace] public TestArrayElement[] ObjectArray = new TestArrayElement[2] { new(), new() };
 
             public long?[] IntPtrArray = new long?[1];
 
@@ -133,18 +133,22 @@ namespace MetaTest
             var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, platform);
 
             var signatureDb = new TestSignatureDb();
+            var rootDataUnitSignature = HashUtility.Compute_ASCII(rootDataUnit.Signature);
+            signatureDb.Register(rootDataUnitSignature, 0, 0);
 
-            CppCodeStream2.Write2(platform, rootDataUnit, codeFileWriter, bigfileDataStreamWriter, signatureDb, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
+            CppCodeStream2.Write2(platform, rootDataUnit, codeFileWriter, bigfileDataStreamWriter, signatureDb, out var dataUnitsSignatures, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             bigfileDataStreamWriter.Close();
             bigfileDataStream.Close();
             codeFileWriter.Close();
             codeFileStream.Close();
 
-            var bigfileGameCodeFiles = new List<BigfileFile>();
-            for (int i=0; i<dataUnitsStreamPositions.Count; ++i)
+            var bigfileGameCodeFiles = new BigfileFile[dataUnitsSignatures.Count];
+            for (var i = 0; i < dataUnitsStreamPositions.Count; ++i)
             {
-                bigfileGameCodeFiles.Add(new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] });;
+                var (_, fileIndex) = signatureDb.GetEntry(dataUnitsSignatures[i]);
+                bigfileGameCodeFiles[fileIndex] = new BigfileFile() { Filename = "DataUnit", Offset = dataUnitsStreamPositions[i], Size = dataUnitsStreamSizes[i] };
             }
+
             var bigfileGameCode = new Bigfile(0, bigfileGameCodeFiles);
             var bigfileGameCodeTocFilepath = GameDataPath.GameDataUnitBigFileToc.GetFilePath("TestData");
             BigfileToc.Save(bigfileGameCodeTocFilepath, new List<Bigfile>() { bigfileGameCode });
@@ -155,4 +159,3 @@ namespace MetaTest
         #endregion
     }
 }
-

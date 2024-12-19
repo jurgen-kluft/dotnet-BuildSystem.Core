@@ -13,7 +13,7 @@ namespace DataBuildSystem
 
     public class GameDataUnits
     {
-        private IRootDataUnit RootDataUnit { get; set; }
+        private IDataUnit RootDataUnit { get; set; }
         private List<GameDataUnit> DataUnits { get; set; }
         private SignatureDataBase SignatureDatabase { get; set; }
 
@@ -25,7 +25,8 @@ namespace DataBuildSystem
 
             // Instantiate the data root (which is the root DataUnit)
             GameDataAssembly = LoadAssembly(gameDataDllFilename);
-            RootDataUnit = GameDataUnit.FindRoot(GameDataAssembly);
+            var rootDataUnit = GameDataUnit.FindRoot(GameDataAssembly);
+            RootDataUnit = rootDataUnit as IDataUnit;
             return GameDataAssembly;
         }
 
@@ -426,11 +427,11 @@ namespace DataBuildSystem
             return compilers;
         }
 
-        public static List<IDataUnit> CollectDataUnits(IRootDataUnit dataUnit)
+        public static List<IDataUnit> CollectDataUnits(IDataUnit rootDataUnit)
         {
             var dataUnits = new List<IDataUnit>();
             {
-                Walk(dataUnit, delegate(object compound)
+                Walk(rootDataUnit, delegate(object compound)
                     {
                         var compoundType = compound.GetType();
                         if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
