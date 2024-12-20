@@ -174,7 +174,6 @@ namespace DataBuildSystem
         public static Dependency Load(GameDataPath path, string relativeFilepath)
         {
             FileStreamReader reader = new();
-            //var filepath = Path.Join(GameDataPath.GetPath(GameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), filePath, ".dep"));
             var filepath = Path.Join(path.GetDirPath(), relativeFilepath);
             if (reader.Open(filepath))
             {
@@ -237,7 +236,7 @@ namespace DataBuildSystem
             return dep;
         }
 
-        public void WriteTo(IBinaryWriter writer)
+        public void WriteTo(IWriter writer)
         {
             GameCore.BinaryWriter.Write(writer, Count);
             for (var i = 0; i < Count; i++)
@@ -248,9 +247,9 @@ namespace DataBuildSystem
                 Hashes[i].WriteTo(writer);
             }
 
-            foreach (var i in FilePaths)
+            foreach (var fp in FilePaths)
             {
-                GameCore.BinaryWriter.Write(writer, i);
+                GameCore.BinaryWriter.Write(writer, fp);
             }
         }
     }

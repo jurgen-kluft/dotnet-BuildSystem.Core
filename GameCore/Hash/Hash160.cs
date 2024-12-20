@@ -238,7 +238,7 @@ namespace GameCore
             return Size;
         }
 
-        public void WriteTo(IBinaryWriter writer)
+        public void WriteTo(IWriter writer)
         {
             writer.Write(HashData, 0, Size);
         }
@@ -486,6 +486,11 @@ namespace GameCore
         public static void Update(byte[] data, int start, int length)
         {
             s_sha1.TransformBlock(data, start, length, null, 0);
+        }
+
+        public static void Update(ReadOnlySpan<byte> data)
+        {
+            s_sha1.TransformBlock(data.ToArray(), 0, data.Length, null, 0);
         }
 
         public static Hash160 End()

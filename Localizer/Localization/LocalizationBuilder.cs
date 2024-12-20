@@ -264,7 +264,7 @@ namespace DataBuildSystem
                 return true;
             }
 
-            public bool Write(IBinaryWriter writer)
+            public bool Write(IWriter writer)
             {
                 try
                 {

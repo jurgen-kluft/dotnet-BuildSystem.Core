@@ -70,7 +70,7 @@ namespace GameCore
             public int Index;
         };
 
-        public void Write(IDataWriter writer)
+        public void Write(IDataBlockWriter blockWriter)
         {
             // Sort Hashes, HashIndex is used to keep track of the original index
             var sortedHashes = new List<HashIndex>(_hashes.Count);
@@ -99,81 +99,81 @@ namespace GameCore
 
             // Write StringTable
 
-            writer.NewBlock(Reference, 8);
-            writer.NewBlock(HashesReference, 8);
-            writer.NewBlock(OffsetsReference, 8);
-            writer.NewBlock(RuneLengthsReference, 8);
-            writer.NewBlock(ByteLengthsReference, 8);
-            writer.NewBlock(StringsReference, 8);
+            blockWriter.NewBlock(Reference, 8);
+            blockWriter.NewBlock(HashesReference, 8);
+            blockWriter.NewBlock(OffsetsReference, 8);
+            blockWriter.NewBlock(RuneLengthsReference, 8);
+            blockWriter.NewBlock(ByteLengthsReference, 8);
+            blockWriter.NewBlock(StringsReference, 8);
 
             {
-                writer.OpenBlock(Reference);
-                BinaryWriter.Write(writer,StringTools.Encode_32_5('S','T','R','T','B'));
-                BinaryWriter.Write(writer,count);
-                writer.WriteDataBlockReference(HashesReference);
-                writer.WriteDataBlockReference(OffsetsReference);
-                writer.WriteDataBlockReference(RuneLengthsReference);
-                writer.WriteDataBlockReference(ByteLengthsReference);
-                writer.WriteDataBlockReference(StringsReference);
-                writer.CloseBlock();
+                blockWriter.OpenBlock(Reference);
+                BinaryWriter.Write(blockWriter,StringTools.Encode_32_5('S','T','R','T','B'));
+                BinaryWriter.Write(blockWriter,count);
+                blockWriter.WriteDataBlockReference(HashesReference);
+                blockWriter.WriteDataBlockReference(OffsetsReference);
+                blockWriter.WriteDataBlockReference(RuneLengthsReference);
+                blockWriter.WriteDataBlockReference(ByteLengthsReference);
+                blockWriter.WriteDataBlockReference(StringsReference);
+                blockWriter.CloseBlock();
 
                 // String Hashes (160-bit -> 32-bit)
-                writer.OpenBlock(HashesReference);
+                blockWriter.OpenBlock(HashesReference);
                 {
                     for (var i = 0; i < count; ++i)
                     {
-                        BinaryWriter.Write(writer,sortedHashes[i].Hash.AsHash32());
+                        BinaryWriter.Write(blockWriter,sortedHashes[i].Hash.AsHash32());
                     }
                 }
-                writer.CloseBlock();
+                blockWriter.CloseBlock();
 
                 // String Offsets
-                writer.OpenBlock(OffsetsReference);
+                blockWriter.OpenBlock(OffsetsReference);
                 {
                     var offset = 0;
                     for (var i = 0; i < count; ++i)
                     {
                         var j = sortedHashes[i].Index;
-                        BinaryWriter.Write(writer,offset);
+                        BinaryWriter.Write(blockWriter,offset);
                         offset += _byteLengths[j];
                     }
                 }
-                writer.CloseBlock();
+                blockWriter.CloseBlock();
 
                 // String Rune Lengths
-                writer.OpenBlock(RuneLengthsReference);
+                blockWriter.OpenBlock(RuneLengthsReference);
                 {
                     for (var i = 0; i < count; ++i)
                     {
                         var j = sortedHashes[i].Index;
-                        BinaryWriter.Write(writer, _strings[j].Length);
+                        BinaryWriter.Write(blockWriter, _strings[j].Length);
                     }
                 }
-                writer.CloseBlock();
+                blockWriter.CloseBlock();
 
                 // String Byte Lengths
-                writer.OpenBlock(ByteLengthsReference);
+                blockWriter.OpenBlock(ByteLengthsReference);
                 {
                     for (var i = 0; i < count; ++i)
                     {
                         var j = sortedHashes[i].Index;
-                        BinaryWriter.Write(writer,_byteLengths[j]);
+                        BinaryWriter.Write(blockWriter,_byteLengths[j]);
                     }
                 }
-                writer.CloseBlock();
+                blockWriter.CloseBlock();
 
                 // String Data
-                writer.OpenBlock(StringsReference);
+                blockWriter.OpenBlock(StringsReference);
                 {
                     for (var i = 0; i < count; ++i)
                     {
                         var j = sortedHashes[i].Index;
                         var utf8Len = _encoding.GetBytes(_strings[j], 0, _strings[j].Length, _utf8, 0);
                         _utf8[utf8Len] = 0; // Do include a terminating zero
-                        BinaryWriter.Write(writer, _utf8, 0, utf8Len + 1);
+                        BinaryWriter.Write(blockWriter, _utf8, 0, utf8Len + 1);
                     }
                 }
-                writer.CloseBlock();
+                blockWriter.CloseBlock();
             }
         }
     }

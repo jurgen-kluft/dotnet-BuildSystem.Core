@@ -25,24 +25,24 @@ namespace GameData
 
         public Hash160 Signature { get; set; }
 
-        public void BuildSignature(IBinaryWriter stream)
+        public void BuildSignature(IWriter writer)
         {
-            GameCore.BinaryWriter.Write(stream,_srcFilename);
-            GameCore.BinaryWriter.Write(stream,_dstFilename);
+            GameCore.BinaryWriter.Write(writer,_srcFilename);
+            GameCore.BinaryWriter.Write(writer,_dstFilename);
         }
 
-        public void SaveState(IBinaryWriter stream)
+        public void SaveState(IWriter writer)
         {
-            GameCore.BinaryWriter.Write(stream,_srcFilename);
-            GameCore.BinaryWriter.Write(stream,_dstFilename);
-            _dependency.WriteTo(stream);
+            GameCore.BinaryWriter.Write(writer,_srcFilename);
+            GameCore.BinaryWriter.Write(writer,_dstFilename);
+            _dependency.WriteTo(writer);
         }
 
-        public void LoadState(IBinaryReader stream)
+        public void LoadState(IBinaryReader reader)
         {
-            GameCore.BinaryReader.Read(stream, out _srcFilename);
-            GameCore.BinaryReader.Read(stream, out _dstFilename);
-            _dependency = Dependency.ReadFrom(stream);
+            GameCore.BinaryReader.Read(reader, out _srcFilename);
+            GameCore.BinaryReader.Read(reader, out _dstFilename);
+            _dependency = Dependency.ReadFrom(reader);
         }
 
         public void CopyConstruct(IDataFile dc)

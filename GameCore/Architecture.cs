@@ -79,7 +79,7 @@ namespace GameCore
 
         public static IStreamWriter CreateMemoryWriter(MemoryStream s, EPlatform platform)
         {
-            return new MemoryWriter(s, ArchitectureUtils.GetPlatformArchitecture(platform));
+            return new DataStream(s, ArchitectureUtils.GetPlatformArchitecture(platform));
         }
 
         public static IStreamWriter CreateFileWriter(string filepath, EPlatform platform)

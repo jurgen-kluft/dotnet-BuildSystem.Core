@@ -2,14 +2,14 @@ using System.Diagnostics;
 
 namespace GameCore
 {
-    public interface IBinaryWriter
+    public interface IWriter
     {
         IArchitecture Architecture { get; }
 
         void Write(byte[] data, int index, int count);
     }
 
-    public interface IBinaryStream
+    public interface IStream
     {
         long Position { get; set; }
         long Length { get; set; }
@@ -18,7 +18,7 @@ namespace GameCore
         void Close();
     }
 
-    public interface IStreamWriter : IBinaryStream, IBinaryWriter
+    public interface IStreamWriter : IStream, IWriter
     {
     }
 
@@ -72,24 +72,30 @@ namespace GameCore
         }
     }
 
-    public class MemoryWriter : IStreamWriter
+    public class DataStream : IDataStream
     {
         private readonly MemoryStream _stream;
         private readonly byte[] _buffer = new byte[256];
 
-        public MemoryWriter(MemoryStream stream, IArchitecture architecture)
+        public DataStream(MemoryStream stream, IArchitecture architecture)
         {
             _stream = stream;
             Architecture = architecture;
         }
 
-        public MemoryWriter(MemoryStream stream) : this(stream, ArchitectureUtils.LittleArchitecture64)
+        public DataStream(MemoryStream stream) : this(stream, ArchitectureUtils.LittleArchitecture64)
         {
         }
 
         public void Reset()
         {
+            _stream.SetLength(8192);
             _stream.Position = 0;
+        }
+
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            return _stream.Read(buffer, offset, count);
         }
 
         public void Write(byte[] data, int index, int count)
@@ -98,6 +104,8 @@ namespace GameCore
         }
 
         public IArchitecture Architecture { get; set; }
+
+        public ReadOnlySpan<byte> Data { get { return _stream.GetBuffer(); } }
 
         public long Position
         {
@@ -131,31 +139,31 @@ namespace GameCore
 
         public void Setup(byte[] memory, int offset, int length)
         {
-            _memory = memory;
-            _begin = offset;
-            _end = offset + length;
+            Memory = memory;
+            Begin = offset;
+            End = offset + length;
             Position = offset;
         }
 
-        private byte[] _memory;
-        private int _begin;
-        private int _end;
-        private int _position;
+        public byte[] Memory { get; set; }
+        public int Begin{ get; set; }
+        public int End{ get; set; }
+        public int Cursor { get; set; }
 
-        IArchitecture IBinaryWriter.Architecture { get { return Architecture; } }
+        IArchitecture IWriter.Architecture { get { return Architecture; } }
         IArchitecture IBinaryReader.Architecture { get { return Architecture; } }
         public IArchitecture Architecture { get; init; }
 
         public long Position
         {
-            get => _position;
-            set => _position = (int)value;
+            get => Cursor;
+            set => Cursor = (int)value;
         }
 
         public long Length
         {
-            get => _end;
-            set => _end = _begin + (int)value;
+            get => End;
+            set => End = Begin + (int)value;
         }
 
         public long Seek(long offset)
@@ -170,115 +178,126 @@ namespace GameCore
 
         public int Read(byte[] buffer, int offset, int count)
         {
-            var n = Math.Min(count, _end - _position);
-            Array.Copy(_memory, _position, buffer, offset, n);
+            var n = Math.Min(count, End - Cursor);
+            Array.Copy(Memory, Cursor, buffer, offset, n);
             Position += n;
             return (int)n;
         }
 
         public void Write(byte[] data, int index, int count)
         {
-            if (Position >= _end)
+            if (Position >= End)
                 return;
-            var n = Math.Min(count, _end - _position);
-            Array.Copy(data, index, _memory, _position, n);
+            var n = Math.Min(count, End - Cursor);
+            Array.Copy(data, index, Memory, Cursor, n);
             Position += n;
         }
     }
 
     public static class BinaryWriter
     {
-        private static readonly byte[] s_buffer = new byte[256];
+        private static readonly byte[] s_buffer = new byte[1024];
 
-        public static void Write(IBinaryWriter writer, sbyte v)
+        public static void Align(IStreamWriter stream, int alignment)
+        {
+            var alignedPos = (stream.Position + (alignment - 1)) & ~(long)(alignment - 1);
+            if (alignedPos > stream.Position)
+            {
+                Debug.Assert(alignedPos - stream.Position < s_buffer.Length);
+                var fillLength = (int)(alignedPos - stream.Position);
+                Array.Fill<byte>(s_buffer, 0, 0, fillLength);
+                stream.Write(s_buffer, 0, fillLength);
+            }
+        }
+
+        public static void Write(IWriter writer, sbyte v)
         {
             s_buffer[0] = (byte)v;
             writer.Write(s_buffer, 0, 1);
         }
 
-        public static void Write(IBinaryWriter writer, byte v)
+        public static void Write(IWriter writer, byte v)
         {
             s_buffer[0] = v;
             writer.Write(s_buffer, 0, 1);
         }
 
-        public static void Write(IBinaryWriter writer, short v)
+        public static void Write(IWriter writer, short v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 2);
+            writer.Write(s_buffer, 0, sizeof(short));
         }
 
-        public static void Write(IBinaryWriter writer, ushort v)
+        public static void Write(IWriter writer, ushort v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 2);
+            writer.Write(s_buffer, 0, sizeof(ushort));
         }
 
-        public static void Write(IBinaryWriter writer, int v)
+        public static void Write(IWriter writer, int v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 4);
+            writer.Write(s_buffer, 0, sizeof(int));
         }
 
-        public static void Write(IBinaryWriter writer, uint v)
+        public static void Write(IWriter writer, uint v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 4);
+            writer.Write(s_buffer, 0, sizeof(uint));
         }
 
-        public static void Write(IBinaryWriter writer, long v)
+        public static void Write(IWriter writer, long v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 8);
+            writer.Write(s_buffer, 0, sizeof(long));
         }
 
-        public static void Write(IBinaryWriter writer, ulong v)
+        public static void Write(IWriter writer, ulong v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 8);
+            writer.Write(s_buffer, 0, sizeof(ulong));
         }
 
-        public static void Write(IBinaryWriter writer, float v)
+        public static void Write(IWriter writer, float v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 4);
+            writer.Write(s_buffer, 0, sizeof(float));
         }
 
-        public static void Write(IBinaryWriter writer, double v)
+        public static void Write(IWriter writer, double v)
         {
             writer.Architecture.Write(v, s_buffer, 0);
-            writer.Write(s_buffer, 0, 8);
+            writer.Write(s_buffer, 0, sizeof(double));
         }
 
-        public static void Write(IBinaryWriter writer, byte[] data)
+        public static void Write(IWriter writer, byte[] data)
         {
             writer.Write(data, 0, data.Length);
         }
 
-        public static void Write(IBinaryWriter writer, byte[] data, int index, int length)
+        public static void Write(IWriter writer, byte[] data, int index, int length)
         {
             writer.Write(data, index, length);
         }
 
-        public static void Write(IBinaryWriter writer, ReadOnlySpan<byte> span)
+        public static void Write(IWriter writer, ReadOnlySpan<byte> span)
         {
             writer.Write(span.ToArray(), 0, span.Length);
         }
 
-        public static void Write(IBinaryWriter writer, string v)
+        public static void Write(IWriter writer, string v)
         {
             var byteCount = System.Text.Encoding.UTF8.GetByteCount(v);
+            Write(writer, byteCount);
             if (byteCount < s_buffer.Length)
             {
                 System.Text.Encoding.UTF8.GetBytes(v, s_buffer);
-                Write(writer, byteCount);
                 writer.Write(s_buffer, 0, byteCount);
             }
             else
             {
                 var buffer = new byte[byteCount];
                 System.Text.Encoding.UTF8.GetBytes(v, buffer);
-                Write(writer, byteCount);
                 writer.Write(buffer, 0, byteCount);
             }
         }

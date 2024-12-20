@@ -25,13 +25,13 @@ namespace GameData
 
         public Hash160 Signature { get; set; }
 
-        public void BuildSignature(IBinaryWriter stream)
+        public void BuildSignature(IWriter stream)
         {
             GameCore.BinaryWriter.Write(stream,"CurveDataFile");
             GameCore.BinaryWriter.Write(stream,mSrcFilename);
         }
 
-        public void SaveState(IBinaryWriter stream)
+        public void SaveState(IWriter stream)
         {
             GameCore.BinaryWriter.Write(stream,mSrcFilename);
             GameCore.BinaryWriter.Write(stream,mDstFilename);

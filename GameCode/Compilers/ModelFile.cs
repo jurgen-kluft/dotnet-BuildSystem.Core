@@ -41,13 +41,13 @@ namespace GameData
 
         public Hash160 Signature { get; set; }
 
-        public void BuildSignature(IBinaryWriter stream)
+        public void BuildSignature(IWriter stream)
         {
             GameCore.BinaryWriter.Write(stream,"ModelCompiler");
             GameCore.BinaryWriter.Write(stream,_srcFilename);
         }
 
-        public void SaveState(IBinaryWriter stream)
+        public void SaveState(IWriter stream)
         {
             GameCore.BinaryWriter.Write(stream,_srcFilename);
             GameCore.BinaryWriter.Write(stream,_dstFilename);

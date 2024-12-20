@@ -9,7 +9,7 @@ namespace GameCore
         public long Position { get; init; }   // The position in the stream of where this pointer is located
         public long DataPosition { get; init; } // Pointer is pointing to [Position + Offset]
 
-        public void Write(IBinaryWriter writer, StreamPointer nextStreamPointer)
+        public void Write(IWriter writer, StreamPointer nextStreamPointer)
         {
             var next32 = (int)((nextStreamPointer.Position - Position));
             var offset32 = (int)(DataPosition - Position);

@@ -73,7 +73,7 @@ namespace GameData
             }
 
             // Write out every underlying member 'data' of the code to a DataStream
-            var dataStream = new CppDataStream2(platform, stringTable, signatureDb);
+            var dataStream = new CppDataBlockStream2(platform, stringTable, signatureDb);
             CppDataStreamWriter2.Write(metaCode, data.Signature, stringTable, signatureDb, dataStream);
 
             // Finalize the DataStream by writing to a (Bigfile) data file

@@ -105,12 +105,12 @@ namespace DataBuildSystem
             if (writer == null) return false;
 
             MemoryStream memoryStream = new();
-            MemoryWriter memoryWriter = new(memoryStream, ArchitectureUtils.GetEndianForPlatform(platform));
+            DataStream dataStream = new(memoryStream, ArchitectureUtils.GetEndianForPlatform(platform));
             {
                 foreach (var compiler in dataFiles)
                 {
-                    memoryWriter.Reset();
-                    compiler.SaveState(memoryWriter);
+                    dataStream.Reset();
+                    compiler.SaveState(dataStream);
 
                     // byte[20]: IDataFile Type Signature
                     // byte[20]: IDataFile Signature
@@ -127,7 +127,7 @@ namespace DataBuildSystem
                     GameCore.BinaryWriter.Write(writer, memoryStreamBuffer, 0, stateLen);
                 }
 
-                memoryWriter.Close();
+                dataStream.Close();
                 writer.Close();
                 return true;
             }

@@ -35,14 +35,14 @@ namespace GameData
         /// A signature is generated from specific properties.
         /// For example: The CopyCompiler should write the type name 'CopyCompiler' as well as the SrcFilename into the Writer stream.
         ///</summary>
-        void BuildSignature(IBinaryWriter writer);
+        void BuildSignature(IWriter writer);
 
         Hash160 Signature { get; set; }
 
         ///<summary>
         /// Write all the necessary properties and data to the stream
         ///</summary>
-        void SaveState(IBinaryWriter writer);
+        void SaveState(IWriter writer);
 
         ///<summary>
         /// Read all the properties and data from the stream in the same order and type as they were written

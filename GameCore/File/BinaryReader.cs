@@ -7,7 +7,7 @@ namespace GameCore
         int Read(byte[] buffer, int offset, int count);
     }
 
-    public interface IStreamReader : IBinaryStream, IBinaryReader
+    public interface IStreamReader : IStream, IBinaryReader
     {
     }
 
@@ -100,49 +100,49 @@ namespace GameCore
 
         public static void Read(IBinaryReader reader, out short v)
         {
-            reader.Read(s_buffer, 0, 2);
+            reader.Read(s_buffer, 0, sizeof(short));
             v = reader.Architecture.ReadInt16(s_buffer, 0);
         }
 
         public static void Read(IBinaryReader reader, out ushort v)
         {
-            reader.Read(s_buffer, 0, 2);
+            reader.Read(s_buffer, 0, sizeof(ushort));
             v = reader.Architecture.ReadUInt16(s_buffer, 0);
         }
 
         public static void Read(IBinaryReader reader, out int v)
         {
-            reader.Read(s_buffer, 0, 4);
+            reader.Read(s_buffer, 0, sizeof(int));
             v = reader.Architecture.ReadInt32(s_buffer, 0);
         }
 
         public static void Read(IBinaryReader reader, out uint v)
         {
-            reader.Read(s_buffer, 0, 4);
+            reader.Read(s_buffer, 0, sizeof(uint));
             v = reader.Architecture.ReadUInt32(s_buffer, 0);
         }
 
         public static void Read(IBinaryReader reader, out long v)
         {
-            reader.Read(s_buffer, 0, 8);
+            reader.Read(s_buffer, 0, sizeof(long));
             v = reader.Architecture.ReadInt64(s_buffer, 0);
         }
 
         public static void Read(IBinaryReader reader, out ulong v)
         {
-            reader.Read(s_buffer, 0, 8);
+            reader.Read(s_buffer, 0, sizeof(ulong));
             v = reader.Architecture.ReadUInt64(s_buffer, 0);
         }
 
         public static void Read(IBinaryReader reader, out float v)
         {
-            reader.Read(s_buffer, 0, 4);
+            reader.Read(s_buffer, 0, sizeof(float));
             v = reader.Architecture.ReadFloat(s_buffer, 0);
         }
 
         public static void Read(IBinaryReader reader, out double v)
         {
-            reader.Read(s_buffer, 0, 8);
+            reader.Read(s_buffer, 0, sizeof(double));
             v = reader.Architecture.ReadDouble(s_buffer, 0);
         }
 

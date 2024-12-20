@@ -103,7 +103,7 @@ namespace GameCore
 
         private string Filename { get; }
         private EPlatform Platform { get; }
-        private IBinaryWriter Writer { get; set; }
+        private IWriter Writer { get; set; }
         private IBinaryReader Reader { get; set; }
 
         public bool Open(EMode mode)
@@ -143,26 +143,6 @@ namespace GameCore
             }
 
             mFileStream = null;
-        }
-    }
-
-    public static class StreamUtils
-    {
-        private static long Position(IBinaryStream writer)
-        {
-            var p = writer.Position;
-            return p;
-        }
-
-        public static bool Aligned(IBinaryStream writer, int alignment)
-        {
-            var p = CMath.AlignUp(writer.Position, alignment);
-            return (p == writer.Position);
-        }
-
-        public static void Align(IBinaryStream writer, int alignment)
-        {
-            writer.Position = CMath.AlignUp(writer.Position, alignment);
         }
     }
 }

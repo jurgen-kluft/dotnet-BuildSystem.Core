@@ -6,7 +6,7 @@ using GameCore;
 namespace GameData
 {
 
-    public interface IGameDataWriter : IBinaryWriter
+    public interface IGameDataWriter : IWriter
     {
         void Write(byte[] data, int index, int count);
 

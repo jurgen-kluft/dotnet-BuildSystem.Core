@@ -41,7 +41,7 @@ namespace DataBuildSystem
         private static void BuildDataFileSignatures(List<IDataFile> dataFiles)
         {
             var memoryStream = new MemoryStream();
-            var memoryWriter = new MemoryWriter(memoryStream, ArchitectureUtils.LittleArchitecture64);
+            var memoryWriter = new DataStream(memoryStream, ArchitectureUtils.LittleArchitecture64);
             foreach (var cl in dataFiles)
             {
                 memoryWriter.Reset();
@@ -315,7 +315,7 @@ namespace DataBuildSystem
             return GameDataFileLog.Load(filepath, currentDataFileLog);
         }
 
-        public void Save(IBinaryWriter writer)
+        public void Save(IWriter writer)
         {
             GameCore.BinaryWriter.Write(writer, Name);
             GameCore.BinaryWriter.Write(writer, Id);
