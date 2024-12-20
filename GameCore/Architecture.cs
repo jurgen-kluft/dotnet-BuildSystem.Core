@@ -67,29 +67,25 @@ namespace GameCore
             return (platform & EPlatform.Arch64) != 0;
         }
 
-        public static IBinaryStreamReader CreateBinaryFileReader(FileStream s, EPlatform platform)
+        public static IStreamReader CreateFileReader(FileStream s, EPlatform platform)
         {
-            var bs = new BinaryStreamReader(s);
-            return new BinaryEndianReader(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
+            return new FileStreamReader(s, ArchitectureUtils.GetPlatformArchitecture(platform));
         }
 
-        public static IBinaryStreamWriter CreateBinaryFileWriter(FileStream s, EPlatform platform)
+        public static IStreamWriter CreateFileWriter(FileStream s, EPlatform platform)
         {
-            var bs = new BinaryFileStreamWriter(s);
-            return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
+            return new FileStreamWriter(s, ArchitectureUtils.GetPlatformArchitecture(platform));
         }
 
-        public static IBinaryStreamWriter CreateBinaryMemoryWriter(MemoryStream s, EPlatform platform)
+        public static IStreamWriter CreateMemoryWriter(MemoryStream s, EPlatform platform)
         {
-            var bs = new BinaryMemoryStreamWriter(s);
-            return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
+            return new MemoryWriter(s, ArchitectureUtils.GetPlatformArchitecture(platform));
         }
 
-        public static IBinaryStreamWriter CreateBinaryFileWriter(string filepath, EPlatform platform)
+        public static IStreamWriter CreateFileWriter(string filepath, EPlatform platform)
         {
             FileStream fs = new FileStream(filepath, FileMode.Create, FileAccess.Write);
-            BinaryFileStreamWriter bs = new(fs);
-            return new BinaryEndianWriter(ArchitectureUtils.GetPlatformArchitecture(platform), bs);
+            return CreateFileWriter(fs, platform);
         }
     }
 

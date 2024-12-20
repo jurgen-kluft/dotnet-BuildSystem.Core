@@ -41,8 +41,7 @@ namespace DataBuildSystem
         private static void BuildDataFileSignatures(List<IDataFile> dataFiles)
         {
             var memoryStream = new MemoryStream();
-            var memoryWriter = new BinaryMemoryWriter();
-            memoryWriter.Open(memoryStream, ArchitectureUtils.LittleArchitecture64);
+            var memoryWriter = new MemoryWriter(memoryStream, ArchitectureUtils.LittleArchitecture64);
             foreach (var cl in dataFiles)
             {
                 memoryWriter.Reset();
@@ -131,7 +130,7 @@ namespace DataBuildSystem
             var cppDataFilepath = GameDataPath.GameDataCppData.GetFilePath("GameData");
             var cppDataFileInfo = new FileInfo(cppDataFilepath);
             var cppDataStream = new FileStream(cppDataFileInfo.FullName, FileMode.Create);
-            var cppDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(cppDataStream, BuildSystemConfig.Platform);
+            var cppDataStreamWriter = ArchitectureUtils.CreateFileWriter(cppDataStream, BuildSystemConfig.Platform);
             CppCodeStream2.Write2(BuildSystemConfig.Platform, RootDataUnit, cppHeaderFileWriter, cppDataStreamWriter, SignatureDatabase, out var dataUnitsSignatures, out var dataUnitsStreamPositions, out var dataUnitsStreamSizes);
             cppDataStreamWriter.Close();
             cppDataStream.Close();
@@ -163,16 +162,16 @@ namespace DataBuildSystem
 
             var dataUnits = new Dictionary<uint, GameDataUnit>(currentDataUnits.Count + (currentDataUnits.Count / 4));
 
-            var binaryFile = new BinaryFileReader();
-            if (binaryFile.Open(Path.Join(dstPath, "GameDataUnits.log")))
+            var reader = new FileStreamReader();
+            if (reader.Open(Path.Join(dstPath, "GameDataUnits.log")))
             {
-                var magic = binaryFile.ReadInt64();
+                GameCore.BinaryReader.Read(reader, out long magic);
                 if (magic == StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'))
                 {
-                    var numUnits = binaryFile.ReadInt32();
+                    GameCore.BinaryReader.Read(reader, out int numUnits);
                     for (var i = 0; i < numUnits; i++)
                     {
-                        var gdu = GameDataUnit.Load(binaryFile);
+                        var gdu = GameDataUnit.Load(reader);
                         if (idToDataUnit.TryGetValue(gdu.Id, out IDataUnit du))
                         {
                             gdu.DataUnit = du;
@@ -182,7 +181,7 @@ namespace DataBuildSystem
                     }
                 }
 
-                binaryFile.Close();
+                reader.Close();
             }
 
             // Any new DataUnit? -> create them with an index that is not used.
@@ -211,10 +210,10 @@ namespace DataBuildSystem
         public void Save(string dstPath)
         {
             var filepath = Path.Join(dstPath, "GameDataUnits.log");
-            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, LocalizerConfig.Platform);
+            var writer = ArchitectureUtils.CreateFileWriter(filepath, LocalizerConfig.Platform);
 
-            writer.Write(StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
-            writer.Write(DataUnits.Count);
+            GameCore.BinaryWriter.Write(writer, StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
+            GameCore.BinaryWriter.Write(writer, DataUnits.Count);
             foreach (var gdu in DataUnits)
             {
                 gdu.Save(writer);
@@ -318,27 +317,32 @@ namespace DataBuildSystem
 
         public void Save(IBinaryWriter writer)
         {
-            writer.Write(Name);
-            writer.Write(Id);
-            writer.Write(Index);
+            GameCore.BinaryWriter.Write(writer, Name);
+            GameCore.BinaryWriter.Write(writer, Id);
+            GameCore.BinaryWriter.Write(writer, Index);
 
-            writer.Write(States.Length);
+            GameCore.BinaryWriter.Write(writer, States.Length);
             foreach (var t in States)
-                writer.Write(t.AsInt8);
+            {
+                GameCore.BinaryWriter.Write(writer, t.AsInt8);
+            }
 
             Dep.WriteTo(writer);
         }
 
         public static GameDataUnit Load(IBinaryReader reader)
         {
-            var name = reader.ReadString();
-            var id = reader.ReadString();
-            var index = reader.ReadUInt32();
+            GameCore.BinaryReader.Read(reader, out string name);
+            GameCore.BinaryReader.Read(reader, out string id);
+            GameCore.BinaryReader.Read(reader, out uint index);
 
-            var numStates = reader.ReadInt32();
+            GameCore.BinaryReader.Read(reader, out int numStates);
             var states = new State[numStates];
             for (var i = 0; i < numStates; ++i)
-                states[i] = new State(reader.ReadInt8());
+            {
+                GameCore.BinaryReader.Read(reader, out sbyte state);
+                states[i] = new State(state);
+            }
 
             var dep = Dependency.ReadFrom(reader);
 

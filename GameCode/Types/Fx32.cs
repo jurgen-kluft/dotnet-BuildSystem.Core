@@ -70,7 +70,7 @@ namespace GameData
 
         public void StructWrite(IGameDataWriter writer)
         {
-            writer.Write(mValue);
+            GameCore.BinaryWriter.Write(writer, mValue);
         }
     }
 }

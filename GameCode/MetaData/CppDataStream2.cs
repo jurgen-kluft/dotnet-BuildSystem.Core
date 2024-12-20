@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Principal;
 using System.Text;
 using GameCore;
+using BinaryWriter = GameCore.BinaryWriter;
 using Process = System.Diagnostics.Process;
 
 namespace GameData
@@ -12,16 +13,13 @@ namespace GameData
         {
             private delegate void WriteMemberDelegate(int memberIndex, WriteContext ctx);
 
-            private delegate int CalcSizeOfTypeDelegate(int memberIndex, WriteContext ctx);
-
-            private delegate void WriteProcessDelegate(int memberIndex, StreamReference dataBlockStreamReference, int dataUnitIndex, WriteContext ctx);
+            private delegate void WriteProcessDelegate(int memberIndex, StreamReference dataBlockStreamReference, WriteContext ctx);
 
             private struct ProcessObject
             {
                 public int MemberIndex { get; init; }
                 public WriteProcessDelegate Process { get; init; }
                 public StreamReference BlockReference { get; init; }
-                public int DataUnitIndex { get; init; }
             }
 
             private struct ProcessDataUnit
@@ -37,8 +35,6 @@ namespace GameData
                 public StringTable StringTable { get; init; }
                 public ISignatureDataBase SignatureDataBase { get; init; }
                 public CppDataStream2 GameDataStream { get; init; }
-                public CalcSizeOfTypeDelegate[] CalcSizeOfTypeDelegates { get; init; }
-                public CalcSizeOfTypeDelegate[] CalcDataSizeOfTypeDelegates { get; init; }
                 public WriteMemberDelegate[] WriteMemberDelegates { get; init; }
                 public Queue<ProcessObject> ProcessObjectQueue { get; init; }
                 public Queue<ProcessDataUnit> ProcessDataUnitQueue { get; init; }
@@ -54,21 +50,11 @@ namespace GameData
                     GameDataStream = dataStream,
                     ProcessObjectQueue = new Queue<ProcessObject>(),
                     ProcessDataUnitQueue = new Queue<ProcessDataUnit>(),
-                    WriteMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
+                    WriteMemberDelegates = new WriteMemberDelegate[MetaInfo.Count]
                     {
                         null, WriteBool, WriteBitset, WriteInt8, WriteUInt8, WriteInt16, WriteUInt16, WriteInt32, WriteUInt32, WriteInt64, WriteUInt64, WriteFloat, WriteDouble, WriteString, WriteEnum, WriteStruct, WriteClass, WriteArray,
                         WriteDictionary, WriteDataUnit
                     },
-                    CalcSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
-                    {
-                        GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType,
-                        GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfEnum, GetMemberSizeOfStruct, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType, GetMemberSizeOfType
-                    },
-                    CalcDataSizeOfTypeDelegates = new CalcSizeOfTypeDelegate[(int)MetaInfo.Count]
-                    {
-                        GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType, GetDataSizeOfType,
-                        GetDataSizeOfType, CalcDataSizeOfString, CalcDataSizeOfEnum, CalcDataSizeOfStruct, CalcDataSizeOfClass, CalcDataSizeOfArray, CalcDataSizeOfDictionary, GetDataSizeOfDataUnit
-                    }
                 };
 
                 try
@@ -85,16 +71,14 @@ namespace GameData
 
                         ctx.GameDataStream.OpenDataUnit(du.DataUnitIndex);
                         {
-                            var mt = ctx.MetaCode2.MembersType[du.MemberIndex];
-                            var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](du.MemberIndex, ctx);
                             var mr = StreamReference.NewReference;
-                            var cr = ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(du.MemberIndex), ms);
-                            ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = du.MemberIndex, Process = WriteClassDataProcess, BlockReference = mr, DataUnitIndex = cr});
+                            ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(du.MemberIndex));
+                            ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = du.MemberIndex, Process = WriteClassDataProcess, BlockReference = mr});
 
                             while (ctx.ProcessObjectQueue.Count > 0)
                             {
                                 var wp = ctx.ProcessObjectQueue.Dequeue();
-                                wp.Process(wp.MemberIndex, wp.BlockReference, wp.DataUnitIndex, ctx);
+                                wp.Process(wp.MemberIndex, wp.BlockReference, ctx);
                             }
                         }
                         ctx.GameDataStream.CloseDataUnit();
@@ -107,7 +91,6 @@ namespace GameData
                 }
             }
 
-
             private static void WriteBool(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
@@ -117,7 +100,7 @@ namespace GameData
             private static void WriteBitset(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((byte)member);
+                ctx.GameDataStream.Write((byte)member);
             }
 
             private static void WriteInt8(int memberIndex, WriteContext ctx)
@@ -135,52 +118,52 @@ namespace GameData
             private static void WriteInt16(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((short)member);
+                ctx.GameDataStream.Write((short)member);
             }
 
             private static void WriteUInt16(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((ushort)member);
+                ctx.GameDataStream.Write((ushort)member);
             }
 
             private static void WriteInt32(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((int)member);
+                ctx.GameDataStream.Write((int)member);
             }
 
             private static void WriteUInt32(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((uint)member);
+                ctx.GameDataStream.Write((uint)member);
             }
 
             private static void WriteInt64(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((long)member);
+                ctx.GameDataStream.Write((long)member);
             }
 
             private static void WriteUInt64(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((ulong)member);
+                ctx.GameDataStream.Write((ulong)member);
             }
 
             private static void WriteFloat(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((float)member);
+                ctx.GameDataStream.Write((float)member);
             }
 
             private static void WriteDouble(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                ctx.GameDataStream.AlignWrite((double)member);
+                ctx.GameDataStream.Write((double)member);
             }
 
-            private static void WriteStringDataProcess(int memberIndex, StreamReference br, int cr, WriteContext ctx)
+            private static void WriteStringDataProcess(int memberIndex, StreamReference br, WriteContext ctx)
             {
                 // A string is written as an array of UTF8 bytes
                 ctx.GameDataStream.OpenBlock(br);
@@ -202,20 +185,18 @@ namespace GameData
 
                 var bl = s_utf8Encoding.GetByteCount(str);
                 var rl = str.Length;
-
-                var mt = ctx.MetaCode2.MembersType[memberIndex];
                 var ms = CMath.AlignUp32(bl + 1, 8);
                 ctx.MetaCode2.MembersCount[memberIndex] = ms;
 
                 var br = StreamReference.NewReference;
-                var dur = ctx.GameDataStream.NewBlock(br, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
+                ctx.GameDataStream.NewBlock(br, ctx.MetaCode2.GetDataAlignment(memberIndex));
 
-                ctx.GameDataStream.WriteDataBlockReference(br); // const char* const, String
                 ctx.GameDataStream.Write(bl); // Length in bytes
                 ctx.GameDataStream.Write(rl); // Length in runes
+                ctx.GameDataStream.WriteDataBlockReference(br); // const char* const, String
 
                 // We need to schedule the content of this class to be written
-                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteStringDataProcess, BlockReference = br, DataUnitIndex = dur });
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteStringDataProcess, BlockReference = br });
             }
 
 
@@ -225,7 +206,6 @@ namespace GameData
                 var msi = ctx.MetaCode2.MembersStart[memberIndex];
                 var fet = ctx.MetaCode2.MembersType[msi];
 
-                ctx.GameDataStream.Align(fet.SizeInBytes);
                 switch (fet.SizeInBytes)
                 {
                     case 1:
@@ -284,7 +264,7 @@ namespace GameData
                 }
             }
 
-            private static void WriteClassDataProcess(int memberIndex, StreamReference br, int cr, WriteContext ctx)
+            private static void WriteClassDataProcess(int memberIndex, StreamReference br, WriteContext ctx)
             {
                 // A class is written as a collection of members, we are using the SortedMembersMap to
                 // write out the members in sorted order.
@@ -304,19 +284,17 @@ namespace GameData
 
             private static void WriteClass(int memberIndex, WriteContext ctx)
             {
-                var mt = ctx.MetaCode2.MembersType[memberIndex];
-                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
                 var mr = StreamReference.NewReference;
-                var cr = ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
-                
+                ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex));
+
                 // A class as a member is just a pointer (Type* member)
                 ctx.GameDataStream.WriteDataBlockReference(mr);
 
                 // We need to schedule the content of this class to be written
-                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteClassDataProcess, BlockReference = mr, DataUnitIndex = cr});
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteClassDataProcess, BlockReference = mr});
             }
 
-            private static void WriteArrayDataProcess(int memberIndex, StreamReference br, int cr, WriteContext ctx)
+            private static void WriteArrayDataProcess(int memberIndex, StreamReference br, WriteContext ctx)
             {
                 // An Array<T> is written as an array of elements
                 ctx.GameDataStream.OpenBlock(br);
@@ -334,18 +312,16 @@ namespace GameData
 
             private static void WriteArray(int memberIndex, WriteContext ctx)
             {
-                var mt = ctx.MetaCode2.MembersType[memberIndex];
-                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
-                var count = ctx.MetaCode2.MembersCount[memberIndex];
+                var count = (uint)ctx.MetaCode2.MembersCount[memberIndex];
                 var mr = StreamReference.NewReference;
-                var cr =ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
-                ctx.GameDataStream.Write(mr, count);
+                ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex));
+                ctx.GameDataStream.Write(mr, count, count);
 
                 // We need to schedule this array to be written
-                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteArrayDataProcess, BlockReference = mr, DataUnitIndex = cr});
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteArrayDataProcess, BlockReference = mr});
             }
 
-            private static void WriteDictionaryDataProcess(int memberIndex, StreamReference br, int cr, WriteContext ctx)
+            private static void WriteDictionaryDataProcess(int memberIndex, StreamReference br, WriteContext ctx)
             {
                 // A Dictionary<key,value> is written as an array of keys followed by an array of values
                 ctx.GameDataStream.OpenBlock(br);
@@ -373,15 +349,13 @@ namespace GameData
 
             private static void WriteDictionary(int memberIndex, WriteContext ctx)
             {
-                var mt = ctx.MetaCode2.MembersType[memberIndex];
-                var ms = ctx.CalcDataSizeOfTypeDelegates[mt.Index](memberIndex, ctx);
-                var count = ctx.MetaCode2.MembersCount[memberIndex];
+                var count = (uint)ctx.MetaCode2.MembersCount[memberIndex];
                 var mr = StreamReference.NewReference;
-                var cr = ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex), ms);
-                ctx.GameDataStream.Write(mr, count);
+                ctx.GameDataStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex));
+                ctx.GameDataStream.Write(mr, count, count);
 
                 // We need to schedule this array to be written
-                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteDictionaryDataProcess, BlockReference = mr, DataUnitIndex = cr});
+                ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteDictionaryDataProcess, BlockReference = mr});
             }
 
             private static void WriteDataUnit(int memberIndex, WriteContext ctx)
@@ -398,161 +372,51 @@ namespace GameData
 
                 // The 'class' member of this DataUnit is the (only) member
                 var dataUnitClassMemberIndex = ctx.MetaCode2.MembersStart[memberIndex];
-                
+
                 ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = dataUnitClassMemberIndex, DataUnitIndex = dataUnitIndex, Signature = signature });
-            }
-
-            private static int GetMemberSizeOfType(int memberIndex, WriteContext ctx)
-            {
-                return ctx.MetaCode2.MembersType[memberIndex].SizeInBytes;
-            }
-
-            private static int GetMemberSizeOfStruct(int memberIndex, WriteContext ctx)
-            {
-                var xi = ctx.MetaCode2.MembersObject[memberIndex] as IStruct;
-                return xi.StructSize;
-            }
-
-            private static int GetMemberSizeOfEnum(int memberIndex, WriteContext ctx)
-            {
-                var msi = ctx.MetaCode2.MembersStart[memberIndex];
-                var fet = ctx.MetaCode2.MembersType[msi];
-                return fet.SizeInBytes;
-            }
-
-            private static int GetDataSizeOfType(int memberIndex, WriteContext ctx)
-            {
-                return ctx.MetaCode2.MembersType[memberIndex].SizeInBytes;
-            }
-
-            private static int CalcDataSizeOfString(int memberIndex, WriteContext ctx)
-            {
-                var member = ctx.MetaCode2.MembersStart[memberIndex];
-                return ctx.StringTable.ByteCountForIndex(member);
-            }
-
-            private static int CalcDataSizeOfEnum(int memberIndex, WriteContext ctx)
-            {
-                var member = ctx.MetaCode2.MembersStart[memberIndex];
-                return ctx.MetaCode2.MembersType[member].SizeInBytes;
-            }
-
-            private static int CalcDataSizeOfStruct(int memberIndex, WriteContext ctx)
-            {
-                var xi = ctx.MetaCode2.MembersObject[memberIndex] as IStruct;
-                return xi.StructSize;
-            }
-
-            private static int CalcDataSizeOfClass(int memberIndex, WriteContext ctx)
-            {
-                var msi = ctx.MetaCode2.MembersStart[memberIndex];
-                var count = ctx.MetaCode2.MembersCount[memberIndex];
-
-                var size = 0;
-                for (var tmi = msi; tmi < msi + count; ++tmi)
-                {
-                    // Obtain the size of this member
-                    var mi = ctx.MetaCode2.MemberSorted[tmi];
-                    var ms = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[mi].Index](mi, ctx);
-
-                    // Align the size based on the member type alignment
-                    size = CMath.AlignUp32(size, ctx.MetaCode2.GetMemberAlignment(mi));
-
-                    size += ms;
-                }
-
-                // Alignment of a class is fixed to 8 bytes
-                var classAlign = ctx.MetaCode2.GetMemberAlignment(msi);
-                size = CMath.AlignUp32(size, classAlign);
-
-                return size;
-            }
-
-            private static int CalcDataSizeOfArray(int memberIndex, WriteContext ctx)
-            {
-                var msi = ctx.MetaCode2.MembersStart[memberIndex];
-                var count = ctx.MetaCode2.MembersCount[memberIndex];
-
-                // Determine the alignment of the element and see if we need to align the size
-                var elementAlign = ctx.MetaCode2.GetMemberAlignment(msi);
-                var elementSize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[msi].Index](msi, ctx);
-                elementSize = CMath.AlignUp32(elementSize, elementAlign);
-
-                var size = count * elementSize;
-                return size;
-            }
-
-            private static int CalcDataSizeOfDictionary(int memberIndex, WriteContext ctx)
-            {
-                var msi = ctx.MetaCode2.MembersStart[memberIndex];
-                var count = ctx.MetaCode2.MembersCount[memberIndex];
-
-                var keyIndex = msi;
-                var keyAlign = ctx.MetaCode2.GetMemberAlignment(keyIndex);
-                var keySize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[keyIndex].Index](keyIndex, ctx);
-                keySize = CMath.AlignUp32(keySize, keyAlign);
-
-                var valueIndex = msi + count;
-                var valueAlign = ctx.MetaCode2.GetMemberAlignment(valueIndex);
-                var valueSize = ctx.CalcSizeOfTypeDelegates[ctx.MetaCode2.MembersType[valueIndex].Index](valueIndex, ctx);
-                valueSize = CMath.AlignUp32(valueSize, valueAlign);
-
-                var size = CMath.AlignUp32(count * keySize, valueAlign) + count * valueSize;
-                return size;
-            }
-
-            private static int GetDataSizeOfDataUnit(int memberIndex, WriteContext ctx)
-            {
-                // A DataUnit is:
-                //   - A pointer to a type
-                //   - FileId (uint BigfileIndex, uint fileIndex)
-                return sizeof(ulong) + sizeof(uint) + sizeof(uint);
             }
         }
 
         public class CppDataStream2 : IDataWriter, IGameDataWriter
         {
-            private int mCurrent;
-            private int mOffset; 
-            private readonly List<Hash160> mDataUnitHashes;
-            private readonly Dictionary<Hash160, int> mHashToDataUnitIndex;
-            private readonly Stack<int> mDataUnitStack;
-            private readonly List<DataBlock> mDataBlocks;
-            private readonly Dictionary<StreamReference, int> mReferenceToDataBlock;
-            private readonly StringTable mStringTable;
-            private readonly ISignatureDataBase mSignatureDb;
-            private readonly MemoryStream mMemoryStream;
-            private readonly IBinaryStreamWriter mDataWriter;
+            private int _current;
+            private readonly List<Hash160> _dataUnitHashes;
+            private readonly Dictionary<Hash160, int> _hashToDataUnitIndex;
+            private readonly Stack<int> _dataUnitStack;
+            private readonly List<DataBlock> _dataBlocks;
+            private readonly Dictionary<StreamReference, int> _referenceToDataBlock;
+            private readonly StringTable _stringTable;
+            private readonly ISignatureDataBase _signatureDb;
+            private readonly MemoryStream _memoryStream;
+            private readonly IStreamWriter _dataWriter;
 
             public CppDataStream2(EPlatform platform, StringTable strTable, ISignatureDataBase signatureDb)
             {
-                mCurrent = -1;
-                mOffset = 0;
-                mDataUnitHashes = new();
-                mHashToDataUnitIndex = new();
-                mDataUnitStack = new();
-                mDataBlocks = new();
-                mReferenceToDataBlock = new();
-                mStringTable = strTable;
-                mSignatureDb = signatureDb;
-                mMemoryStream = new();
-                mDataWriter = ArchitectureUtils.CreateBinaryMemoryWriter(mMemoryStream, platform);
+                _current = -1;
+                _dataUnitHashes = new List<Hash160>();
+                _hashToDataUnitIndex = new Dictionary<Hash160, int>();
+                _dataUnitStack = new Stack<int>();
+                _dataBlocks = new List<DataBlock>();
+                _referenceToDataBlock = new Dictionary<StreamReference, int>();
+                _stringTable = strTable;
+                _signatureDb = signatureDb;
+                _memoryStream = new MemoryStream();
+                _dataWriter = ArchitectureUtils.CreateMemoryWriter(_memoryStream, platform);
             }
 
             private class DataBlock
             {
                 private Dictionary<StreamReference, List<long>> BlockPointers { get; } = new();
-                private Dictionary<StreamReference, List<long>> DataUnitPointers { get; } = new();
 
                 // Markers:
-                // These are used when you are writing data to the stream and you want to
+                // These are used when you are writing data to the stream, and you want to
                 // 'remember' this as a pointer, so you can store a StreamReference and Offset.
                 private Dictionary<StreamReference, long> Markers { get; } = new();
 
                 public int DataUnitIndex{ get; set; }
                 public int Alignment { get; init; }
-                public int Offset { get; init; }
-                public int Size { get; init; }
+                public int Offset { get; set; }
+                public int Size { get; set; }
                 public StreamReference Reference { get; init; }
 
                 public static void End(DataBlock db, IBinaryWriter data)
@@ -561,7 +425,42 @@ namespace GameData
                     // Write actual data to reach the size alignment requirement
                     const byte zero = 0;
                     for (var i = 0; i < gap; ++i)
-                        data.Write(zero);
+                        GameCore.BinaryWriter.Write(data, zero);
+                }
+
+                public Hash160 ComputeHash(byte[] memoryBytes, byte[] workBuffer)
+                {
+                    //      Include the stream pointers in the hash computation otherwise we might
+                    //      collapse two blocks that are not identical.
+                    //
+                    HashUtility.Begin();
+                    HashUtility.Update(memoryBytes,Offset, Size);
+
+                    if (BlockPointers.Count > 0)
+                    {
+                        var offset = 0;
+
+                        // This is a magic 64-bit value that is unique but stable for all DataBlocks
+                        const ulong magic = (ulong)0xDEADBEEFCAFEBABE;
+                        ArchitectureUtils.LittleArchitecture64.Write(magic, workBuffer, offset);
+                        offset += 8;
+
+                        foreach ((StreamReference streamReference, List<long> pointers) in BlockPointers)
+                        {
+                            ArchitectureUtils.LittleArchitecture64.Write(streamReference.Id, workBuffer, offset);
+                            offset += 4;
+
+                            foreach (var pointer in pointers)
+                            {
+                                ArchitectureUtils.LittleArchitecture64.Write(pointer, workBuffer, offset);
+                                offset += 8;
+                            }
+                        }
+
+                        HashUtility.Update(workBuffer, 0, offset);
+                    }
+
+                    return HashUtility.End();
                 }
 
                 private static void AlignTo(IBinaryStream writer, uint alignment)
@@ -574,62 +473,62 @@ namespace GameData
                     return CMath.IsAligned(writer.Position, alignment);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, float v)
+                internal static void Write(IStreamWriter writer, float v)
                 {
                     Debug.Assert(IsAligned(writer, sizeof(float)));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, double v)
+                internal static void Write(IStreamWriter writer, double v)
                 {
                     AlignTo(writer, sizeof(double));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, sbyte v)
+                internal static void Write(IStreamWriter writer, sbyte v)
                 {
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, short v)
+                internal static void Write(IStreamWriter writer, short v)
                 {
                     AlignTo(writer, sizeof(short));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, int v)
+                internal static void Write(IStreamWriter writer, int v)
                 {
                     AlignTo(writer, sizeof(int));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, long v)
+                internal static void Write(IStreamWriter writer, long v)
                 {
                     AlignTo(writer, sizeof(long));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, byte v)
+                internal static void Write(IStreamWriter writer, byte v)
                 {
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, ushort v)
+                internal static void Write(IStreamWriter writer, ushort v)
                 {
                     AlignTo(writer, sizeof(ushort));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, uint v)
+                internal static void Write(IStreamWriter writer, uint v)
                 {
                     AlignTo(writer, sizeof(uint));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
-                internal static void Write(IBinaryStreamWriter writer, ulong v)
+                internal static void Write(IStreamWriter writer, ulong v)
                 {
                     AlignTo(writer, sizeof(ulong));
-                    writer.Write(v);
+                    GameCore.BinaryWriter.Write(writer, v);
                 }
 
                 internal static void Write(IBinaryWriter writer, byte[] data, int index, int count)
@@ -639,10 +538,10 @@ namespace GameData
 
                 internal static void Write(IBinaryWriter writer, ReadOnlySpan<byte> span)
                 {
-                    writer.Write(span);
+                    GameCore.BinaryWriter.Write(writer, span);
                 }
 
-                internal static void WriteDataBlockReference(IBinaryStreamWriter writer, DataBlock db, StreamReference v)
+                internal static void WriteDataBlockReference(IStreamWriter writer, DataBlock db, StreamReference v)
                 {
                     AlignTo(writer, sizeof(ulong));
                     if (db.BlockPointers.TryGetValue(v, out var pointers))
@@ -655,25 +554,7 @@ namespace GameData
                         db.BlockPointers.Add(v, pointers);
                     }
 
-                    writer.Write((long)v.Id);
-                }
-
-                internal static void WriteDataUnitReference(IBinaryStreamWriter writer, DataBlock db, StreamReference v)
-                {
-                    AlignTo(writer, sizeof(ulong));
-                    if (db.DataUnitPointers.TryGetValue(v, out var pointers))
-                    {
-                        pointers.Add(writer.Position - db.Offset);
-                    }
-                    else
-                    {
-                        pointers = new List<long>() { writer.Position - db.Offset };
-                        db.DataUnitPointers.Add(v, pointers);
-                    }
-
-                    writer.Write((long)v.Id); // T*
-                    writer.Write((uint)0); // Offset
-                    writer.Write((uint)0); // Size
+                    GameCore.BinaryWriter.Write(writer, (long)v.Id);
                 }
 
                 internal static void Mark(DataBlock db, StreamReference v, long position)
@@ -681,7 +562,7 @@ namespace GameData
                     db.Markers.Add(v, position - db.Offset);
                 }
 
-                internal static void ReplaceReference(IBinaryStreamWriter data, DataBlock db, StreamReference oldRef, StreamReference newRef)
+                internal static void ReplaceReference(IStreamWriter data, DataBlock db, StreamReference oldRef, StreamReference newRef)
                 {
                     // See if we are using this reference (oldRef) in this data block
                     if (!db.BlockPointers.Remove(oldRef, out var oldOffsets)) return;
@@ -690,7 +571,7 @@ namespace GameData
                     foreach (var o in oldOffsets)
                     {
                         data.Seek(db.Offset + o); // Seek to the position that has the 'StreamReference'
-                        data.Write((long)newRef.Id); // The value we write here is the offset to the data computed in the simulation
+                        BinaryWriter.Write(data, (long)newRef.Id); // The value we write here is the offset to the data computed in the simulation
                     }
 
                     // Update pointer and offsets
@@ -715,7 +596,7 @@ namespace GameData
                     }
                 }
 
-                internal static void CollectStreamPointers(DataBlock db, ICollection<StreamPointer> streamPointers, IDictionary<StreamReference, long> dataOffsetDataBase)
+                internal static void CollectStreamPointers(DataBlock db, ICollection<StreamPointer> streamPointers, IDictionary<StreamReference, long> dataPositionDataBase)
                 {
                     // BlockPointers are references that are written in this Block, each Reference might
                     // have been written more than once so that is why there is a list of Offsets per
@@ -723,20 +604,20 @@ namespace GameData
                     foreach (var (sr, offsets) in db.BlockPointers)
                     {
                         // What is the offset of the data block we are pointing to
-                        var exists = dataOffsetDataBase.TryGetValue(sr, out var referenceOffset);
+                        var exists = dataPositionDataBase.TryGetValue(sr, out var referencePosition);
                         Debug.Assert(exists);
 
                         // The offset are relative to the start of the DataBlock
                         foreach (var o in offsets)
                         {
                             // Remember this pointer
-                            var sp = new StreamPointer() { Position = db.Offset + o, DataOffset = referenceOffset };
+                            var sp = new StreamPointer() { Position = db.Offset + o, DataPosition = referencePosition };
                             streamPointers.Add(sp);
                         }
                     }
                 }
 
-                internal static void WriteStreamPointers(IBinaryDataStream data, List<StreamPointer> streamPointers)
+                internal static void WriteStreamPointers(IDataStream data, List<StreamPointer> streamPointers)
                 {
                     if (streamPointers.Count == 0)
                         return;
@@ -750,12 +631,12 @@ namespace GameData
                     streamPointers[^1].Write(data, streamPointers[^1]);
                 }
 
-                internal static void WriteDataBlock(DataBlock db, IBinaryStreamReader data, IBinaryStreamWriter outData, IDictionary<StreamReference, long> dataOffsetDataBase, byte[] readWriteBuffer)
+                internal static void WriteDataBlock(long dataUnitStartPos, DataBlock db, IStreamReader data, IStreamWriter outData, IDictionary<StreamReference, long> dataOffsetDataBase, byte[] readWriteBuffer)
                 {
                     // Verify the position of the data stream
                     dataOffsetDataBase.TryGetValue(db.Reference, out var outDataBlockOffset);
                     StreamUtils.Align(outData, db.Alignment);
-                    Debug.Assert(outData.Position == outDataBlockOffset);
+                    Debug.Assert((outData.Position-dataUnitStartPos) == outDataBlockOffset);
 
                     // Read from the data stream at the start of the block and write the block to the output
                     data.Seek(db.Offset);
@@ -775,18 +656,18 @@ namespace GameData
 
             public void Align(int align)
             {
-                var offset = mDataWriter.Position;
+                var offset = _dataWriter.Position;
                 if (CMath.TryAlignUp(offset, align, out var alignment)) return;
-                mDataWriter.Position = alignment;
+                _dataWriter.Position = alignment;
             }
 
             public int GetDataUnitIndex(Hash160 hash)
             {
-                if (!mHashToDataUnitIndex.TryGetValue(hash, out var index))
+                if (!_hashToDataUnitIndex.TryGetValue(hash, out var index))
                 {
-                    index = mHashToDataUnitIndex.Count;
-                    mHashToDataUnitIndex.Add(hash, index);
-                    mDataUnitHashes.Add(hash);
+                    index = _hashToDataUnitIndex.Count;
+                    _hashToDataUnitIndex.Add(hash, index);
+                    _dataUnitHashes.Add(hash);
                 }
 
                 return index;
@@ -794,248 +675,234 @@ namespace GameData
 
             public void OpenDataUnit(int index)
             {
-                mDataUnitStack.Push(index);
+                _dataUnitStack.Push(index);
             }
 
             public void CloseDataUnit()
             {
-                Debug.Assert(mDataUnitStack.Count > 0);
-                mDataUnitStack.Pop();
+                Debug.Assert(_dataUnitStack.Count > 0);
+                _dataUnitStack.Pop();
             }
 
-            public int NewBlock(StreamReference reference, int alignment, int size)
+            public void NewBlock(StreamReference reference, int alignment)
             {
-                // NOTE the alignment is kinda obsolete, at this moment aligning blocks to 8 bytes is sufficient
-
-                // Always align the size of the block to 8 bytes
-                size = CMath.AlignUp32(size, 8);
-                mOffset = CMath.AlignUp32(mOffset, alignment);
-
-                mReferenceToDataBlock.Add(reference, mDataBlocks.Count);
-                mDataBlocks.Add( new DataBlock()
+                _referenceToDataBlock.Add(reference, _dataBlocks.Count);
+                _dataBlocks.Add( new DataBlock()
                 {
-                    DataUnitIndex = mDataUnitStack.Peek(),
+                    DataUnitIndex = -1,
                     Alignment = alignment,
-                    Offset = mOffset,
-                    Size = size,
+                    Offset = -1,
+                    Size = -1,
                     Reference = reference
                 });
-
-                mOffset += size;
-
-                if (mOffset >= mDataWriter.Length)
-                {
-                    mDataWriter.Length = mOffset + 4 * 1024;
-                }
-
-                return mDataUnitStack.Peek();
             }
-            
+
             public void OpenBlock(StreamReference r)
             {
-                var exists = mReferenceToDataBlock.TryGetValue(r, out var index);
+                // A DataBlock must have been registered (see NewBlock) before we can open it
+                var exists = _referenceToDataBlock.TryGetValue(r, out var index);
                 Debug.Assert(exists);
-                Debug.Assert(mCurrent == -1);
 
-                mCurrent = index;
+                // We do not allow nested blocks!!
+                Debug.Assert(_current == -1);
+                _current = index;
+
+                Debug.Assert(_dataBlocks[index].DataUnitIndex == -1);
+                Debug.Assert(_dataBlocks[index].Offset == -1);
+                Debug.Assert(_dataBlocks[index].Size == -1);
 
                 // Set the stream position to the start of the block
-                var db = mDataBlocks[index];
-                db.DataUnitIndex = mDataUnitStack.Peek();
-                mDataWriter.Position = db.Offset;
-            }
+                _dataBlocks[index].Offset = (int)_dataWriter.Position;
 
-            public void Mark(StreamReference reference)
-            {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Mark(mDataBlocks[mCurrent], reference, mDataWriter.Position);
+                // Remember the DataUnitIndex for this block
+                _dataBlocks[index].DataUnitIndex = _dataUnitStack.Peek();
             }
 
             public void CloseBlock()
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.End(mDataBlocks[mCurrent], mDataWriter);
+                Debug.Assert(_current >= 0);
+                _dataBlocks[_current].Size = (int)(_dataWriter.Position - _dataBlocks[_current].Offset);
 
-                // Check if the position is within the bounds of this block
-                Debug.Assert(mDataWriter.Position >= mDataBlocks[mCurrent].Offset && mDataWriter.Position <= (mDataBlocks[mCurrent].Offset + mDataBlocks[mCurrent].Size));
+                DataBlock.End(_dataBlocks[_current], _dataWriter);
 
-                mCurrent = -1;
+                _current = -1;
+            }
+
+            public void Mark(StreamReference reference)
+            {
+                Debug.Assert(_current != -1);
+                DataBlock.Mark(_dataBlocks[_current], reference, _dataWriter.Position);
             }
 
             public void Write(float v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(float v)
             {
                 Align(4);
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(double v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(double v)
             {
                 Align(8);
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(sbyte v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(byte v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(short v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(short v)
             {
                 Align(2);
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(int v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(int v)
             {
                 Align(4);
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(long v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(long v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(ushort v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(ushort v)
             {
                 Align(2);
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(uint v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(uint v)
             {
                 Align(4);
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(ulong v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void AlignWrite(ulong v)
             {
                 Align(8);
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, v);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, v);
             }
 
             public void Write(byte[] data, int index, int count)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, data, index, count);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, data, index, count);
             }
 
             public void Write(ReadOnlySpan<byte> span)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.Write(mDataWriter, span);
+                Debug.Assert(_current != -1);
+                DataBlock.Write(_dataWriter, span);
             }
 
-            public void Write(string str)
-            {
-                Debug.Assert(mCurrent != -1);
-                var idx = mStringTable.Add(str);
-                var len = mStringTable.ByteCountForIndex(idx);
-                var reference = mStringTable.StreamReferenceForIndex(idx);
-                Write(reference, len);
-            }
+            //public void Write(string str)
+            //{
+                //Debug.Assert(_current != -1);
+                //var idx = _stringTable.Add(str);
+                //var len = (uint)_stringTable.ByteCountForIndex(idx);
+                //var reference = _stringTable.StreamReferenceForIndex(idx);
+                //Write(reference, len, (uint)str.Length);
+            //}
 
             public void WriteFileId(Hash160 signature)
             {
-                (uint bigfileIndex, uint fileIndex) = mSignatureDb.GetEntry(signature);
-                DataBlock.Write(mDataWriter, bigfileIndex);
-                DataBlock.Write(mDataWriter, fileIndex);
+                (uint bigfileIndex, uint fileIndex) = _signatureDb.GetEntry(signature);
+                DataBlock.Write(_dataWriter, bigfileIndex);
+                DataBlock.Write(_dataWriter, fileIndex);
             }
 
             public void WriteDataBlockReference(StreamReference v)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.WriteDataBlockReference(mDataWriter, mDataBlocks[mCurrent], v);
+                Debug.Assert(_current != -1);
+                DataBlock.WriteDataBlockReference(_dataWriter, _dataBlocks[_current], v);
             }
 
-            public void WriteDataUnitReference(StreamReference v)
+            public void Write(StreamReference v, uint byteLength, uint runeLength)
             {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.WriteDataUnitReference(mDataWriter, mDataBlocks[mCurrent], v);
+                Debug.Assert(_current != -1);
+                DataBlock.WriteDataBlockReference(_dataWriter, _dataBlocks[_current], v);
+                DataBlock.Write(_dataWriter, byteLength);
+                DataBlock.Write(_dataWriter, runeLength);
             }
 
-            public void Write(StreamReference v, long length)
-            {
-                Debug.Assert(mCurrent != -1);
-                DataBlock.WriteDataBlockReference(mDataWriter, mDataBlocks[mCurrent], v);
-                DataBlock.Write(mDataWriter, length);
-            }
-
-            public void Final(IBinaryStreamWriter dataWriter)
+            public void Final(IStreamWriter dataWriter)
             {
             }
 
-            private static BinaryMemoryBlock DeduplicateDataBlocks(MemoryStream memoryStream, Dictionary<StreamReference, DataBlock> blockDataBase)
+            private static MemoryBlock DeduplicateDataBlocks(MemoryStream memoryStream, Dictionary<StreamReference, DataBlock> blockDataBase)
             {
                 // For all blocks that are part of this chunk:
                 // Collapse identical blocks identified by hash, and when a collapse has occurred we have
                 // to re-iterate again since a collapse changes the hash of a data block.
 
                 var memoryBytes = memoryStream.ToArray();
-                var memoryBlock = new BinaryMemoryBlock();
+                var memoryBlock = new MemoryBlock(ArchitectureUtils.LittleArchitecture64);
                 memoryBlock.Setup(memoryBytes, 0, memoryBytes.Length);
 
                 var duplicateDataBase = new Dictionary<StreamReference, List<StreamReference>>();
@@ -1045,6 +912,8 @@ namespace GameData
                 foreach (var b in blockDataBase)
                     dataBlocks.Add(b.Value);
 
+                var workBuffer = new byte[65536];
+
                 while (true)
                 {
                     duplicateDataBase.Clear();
@@ -1052,7 +921,11 @@ namespace GameData
 
                     foreach (var d in dataBlocks)
                     {
-                        var hash = HashUtility.Compute(memoryBytes.AsSpan(d.Offset, d.Size));
+                        // TODO this can lead to incorrect matches, we should ask the DataBlock to compute the hash
+                        //      since it can consider the stream pointers that are in the block
+
+                        var hash = d.ComputeHash(memoryBytes, workBuffer);
+
                         if (dataHashDataBase.TryGetValue(hash, out var newRef))
                         {
                             // Encountering a block of data which has a duplicate.
@@ -1113,7 +986,7 @@ namespace GameData
                 return memoryBlock;
             }
 
-            public void Finalize(IBinaryStreamWriter dataWriter, out List<Hash160> dataUnitSignatures, out List<ulong> dataUnitStreamPositions, out List<ulong> dataUnitStreamSizes)
+            public void Finalize(IStreamWriter dataWriter, out List<Hash160> dataUnitSignatures, out List<ulong> dataUnitStreamPositions, out List<ulong> dataUnitStreamSizes)
             {
                 // NEW, DataUnits!
                 // A DataUnit consists of Blocks.
@@ -1123,8 +996,8 @@ namespace GameData
                 // the Runtime we have some information, like where the first Pointer is located to start
                 // patching them.
                 var blockDataBases = new List<Dictionary<StreamReference, DataBlock>>();
-                var dataUnitDataBase = new Dictionary<int, int>(mDataBlocks.Count);
-                foreach (var d in mDataBlocks)
+                var dataUnitDataBase = new Dictionary<int, int>(_dataBlocks.Count);
+                foreach (var d in _dataBlocks)
                 {
                     Dictionary<StreamReference, DataBlock> blockDatabase;
                     if (!dataUnitDataBase.TryGetValue(d.DataUnitIndex, out var blockDatabaseIndex))
@@ -1145,35 +1018,31 @@ namespace GameData
                 foreach (var (dataUnitIndex,  dataUnitBlockDataBaseIndex) in dataUnitDataBase)
                 {
                     // The signature of this DataUnit
-                    dataUnitSignatures.Add(mDataUnitHashes[dataUnitIndex]);
-                    
-                    // Store the start of the DataUnit
-                    var dataUnitBeginPos = dataWriter.Position;
-                    dataUnitStreamPositions.Add((ulong)dataUnitBeginPos);
+                    dataUnitSignatures.Add(_dataUnitHashes[dataUnitIndex]);
 
                     // Dictionary for mapping a Reference to a DataBlock
                     var blockDataBase = blockDataBases[dataUnitBlockDataBaseIndex];
 
-                    var memoryStream = DeduplicateDataBlocks(mMemoryStream, blockDataBase);
+                    var memoryStream = DeduplicateDataBlocks(_memoryStream, blockDataBase);
 
                     // Compute stream offset for each data block, do this by simulating the writing process.
                     // All references (pointers) are written in the stream as a 64-bit offset (64-bit pointers)
                     // relative to the start of the data stream.
-                    var dataOffsetDataBase = new Dictionary<StreamReference, long>();
-                    var offset = (long)0;
+                    var streamReferenceToPositionDataBase = new Dictionary<StreamReference, long>();
+                    var position = (long)0;
                     foreach (var (dbRef, db) in blockDataBase)
                     {
-                        offset = CMath.AlignUp(offset, db.Alignment);
-                        dataOffsetDataBase.Add(dbRef, offset);
-                        DataBlock.ProcessStreamMarkers(db, offset, dataOffsetDataBase);
-                        offset += db.Size;
+                        position = CMath.AlignUp(position, db.Alignment);
+                        streamReferenceToPositionDataBase.Add(dbRef, position);
+                        DataBlock.ProcessStreamMarkers(db, position, streamReferenceToPositionDataBase);
+                        position += db.Size;
                     }
 
                     // Collect all pointers that are in the stream, we will build a Singly-LinkedList out of them
                     var streamPointers = new List<StreamPointer>();
                     foreach (var (_, db) in blockDataBase)
                     {
-                        DataBlock.CollectStreamPointers(db, streamPointers, dataOffsetDataBase);
+                        DataBlock.CollectStreamPointers(db, streamPointers, streamReferenceToPositionDataBase);
                     }
 
                     // Connect all StreamPointer into a Singly-LinkedList so that in the Runtime we
@@ -1181,45 +1050,49 @@ namespace GameData
                     // additional file with pointer locations.
                     DataBlock.WriteStreamPointers(memoryStream, streamPointers);
 
-                    // Write all DataBlocks 
+                    // Align start of DataUnit at 16 bytes
+                    StreamUtils.Align(dataWriter, 16);
+
+                    // Store the start of the DataUnit
+                    var dataUnitBeginPos = dataWriter.Position;
+                    dataUnitStreamPositions.Add((ulong)dataUnitBeginPos);
+
+                    // Write all DataBlocks
                     foreach (var (_, db) in blockDataBase)
                     {
-                        DataBlock.WriteDataBlock(db, memoryStream, dataWriter, dataOffsetDataBase, readWriteBuffer);
+                        DataBlock.WriteDataBlock(dataUnitBeginPos, db, memoryStream, dataWriter, streamReferenceToPositionDataBase, readWriteBuffer);
                     }
 
                     // Remember the current location
                     var dataUnitEndPos = dataWriter.Position;
-
-                    // Align to N bytes
-                    StreamUtils.Align(dataWriter, 256);
 
                     // Store the position and size of this DataUnit
                     dataUnitStreamSizes.Add((ulong)dataUnitEndPos - (ulong)dataUnitBeginPos);
                 }
             }
 
-            public IArchitecture Architecture => mDataWriter.Architecture;
+            public IArchitecture Architecture => _dataWriter.Architecture;
 
             public long Position
             {
-                get => mDataWriter.Position;
-                set => mDataWriter.Position = value;
+                get => _dataWriter.Position;
+                set => _dataWriter.Position = value;
             }
 
             public long Length
             {
-                get => mDataWriter.Length;
-                set => mDataWriter.Length = value;
+                get => _dataWriter.Length;
+                set => _dataWriter.Length = value;
             }
 
             public long Seek(long offset)
             {
-                return mDataWriter.Seek(offset);
+                return _dataWriter.Seek(offset);
             }
 
             public void Close()
             {
-                mDataWriter.Close();
+                _dataWriter.Close();
             }
         }
     }

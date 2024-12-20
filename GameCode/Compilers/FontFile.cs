@@ -28,21 +28,21 @@ namespace GameData
 
         public void BuildSignature(IBinaryWriter stream)
         {
-            stream.Write("FontDataFile");
-            stream.Write(mSrcFilename);
+            GameCore.BinaryWriter.Write(stream,"FontDataFile");
+            GameCore.BinaryWriter.Write(stream,mSrcFilename);
         }
 
         public void SaveState(IBinaryWriter stream)
         {
-            stream.Write(mSrcFilename);
-            stream.Write(mDstFilename);
+            GameCore.BinaryWriter.Write(stream,mSrcFilename);
+            GameCore.BinaryWriter.Write(stream,mDstFilename);
             mDependency.WriteTo(stream);
         }
 
         public void LoadState(IBinaryReader stream)
         {
-            mSrcFilename = stream.ReadString();
-            mDstFilename = stream.ReadString();
+            GameCore.BinaryReader.Read(stream, out mSrcFilename);
+            GameCore.BinaryReader.Read(stream, out mDstFilename);
             mDependency = Dependency.ReadFrom(stream);
         }
 

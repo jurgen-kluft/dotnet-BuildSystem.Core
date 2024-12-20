@@ -13,18 +13,21 @@ namespace GameData
             const string code = """
                                 struct fileid_t
                                 {
-                                    explicit fileid_t(u64 id)
-                                    : id(id)
+                                    explicit fileid_t(u32 bigfileIndex, u32 fileIndex)
+                                        : bigfileIndex(bigfileIndex)
+                                        , fileIndex(fileIndex)
                                     {
                                     }
-                                    inline u64 getId() const { return id; }
+
+                                    inline u32 getBigfileIndex() const { return bigfileIndex; }
+                                    inline u32 getFileIndex() const { return fileIndex; }
 
                                 private:
-                                    u64 id;
+                                    u32 bigfileIndex;
+                                    u32 fileIndex;
                                 };
 
-                                const fileid_t INVALID_FILEID((u64)-1);
-
+                                const fileid_t INVALID_FILEID((u32)-1, (u32)-1);
                                 """;
             return code.Split("\n");
         }

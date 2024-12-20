@@ -6,15 +6,15 @@ namespace GameCore
 {
     public struct StreamPointer
     {
-        public long Position { get; init; }   // The position in the stream of where the pointer is located
-        public long DataOffset { get; init; } // Pointer is pointing to [Position + Offset]
+        public long Position { get; init; }   // The position in the stream of where this pointer is located
+        public long DataPosition { get; init; } // Pointer is pointing to [Position + Offset]
 
-        public void Write(IBinaryWriter writer, StreamPointer previousStreamPointer)
+        public void Write(IBinaryWriter writer, StreamPointer nextStreamPointer)
         {
-            var next32 = (int)((previousStreamPointer.Position - Position) / 8);
-            var offset32 = (int)(DataOffset / 8);
-            writer.Write(next32);
-            writer.Write(offset32);
+            var next32 = (int)((nextStreamPointer.Position - Position));
+            var offset32 = (int)(DataPosition - Position);
+            GameCore.BinaryWriter.Write(writer, next32);
+            GameCore.BinaryWriter.Write(writer, offset32);
         }
     }
 }

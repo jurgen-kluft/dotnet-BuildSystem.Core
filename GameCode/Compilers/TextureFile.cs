@@ -27,21 +27,21 @@ namespace GameData
 
         public void BuildSignature(IBinaryWriter stream)
         {
-            stream.Write("TextureCompiler");
-            stream.Write(_srcFilename);
+            GameCore.BinaryWriter.Write(stream,"TextureCompiler");
+            GameCore.BinaryWriter.Write(stream,_srcFilename);
         }
 
         public void SaveState(IBinaryWriter stream)
         {
-            stream.Write(_srcFilename);
-            stream.Write(_dstFilename);
+            GameCore.BinaryWriter.Write(stream,_srcFilename);
+            GameCore.BinaryWriter.Write(stream,_dstFilename);
             _dependency.WriteTo(stream);
         }
 
         public void LoadState(IBinaryReader stream)
         {
-            _srcFilename = stream.ReadString();
-            _dstFilename = stream.ReadString();
+            GameCore.BinaryReader.Read(stream, out _srcFilename);
+            GameCore.BinaryReader.Read(stream, out _dstFilename);
             _dependency = Dependency.ReadFrom(stream);
         }
 

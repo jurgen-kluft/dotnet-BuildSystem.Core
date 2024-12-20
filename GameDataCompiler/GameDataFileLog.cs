@@ -101,12 +101,11 @@ namespace DataBuildSystem
 
         public static bool Save(EPlatform platform, string filepath, List<IDataFile> dataFiles)
         {
-            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, platform);
+            var writer = ArchitectureUtils.CreateFileWriter(filepath, platform);
             if (writer == null) return false;
 
             MemoryStream memoryStream = new();
-            BinaryMemoryWriter memoryWriter = new();
-            if (memoryWriter.Open(memoryStream, ArchitectureUtils.GetEndianForPlatform(platform)))
+            MemoryWriter memoryWriter = new(memoryStream, ArchitectureUtils.GetEndianForPlatform(platform));
             {
                 foreach (var compiler in dataFiles)
                 {
@@ -123,9 +122,9 @@ namespace DataBuildSystem
 
                     // state
                     var stateLen = (int)memoryStream.Length;
-                    writer.Write(stateLen); // state size
+                    GameCore.BinaryWriter.Write(writer, stateLen);
                     var memoryStreamBuffer = memoryStream.GetBuffer();
-                    writer.Write(memoryStreamBuffer, 0, stateLen);
+                    GameCore.BinaryWriter.Write(writer, memoryStreamBuffer, 0, stateLen);
                 }
 
                 memoryWriter.Close();
@@ -141,7 +140,7 @@ namespace DataBuildSystem
         {
             var loadedDataFilelog = new List<IDataFile>();
 
-            BinaryFileReader reader = new();
+            FileStreamReader reader = new();
             if (!reader.Open(filepath))
                 return loadedDataFilelog;
 
@@ -171,12 +170,12 @@ namespace DataBuildSystem
                         loadedDataFilelog.Add(compiler);
                     }
 
-                    var stateSize = reader.ReadUInt32();
+                    GameCore.BinaryReader.Read(reader, out uint stateSize);
                     compiler.LoadState(reader);
                 }
                 else
                 {
-                    var stateSize = reader.ReadUInt32();
+                    GameCore.BinaryReader.Read(reader, out uint stateSize);
                     if (!reader.SkipBytes(stateSize))
                         break;
                 }

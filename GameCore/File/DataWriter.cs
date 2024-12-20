@@ -1,16 +1,16 @@
 
 namespace GameCore
 {
-    public interface IDataWriter : IBinaryStreamWriter
+    public interface IDataWriter : IStreamWriter
     {
         void OpenDataUnit(int dataUnitReference);
-        int NewBlock(StreamReference reference, int alignment, int size);
+        void NewBlock(StreamReference reference, int alignment);
         void OpenBlock(StreamReference reference);
         void WriteDataBlockReference(StreamReference v);
         void Mark(StreamReference reference);
         void CloseBlock();
         void CloseDataUnit();
 
-        void Final(IBinaryStreamWriter dataWriter);
+        void Final(IStreamWriter dataWriter);
     }
 }

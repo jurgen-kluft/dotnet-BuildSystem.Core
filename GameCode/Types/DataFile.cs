@@ -40,7 +40,7 @@ namespace GameData
 
         public void StructWrite(IGameDataWriter writer)
         {
-            writer.Write((ulong)0);
+            GameCore.BinaryWriter.Write(writer, (ulong)0);
             writer.WriteFileId(Signature);
         }
     }

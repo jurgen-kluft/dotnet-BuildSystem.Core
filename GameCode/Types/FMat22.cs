@@ -56,10 +56,10 @@ namespace GameData
 
         public void StructWrite(IGameDataWriter writer)
         {
-            writer.Write(Mat[0].X);
-            writer.Write(Mat[0].Y);
-            writer.Write(Mat[1].X);
-            writer.Write(Mat[1].Y);
+            GameCore.BinaryWriter.Write(writer, Mat[0].X);
+            GameCore.BinaryWriter.Write(writer, Mat[0].Y);
+            GameCore.BinaryWriter.Write(writer, Mat[1].X);
+            GameCore.BinaryWriter.Write(writer, Mat[1].Y);
         }
     }
 }

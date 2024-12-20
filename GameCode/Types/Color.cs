@@ -199,7 +199,7 @@ namespace GameData
 
         public void StructWrite(IGameDataWriter writer)
         {
-            writer.Write(mColor);
+            GameCore.BinaryWriter.Write(writer, mColor);
         }
     }
 }

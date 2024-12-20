@@ -173,12 +173,12 @@ namespace DataBuildSystem
 
         public static Dependency Load(GameDataPath path, string relativeFilepath)
         {
-            BinaryFileReader reader = new();
+            FileStreamReader reader = new();
             //var filepath = Path.Join(GameDataPath.GetPath(GameDataPath.Dst), Path.Join(GameDataPath.GetPath(path), filePath, ".dep"));
             var filepath = Path.Join(path.GetDirPath(), relativeFilepath);
             if (reader.Open(filepath))
             {
-                var magic = reader.ReadInt64();
+                GameCore.BinaryReader.Read(reader, out long magic);
                 if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
                 {
                     var dep = ReadFrom(reader);
@@ -194,10 +194,10 @@ namespace DataBuildSystem
         {
             var dirpath = BuildSystemConfig.DstPath;
             var filepath = Path.Join(dirpath, FilePaths[0] + ".dep");
-            var writer = ArchitectureUtils.CreateBinaryFileWriter(filepath, Platform.Current);
+            var writer = ArchitectureUtils.CreateFileWriter(filepath, Platform.Current);
             if (writer != null)
             {
-                writer.Write(StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
+                GameCore.BinaryWriter.Write(writer, StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
                 WriteTo(writer);
                 writer.Close();
                 return true;
@@ -212,15 +212,16 @@ namespace DataBuildSystem
         {
             Dependency dep = new();
             {
-                var count = reader.ReadInt32();
+                //var count = reader.ReadInt32();
+                GameCore.BinaryReader.Read(reader, out int count);
                 dep.Infos = new List<Info>(count);
                 dep.Hashes = new List<Hash160>(count);
 
                 for (var i = 0; i < count; i++)
                 {
-                    var id = reader.ReadUInt16();
-                    var gdp = reader.ReadUInt8();
-                    var method = reader.ReadInt8();
+                    GameCore.BinaryReader.Read(reader, out ushort id);
+                    GameCore.BinaryReader.Read(reader, out byte gdp);
+                    GameCore.BinaryReader.Read(reader, out byte method);
 
                     dep.Infos.Add(new Info() { DataPath = (EGameDataPath)gdp, Id = id, Method = (EMethod)method });
                     dep.Hashes.Add(Hash160.ReadFrom(reader));
@@ -229,7 +230,7 @@ namespace DataBuildSystem
                 dep.FilePaths = new List<string>(count);
                 for (var i = 0; i < count; i++)
                 {
-                    var fp = reader.ReadString();
+                    GameCore.BinaryReader.Read(reader, out string fp);
                     dep.FilePaths.Add(fp);
                 }
             }
@@ -238,18 +239,18 @@ namespace DataBuildSystem
 
         public void WriteTo(IBinaryWriter writer)
         {
-            writer.Write(Count);
+            GameCore.BinaryWriter.Write(writer, Count);
             for (var i = 0; i < Count; i++)
             {
-                writer.Write(Infos[i].Id);
-                writer.Write((byte)Infos[i].DataPath);
-                writer.Write((byte)Infos[i].Method);
+                GameCore.BinaryWriter.Write(writer, Infos[i].Id);
+                GameCore.BinaryWriter.Write(writer, (byte)Infos[i].DataPath);
+                GameCore.BinaryWriter.Write(writer, (byte)Infos[i].Method);
                 Hashes[i].WriteTo(writer);
             }
 
             foreach (var i in FilePaths)
             {
-                writer.Write(i);
+                GameCore.BinaryWriter.Write(writer, i);
             }
         }
     }

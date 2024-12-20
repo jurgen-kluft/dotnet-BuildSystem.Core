@@ -161,7 +161,7 @@ namespace DataBuildSystem
             // 2) for every language in the "filename.xls" file a "filename.%LANGUAGE%.loc" file (binary) is exported
             // 3) a "filename.xls.sdep" file with the "filename.xls" file as INPUT and "filename.ids", "filename.%LANGUAGE%.loc" files as OUTPUT
             var ldb = new Localization.LocDatabase();
-            ldb.init(LocalizerConfig.Excel0);
+            ldb.Init(LocalizerConfig.Excel0);
 
             var builders = new Localization.Builder[sourceFiles.Count];
 
@@ -176,10 +176,10 @@ namespace DataBuildSystem
                     worksheetNames = new string[] { "main" };
                 builders[i] = new Localization.Builder(sourceFiles[i], worksheetNames);
 
-                result = builders[i].init(ldb);
+                result = builders[i].Init(ldb);
                 if (result)
                 {
-                    if (builders[i].isModified)
+                    if (builders[i].IsModified)
                     {
                         anyModified = true;
                         // if .sdep says it is NOT up-to-date
@@ -189,7 +189,7 @@ namespace DataBuildSystem
                         // 4) write .ids file through LocDatabase
                         // 5) write all .loc files through LocDatabase
                         // 6) write .sdep file
-                        result = builders[i].build(ldb);
+                        result = builders[i].Build(ldb);
                     }
                 }
 
@@ -200,7 +200,7 @@ namespace DataBuildSystem
             if (result)
             {
                 // Is any of the sources modified, if not we can terminate successfully here
-                if (!ldb.isModified && !anyModified)
+                if (!ldb.IsModified && !anyModified)
                     return Success();
 
                 // Some source has been rebuild, now we need to load all of them and save the combined stuff.
@@ -209,14 +209,14 @@ namespace DataBuildSystem
                     // Add all the data from the builders that where already up-to-date
                     // 1) load "filename.ids" file
                     // 2) load all "filename.%LANGUAGE%.loc" files
-                    if (!builders[i].isModified)
+                    if (!builders[i].IsModified)
                     {
-                        result = builders[i].load(ldb);
+                        result = builders[i].Load(ldb);
                         if (!result)
                             return Error();
                     }
                 }
-                return (ldb.save()) ? Success() : Error();
+                return (ldb.Save()) ? Success() : Error();
             }
             else
             {

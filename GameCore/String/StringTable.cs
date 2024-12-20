@@ -6,18 +6,16 @@ namespace GameCore
     {
         private readonly UTF8Encoding _encoding = new ();
         private readonly Dictionary<string, int> _dictionary;
-        private readonly List<uint> _hashes;
+        private readonly List<Hash160> _hashes;
         private readonly List<int> _byteLengths;
-        private readonly List<StreamReference> _references;
         private readonly List<string> _strings;
         private byte[] _utf8;
 
         public StringTable(int estimatedNumberOfStrings = 4096, int longestUtf8StrLen = 8192)
         {
             _dictionary = new Dictionary<string, int>(estimatedNumberOfStrings);
-            _hashes = new List<uint>(estimatedNumberOfStrings);
+            _hashes = new List<Hash160>(estimatedNumberOfStrings);
             _byteLengths = new List<int>(estimatedNumberOfStrings);
-            _references = new List<StreamReference>(estimatedNumberOfStrings);
             _strings = new List<string>(estimatedNumberOfStrings);
             _utf8 = new byte[longestUtf8StrLen];
 
@@ -29,7 +27,7 @@ namespace GameCore
             StringsReference = StreamReference.NewReference;
         }
 
-        public StreamReference Reference { get;  }
+        private StreamReference Reference { get;  }
         private StreamReference  HashesReference { get;  }
         private StreamReference  OffsetsReference { get;  }
         private StreamReference  RuneLengthsReference { get;  }
@@ -44,7 +42,6 @@ namespace GameCore
             index = _strings.Count;
 
             _dictionary.Add(inString, index);
-            _references.Add(StreamReference.NewReference);
             _strings.Add(inString);
 
             var count = _encoding.GetByteCount(inString);
@@ -56,9 +53,8 @@ namespace GameCore
             var len = _encoding.GetBytes(inString, 0, inString.Length, _utf8, 0);
             _utf8[len] = 0; // Do include a terminating zero
             _byteLengths.Add(len + 1);
-            var hash = Hashing.Compute(_utf8.AsSpan(0, len + 1));
+            var hash = HashUtility.Compute(_utf8, 0, len);
             _hashes.Add(hash);
-
             return index;
         }
 
@@ -68,14 +64,9 @@ namespace GameCore
             return _byteLengths[index];
         }
 
-        public StreamReference StreamReferenceForIndex(int index)
-        {
-            return _references[index];
-        }
-
         private struct HashIndex
         {
-            public uint Hash;
+            public Hash160 Hash;
             public int Index;
         };
 
@@ -89,17 +80,13 @@ namespace GameCore
                 sortedHashes.Add(new HashIndex { Hash = hash, Index = count });
                 count += 1;
             }
-            sortedHashes.Sort((a, b) => a.Hash.CompareTo(b.Hash));
+            sortedHashes.Sort((a, b) => Hash160.Compare(a.Hash, b.Hash));
 
             // We need to precompute the size of the string table parts
             var hashesSize = count * sizeof(uint);
             var offsetsSize = count * sizeof(uint);
             var runeLengthsSize = count * sizeof(uint);
             var byteLengthsSize = count * sizeof(uint);
-
-            var stringsSize = 0;
-            foreach (var s in _byteLengths)
-                stringsSize += s;
 
             // u32         mMagic;  // 'STRT'
             // u32         mNumStrings;
@@ -112,17 +99,17 @@ namespace GameCore
 
             // Write StringTable
 
-            writer.NewBlock(Reference, 8, mainSize);
-            writer.NewBlock(HashesReference, 8, hashesSize);
-            writer.NewBlock(OffsetsReference, 8, offsetsSize);
-            writer.NewBlock(RuneLengthsReference, 8, runeLengthsSize);
-            writer.NewBlock(ByteLengthsReference, 8, byteLengthsSize);
-            writer.NewBlock(StringsReference, 8, stringsSize);
+            writer.NewBlock(Reference, 8);
+            writer.NewBlock(HashesReference, 8);
+            writer.NewBlock(OffsetsReference, 8);
+            writer.NewBlock(RuneLengthsReference, 8);
+            writer.NewBlock(ByteLengthsReference, 8);
+            writer.NewBlock(StringsReference, 8);
 
             {
                 writer.OpenBlock(Reference);
-                writer.Write(StringTools.Encode_32_5('S','T','R','T','B'));
-                writer.Write(count);
+                BinaryWriter.Write(writer,StringTools.Encode_32_5('S','T','R','T','B'));
+                BinaryWriter.Write(writer,count);
                 writer.WriteDataBlockReference(HashesReference);
                 writer.WriteDataBlockReference(OffsetsReference);
                 writer.WriteDataBlockReference(RuneLengthsReference);
@@ -130,12 +117,12 @@ namespace GameCore
                 writer.WriteDataBlockReference(StringsReference);
                 writer.CloseBlock();
 
-                // String Hashes
+                // String Hashes (160-bit -> 32-bit)
                 writer.OpenBlock(HashesReference);
                 {
                     for (var i = 0; i < count; ++i)
                     {
-                        writer.Write(sortedHashes[i].Hash);
+                        BinaryWriter.Write(writer,sortedHashes[i].Hash.AsHash32());
                     }
                 }
                 writer.CloseBlock();
@@ -147,7 +134,7 @@ namespace GameCore
                     for (var i = 0; i < count; ++i)
                     {
                         var j = sortedHashes[i].Index;
-                        writer.Write(offset);
+                        BinaryWriter.Write(writer,offset);
                         offset += _byteLengths[j];
                     }
                 }
@@ -156,12 +143,10 @@ namespace GameCore
                 // String Rune Lengths
                 writer.OpenBlock(RuneLengthsReference);
                 {
-                    var offset = 0;
                     for (var i = 0; i < count; ++i)
                     {
                         var j = sortedHashes[i].Index;
-                        writer.Write(offset);
-                        offset += _strings[j].Length;
+                        BinaryWriter.Write(writer, _strings[j].Length);
                     }
                 }
                 writer.CloseBlock();
@@ -169,12 +154,10 @@ namespace GameCore
                 // String Byte Lengths
                 writer.OpenBlock(ByteLengthsReference);
                 {
-                    var offset = 0;
                     for (var i = 0; i < count; ++i)
                     {
                         var j = sortedHashes[i].Index;
-                        writer.Write(offset);
-                        offset += _byteLengths[j];
+                        BinaryWriter.Write(writer,_byteLengths[j]);
                     }
                 }
                 writer.CloseBlock();
@@ -187,8 +170,7 @@ namespace GameCore
                         var j = sortedHashes[i].Index;
                         var utf8Len = _encoding.GetBytes(_strings[j], 0, _strings[j].Length, _utf8, 0);
                         _utf8[utf8Len] = 0; // Do include a terminating zero
-                        writer.Mark(_references[j]); // Mark a reference to the position in the data stream
-                        writer.Write(_utf8, 0, utf8Len + 1);
+                        BinaryWriter.Write(writer, _utf8, 0, utf8Len + 1);
                     }
                 }
                 writer.CloseBlock();

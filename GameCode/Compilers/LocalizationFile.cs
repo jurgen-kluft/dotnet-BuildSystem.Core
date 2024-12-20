@@ -1,5 +1,6 @@
 using GameCore;
 using DataBuildSystem;
+using BinaryWriter = GameCore.BinaryWriter;
 
 namespace GameData
 {
@@ -28,12 +29,11 @@ namespace GameData
         LanguageNorwegian = 19,
         LanguagePolish = 20,
         LanguageCount,
-        LanguageDefault = LanguageEnglish
     };
 
     public sealed class Languages
     {
-        public ELanguage DefaultLanguage = ELanguage.LanguageDefault;
+        public ELanguage DefaultLanguage = ELanguage.LanguageEnglish;
         public LanguageDataFile[] LanguageArray = new LanguageDataFile[(int)ELanguage.LanguageCount];
     }
 
@@ -60,24 +60,24 @@ namespace GameData
 
         public void BuildSignature(IBinaryWriter stream)
         {
-            stream.Write("LocalizationCompiler");
-            stream.Write(_srcFilename);
+            BinaryWriter.Write(stream, "LocalizationCompiler");
+            BinaryWriter.Write(stream, _srcFilename);
         }
 
         public void SaveState(IBinaryWriter stream)
         {
-            stream.Write(_srcFilename);
+            BinaryWriter.Write(stream,_srcFilename);
 
-            stream.Write(_srcFilenames.Count);
+            BinaryWriter.Write(stream,_srcFilenames.Count);
             foreach (var filename in _srcFilenames)
             {
-                stream.Write(filename);
+                BinaryWriter.Write(stream,filename);
             }
 
-            stream.Write(_dstFilenames.Count);
+            BinaryWriter.Write(stream,_dstFilenames.Count);
             foreach (var filename in _dstFilenames)
             {
-                stream.Write(filename);
+                BinaryWriter.Write(stream,filename);
             }
 
             _dependency.WriteTo(stream);
@@ -85,22 +85,24 @@ namespace GameData
 
         public void LoadState(IBinaryReader stream)
         {
-            _srcFilename = stream.ReadString();
+            GameCore.BinaryReader.Read(stream, out _srcFilename);
 
-            var srcCount = stream.ReadInt32();
+            GameCore.BinaryReader.Read(stream, out int srcCount);
             _srcFilenames.Clear();
             _srcFilenames.Capacity = srcCount;
             for (var i = 0; i < srcCount; i++)
             {
-                _srcFilenames.Add(stream.ReadString());
+                GameCore.BinaryReader.Read(stream, out string filename);
+                _srcFilenames.Add(filename);
             }
 
-            var dstCount = stream.ReadInt32();
+            GameCore.BinaryReader.Read(stream, out int dstCount);
             _dstFilenames.Clear();
             _dstFilenames.Capacity = dstCount;
             for (var i = 0; i < dstCount; i++)
             {
-                _dstFilenames.Add(stream.ReadString());
+                GameCore.BinaryReader.Read(stream, out string filename);
+                _dstFilenames.Add(filename);
             }
 
             _dependency = Dependency.ReadFrom(stream);
@@ -206,21 +208,21 @@ namespace GameData
 
         public void BuildSignature(IBinaryWriter stream)
         {
-            stream.Write("LanguageCompiler");
-            stream.Write(_srcFilename);
+            BinaryWriter.Write(stream,"LanguageCompiler");
+            BinaryWriter.Write(stream,_srcFilename);
         }
 
         public void SaveState(IBinaryWriter stream)
         {
-            stream.Write(_srcFilename);
-            stream.Write(_dstFilename);
+            BinaryWriter.Write(stream,_srcFilename);
+            BinaryWriter.Write(stream,_dstFilename);
             _dependency.WriteTo(stream);
         }
 
         public void LoadState(IBinaryReader stream)
         {
-            _srcFilename = stream.ReadString();
-            _dstFilename = stream.ReadString();
+            GameCore.BinaryReader.Read(stream, out _srcFilename);
+            GameCore.BinaryReader.Read(stream, out _dstFilename);
             _dependency = Dependency.ReadFrom(stream);
         }
 

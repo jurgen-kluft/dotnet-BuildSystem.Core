@@ -33,7 +33,7 @@ namespace GameCore
             mReferencesOfReferenceInStream.Add(offset);
         }
 
-        public void ResolveToNull(IBinaryStreamWriter writer)
+        public void ResolveToNull(IStreamWriter writer)
         {
             if (mReferencesOfReferenceInStream.Count > 0)
             {
@@ -45,7 +45,7 @@ namespace GameCore
                     {
                         Debug.Assert(o != StreamOffset.sEmpty.Offset);
                         writer.Seek((long)o);
-                        writer.Write(nullPointer32);
+                        GameCore.BinaryWriter.Write(writer, nullPointer32);
                     }
 
                     writer.Seek(currentOffset);
@@ -58,7 +58,7 @@ namespace GameCore
                     {
                         Debug.Assert(o != StreamOffset.sEmpty.Offset);
                         writer.Seek((long)o);
-                        writer.Write(nullPointer64);
+                        GameCore.BinaryWriter.Write(writer, nullPointer64);
                     }
 
                     writer.Seek(currentOffset);
@@ -66,7 +66,7 @@ namespace GameCore
             }
         }
 
-        public bool Resolve(IBinaryStreamWriter writer)
+        public bool Resolve(IStreamWriter writer)
         {
             if (mReferencesOfReferenceInStream.Count <= 0) return true;
 
@@ -89,7 +89,7 @@ namespace GameCore
                 {
                     Debug.Assert(o != StreamOffset.sEmpty.Offset);
                     writer.Seek((long)o);
-                    writer.Write(offsetToWrite);
+                    GameCore.BinaryWriter.Write(writer, offsetToWrite);
                 }
 
                 writer.Seek(currentOffset);
@@ -102,7 +102,7 @@ namespace GameCore
                 {
                     Debug.Assert(o != StreamOffset.sEmpty.Offset);
                     writer.Seek((long)o);
-                    writer.Write(offsetToWrite);
+                    GameCore.BinaryWriter.Write(writer, offsetToWrite);
                 }
                 writer.Seek(currentOffset);
             }

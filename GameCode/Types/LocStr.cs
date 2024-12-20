@@ -32,7 +32,7 @@ namespace GameData
 
         public void StructWrite(IGameDataWriter writer)
         {
-            writer.Write(LocStrId);
+            GameCore.BinaryWriter.Write(writer, LocStrId);
         }
     }
 }

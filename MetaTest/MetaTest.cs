@@ -8,8 +8,6 @@ namespace MetaTest
 
     class Program
     {
-        #region Error & Success
-
         private static int Error()
         {
             return 1;
@@ -19,10 +17,6 @@ namespace MetaTest
         {
             return 0;
         }
-
-        #endregion
-
-        #region Main
 
         public class FixedSignature : ISignature
         {
@@ -130,7 +124,7 @@ namespace MetaTest
             var bigfileGameCodeDataFilepath = GameDataPath.GameDataCppData.GetFilePath("TestData");
             var bigfileDataFileInfo = new FileInfo(bigfileGameCodeDataFilepath);
             var bigfileDataStream = new FileStream(bigfileDataFileInfo.FullName, FileMode.Create);
-            var bigfileDataStreamWriter = ArchitectureUtils.CreateBinaryFileWriter(bigfileDataStream, platform);
+            var bigfileDataStreamWriter = ArchitectureUtils.CreateFileWriter(bigfileDataStream, platform);
 
             var signatureDb = new TestSignatureDb();
             var rootDataUnitSignature = HashUtility.Compute_ASCII(rootDataUnit.Signature);
@@ -155,7 +149,5 @@ namespace MetaTest
 
             return Success();
         }
-
-        #endregion
     }
 }

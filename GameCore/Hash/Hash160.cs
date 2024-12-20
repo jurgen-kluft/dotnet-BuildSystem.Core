@@ -5,7 +5,7 @@ namespace GameCore
 {
     public struct Hash160
     {
-        private static readonly byte[] sHashNull = new byte[20]
+        private static readonly byte[] s_hashNull = new byte[20]
         {
             0x00,
             0x00,
@@ -29,7 +29,7 @@ namespace GameCore
             0x00
         };
 
-        private static readonly byte[] sHashError = new byte[20]
+        private static readonly byte[] s_hashError = new byte[20]
         {
             0xFF,
             0xFF,
@@ -53,54 +53,72 @@ namespace GameCore
             0xFF
         };
 
-        public static Hash160 Null => new(sHashNull, 0);
+        public static Hash160 Null => new(s_hashNull, 0);
 
-        public static Hash160 Empty => new(sHashNull, 0);
+        public static Hash160 Empty => new(s_hashNull, 0);
 
-        public static Hash160 Error => new(sHashError, 0);
+        private static Hash160 Error => new(s_hashError, 0);
+
+        public ulong AsHash64()
+        {
+            ulong hash = 0;
+            for (var i = 0; i < 8; i++)
+            {
+                hash = (hash << 8) | HashData[i];
+            }
+            return hash;
+        }
+
+        public ulong AsHash32()
+        {
+            ulong hash = 0;
+            for (var i = 0; i < 4; i++)
+            {
+                hash = (hash << 8) | HashData[i];
+            }
+            return hash;
+        }
 
         public bool IsErrorHash()
         {
-            var equal = (_hash[0] == sHashError[0]);
+            var equal = (HashData[0] == s_hashError[0]);
             for (var j = 1; j < Size && equal; j++)
-                equal = (_hash[j] == sHashError[j]);
+                equal = (HashData[j] == s_hashError[j]);
             return equal;
         }
 
         public bool IsNullHash()
         {
-            var equal = (_hash[0] == sHashNull[0]);
+            var equal = (HashData[0] == s_hashNull[0]);
             for (var j = 1; j < Size && equal; j++)
-                equal = (_hash[j] == sHashNull[j]);
+                equal = (HashData[j] == s_hashNull[j]);
             return equal;
         }
 
-        private byte[] _hash;
-
         private Hash160(byte[] hash)
         {
-            _hash = hash;
+            HashData = hash;
         }
 
         public Hash160()
         {
-            _hash = new byte[Size];
-            CopyFrom(sHashNull, 0);
+            HashData = new byte[Size];
+            CopyFrom(s_hashNull, 0);
         }
 
         private Hash160(Hash160 other)
         {
-            _hash = new byte[Size];
-            CopyFrom(other.Data, 0);
+            HashData = new byte[Size];
+            CopyFrom(other.HashData, 0);
         }
 
         private Hash160(byte[] array, int start)
         {
-            _hash = new byte[Size];
+            HashData = new byte[Size];
             CopyFrom(array, start);
         }
 
-        public static readonly int Size = 20;
+        public const int Size = 20;
 
         public static Hash160 ConstructTake(byte[] hash)
         {
@@ -117,30 +135,30 @@ namespace GameCore
             return new Hash160(hash, start);
         }
 
-        public byte[] Data => _hash;
+        private byte[] HashData { get; set; }
 
         public byte[] Release()
         {
-            var h = _hash;
-            _hash = new byte[Size];
-            CopyFrom(sHashNull, 0);
+            var h = HashData;
+            HashData = new byte[Size];
+            CopyFrom(s_hashNull, 0);
             return h;
         }
 
         public override int GetHashCode()
         {
-            var hashcode = BitConverter.ToInt32(_hash, Size - 4);
+            var hashcode = BitConverter.ToInt32(HashData, Size - 4);
             return hashcode;
         }
 
         public override string ToString()
         {
-            var length = _hash.Length;
+            var length = HashData.Length;
             var chars = new char[length * 2];
             for (var n = 0; n < length; n++)
             {
                 var i = n * 2;
-                var value = _hash[n];
+                var value = HashData[n];
                 var bh = (byte)(value >> 4);
                 chars[i] = (char)((bh < 10) ? ('0' + bh) : ('A' + bh - 10));
                 var bl = (byte)(value & 0xF);
@@ -198,13 +216,13 @@ namespace GameCore
 
         public int Copy(Hash160 other)
         {
-            return CopyFrom(other.Data, 0);
+            return CopyFrom(other.HashData, 0);
         }
 
         private int CopyFrom(byte[] hash, int offset)
         {
             for (var j = 0; j < Size; j++)
-                _hash[j] = hash[offset + j];
+                HashData[j] = hash[offset + j];
             return Size;
         }
 
@@ -216,13 +234,13 @@ namespace GameCore
         private int CopyTo(byte[] header, int index)
         {
             for (var j = 0; j < Size; j++)
-                header[j + index] = _hash[j];
+                header[j + index] = HashData[j];
             return Size;
         }
 
-        public void WriteTo(GameCore.IBinaryWriter writer)
+        public void WriteTo(IBinaryWriter writer)
         {
-            writer.Write(_hash, 0, Size);
+            writer.Write(HashData, 0, Size);
         }
 
         public static Hash160 ReadFrom(IBinaryReader reader)
@@ -234,29 +252,29 @@ namespace GameCore
 
         public static bool operator ==(Hash160 b1, Hash160 b2)
         {
-            var equal = Equals(b1._hash, 0, b2._hash, 0);
+            var equal = Equals(b1.HashData, 0, b2.HashData, 0);
             return equal;
         }
 
         public static bool operator !=(Hash160 b1, Hash160 b2)
         {
-            var equal = Equals(b1._hash, 0, b2._hash, 0);
+            var equal = Equals(b1.HashData, 0, b2.HashData, 0);
             return equal == false;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is Hash160 other && Equals(this._hash, 0, other._hash, 0);
+            return obj is Hash160 other && Equals(this.HashData, 0, other.HashData, 0);
         }
 
         private int Compare(Hash160 other)
         {
-            return Compare(this._hash, 0, other._hash, 0);
+            return Compare(this.HashData, 0, other.HashData, 0);
         }
 
         public static int Compare(Hash160 a, Hash160 b)
         {
-            return Compare(a._hash, 0, b._hash, 0);
+            return Compare(a.HashData, 0, b.HashData, 0);
         }
 
         private static bool Equals(byte[] that, int thatStart, byte[] other, int otherStart)
@@ -342,6 +360,8 @@ namespace GameCore
     {
         #region Methods
 
+        private static readonly SHA1 s_sha1 = SHA1.Create();
+
         public static Hash160 Random()
         {
             var hash = new byte[Hash160.Size];
@@ -360,29 +380,40 @@ namespace GameCore
 
         public static Hash160 Compute(byte[] data)
         {
-            return Sha1.Compute(data);
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash(data);
+            return Hash160.ConstructTake(hash);
         }
+
         public static Hash160 Compute(byte[] data, int start, int length)
         {
-            return Sha1.Compute(data, start, length);
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash(data, start, length);
+            return Hash160.ConstructTake(hash);
         }
 
         public static Hash160 Compute(Type type)
         {
             var data = System.Text.Encoding.ASCII.GetBytes(type.Name);
-            return Compute(data.AsSpan());
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash(data);
+            return Hash160.ConstructTake(hash);
         }
 
         public static Hash160 Compute_ASCII(string str)
         {
             var data = System.Text.Encoding.ASCII.GetBytes(str);
-            return Compute(data.AsSpan());
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash(data);
+            return Hash160.ConstructTake(hash);
         }
 
         public static Hash160 Compute_UTF8(string str)
         {
             var data = System.Text.Encoding.UTF8.GetBytes(str);
-            return Compute(data.AsSpan());
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash(data);
+            return Hash160.ConstructTake(hash);
         }
 
         public static Hash160 Compute(FileInfo s)
@@ -393,7 +424,6 @@ namespace GameCore
             try
             {
                 var block = new byte[256 * 1024];
-                var sha1 = SHA1.Create();
 
                 using FileStream fs = new(s.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var total = fs.Length;
@@ -407,10 +437,10 @@ namespace GameCore
                     }
                     var read = fs.Read(block, 0, stride);
                     offset += read;
-                    sha1.TransformBlock(block, 0, read, block, 0);
+                    s_sha1.TransformBlock(block, 0, read, null, 0);
                 }
-                sha1.TransformFinalBlock(block, 0, 0);
-                return Hash160.ConstructTake(sha1.Hash);
+                s_sha1.TransformFinalBlock(block, 0, 0);
+                return Hash160.ConstructTake(s_sha1.Hash);
             }
             catch (Exception e)
             {
@@ -422,152 +452,47 @@ namespace GameCore
         private static Hash160 Compute(MemoryStream ms)
         {
             var data = ms.GetBuffer();
-            return Sha1.Compute(data);
-        }
-
-        public static Hash160 Compute(bool[] values)
-        {
-            var ms = new MemoryStream();
-            foreach (var v in values)
-            {
-                ms.WriteByte(v ? (byte)1 : (byte)0);
-            }
-            return Compute(ms);
-        }
-
-        public static Hash160 Compute(byte[] v1, int v1Length, byte[] v2, int v2Length)
-        {
-            var sha1 = SHA1.Create();
-            sha1.TransformBlock(v1, 0, v1Length, v1, 0);
-            sha1.TransformFinalBlock(v2, 0, v2Length);
-            return Hash160.ConstructTake(sha1.Hash);
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash(data, 0, (int)ms.Length);
+            return Hash160.ConstructTake(hash);
         }
 
         public static Hash160 Compute(ReadOnlySpan<byte> data)
         {
-            return Sha1.Compute(data);
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash(data.ToArray());
+            return Hash160.ConstructTake(hash);
         }
 
         public static Hash160 Compute(sbyte[] v)
         {
-            return Sha1.Compute((byte[])(Array)v, 0, v.Length);
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash((byte[])(Array)v);
+            return Hash160.ConstructTake(hash);
         }
 
         public static Hash160 Compute(sbyte[] v, int index, int count)
         {
-            return Sha1.Compute((byte[])(Array)v, index, count);
+            s_sha1.Initialize();
+            var hash = s_sha1.ComputeHash((byte[])(Array)v, index, count);
+            return Hash160.ConstructTake(hash);
         }
 
-        public static Hash160 Compute(short[] values)
+        public static void Begin()
         {
-            var bytes = new byte[2*values.Length];
-            var count = 0;
-            foreach (var t in values)
-            {
-                var v = t;
-                for (var i = 0; i < 2; ++i)
-                {
-                    bytes[count++] = (byte)(v);
-                    v = (short)(v >> 8);
-                }
-            }
-            return Compute(bytes);
+            s_sha1.Initialize();
         }
 
-        public static Hash160 Compute(ushort[] values)
+        public static void Update(byte[] data, int start, int length)
         {
-            var bytes = new byte[2*values.Length];
-            var count = 0;
-            for (var j=0; j<values.Length; j++)
-            {
-                var v = values[j];
-                for (var i = 0; i < 2; ++i)
-                {
-                    bytes[count++] = (byte)(v);
-                    v = (ushort)(v >> 8);
-                }
-            }
-            return Compute(bytes);
+            s_sha1.TransformBlock(data, start, length, null, 0);
         }
 
-        public static Hash160 Compute(int[] values)
+        public static Hash160 End()
         {
-            var bytes = new byte[4*values.Length];
-            var count = 0;
-            for (var j=0; j<values.Length; j++)
-            {
-                var v = values[j];
-                for (var i = 0; i < 4; ++i)
-                {
-                    bytes[count++] = (byte)(v);
-                    v = (int)(v >> 8);
-                }
-            }
-            return Compute(bytes);
-        }
-
-        public static Hash160 Compute(uint[] values)
-        {
-            var bytes = new byte[4*values.Length];
-            var count = 0;
-            for (var j=0; j<values.Length; j++)
-            {
-                var v = values[j];
-                for (var i = 0; i < 4; ++i)
-                {
-                    bytes[count++] = (byte)(v);
-                    v = (uint)(v >> 8);
-                }
-            }
-            return Compute(bytes);
-        }
-
-        public static Hash160 Compute(long[] values)
-        {
-            var bytes = new byte[8*values.Length];
-            var count = 0;
-            for (var j=0; j<values.Length; j++)
-            {
-                var v = values[j];
-                for (var i = 0; i < 8; ++i)
-                {
-                    bytes[count++] = (byte)(v);
-                    v = (long)(v >> 8);
-                }
-            }
-            return Compute(bytes);
-        }
-
-        public static Hash160 Compute(ulong[] values)
-        {
-            var bytes = new byte[8*values.Length];
-            var count = 0;
-            for (var j=0; j<values.Length; j++)
-            {
-                var v = values[j];
-                for (var i = 0; i < 8; ++i)
-                {
-                    bytes[count++] = (byte)(v);
-                    v = (ulong)(v >> 8);
-                }
-            }
-            return Compute(bytes);
-        }
-
-        public static Hash160 Compute(float[] values)
-        {
-            var bytes = new byte[4*values.Length];
-            var count = 0;
-            for (var j=0; j<values.Length; j++)
-            {
-                var v = values[j];
-                var vb = BitConverter.GetBytes(v);
-                for (var i = 0; i < 4; ++i)
-                {
-                    bytes[count++] = vb[i];
-                }
-            }
-            return Compute(bytes);
+            s_sha1.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            var hash = s_sha1.Hash;
+            return Hash160.ConstructTake(hash);
         }
 
         #endregion

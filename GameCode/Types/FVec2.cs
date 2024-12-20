@@ -35,8 +35,8 @@ namespace GameData
 
         public void StructWrite(IGameDataWriter writer)
         {
-            writer.Write(X);
-            writer.Write(Y);
+            GameCore.BinaryWriter.Write(writer, X);
+            GameCore.BinaryWriter.Write(writer, Y);
         }
     }
 }

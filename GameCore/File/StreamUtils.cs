@@ -113,8 +113,8 @@ namespace GameCore
             try
             {
                 stream = new FileStream(Filename, (mode == EMode.Read) ? FileMode.Open : FileMode.Create, (mode == EMode.Read) ? FileAccess.Read : FileAccess.Write);
-                if (mode == EMode.Write) Writer = ArchitectureUtils.CreateBinaryFileWriter(stream, Platform);
-                else if (mode == EMode.Read) Reader = ArchitectureUtils.CreateBinaryFileReader(stream, Platform);
+                if (mode == EMode.Write) Writer = ArchitectureUtils.CreateFileWriter(stream, Platform);
+                else if (mode == EMode.Read) Reader = ArchitectureUtils.CreateFileReader(stream, Platform);
             }
             catch (Exception)
             {
