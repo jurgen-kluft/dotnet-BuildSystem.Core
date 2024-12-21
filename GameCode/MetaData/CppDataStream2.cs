@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using GameCore;
+using BinaryWriter = GameCore.BinaryWriter;
 
 namespace GameData
 {
@@ -91,73 +92,73 @@ namespace GameData
             private static void WriteBool(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (bool)member ? (sbyte)1 : (sbyte)0);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (bool)member ? (sbyte)1 : (sbyte)0);
             }
 
             private static void WriteBitset(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (byte)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (byte)member);
             }
 
             private static void WriteInt8(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (sbyte)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (sbyte)member);
             }
 
             private static void WriteUInt8(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (byte)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (byte)member);
             }
 
             private static void WriteInt16(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (short)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (short)member);
             }
 
             private static void WriteUInt16(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (ushort)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (ushort)member);
             }
 
             private static void WriteInt32(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (int)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (int)member);
             }
 
             private static void WriteUInt32(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (uint)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (uint)member);
             }
 
             private static void WriteInt64(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (long)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (long)member);
             }
 
             private static void WriteUInt64(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream,(ulong)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream,(ulong)member);
             }
 
             private static void WriteFloat(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (float)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (float)member);
             }
 
             private static void WriteDouble(int memberIndex, WriteContext ctx)
             {
                 var member = ctx.MetaCode2.MembersObject[memberIndex];
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (double)member);
+                BinaryWriter.Write(ctx.GameDataBlockStream, (double)member);
             }
 
             private static void WriteStringDataProcess(int memberIndex, StreamReference br, WriteContext ctx)
@@ -169,7 +170,7 @@ namespace GameData
                     var ms = ctx.MetaCode2.MembersCount[memberIndex];
                     var bytes = new byte[ms];
                     var bl = s_utf8Encoding.GetBytes(str, 0, str.Length, bytes, 0);
-                    GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, bytes, 0, bl);
+                    BinaryWriter.Write(ctx.GameDataBlockStream, bytes, 0, bl);
                 }
                 ctx.GameDataBlockStream.CloseBlock();
             }
@@ -188,8 +189,8 @@ namespace GameData
                 var br = StreamReference.NewReference;
                 ctx.GameDataBlockStream.NewBlock(br, ctx.MetaCode2.GetDataAlignment(memberIndex));
 
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, bl); // Length in bytes
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, rl); // Length in runes
+                BinaryWriter.Write(ctx.GameDataBlockStream, bl); // Length in bytes
+                BinaryWriter.Write(ctx.GameDataBlockStream, rl); // Length in runes
                 ctx.GameDataBlockStream.WriteDataBlockReference(br); // const char* const, String
 
                 // We need to schedule the content of this class to be written
@@ -209,10 +210,10 @@ namespace GameData
                         switch (fet.IsSigned)
                         {
                             case true:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (sbyte)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (sbyte)member);
                                 break;
                             case false:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (byte)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (byte)member);
                                 break;
                         }
                         break;
@@ -220,10 +221,10 @@ namespace GameData
                         switch (fet.IsSigned)
                         {
                             case true:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (short)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (short)member);
                                 break;
                             case false:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (ushort)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (ushort)member);
                                 break;
                         }
                         break;
@@ -231,10 +232,10 @@ namespace GameData
                         switch (fet.IsSigned)
                         {
                             case true:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (int)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (int)member);
                                 break;
                             case false:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (uint)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (uint)member);
                                 break;
                         }
                         break;
@@ -242,10 +243,10 @@ namespace GameData
                         switch (fet.IsSigned)
                         {
                             case true:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (long)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (long)member);
                                 break;
                             case false:
-                                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (ulong)member);
+                                BinaryWriter.Write(ctx.GameDataBlockStream, (ulong)member);
                                 break;
                         }
                         break;
@@ -256,7 +257,7 @@ namespace GameData
             {
                 if (ctx.MetaCode2.MembersObject[memberIndex] is IStruct mx)
                 {
-                    GameCore.BinaryWriter.Align(ctx.GameDataBlockStream, mx.StructAlign);
+                    BinaryWriter.Align(ctx.GameDataBlockStream, mx.StructAlign);
                     mx.StructWrite(ctx.GameDataBlockStream);
                 }
             }
@@ -314,8 +315,8 @@ namespace GameData
                 ctx.GameDataBlockStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex));
 
                 ctx.GameDataBlockStream.WriteDataBlockReference(mr);
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, count);
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, count);
+                BinaryWriter.Write(ctx.GameDataBlockStream, count);
+                BinaryWriter.Write(ctx.GameDataBlockStream, count);
 
                 // We need to schedule this array to be written
                 ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteArrayDataProcess, BlockReference = mr});
@@ -354,8 +355,8 @@ namespace GameData
                 ctx.GameDataBlockStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(memberIndex));
 
                 ctx.GameDataBlockStream.WriteDataBlockReference(mr);
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, count);
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, count);
+                BinaryWriter.Write(ctx.GameDataBlockStream, count);
+                BinaryWriter.Write(ctx.GameDataBlockStream, count);
 
                 // We need to schedule this array to be written
                 ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = memberIndex, Process = WriteDictionaryDataProcess, BlockReference = mr});
@@ -367,9 +368,9 @@ namespace GameData
                 var signature = HashUtility.Compute_ASCII(dataUnit.Signature);
                 var (bigfileIndex, fileIndex) = ctx.SignatureDataBase.GetEntry(signature);
 
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, (ulong)0);   // T* (8 bytes)
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, bigfileIndex); // (4 bytes)
-                GameCore.BinaryWriter.Write(ctx.GameDataBlockStream, fileIndex);    // (4 bytes)
+                BinaryWriter.Write(ctx.GameDataBlockStream, (ulong)0);   // T* (8 bytes)
+                BinaryWriter.Write(ctx.GameDataBlockStream, bigfileIndex); // (4 bytes)
+                BinaryWriter.Write(ctx.GameDataBlockStream, fileIndex);    // (4 bytes)
 
                 var dataUnitIndex = ctx.GameDataBlockStream.GetDataUnitIndex(signature);
 
@@ -409,7 +410,7 @@ namespace GameData
 
             private class DataBlock
             {
-                private Dictionary<StreamReference, List<long>> BlockPointers { get; } = new();
+                private Dictionary<StreamReference, List<int>> BlockPointers { get; } = new();
 
                 public int DataUnitIndex{ get; set; }
                 public int Alignment { get; init; }
@@ -423,7 +424,7 @@ namespace GameData
                     // Write actual data to reach the size alignment requirement
                     const byte zero = 0;
                     for (var i = 0; i < gap; ++i)
-                        GameCore.BinaryWriter.Write(data, zero);
+                        BinaryWriter.Write(data, zero);
                 }
 
                 public Hash160 ComputeHash(DataStream dataStream, byte[] workBuffer)
@@ -443,7 +444,7 @@ namespace GameData
                         ArchitectureUtils.LittleArchitecture64.Write(magic, workBuffer, offset);
                         offset += 8;
 
-                        foreach ((StreamReference streamReference, List<long> pointers) in BlockPointers)
+                        foreach ((StreamReference streamReference, List<int> pointers) in BlockPointers)
                         {
                             ArchitectureUtils.LittleArchitecture64.Write(streamReference.Id, workBuffer, offset);
                             offset += 4;
@@ -461,11 +462,6 @@ namespace GameData
                     return HashUtility.End();
                 }
 
-                private static void AlignTo(IStream writer, uint alignment)
-                {
-                    writer.Position = CMath.AlignUp(writer.Position, alignment);
-                }
-
                 internal static void Write(IWriter writer, byte[] data, int index, int count)
                 {
                     writer.Write(data, index, count);
@@ -473,31 +469,24 @@ namespace GameData
 
                 internal static void WriteDataBlockReference(IStreamWriter writer, DataBlock db, StreamReference v)
                 {
-                    AlignTo(writer, sizeof(ulong));
+                    BinaryWriter.Align(writer, sizeof(ulong));
                     if (db.BlockPointers.TryGetValue(v, out var pointers))
                     {
-                        pointers.Add(writer.Position - db.Offset);
+                        pointers.Add((int)(writer.Position - db.Offset));
                     }
                     else
                     {
-                        pointers = new List<long>() { writer.Position - db.Offset };
+                        pointers = new List<int>() { (int)(writer.Position - db.Offset) };
                         db.BlockPointers.Add(v, pointers);
                     }
 
-                    GameCore.BinaryWriter.Write(writer, (long)v.Id);
+                    BinaryWriter.Write(writer, 0xFEEDF00DFEEDF00D);
                 }
 
                 internal static void ReplaceReference(IStreamWriter data, DataBlock db, StreamReference oldRef, StreamReference newRef)
                 {
                     // See if we are using this reference (oldRef) in this data block
                     if (!db.BlockPointers.Remove(oldRef, out var oldOffsets)) return;
-
-                    // Update the reference in the stream, replacing oldRef.Id with newRef.Id
-                    foreach (var o in oldOffsets)
-                    {
-                        data.Seek(db.Offset + o); // Seek to the position that has the 'StreamReference'
-                        GameCore.BinaryWriter.Write(data, (long)newRef.Id); // The value we write here is the offset to the data computed in the simulation
-                    }
 
                     // Update pointer and offsets
                     // It could be that we also are using newRef in this data block
@@ -512,11 +501,12 @@ namespace GameData
                     }
                 }
 
-                internal static void CollectStreamPointers(DataBlock db, ICollection<StreamPointer> streamPointers, IDictionary<StreamReference, long> dataPositionDataBase)
+                internal static void CollectStreamPointers(DataBlock db, ICollection<StreamPointer> streamPointers, IDictionary<StreamReference, int> dataPositionDataBase)
                 {
                     // BlockPointers are references that are written in this Block, each Reference might
                     // have been written more than once so that is why there is a list of Offsets per
                     // StreamReference.
+                    dataPositionDataBase.TryGetValue(db.Reference, out var dataBlockPosition);
                     foreach (var (sr, offsets) in db.BlockPointers)
                     {
                         // What is the offset of the data block we are pointing to
@@ -527,7 +517,7 @@ namespace GameData
                         foreach (var o in offsets)
                         {
                             // Remember this pointer
-                            var sp = new StreamPointer() { Position = db.Offset + o, DataPosition = referencePosition };
+                            var sp = new StreamPointer() { PositionInSourceStream = db.Offset + o, PositionInDestinationStream = dataBlockPosition + o, TargetPosition = referencePosition };
                             streamPointers.Add(sp);
                         }
                     }
@@ -547,12 +537,12 @@ namespace GameData
                     streamPointers[^1].Write(data, streamPointers[^1]);
                 }
 
-                internal static void WriteDataBlock(long dataUnitStartPos, DataBlock db, IStreamReader data, IStreamWriter outData, IDictionary<StreamReference, long> dataOffsetDataBase, byte[] readWriteBuffer)
+                internal static void WriteDataBlock(long dataUnitStartPos, DataBlock db, IStreamReader data, IStreamWriter outData, IDictionary<StreamReference, int> dataOffsetDataBase, byte[] readWriteBuffer)
                 {
                     // Verify the position of the data stream
                     dataOffsetDataBase.TryGetValue(db.Reference, out var outDataBlockOffset);
-                    GameCore.BinaryWriter.Align(outData, db.Alignment);
-                    Debug.Assert((outData.Position-dataUnitStartPos) == outDataBlockOffset);
+                    BinaryWriter.Align(outData, db.Alignment);
+                    Debug.Assert((int)(outData.Position-dataUnitStartPos) == outDataBlockOffset);
 
                     // Read from the data stream at the start of the block and write the block to the output
                     data.Seek(db.Offset);
@@ -645,8 +635,8 @@ namespace GameData
             public void WriteFileId(Hash160 signature)
             {
                 (uint bigfileIndex, uint fileIndex) = _signatureDb.GetEntry(signature);
-                GameCore.BinaryWriter.Write(_dataWriter, bigfileIndex);
-                GameCore.BinaryWriter.Write(_dataWriter, fileIndex);
+                BinaryWriter.Write(_dataWriter, bigfileIndex);
+                BinaryWriter.Write(_dataWriter, fileIndex);
             }
 
             public void WriteDataBlockReference(StreamReference v)
@@ -784,8 +774,8 @@ namespace GameData
                     // Compute stream offset for each data block, do this by simulating the writing process.
                     // All references (pointers) are written in the stream as a 64-bit offset (64-bit pointers)
                     // relative to the start of the data stream.
-                    var streamReferenceToStreamPositionDataBase = new Dictionary<StreamReference, long>();
-                    var streamPosition = (long)0;
+                    var streamReferenceToStreamPositionDataBase = new Dictionary<StreamReference, int>();
+                    var streamPosition = 0;
                     foreach (var (dbRef, db) in blockDataBase)
                     {
                         streamPosition = CMath.AlignUp(streamPosition, db.Alignment);
@@ -793,9 +783,11 @@ namespace GameData
                         streamPosition += db.Size;
                     }
 
-                    // Collect all pointers that are in the stream, we will build a Singly-LinkedList out of them
+                    // Collect all pointers that are in the stream, we will build a Singly-LinkedList out of them.
+                    // Furthermore, the stream pointers will write out 'relative' information, so it doesn't really
+                    // matter where in the final output they are written.
                     var streamPointers = new List<StreamPointer>();
-                    foreach (var (_, db) in blockDataBase)
+                    foreach ((_, DataBlock db) in blockDataBase)
                     {
                         DataBlock.CollectStreamPointers(db, streamPointers, streamReferenceToStreamPositionDataBase);
                     }
@@ -806,9 +798,9 @@ namespace GameData
                     DataBlock.WriteStreamPointers(memoryBlock, streamPointers);
 
                     // Align start of DataUnit at 16 bytes
-                    GameCore.BinaryWriter.Align(_dataWriter, 16);
+                    BinaryWriter.Align(dataWriter, 16);
 
-                    // Store the start of the DataUnit
+                    // Remember the start of the DataUnit in the stream
                     var dataUnitBeginPos = dataWriter.Position;
                     dataUnitStreamPositions.Add((ulong)dataUnitBeginPos);
 

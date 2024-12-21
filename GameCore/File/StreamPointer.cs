@@ -1,20 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-
 namespace GameCore
 {
-    public struct StreamPointer
+    public readonly struct StreamPointer
     {
-        public long Position { get; init; }   // The position in the stream of where this pointer is located
-        public long DataPosition { get; init; } // Pointer is pointing to [Position + Offset]
+        public int PositionInSourceStream { get; init; }   // The position in the original stream of where this pointer is located
+        public int PositionInDestinationStream { get; init; }   // The position in the destination stream of where this pointer is located
+        public int TargetPosition { get; init; } // Pointer is pointing to [Position + Offset]
 
-        public void Write(IWriter writer, StreamPointer nextStreamPointer)
+        public void Write(IStreamWriter sourceStream, StreamPointer nextStreamPointer)
         {
-            var next32 = (int)((nextStreamPointer.Position - Position));
-            var offset32 = (int)(DataPosition - Position);
-            GameCore.BinaryWriter.Write(writer, next32);
-            GameCore.BinaryWriter.Write(writer, offset32);
+            var next32 = nextStreamPointer.PositionInDestinationStream - PositionInDestinationStream;
+            var offset32 = TargetPosition - PositionInDestinationStream;
+
+            sourceStream.Position = PositionInSourceStream;
+            BinaryWriter.Write(sourceStream, next32);
+            BinaryWriter.Write(sourceStream, offset32);
         }
     }
 }

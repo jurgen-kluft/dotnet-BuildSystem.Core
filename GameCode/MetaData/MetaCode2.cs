@@ -28,28 +28,28 @@ namespace GameData
             int NewDataUnitMember(Type type, object content, string memberName);
         }
 
-        public struct MetaInfo
+        public readonly struct MetaInfo
         {
-            public static MetaInfo AsUnknown => new() { Index = 0 };
-            public static MetaInfo AsBool => new() { Index = 1 };
-            public static MetaInfo AsBitSet => new() { Index = 2 };
-            public static MetaInfo AsInt8 => new() { Index = 3 };
-            public static MetaInfo AsUInt8 => new() { Index = 4 };
-            public static MetaInfo AsInt16 => new() { Index = 5 };
-            public static MetaInfo AsUInt16 => new() { Index = 6 };
-            public static MetaInfo AsInt32 => new() { Index = 7 };
-            public static MetaInfo AsUInt32 => new() { Index = 8 };
-            public static MetaInfo AsInt64 => new() { Index = 9 };
-            public static MetaInfo AsUInt64 => new() { Index = 10 };
-            public static MetaInfo AsFloat => new() { Index = 11 };
-            public static MetaInfo AsDouble => new() { Index = 12 };
-            public static MetaInfo AsString => new() { Index = 13 };
-            public static MetaInfo AsEnum => new() { Index = 14 };
-            public static MetaInfo AsStruct => new() { Index = 15 };
-            public static MetaInfo AsClass => new() { Index = 16 };
-            public static MetaInfo AsArray => new() { Index = 17 };
-            public static MetaInfo AsDictionary => new() { Index = 18 };
-            public static MetaInfo AsDataUnit => new() { Index = 19 };
+            public static readonly MetaInfo s_unknown = new() { Index = 0 };
+            public static readonly MetaInfo s_bool = new() { Index = 1 };
+            public static readonly MetaInfo s_bitset = new() { Index = 2 };
+            public static readonly MetaInfo s_int8 = new() { Index = 3 };
+            public static readonly MetaInfo s_uint8 = new() { Index = 4 };
+            public static readonly MetaInfo s_int16 = new() { Index = 5 };
+            public static readonly MetaInfo s_uint16 = new() { Index = 6 };
+            public static readonly MetaInfo s_int32 = new() { Index = 7 };
+            public static readonly MetaInfo s_uint32 = new() { Index = 8 };
+            public static readonly MetaInfo s_int64 = new() { Index = 9 };
+            public static readonly MetaInfo s_uint64 = new() { Index = 10 };
+            public static readonly MetaInfo s_float = new() { Index = 11 };
+            public static readonly MetaInfo s_double = new() { Index = 12 };
+            public static readonly MetaInfo s_string = new() { Index = 13 };
+            public static readonly MetaInfo s_enum = new() { Index = 14 };
+            public static readonly MetaInfo s_struct = new() { Index = 15 };
+            public static readonly MetaInfo s_class = new() { Index = 16 };
+            public static readonly MetaInfo s_array = new() { Index = 17 };
+            public static readonly MetaInfo s_dictionary = new() { Index = 18 };
+            public static readonly MetaInfo s_dataUnit = new() { Index = 19 };
 
             public const int Count = 20;
 
@@ -61,123 +61,45 @@ namespace GameData
             public bool IsDictionary => Index == 18;
             public bool IsDataUnit => Index == 19;
 
-            private static readonly int[] s_sizeInBits = new int[Count]
+            private readonly struct Details
             {
-                0, // Unknown
-                1, // Bool
-                sizeof(byte) * 8, // BitSet
-                sizeof(sbyte) * 8, // Int8
-                sizeof(byte) * 8, // UInt8
-                sizeof(ushort) * 8, // Int16
-                sizeof(short) * 8, // UInt16
-                sizeof(int) * 8, // Int32
-                sizeof(uint) * 8, // UInt32
-                sizeof(long) * 8, // Int64
-                sizeof(ulong) * 8, // UInt64
-                sizeof(float) * 8, // Float
-                sizeof(double) * 8, // Double
-                64 + 64, // String (length, pointer)
-                0, // Enum
-                0, // Struct (unknown)
-                64, // Class (pointer)
-                64 + 64, // Array (length, pointer)
-                64 + 64, // Dictionary (length, pointer)
-                64 + 32 + 32, // DataUnit (T*, offset, size)
+                internal byte SizeInBits { get; init; }
+                internal byte AlignmentInBytes { get; init; }
+                internal bool IsSignedType { get; init; }
+                internal string TypeName { get; init; }
             };
 
-            private static readonly sbyte[] s_alignment = new sbyte[Count]
+            private static readonly Details[] s_details = new Details[Count]
             {
-                1, // Unknown
-                1, // Bool
-                sizeof(byte), // BitSet
-                sizeof(sbyte), // Int8
-                sizeof(byte), // UInt8
-                sizeof(ushort), // Int16
-                sizeof(short), // UInt16
-                sizeof(int), // Int32
-                sizeof(uint), // UInt32
-                sizeof(long), // Int64
-                sizeof(ulong), // UInt64
-                sizeof(float), // Float
-                sizeof(double), // Double
-                16, // String (pointer, byte length, rune length)
-                0, // Enum (depends on the enum type)
-                0, // Struct (depends on the struct type)
-                8, // Class (pointer)
-                16, // Array (pointer, byte length, item count)
-                16, // Dictionary (pointer, byte length, item count)
-                16, // DataUnit (pointer, offset, size)
+                new() { SizeInBits = 0, AlignmentInBytes = 1, IsSignedType = false, TypeName = "unknown" }, // Unknown
+                new() { SizeInBits = 1, AlignmentInBytes = 1, IsSignedType = false, TypeName = "bool" }, // Bool
+                new() { SizeInBits = 8, AlignmentInBytes = 1, IsSignedType = false, TypeName = "bitset_t" }, // BitSet
+                new() { SizeInBits = 8, AlignmentInBytes = 1, IsSignedType = true, TypeName = "s8" }, // Int8
+                new() { SizeInBits = 8, AlignmentInBytes = 1, IsSignedType = false, TypeName = "u8" }, // UInt8
+                new() { SizeInBits = 16, AlignmentInBytes = 2, IsSignedType = true, TypeName = "s16" }, // Int16
+                new() { SizeInBits = 16, AlignmentInBytes = 2, IsSignedType = false, TypeName = "u16" }, // UInt16
+                new() { SizeInBits = 32, AlignmentInBytes = 4, IsSignedType = true, TypeName = "s32" }, // Int32
+                new() { SizeInBits = 32, AlignmentInBytes = 4, IsSignedType = false, TypeName = "u32" }, // UInt32
+                new() { SizeInBits = 64, AlignmentInBytes = 8, IsSignedType = true, TypeName = "s64" }, // Int64
+                new() { SizeInBits = 64, AlignmentInBytes = 8, IsSignedType = false, TypeName = "u64" }, // UInt64
+                new() { SizeInBits = 32, AlignmentInBytes = 4, IsSignedType = true, TypeName = "f32" }, // Float
+                new() { SizeInBits = 64, AlignmentInBytes = 8, IsSignedType = true, TypeName = "f64" }, // Double
+                new() { SizeInBits = 64 + 32 + 32, AlignmentInBytes = 16, IsSignedType = false, TypeName = "string_t" }, // String
+                new() { SizeInBits = 0, AlignmentInBytes = 0, IsSignedType = false, TypeName = "enum_t" }, // Enum
+                new() { SizeInBits = 0, AlignmentInBytes = 0, IsSignedType = false, TypeName = "struct" }, // Struct
+                new() { SizeInBits = 64, AlignmentInBytes = 8, IsSignedType = false, TypeName = "class" }, // Class
+                new() { SizeInBits = 64 + 32 + 32, AlignmentInBytes = 16, IsSignedType = false, TypeName = "array_t" }, // Array
+                new() { SizeInBits = 64 + 32 + 32, AlignmentInBytes = 16, IsSignedType = false, TypeName = "dict_t" }, // Dictionary
+                new() { SizeInBits = 64 + 32 + 32, AlignmentInBytes = 16, IsSignedType = false, TypeName = "data_unit_t" }, // DataUnit
             };
 
-            private static readonly bool[] s_signed = new bool[Count]
-            {
-                false, // Unknown
-                false, // Bool
-                false, // BitSet
-                true, // Int8
-                false, // UInt8
-                true, // Int16
-                false, // UInt16
-                true, // Int32
-                false, // UInt32
-                true, // Int64
-                false, // UInt64
-                true, // Float
-                true, // Double
-                false, // String (pointer, byte length, rune length)
-                false, // Enum
-                false, // Struct (unknown)
-                false, // Class (offset)
-                false, // Array (pointer, byte length, item count)
-                false, // Dictionary (pointer, byte length, item count)
-                false // DataUnit (pointer, offset, size)
-            };
+            public byte Index { get; private init; }
 
-            private static readonly string[] s_typeNames = new string[Count]
-            {
-                "unknown", // Unknown
-                "bool", // Bool
-                "u8", // BitSet
-                "s8", // Int8
-                "u8", // UInt8
-                "s16", // Int16
-                "u16", // UInt16
-                "s32", // Int32
-                "u32", // UInt32
-                "s64", // Int64
-                "u64", // UInt64
-                "f32", // Float
-                "f64", // Double
-                "string_t", // String (pointer, byte length, rune length)
-                "enum_t", // Enum
-                "struct", // Struct (unknown)
-                "class", // Class (offset)
-                "array_t", // Array (pointer, byte length, item count)
-                "dict_t", // Dictionary (pointer, byte length, item count)
-                "data_unit_t" // DataUnit (pointer, offset, size)
-            };
-
-            private uint Value { get; set; }
-
-            public byte Index
-            {
-                get => (byte)(Value & 0xFF);
-                private init => Value = (Value & 0xFFFFFF00) | value;
-            }
-
-            public int SizeInBits => s_sizeInBits[Index];
-            public int SizeInBytes => (SizeInBits + 7) >> 3;
-            public bool IsSigned => s_signed[Index];
-            public int Alignment => s_alignment[Index];
-            public string NameOfType => s_typeNames[Index];
-
-            private const uint FlagInPlace = 0x200000;
-
-            public bool InPlace
-            {
-                get => (Value & FlagInPlace) != 0;
-                set => Value = ((Value & ~FlagInPlace) | (value ? FlagInPlace : 0));
-            }
+            public int SizeInBits => s_details[Index].SizeInBits;
+            public int SizeInBytes => (s_details[Index].SizeInBits + 7) >> 3;
+            public bool IsSigned => s_details[Index].IsSignedType;
+            public int Alignment => s_details[Index].AlignmentInBytes;
+            public string NameOfType => s_details[Index].TypeName;
         }
 
         // MetaCode is a thought experiment on how to optimize the building of the classes and members that we encounter
@@ -410,7 +332,7 @@ namespace GameData
                 }
 
                 // Did we find any boolean members?, if not, we are done
-                if (end == (mi+MembersCount[classIndex]))
+                if (end == (mi + MembersCount[classIndex]))
                     return;
 
                 // We can combine 8 booleans into a byte
@@ -451,7 +373,7 @@ namespace GameData
                     var mis = MemberSorted[startOfBitSets + i];
                     var mni = MemberStrings.Count;
                     MemberStrings.Add($"Booleans{i}");
-                    SetMember(mis, MetaInfo.AsBitSet, mni, startOfDuplicateBooleans + (i*numBooleansPerBitSet), perBitSetNumBools[i], perBitSetValue[i], "bitset_t");
+                    SetMember(mis, MetaInfo.s_bitset, mni, startOfDuplicateBooleans + (i * numBooleansPerBitSet), perBitSetNumBools[i], perBitSetValue[i], "bitset_t");
                 }
 
                 // Update the member count of this class, remove the number of booleans and add the number of bitsets
@@ -536,7 +458,7 @@ namespace GameData
 
             private delegate string GetMemberTypeStringDelegate(int memberIndex, MetaCode2 metaCode2, EOption option);
 
-            private static readonly GetMemberTypeStringDelegate[] s_getMemberTypeString = new GetMemberTypeStringDelegate[(int)MetaInfo.Count]
+            private static readonly GetMemberTypeStringDelegate[] s_getMemberTypeString = new GetMemberTypeStringDelegate[MetaInfo.Count]
             {
                 null,
                 GetMemberTypeName,
@@ -702,7 +624,7 @@ namespace GameData
                 // Emit a get function for each boolean that the bitset represents
                 for (var i = 0; i < count; ++i)
                 {
-                    var booleanMemberIndex = metaCode2.MemberSorted[ msi + i];
+                    var booleanMemberIndex = metaCode2.MemberSorted[msi + i];
                     var booleanMemberName = metaCode2.MembersName[booleanMemberIndex];
                     var booleanName = metaCode2.MemberStrings[booleanMemberName];
                     writer.WriteLine($"    inline bool get{booleanName}() const {{ return (m_{memberName} & (1 << {i})) != 0; }}");
@@ -867,7 +789,7 @@ namespace GameData
                 writer.WriteLine("    datafile_t<" + dataUnitTypeName + "> m_" + memberName + ";");
             }
 
-            private void WriteEnum(Type e, TextStreamWriter writer)
+            private static void WriteEnum(Type e, TextStreamWriter writer)
             {
                 writer.WriteLine($"namespace enums");
                 writer.WriteLine("{");
@@ -977,23 +899,20 @@ namespace GameData
                 for (var i = MetaCode.MembersType.Count - 1; i >= 0; --i)
                 {
                     var mt = MetaCode.MembersType[i];
-                    if (mt.IsStruct)
+                    if (!mt.IsStruct) continue;
+                    var mo = MetaCode.MembersObject[i];
+                    if (mo is not IStruct ios) continue;
+
+                    if (writtenIStructs.Contains(ios.GetType())) continue;
+
+                    var lines = ios.StructCode();
+                    foreach (var line in lines)
                     {
-                        var mo = MetaCode.MembersObject[i];
-                        if (mo is IStruct ios)
-                        {
-                            if (writtenIStructs.Contains(ios.GetType())) continue;
-
-                            var lines = ios.StructCode();
-                            foreach (var line in lines)
-                            {
-                                writer.WriteLine(line);
-                            }
-                            writer.WriteLine();
-
-                            writtenIStructs.Add(ios.GetType());
-                        }
+                        writer.WriteLine(line);
                     }
+                    writer.WriteLine();
+
+                    writtenIStructs.Add(ios.GetType());
                 }
 
                 // Write out all the structs that are used in the game data
@@ -1001,13 +920,11 @@ namespace GameData
                 for (var i = MetaCode.MembersType.Count - 1; i >= 0; --i)
                 {
                     var mt = MetaCode.MembersType[i];
-                    if (mt.IsClass || mt.IsDataUnit)
-                    {
-                        var ct = MetaCode.MemberTypeName[i];
-                        if (writtenClasses.Contains(ct)) continue;
-                        WriteStruct(i, writer, EOption.None);
-                        writtenClasses.Add(ct);
-                    }
+                    if (!mt.IsClass && !mt.IsDataUnit) continue;
+                    var ct = MetaCode.MemberTypeName[i];
+                    if (writtenClasses.Contains(ct)) continue;
+                    WriteStruct(i, writer, EOption.None);
+                    writtenClasses.Add(ct);
                 }
 
                 writer.WriteLine();
@@ -1040,79 +957,79 @@ namespace GameData
 
             public void NewBoolMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsBool, RegisterCodeString(memberName), -1, 1, content, "bool");
+                _metaCode2.AddMember(MetaInfo.s_bool, RegisterCodeString(memberName), -1, 1, content, "bool");
             }
 
             public void NewInt8Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt8, RegisterCodeString(memberName), -1, 1, content, "s8");
+                _metaCode2.AddMember(MetaInfo.s_int8, RegisterCodeString(memberName), -1, 1, content, "s8");
             }
 
             public void NewUInt8Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt8, RegisterCodeString(memberName), -1, 1, content, "u8");
+                _metaCode2.AddMember(MetaInfo.s_uint8, RegisterCodeString(memberName), -1, 1, content, "u8");
             }
 
             public void NewInt16Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt16, RegisterCodeString(memberName), -1, 1, content, "s16");
+                _metaCode2.AddMember(MetaInfo.s_int16, RegisterCodeString(memberName), -1, 1, content, "s16");
             }
 
             public void NewUInt16Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt16, RegisterCodeString(memberName), -1, 1, content, "u16");
+                _metaCode2.AddMember(MetaInfo.s_uint16, RegisterCodeString(memberName), -1, 1, content, "u16");
             }
 
             public void NewInt32Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt32, RegisterCodeString(memberName), -1, 1, content, "s32");
+                _metaCode2.AddMember(MetaInfo.s_int32, RegisterCodeString(memberName), -1, 1, content, "s32");
             }
 
             public void NewUInt32Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt32, RegisterCodeString(memberName), -1, 1, content, "u32");
+                _metaCode2.AddMember(MetaInfo.s_uint32, RegisterCodeString(memberName), -1, 1, content, "u32");
             }
 
             public void NewInt64Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsInt64, RegisterCodeString(memberName), -1, 1, content, "s64");
+                _metaCode2.AddMember(MetaInfo.s_int64, RegisterCodeString(memberName), -1, 1, content, "s64");
             }
 
             public void NewUInt64Member(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsUInt64, RegisterCodeString(memberName), -1, 1, content, "u64");
+                _metaCode2.AddMember(MetaInfo.s_uint64, RegisterCodeString(memberName), -1, 1, content, "u64");
             }
 
             public void NewFloatMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsFloat, RegisterCodeString(memberName), -1, 1, content, "f32");
+                _metaCode2.AddMember(MetaInfo.s_float, RegisterCodeString(memberName), -1, 1, content, "f32");
             }
 
             public void NewDoubleMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsDouble, RegisterCodeString(memberName), -1, 1, content, "f64");
+                _metaCode2.AddMember(MetaInfo.s_double, RegisterCodeString(memberName), -1, 1, content, "f64");
             }
 
             public void NewStringMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.AsString, RegisterCodeString(memberName), RegisterDataString(content as string), 1, content, "string_t");
+                _metaCode2.AddMember(MetaInfo.s_string, RegisterCodeString(memberName), RegisterDataString(content as string), 1, content, "string_t");
             }
 
             public int NewEnumMember(Type type, object content, string memberName)
             {
                 if (content is not System.Enum e)
                     return -1;
-                return _metaCode2.AddMember(MetaInfo.AsEnum, RegisterCodeString(memberName), -1, 0, e, e.GetType().Name);
+                return _metaCode2.AddMember(MetaInfo.s_enum, RegisterCodeString(memberName), -1, 0, e, e.GetType().Name);
             }
 
             public int NewArrayMember(Type type, object content, string memberName)
             {
-                return _metaCode2.AddMember(MetaInfo.AsArray, RegisterCodeString(memberName), -1, 0, content, "array_t");
+                return _metaCode2.AddMember(MetaInfo.s_array, RegisterCodeString(memberName), -1, 0, content, "array_t");
             }
 
             public int NewDictionaryMember(Type type, object content, string memberName)
             {
-                return _metaCode2.AddMember(MetaInfo.AsDictionary, RegisterCodeString(memberName), -1, 0, content, "dict_t");
+                return _metaCode2.AddMember(MetaInfo.s_dictionary, RegisterCodeString(memberName), -1, 0, content, "dict_t");
             }
 
             public void NewStructMember(Type type, object content, string memberName)
@@ -1123,7 +1040,7 @@ namespace GameData
                 if (content is not IStruct o)
                     return;
 
-                var metaType = MetaInfo.AsStruct;
+                var metaType = MetaInfo.s_struct;
                 _metaCode2.AddMember(metaType, RegisterCodeString(memberName), -1, 1, content, o.StructMember);
             }
 
@@ -1139,7 +1056,7 @@ namespace GameData
                 // If content == null, change the type to 'void'
                 className = className.ToLower() + "_t";
 
-                return _metaCode2.AddMember(MetaInfo.AsClass, RegisterCodeString(memberName), -1, 0, content, className);
+                return _metaCode2.AddMember(MetaInfo.s_class, RegisterCodeString(memberName), -1, 0, content, className);
             }
 
             public int NewDataUnitMember(Type type, object content, string memberName)
@@ -1152,7 +1069,7 @@ namespace GameData
                 }
 
                 className = className.ToLower() + "_t";
-                return _metaCode2.AddMember(MetaInfo.AsDataUnit, RegisterCodeString(memberName), -1, 0, content, className);
+                return _metaCode2.AddMember(MetaInfo.s_dataUnit, RegisterCodeString(memberName), -1, 0, content, className);
             }
         }
     }

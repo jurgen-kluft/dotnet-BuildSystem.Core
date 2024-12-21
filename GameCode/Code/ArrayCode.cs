@@ -13,18 +13,24 @@ namespace GameData
                                     {
                                     }
 
-                                    inline array_t(const u32 count, T const* data)
+                                    inline array_t(u32 count, T* data)
                                         : m_array(data), m_bytes(count * sizeof(T)), m_count(count)
                                     {
                                     }
 
-                                    inline array_t(const u32 count, const u32 bytes, T const* data)
+                                    inline array_t(u32 count, u32 bytes, T* data)
                                         : m_array(data), m_bytes(bytes), m_count(count)
                                     {
                                     }
 
                                     inline u32 size() const { return m_count; }
                                     inline u32 bytes() const { return m_bytes; }
+
+                                    inline T& operator[](s32 index)
+                                    {
+                                        ASSERT(index < m_count);
+                                        return m_array[index];
+                                    }
 
                                     inline const T& operator[](s32 index) const
                                     {
@@ -33,9 +39,9 @@ namespace GameData
                                     }
 
                                 private:
-                                    T const*  m_array;
-                                    const u32 m_bytes;
-                                    const u32 m_count;
+                                    T*  m_array;
+                                    u32 m_bytes;
+                                    u32 m_count;
                                 };
                                 """;
             return code.Split("\n");
