@@ -800,6 +800,15 @@ namespace GameData
                     // Align start of DataUnit at 16 bytes
                     BinaryWriter.Align(dataWriter, 16);
 
+                    // We have to also write a 'pointer' at the start of the DataUnit that
+                    // serves as the head of the linked list.
+                    // So here we are writing a 16 bytes header, where we currently only use the first 4 bytes.
+                    var linkedListHeadPtr = (streamPointers.Count > 0) ? (streamPointers[0].PositionInDestinationStream+16) : 0;
+                    BinaryWriter.Write(dataWriter, linkedListHeadPtr);
+                    BinaryWriter.Write(dataWriter, 0);
+                    BinaryWriter.Write(dataWriter, 0);
+                    BinaryWriter.Write(dataWriter, 0);
+
                     // Remember the start of the DataUnit in the stream
                     var dataUnitBeginPos = dataWriter.Position;
                     dataUnitStreamPositions.Add((ulong)dataUnitBeginPos);
