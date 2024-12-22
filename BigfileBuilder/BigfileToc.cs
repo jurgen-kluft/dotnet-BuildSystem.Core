@@ -5,7 +5,7 @@ namespace BigfileBuilder
 {
     public sealed class BigfileToc
     {
-        private const int HashSize = 20;
+        private const int HashSize = 8; // ulong
 
         private interface IReadContext
         {
@@ -615,7 +615,7 @@ namespace BigfileBuilder
         }
 
         // <summary>
-        // The Hdb or Hash Database (holding Hash160[])
+        // The Hdb or Hash Database (holding ulong[])
         // </summary>
         private sealed class WriteHdbContext : IWriteContext
         {
@@ -638,16 +638,20 @@ namespace BigfileBuilder
                     foreach (var section in Sections)
                     {
                         section.TocOffset = offset;
-                        // Toc Offset, Toc Count, Hash160[Toc Count]
-                        offset += (uint)(sizeof(int) + sizeof(int) + section.TocCount * HashSize); // The size of Hash160
+                        // Toc Offset, Toc Count, ulong[Toc Count]
+                        offset += (uint)(sizeof(int) + sizeof(int) + section.TocCount * HashSize); // The size of ulong
                     }
 
-                    // Per section, write the hash of each TocEntry
+                    // Write the section array, containing the offset and count of each section
                     writer.Write(Sections.Count);
                     foreach (var section in Sections)
                     {
                         writer.Write(section.TocOffset);
                         writer.Write(section.TocCount);
+                    }
+                    // Per section, write the hash of each TocEntry
+                    foreach (var section in Sections)
+                    {
                         foreach (var te in section.Toc)
                         {
                             writer.Write(te.FileContentHash, 0, HashSize);

@@ -23,14 +23,12 @@ namespace GameData
             private struct ProcessDataUnit
             {
                 public int MemberIndex { get; init; }
-                public int DataUnitIndex { get; set; }
-                public Hash160 Signature { get; set; }
+                public int DataUnitIndex { get; init; }
             }
 
             private class WriteContext
             {
                 public MetaCode2 MetaCode2 { get; init; }
-                public StringTable StringTable { get; init; }
                 public ISignatureDataBase SignatureDataBase { get; init; }
                 public CppDataBlockStream2 GameDataBlockStream { get; init; }
                 public WriteMemberDelegate[] WriteMemberDelegates { get; init; }
@@ -38,31 +36,48 @@ namespace GameData
                 public Queue<ProcessDataUnit> ProcessDataUnitQueue { get; init; }
             }
 
-            public static void Write(MetaCode2 metaCode2, string rootSignature, StringTable stringTable, ISignatureDataBase signatureDb, CppDataBlockStream2 dataBlockStream)
+            public static void Write(MetaCode2 metaCode2, string rootSignature, ISignatureDataBase signatureDb, CppDataBlockStream2 dataBlockStream)
             {
                 var ctx = new WriteContext
                 {
                     MetaCode2 = metaCode2,
-                    StringTable = stringTable,
                     SignatureDataBase = signatureDb,
                     GameDataBlockStream = dataBlockStream,
                     ProcessObjectQueue = new Queue<ProcessObject>(),
                     ProcessDataUnitQueue = new Queue<ProcessDataUnit>(),
-                    WriteMemberDelegates = new WriteMemberDelegate[MetaInfo.Count]
-                    {
-                        null, WriteBool, WriteBitset, WriteInt8, WriteUInt8, WriteInt16, WriteUInt16, WriteInt32, WriteUInt32, WriteInt64, WriteUInt64, WriteFloat, WriteDouble, WriteString, WriteEnum, WriteStruct, WriteClass, WriteArray,
-                        WriteDictionary, WriteDataUnit
-                    },
+                    WriteMemberDelegates = new WriteMemberDelegate[MetaInfo.Count],
                 };
+
+                ctx.WriteMemberDelegates[MetaInfo.s_unknown.Index] = null;
+                ctx.WriteMemberDelegates[MetaInfo.s_bool.Index] = WriteBool;
+                ctx.WriteMemberDelegates[MetaInfo.s_bitset.Index] = WriteBitset;
+                ctx.WriteMemberDelegates[MetaInfo.s_int8.Index] = WriteInt8;
+                ctx.WriteMemberDelegates[MetaInfo.s_uint8.Index] = WriteUInt8;
+                ctx.WriteMemberDelegates[MetaInfo.s_int16.Index] = WriteInt16;
+                ctx.WriteMemberDelegates[MetaInfo.s_uint16.Index] = WriteUInt16;
+                ctx.WriteMemberDelegates[MetaInfo.s_int32.Index] = WriteInt32;
+                ctx.WriteMemberDelegates[MetaInfo.s_uint32.Index] = WriteUInt32;
+                ctx.WriteMemberDelegates[MetaInfo.s_int64.Index] = WriteInt64;
+                ctx.WriteMemberDelegates[MetaInfo.s_uint64.Index] = WriteUInt64;
+                ctx.WriteMemberDelegates[MetaInfo.s_float.Index] = WriteFloat;
+                ctx.WriteMemberDelegates[MetaInfo.s_double.Index] = WriteDouble;
+                ctx.WriteMemberDelegates[MetaInfo.s_string.Index] = WriteString;
+                ctx.WriteMemberDelegates[MetaInfo.s_enum.Index] = WriteEnum;
+                ctx.WriteMemberDelegates[MetaInfo.s_struct.Index] = WriteStruct;
+                ctx.WriteMemberDelegates[MetaInfo.s_class.Index] = WriteClass;
+                ctx.WriteMemberDelegates[MetaInfo.s_array.Index] = WriteArray;
+                ctx.WriteMemberDelegates[MetaInfo.s_dictionary.Index] = WriteDictionary;
+                ctx.WriteMemberDelegates[MetaInfo.s_dataUnit.Index] = WriteDataUnit;
 
                 try
                 {
                     // Write the data of the MetaCode to the DataStream
                     var rootHashSignature = HashUtility.Compute_ASCII(rootSignature);
                     var rootDataUnitIndex = ctx.GameDataBlockStream.GetDataUnitIndex(rootHashSignature);
-                    ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = 0, DataUnitIndex = rootDataUnitIndex, Signature = rootHashSignature });
+                    ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = 0, DataUnitIndex = rootDataUnitIndex });
 
                     // Whenever we encounter a DataUnit we need to write the data of the DataUnit to the DataStream
+                    var writtenReferences = new HashSet<StreamReference>();
                     while (ctx.ProcessDataUnitQueue.Count > 0)
                     {
                         var du = ctx.ProcessDataUnitQueue.Dequeue();
@@ -73,10 +88,14 @@ namespace GameData
                             ctx.GameDataBlockStream.NewBlock(mr, ctx.MetaCode2.GetDataAlignment(du.MemberIndex));
                             ctx.ProcessObjectQueue.Enqueue(new ProcessObject() { MemberIndex = du.MemberIndex, Process = WriteClassDataProcess, BlockReference = mr});
 
+                            writtenReferences.Clear();
                             while (ctx.ProcessObjectQueue.Count > 0)
                             {
                                 var wp = ctx.ProcessObjectQueue.Dequeue();
-                                wp.Process(wp.MemberIndex, wp.BlockReference, ctx);
+                                if (writtenReferences.Add(wp.BlockReference))
+                                {
+                                    wp.Process(wp.MemberIndex, wp.BlockReference, ctx);
+                                }
                             }
                         }
                         ctx.GameDataBlockStream.CloseDataUnit();
@@ -164,9 +183,10 @@ namespace GameData
             private static void WriteStringDataProcess(int memberIndex, StreamReference br, WriteContext ctx)
             {
                 // A string is written as an array of UTF8 bytes
+                if (ctx.MetaCode2.MembersObject[memberIndex] is not string str) return;
+
                 ctx.GameDataBlockStream.OpenBlock(br);
                 {
-                    var str = ctx.MetaCode2.MembersObject[memberIndex] as string;
                     var ms = ctx.MetaCode2.MembersCount[memberIndex];
                     var bytes = new byte[ms];
                     var bl = s_utf8Encoding.GetBytes(str, 0, str.Length, bytes, 0);
@@ -179,7 +199,7 @@ namespace GameData
 
             private static void WriteString(int memberIndex, WriteContext ctx)
             {
-                var str = ctx.MetaCode2.MembersObject[memberIndex] as string;
+                if (ctx.MetaCode2.MembersObject[memberIndex] is not string str) return;
 
                 var bl = s_utf8Encoding.GetByteCount(str);
                 var rl = str.Length;
@@ -364,20 +384,21 @@ namespace GameData
 
             private static void WriteDataUnit(int memberIndex, WriteContext ctx)
             {
-                var dataUnit = ctx.MetaCode2.MembersObject[memberIndex] as IDataUnit;
-                var signature = HashUtility.Compute_ASCII(dataUnit.Signature);
-                var (bigfileIndex, fileIndex) = ctx.SignatureDataBase.GetEntry(signature);
+                if (ctx.MetaCode2.MembersObject[memberIndex] is not IDataUnit dataUnit) return;
 
-                BinaryWriter.Write(ctx.GameDataBlockStream, (ulong)0);   // T* (8 bytes)
+                var signature = HashUtility.Compute_ASCII(dataUnit.Signature);
+                (uint bigfileIndex, uint fileIndex) = ctx.SignatureDataBase.GetEntry(signature);
+
+                BinaryWriter.Write(ctx.GameDataBlockStream, (ulong)0); // T* (8 bytes)
                 BinaryWriter.Write(ctx.GameDataBlockStream, bigfileIndex); // (4 bytes)
-                BinaryWriter.Write(ctx.GameDataBlockStream, fileIndex);    // (4 bytes)
+                BinaryWriter.Write(ctx.GameDataBlockStream, fileIndex); // (4 bytes)
 
                 var dataUnitIndex = ctx.GameDataBlockStream.GetDataUnitIndex(signature);
 
                 // The 'class' member of this DataUnit is the (only) member
                 var dataUnitClassMemberIndex = ctx.MetaCode2.MembersStart[memberIndex];
 
-                ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = dataUnitClassMemberIndex, DataUnitIndex = dataUnitIndex, Signature = signature });
+                ctx.ProcessDataUnitQueue.Enqueue(new ProcessDataUnit() { MemberIndex = dataUnitClassMemberIndex, DataUnitIndex = dataUnitIndex });
             }
         }
 
@@ -389,12 +410,11 @@ namespace GameData
             private readonly Stack<int> _dataUnitStack;
             private readonly List<DataBlock> _dataBlocks;
             private readonly Dictionary<StreamReference, int> _referenceToDataBlock;
-            private readonly StringTable _stringTable;
             private readonly ISignatureDataBase _signatureDb;
             private readonly MemoryStream _memoryStream;
             private readonly IStreamWriter _dataWriter;
 
-            public CppDataBlockStream2(EPlatform platform, StringTable strTable, ISignatureDataBase signatureDb)
+            public CppDataBlockStream2(EPlatform platform, ISignatureDataBase signatureDb)
             {
                 _current = -1;
                 _dataUnitHashes = new List<Hash160>();
@@ -402,7 +422,6 @@ namespace GameData
                 _dataUnitStack = new Stack<int>();
                 _dataBlocks = new List<DataBlock>();
                 _referenceToDataBlock = new Dictionary<StreamReference, int>();
-                _stringTable = strTable;
                 _signatureDb = signatureDb;
                 _memoryStream = new MemoryStream();
                 _dataWriter = ArchitectureUtils.CreateMemoryWriter(_memoryStream, platform);
@@ -440,7 +459,7 @@ namespace GameData
                         var offset = 0;
 
                         // This is a magic 64-bit value that is unique but stable for all DataBlocks
-                        const ulong magic = (ulong)0xDEADBEEFCAFEBABE;
+                        const ulong magic = 0xDEADBEEFCAFEBABE;
                         ArchitectureUtils.LittleArchitecture64.Write(magic, workBuffer, offset);
                         offset += 8;
 
@@ -483,7 +502,7 @@ namespace GameData
                     BinaryWriter.Write(writer, 0xFEEDF00DFEEDF00D);
                 }
 
-                internal static void ReplaceReference(IStreamWriter data, DataBlock db, StreamReference oldRef, StreamReference newRef)
+                internal static void ReplaceReference(DataBlock db, StreamReference oldRef, StreamReference newRef)
                 {
                     // See if we are using this reference (oldRef) in this data block
                     if (!db.BlockPointers.Remove(oldRef, out var oldOffsets)) return;
@@ -655,8 +674,8 @@ namespace GameData
                 var dataHashDataBase = new Dictionary<Hash160, StreamReference>();
 
                 var dataBlocks = new List<DataBlock>(blockDataBase.Count);
-                foreach (var b in blockDataBase)
-                    dataBlocks.Add(b.Value);
+                foreach ((var _, DataBlock db) in blockDataBase)
+                    dataBlocks.Add(db);
 
                 var workBuffer = new byte[65536];
 
@@ -706,7 +725,7 @@ namespace GameData
                     // Rebuild the list of data blocks
                     dataBlocks.Clear();
                     dataBlocks.Capacity = blockDataBase.Count;
-                    foreach (var (_, db) in blockDataBase)
+                    foreach ((var _, DataBlock db) in blockDataBase)
                     {
                         dataBlocks.Add(db);
                     }
@@ -714,11 +733,11 @@ namespace GameData
                     // For each data block replace any occurence of an old reference with its unique reference
                     foreach (var db in dataBlocks)
                     {
-                        foreach (var (uniqueRef, duplicateRefs) in duplicateDataBase)
+                        foreach ((StreamReference uniqueRef, List<StreamReference> duplicateRefs) in duplicateDataBase)
                         {
                             foreach (var duplicateRef in duplicateRefs)
                             {
-                                DataBlock.ReplaceReference(memoryBlock, db, duplicateRef, uniqueRef);
+                                DataBlock.ReplaceReference(db, duplicateRef, uniqueRef);
                             }
                         }
                     }
@@ -800,6 +819,10 @@ namespace GameData
                     // Align start of DataUnit at 16 bytes
                     BinaryWriter.Align(dataWriter, 16);
 
+                    // Remember the start of the DataUnit in the stream
+                    var dataUnitBeginPos = dataWriter.Position;
+                    dataUnitStreamPositions.Add((ulong)dataUnitBeginPos);
+
                     // We have to also write a 'pointer' at the start of the DataUnit that
                     // serves as the head of the linked list.
                     // So here we are writing a 16 bytes header, where we currently only use the first 4 bytes.
@@ -809,12 +832,8 @@ namespace GameData
                     BinaryWriter.Write(dataWriter, 0);
                     BinaryWriter.Write(dataWriter, 0);
 
-                    // Remember the start of the DataUnit in the stream
-                    var dataUnitBeginPos = dataWriter.Position;
-                    dataUnitStreamPositions.Add((ulong)dataUnitBeginPos);
-
                     // Write all DataBlocks
-                    foreach (var (_, db) in blockDataBase)
+                    foreach ((_, DataBlock db) in blockDataBase)
                     {
                         DataBlock.WriteDataBlock(dataUnitBeginPos, db, memoryBlock, dataWriter, streamReferenceToStreamPositionDataBase, readWriteBuffer);
                     }

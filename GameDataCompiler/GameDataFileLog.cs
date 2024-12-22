@@ -1,10 +1,9 @@
-using System;
 using GameData;
 using GameCore;
 
 namespace DataBuildSystem
 {
-    public sealed class GameDataFileLog
+    public static class GameDataFileLog
     {
         private static int Compare(KeyValuePair<Hash160, IDataFile> lhs, KeyValuePair<Hash160, IDataFile> rhs)
         {
@@ -28,7 +27,8 @@ namespace DataBuildSystem
             var mergedPreviousCount = 0;
             while (currentListIndex < currentCompilerSignatureList.Count)
             {
-                var signature = currentCompilerSignatureList[currentListIndex];
+                (_, IDataFile cdc) = currentCompilerSignatureList[currentListIndex];
+
                 // We can just advance the index of the previous compiler signature list until the comparison returns
                 // that the current signature is bigger, because that means that the current compiler is not in the
                 // previous list.
@@ -46,14 +46,13 @@ namespace DataBuildSystem
                     mergedPreviousCount++;
 
                     var pdc = previousCompilerSignatureList[previousListIndex].Value;
-                    var cdc = signature.Value;
                     cdc.CopyConstruct(pdc);
                     mergedCompilers.Add(cdc);
                 }
                 else
                 {
                     // The current compiler is not in the previous list so add it to the merged list.
-                    mergedCompilers.Add(signature.Value);
+                    mergedCompilers.Add(cdc);
                 }
 
                 currentListIndex += 1;
@@ -131,9 +130,6 @@ namespace DataBuildSystem
                 writer.Close();
                 return true;
             }
-
-            writer.Close();
-            return false;
         }
 
         public static List<IDataFile> Load(string filepath, List<IDataFile> currentDataFileLog)
@@ -157,25 +153,25 @@ namespace DataBuildSystem
                 var compilerTypeSignature = Hash160.ReadFrom(reader);
                 var compilerSignature = Hash160.ReadFrom(reader);
 
-                // We could have a type signature in the log that doesn't exists anymore because
+                // We could have a type signature in the log that doesn't exist anymore because
                 // the name of the compiler has been changed. When this is the case we need to
-                // inform the user of this class that the log is out-of-date!
+                // skip loading the state of that compiler.
 
+                GameCore.BinaryReader.Read(reader, out uint stateSize);
                 if (compilerTypeSet.TryGetValue(compilerTypeSignature, out var type))
                 {
-                    var compiler = Activator.CreateInstance(type) as IDataFile;
+                    if (Activator.CreateInstance(type) is not IDataFile compiler) continue;
+
                     if (compilerSignatureSet.Add(compilerSignature))
                     {
                         compiler.Signature = compilerSignature;
                         loadedDataFilelog.Add(compiler);
                     }
 
-                    GameCore.BinaryReader.Read(reader, out uint stateSize);
                     compiler.LoadState(reader);
                 }
                 else
                 {
-                    GameCore.BinaryReader.Read(reader, out uint stateSize);
                     if (!reader.SkipBytes(stateSize))
                         break;
                 }

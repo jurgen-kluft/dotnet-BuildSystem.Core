@@ -108,7 +108,6 @@ namespace GameData
 
         public class MetaCode2
         {
-            public readonly StringTable DataStrings;
             public readonly List<string> MemberStrings;
             public readonly List<int> MemberSorted; // Sorted member index map
             public readonly List<MetaInfo> MembersType; // Type of the member (int, float, string, class, struct, array, dictionary)
@@ -118,9 +117,8 @@ namespace GameData
             public readonly List<string> MemberTypeName; // This is to know the type of the class
             public readonly List<object> MembersObject; // This is to know content
 
-            public MetaCode2(StringTable dataStrings, int estimatedCount)
+            public MetaCode2(int estimatedCount)
             {
-                DataStrings = dataStrings;
                 MemberStrings = new List<string>(estimatedCount);
                 MemberSorted = new List<int>(estimatedCount);
                 MembersType = new List<MetaInfo>(estimatedCount);
@@ -173,7 +171,7 @@ namespace GameData
                 MembersCount[memberIndex] = count;
             }
 
-            public int GetMemberAlignment(int memberIndex)
+            private int GetMemberAlignment(int memberIndex)
             {
                 var mt = MembersType[memberIndex];
                 var alignment = mt.Alignment;
@@ -950,11 +948,6 @@ namespace GameData
                 return index;
             }
 
-            private int RegisterDataString(string str)
-            {
-                return _metaCode2.DataStrings.Add(str);
-            }
-
             public void NewBoolMember(object content, string memberName)
             {
                 _metaCode2.AddMember(MetaInfo.s_bool, RegisterCodeString(memberName), -1, 1, content, "bool");
@@ -1012,7 +1005,7 @@ namespace GameData
 
             public void NewStringMember(object content, string memberName)
             {
-                _metaCode2.AddMember(MetaInfo.s_string, RegisterCodeString(memberName), RegisterDataString(content as string), 1, content, "string_t");
+                _metaCode2.AddMember(MetaInfo.s_string, RegisterCodeString(memberName), -1, 1, content, "string_t");
             }
 
             public int NewEnumMember(Type type, object content, string memberName)

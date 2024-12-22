@@ -1,9 +1,5 @@
-﻿using System.Reflection;
-
-using GameCore;
+﻿using GameCore;
 using GameData;
-using BinaryReader = GameCore.BinaryReader;
-using BinaryWriter = GameCore.BinaryWriter;
 
 namespace DataBuildSystem
 {
@@ -26,14 +22,12 @@ namespace DataBuildSystem
 
         public (uint primary, uint secondary) GetEntry(Hash160 signature)
         {
-            if (_signatureToEntry.TryGetValue(signature, out var e))
-                return (e.Primary, e.Secondary);
-            return (uint.MaxValue, uint.MaxValue);
+            return _signatureToEntry.TryGetValue(signature, out var e) ? (e.Primary, e.Secondary) : (uint.MaxValue, uint.MaxValue);
         }
 
         public bool Register(Hash160 signature, uint primary, uint secondary)
         {
-            if (_signatureToEntry.TryGetValue(signature, out var e))
+            if (_signatureToEntry.ContainsKey(signature))
                 return false;
 
             if (primary > _entries.Capacity)
@@ -71,12 +65,10 @@ namespace DataBuildSystem
             _signatureToEntry.Clear();
             _entries.Clear();
 
-            //var numSignatures = reader.ReadInt32();
-            BinaryReader.Read(reader, out int numSignatures);
+            GameCore.BinaryReader.Read(reader, out int numSignatures);
             _signatureToEntry.EnsureCapacity(numSignatures);
 
-            //var numEntries = reader.ReadInt32();
-            BinaryReader.Read(reader, out int numEntries);
+            GameCore.BinaryReader.Read(reader, out int numEntries);
             _entries.Capacity = numEntries;
 
             for (var i = 0; i < numEntries; i++)
@@ -86,10 +78,8 @@ namespace DataBuildSystem
 
             for (var i = 0; i < numEntries; i++)
             {
-                //var entryIndex = reader.ReadInt32();
-                BinaryReader.Read(reader, out int entryIndex);
-                //var entryCapacity = reader.ReadInt32();
-                BinaryReader.Read(reader, out int entryCapacity);
+                GameCore.BinaryReader.Read(reader, out int entryIndex);
+                GameCore.BinaryReader.Read(reader, out int entryCapacity);
                 var primaryEntry = _entries[entryIndex];
                 primaryEntry.SignatureList.Capacity = entryCapacity;
                 primaryEntry.IndexList.Capacity = entryCapacity;
@@ -97,8 +87,7 @@ namespace DataBuildSystem
                 for (var j = 0; j < entryCapacity; j++)
                 {
                     var signature = Hash160.ReadFrom(reader);
-                    //var secondaryIndex = reader.ReadUInt32();
-                    BinaryReader.Read(reader, out uint secondaryIndex);
+                    GameCore.BinaryReader.Read(reader, out uint secondaryIndex);
                     primaryEntry.SignatureList.Add(signature);
                     primaryEntry.IndexList.Add(secondaryIndex);
                     _signatureToEntry.Add(signature, new Entry { Primary = primaryIndex, Secondary = secondaryIndex });
@@ -114,17 +103,17 @@ namespace DataBuildSystem
             var writer = ArchitectureUtils.CreateFileWriter(filepath, LocalizerConfig.Platform);
             if (writer == null) return false;
 
-            BinaryWriter.Write(writer, _signatureToEntry.Count);
-            BinaryWriter.Write(writer, _entries.Count);
+            GameCore.BinaryWriter.Write(writer, _signatureToEntry.Count);
+            GameCore.BinaryWriter.Write(writer, _entries.Count);
             for (var i = 0; i < _entries.Count; i++)
             {
                 PrimaryEntry primaryEntry = _entries[i];
-                BinaryWriter.Write(writer, i);
-                BinaryWriter.Write(writer, primaryEntry.IndexList.Count);
+                GameCore.BinaryWriter.Write(writer, i);
+                GameCore.BinaryWriter.Write(writer, primaryEntry.IndexList.Count);
                 for (var j = 0; j < primaryEntry.SignatureList.Count; j++)
                 {
                     primaryEntry.SignatureList[j].WriteTo(writer); // signature
-                    BinaryWriter.Write(writer, primaryEntry.IndexList[j]);
+                    GameCore.BinaryWriter.Write(writer, primaryEntry.IndexList[j]);
                 }
             }
 

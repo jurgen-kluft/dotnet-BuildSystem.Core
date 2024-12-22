@@ -4,51 +4,43 @@ namespace GameData
 {
     using MetaCode;
 
-    // CodeStream for generating C++ header file(s) containing structs that map to 'data'
+    // CodeStream for generating C++ header file containing the code that maps to 'data'
     public static class CppCodeStream2
     {
         // Save binary data and C++ code for mapping to the data
 
         // C/C++ code:
-        //   - Endian
-        //   - Enums
-        //   - Member sort for memory alignment
+        //   - Member sorted by size for memory alignment
         //   - Database of written references, objects, arrays, strings
         //     - For emitting an object once as well as terminating circular references
         //   - C# class hierarchy is collapsed to one C++ class
-        //   - De-duplicated data (strings, arrays, struct instances, class instances)
-
-        // Need to use 'charon' C++ library, since it has predefined structs for:
-        // - String data representation (struct string_t)
-        // - LString data representation (lstring_t = u64)
-        // - FileId data representation (fileid_t = u64)
-        // - Array data representation (template<T> array_t { u32 const mByteSize; u32 const mCount; T const* mArray; })
+        //   - De-duplicated data (string, array, list, dict, class)
 
         // Notes:
-        // - Embedding a struct (IStruct) will be treated as a value type
-        // - Embedding a class will result in a pointer to that class
+        // - A struct (IStruct) will be treated as a value type
+        // - A class as a member will always be a pointer to that class
 
         // Defined: (big/little endian)
-        // double       -> 8 byte
-        // float        -> 4 byte
-        // ulong/long   -> 8 byte
-        // uint/int     -> 4 byte
-        // ushort/short -> 2 byte
+        // enum         -> 1, 2, 4 or 8 bytes
+        // double       -> 8 bytes
+        // float        -> 4 bytes
+        // ulong/long   -> 8 bytes
+        // uint/int     -> 4 bytes
+        // ushort/short -> 2 bytes
         // byte         -> 1 byte
         // bool         -> 1 byte (Note: 8 booleans are packed together in one byte)
 
         public static void Write2(EPlatform platform, IDataUnit data, StreamWriter codeFileWriter, IStreamWriter bigfileWriter, ISignatureDataBase signatureDb, out List<Hash160> dataUnitsSignatures,  out List<ulong> dataUnitsStreamPositions, out List<ulong> dataUnitsStreamSizes)
         {
             // Use string table in MetaCode
-            var stringTable = new StringTable();
-            var metaCode = new MetaCode2(stringTable, 8192);
+            var metaCode = new MetaCode2(8192);
             var metaMemberFactory = new MetaMemberFactory(metaCode);
             var typeInformation = new TypeInfo2();
 
             var reflector = new Reflector2(metaCode, metaMemberFactory, typeInformation);
             reflector.Analyze(data);
 
-            // In every class combine booleans into a set of bits
+            // In every class combine booleans into one or more bitsets
             for (var ci = 0; ci < metaCode.Count; ++ci)
             {
                 var mt = metaCode.MembersType[ci];
@@ -73,8 +65,8 @@ namespace GameData
             }
 
             // Write out every underlying member 'data' of the code to a DataStream
-            var dataStream = new CppDataBlockStream2(platform, stringTable, signatureDb);
-            CppDataStreamWriter2.Write(metaCode, data.Signature, stringTable, signatureDb, dataStream);
+            var dataStream = new CppDataBlockStream2(platform, signatureDb);
+            CppDataStreamWriter2.Write(metaCode, data.Signature, signatureDb, dataStream);
 
             // Finalize the DataStream by writing to a (Bigfile) data file
             dataStream.Finalize(bigfileWriter, out dataUnitsSignatures, out dataUnitsStreamPositions, out dataUnitsStreamSizes);

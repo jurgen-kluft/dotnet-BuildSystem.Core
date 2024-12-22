@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using System.Runtime.Loader;
 using GameCore;
@@ -236,10 +237,10 @@ namespace DataBuildSystem
 
     public class GameDataUnit
     {
-        public string Name { get;  init; }
-        public string Id { get;  init; }
+        public string Name { get; init; }
+        public string Id { get; init; }
         public string Filename => Name + "." + Id;
-        public uint Index { get;  init; }
+        public uint Index { get; init; }
         public IDataUnit DataUnit { get; set; }
         private State[] States { get; set; }
         private Dependency Dep { get; set; }
@@ -258,51 +259,48 @@ namespace DataBuildSystem
             }
         }
 
-        private static readonly GameDataPath GameDataUnitBigFileData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileData, ScopeId = GameDataPath.GameDataScopeUnit};
-        private static readonly GameDataPath GameDataUnitBigFileToc = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileToc, ScopeId = GameDataPath.GameDataScopeUnit};
-        private static readonly GameDataPath GameDataUnitBigFileFilenames = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileFilenames, ScopeId = GameDataPath.GameDataScopeUnit};
-        private static readonly GameDataPath GameDataUnitBigFileHashes = new GameDataPath { PathId =EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileHashes, ScopeId = GameDataPath.GameDataScopeUnit};
-        private static readonly GameDataPath GameDataUnitDataFileLog = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGduDataFileLog, ScopeId = GameDataPath.GameDataScopeUnit};
-        private static readonly GameDataPath GameDataDll = new GameDataPath { PathId = EGameDataPath.GameDataGddPath, FileId = GameDataPath.GameDataGameDataDll, ScopeId = GameDataPath.GameDataScopeGlobal};
-        private static readonly GameDataPath GameDataSignatureDb = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGameDataSignatureDb, ScopeId = GameDataPath.GameDataScopeGlobal};
-        private static readonly GameDataPath GameDataCppData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppData, ScopeId = GameDataPath.GameDataScopeGlobal};
-        private static readonly GameDataPath GameDataCppCode = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppCode, ScopeId = GameDataPath.GameDataScopeGlobal};
+        private static readonly GameDataPath s_gameDataUnitBigFileData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileData, ScopeId = GameDataPath.GameDataScopeUnit };
+        private static readonly GameDataPath s_gameDataUnitBigFileToc = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileToc, ScopeId = GameDataPath.GameDataScopeUnit };
+        private static readonly GameDataPath s_gameDataUnitBigFileFilenames = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileFilenames, ScopeId = GameDataPath.GameDataScopeUnit };
+        private static readonly GameDataPath s_gameDataUnitBigFileHashes = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGduBigFileHashes, ScopeId = GameDataPath.GameDataScopeUnit };
+        private static readonly GameDataPath s_gameDataUnitDataFileLog = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGduDataFileLog, ScopeId = GameDataPath.GameDataScopeUnit };
+        private static readonly GameDataPath s_gameDataDll = new GameDataPath { PathId = EGameDataPath.GameDataGddPath, FileId = GameDataPath.GameDataGameDataDll, ScopeId = GameDataPath.GameDataScopeGlobal };
+        private static readonly GameDataPath s_gameDataSignatureDb = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataGameDataSignatureDb, ScopeId = GameDataPath.GameDataScopeGlobal };
+        private static readonly GameDataPath s_gameDataCppData = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppData, ScopeId = GameDataPath.GameDataScopeGlobal };
+        private static readonly GameDataPath s_gameDataCppCode = new GameDataPath { PathId = EGameDataPath.GameDataPubPath, FileId = GameDataPath.GameDataGameDataCppCode, ScopeId = GameDataPath.GameDataScopeGlobal };
 
-        private static readonly GameDataPath GameDataSrcDataPath = new GameDataPath { PathId = EGameDataPath.GameDataSrcPath, FileId = GameDataPath.GameDataSrcData, ScopeId = GameDataPath.GameDataScopeGlobal};
-        private static readonly GameDataPath GameDataDstDataPath = new GameDataPath { PathId = EGameDataPath.GameDataDstPath, FileId = GameDataPath.GameDataDstData, ScopeId = GameDataPath.GameDataScopeGlobal};
-
-        private static readonly GameDataPath[] GameDataPaths = new GameDataPath[]
+        private static readonly GameDataPath[] s_gameDataPaths = new GameDataPath[]
         {
-            GameDataUnitBigFileData,
-            GameDataUnitBigFileToc,
-            GameDataUnitBigFileFilenames,
-            GameDataUnitBigFileHashes,
-            GameDataUnitDataFileLog,
-            GameDataDll,
-            GameDataSignatureDb,
-            GameDataCppData,
-            GameDataCppCode,
+            s_gameDataUnitBigFileData,
+            s_gameDataUnitBigFileToc,
+            s_gameDataUnitBigFileFilenames,
+            s_gameDataUnitBigFileHashes,
+            s_gameDataUnitDataFileLog,
+            s_gameDataDll,
+            s_gameDataSignatureDb,
+            s_gameDataCppData,
+            s_gameDataCppCode,
         };
 
         public void SetupState()
         {
             Dep = new Dependency();
-            for (ushort i = 0; i < GameDataPaths.Length; i++)
+            for (ushort i = 0; i < s_gameDataPaths.Length; i++)
             {
-                var gdp = GameDataPaths[i];
+                var gdp = s_gameDataPaths[i];
                 var unitName = gdp.IsGameData ? "GameData" : Filename;
                 var filepath = gdp.GetRelativeFilePath(unitName);
                 Dep.Add(i, gdp.PathId, filepath);
             }
 
-            States = new State[GameDataPaths.Length];
+            States = new State[s_gameDataPaths.Length];
             for (var i = 0; i < States.Length; ++i)
                 States[i] = State.Missing;
         }
 
         public void DetermineState()
         {
-            Dep.Update(delegate(ushort idx, State state)
+            Dep.Update(delegate (ushort idx, State state)
             {
                 States[idx] = state;
                 return DataCookResult.None;
@@ -385,24 +383,49 @@ namespace DataBuildSystem
             }
             catch (Exception)
             {
+                return null;
             }
-
-            return null;
         }
 
         public static List<IDataFile> CollectDataFiles(IDataUnit dataUnit)
         {
             var compilers = new List<IDataFile>();
             {
-                Walk(dataUnit, delegate(object compound)
+                Walk(dataUnit, delegate (object compound)
                     {
                         var compoundType = compound.GetType();
                         if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
                             return false;
 
-                        // TODO what about Array's or List<>'s of DataCompilers?
-
-                        if (compound is IDataFile c)
+                        if (compoundType.IsArray && compound is System.Array array)
+                        {
+                            foreach (var e in array)
+                            {
+                                switch (e)
+                                {
+                                    case null:
+                                        continue;
+                                    case IDataFile df:
+                                        compilers.Add(df);
+                                        break;
+                                }
+                            }
+                        }
+                        else if ((compoundType.IsGenericType && (compoundType.GetGenericTypeDefinition() == typeof(List<>))) &&  compound is IList list)
+                        {
+                            foreach (var e in list)
+                            {
+                                switch (e)
+                                {
+                                    case null:
+                                        continue;
+                                    case IDataFile df:
+                                        compilers.Add(df);
+                                        break;
+                                }
+                            }
+                        }
+                        else if (compound is IDataFile c)
                         {
                             compilers.Add(c);
                             return false;
@@ -410,9 +433,9 @@ namespace DataBuildSystem
 
                         return true;
                     },
-                    delegate(Type type)
+                    delegate (Type type)
                     {
-                        if (type  == null)
+                        if (type == null)
                             return false;
 
                         if (type.IsPrimitive || type.IsEnum || type == typeof(string))
@@ -435,25 +458,47 @@ namespace DataBuildSystem
         {
             var dataUnits = new List<IDataUnit>();
             {
-                Walk(rootDataUnit, delegate(object compound)
+                Walk(rootDataUnit, delegate (object compound)
                     {
                         var compoundType = compound.GetType();
                         if (compoundType.IsPrimitive || compoundType.IsEnum || compoundType == typeof(string))
                             return false;
 
-                        // TODO what about Array's or List<>'s of DataCompilers?
-
-                        if (compound is IDataUnit du)
+                        if (compoundType.IsArray && compound is Array array)
+                        {
+                            foreach (var e in array)
+                            {
+                                switch (e)
+                                {
+                                    case null:
+                                        continue;
+                                    case IDataUnit du:
+                                        dataUnits.Add(du);
+                                        break;
+                                }
+                            }
+                        }
+                        else if ((compoundType.IsGenericType && (compoundType.GetGenericTypeDefinition() == typeof(List<>))) &&  compound is IList list)
+                        {
+                            foreach (var e in list)
+                            {
+                                switch (e)
+                                {
+                                    case null:
+                                        continue;
+                                    case IDataUnit du:
+                                        dataUnits.Add(du);
+                                        break;
+                                }
+                            }
+                        }
+                        else if (compound is IDataUnit du)
                         {
                             dataUnits.Add(du);
                         }
 
                         return true;
-                    }, delegate(Type type)
-                    {
-                        return (type != null && !type.IsPrimitive && !type.IsEnum);
-                    }
-                );
+                    }, type => type is { IsPrimitive: false, IsEnum: false });
             }
             return dataUnits;
         }
@@ -483,16 +528,14 @@ namespace DataBuildSystem
                         var elementType = compoundTypeInfo.GetElementType();
                         if (ocw(elementType))
                         {
-                            if (compound is System.Array objectArray)
+                            if (compound is Array objectArray)
                             {
                                 for (var i = 0; i < objectArray.Length; i++)
                                 {
                                     var e = objectArray.GetValue(i);
-                                    if (e != null)
-                                    {
-                                        if (ocw(e.GetType()))
-                                            compounds.Enqueue(e);
-                                    }
+                                    if (e == null) continue;
+                                    if (ocw(e.GetType()))
+                                        compounds.Enqueue(e);
                                 }
                             }
                         }
@@ -523,11 +566,9 @@ namespace DataBuildSystem
                                         for (var i = 0; i < objectArray.Length; i++)
                                         {
                                             var e = objectArray.GetValue(i);
-                                            if (e != null)
-                                            {
-                                                if (ocw(e.GetType()))
-                                                    compounds.Enqueue(e);
-                                            }
+                                            if (e == null) continue;
+                                            if (ocw(e.GetType()))
+                                                compounds.Enqueue(e);
                                         }
                                     }
                                 }
