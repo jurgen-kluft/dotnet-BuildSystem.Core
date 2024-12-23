@@ -194,7 +194,7 @@ namespace GameData
                                 const color_t sWhiteColor(0xFFFFFFFF);
 
                                 """;
-            return code.Split("\n");
+            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public void StructWrite(IGameDataWriter writer)

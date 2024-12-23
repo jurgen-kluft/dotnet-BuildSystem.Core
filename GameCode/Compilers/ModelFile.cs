@@ -8,9 +8,9 @@ namespace GameData
     public sealed class ModelData
     {
         public DataFile StaticMesh;
-        public DataFile[] Textures;
+        public List<TextureDataFile> Textures;
 
-        public ModelData(DataFile staticMesh, DataFile[] textures)
+        public ModelData(DataFile staticMesh, List<TextureDataFile> textures)
         {
             StaticMesh = staticMesh;
             Textures = textures;
@@ -22,7 +22,7 @@ namespace GameData
     {
         private string _srcFilename;
         private string _dstFilename;
-        private readonly TextureDataFile[] _textures;
+        private readonly TextureFile[] _textures;
         private Dependency _dependency;
 
         public ModelDataFile() : this(string.Empty, string.Empty)
@@ -36,7 +36,7 @@ namespace GameData
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            _textures = new TextureDataFile[0];
+            _textures = new TextureFile[0];
         }
 
         public Hash160 Signature { get; set; }
@@ -75,11 +75,12 @@ namespace GameData
         {
             get
             {
-                var textures = new DataFile[_textures.Length];
-                for (var i = 0; i < _textures.Length; i++)
+                var textures = new List<TextureDataFile>(_textures.Length);
+                foreach (var t in _textures)
                 {
-                    textures[i] = new DataFile(_textures[i], "texture_t");
+                    textures.Add(new TextureDataFile(t));
                 }
+
                 return new ModelData(new DataFile(this, "staticmesh_t"), textures);
             }
         }

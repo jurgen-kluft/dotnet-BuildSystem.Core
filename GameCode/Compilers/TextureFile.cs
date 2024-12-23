@@ -5,19 +5,32 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class TextureDataFile : IDataFile, ISignature
+    public class TextureDataFile : DataFile
+    {
+        public TextureDataFile() : base(new NullSignature(), "texture_t")
+        {
+            
+        }
+
+        public TextureDataFile(ISignature signature) : base(signature, "texture_t")
+        {
+            
+        }
+    }
+    
+    public sealed class TextureFile : IDataFile, ISignature
     {
         private string _srcFilename;
         private string _dstFilename;
         private Dependency _dependency;
 
-        public TextureDataFile() : this(string.Empty, string.Empty)
+        public TextureFile() : this(string.Empty, string.Empty)
         {
         }
-        public TextureDataFile(string filename) : this(filename, filename)
+        public TextureFile(string filename) : this(filename, filename)
         {
         }
-        public TextureDataFile(string srcFilename, string dstFilename)
+        public TextureFile(string srcFilename, string dstFilename)
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -47,7 +60,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not TextureDataFile cc) return;
+            if (dc is not TextureFile cc) return;
 
             _srcFilename = cc._srcFilename;
             _dstFilename = cc._dstFilename;
@@ -55,7 +68,7 @@ namespace GameData
         }
 
         public string CookedFilename => _dstFilename;
-        public object CookedObject => new DataFile( this, "texture_t");
+        public object CookedObject => new TextureDataFile(this);
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {

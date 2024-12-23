@@ -73,7 +73,7 @@ namespace GameData
             {
                 new() { SizeInBits = 0, AlignmentInBytes = 1, IsSignedType = false, TypeName = "unknown" }, // Unknown
                 new() { SizeInBits = 1, AlignmentInBytes = 1, IsSignedType = false, TypeName = "bool" }, // Bool
-                new() { SizeInBits = 8, AlignmentInBytes = 1, IsSignedType = false, TypeName = "bitset_t" }, // BitSet
+                new() { SizeInBits = 8, AlignmentInBytes = 1, IsSignedType = false, TypeName = "u8" }, // BitSet
                 new() { SizeInBits = 8, AlignmentInBytes = 1, IsSignedType = true, TypeName = "s8" }, // Int8
                 new() { SizeInBits = 8, AlignmentInBytes = 1, IsSignedType = false, TypeName = "u8" }, // UInt8
                 new() { SizeInBits = 16, AlignmentInBytes = 2, IsSignedType = true, TypeName = "s16" }, // Int16

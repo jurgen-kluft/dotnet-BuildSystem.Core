@@ -1,4 +1,5 @@
 using GameCore;
+using Environment = System.Environment;
 
 namespace GameData
 {
@@ -35,7 +36,7 @@ namespace GameData
                                 };
 
                                 """;
-            return code.Split("\n");
+            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public void StructWrite(IGameDataWriter writer)
