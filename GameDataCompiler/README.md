@@ -53,9 +53,9 @@ ModelCompiler creates a ModelData object for the CookedObject that is used in th
 ```csharp
 public sealed class ExampleModel
 {
-    public IDataFile   StaticMesh;
-    public IDataFile[] Materials;
-    public IDataFile[] Textures;
+    public DataFile   StaticMesh;
+    public DataFile[] Materials;
+    public List<TextureDataFile> Textures;
 }
 ```
 The C++ code will look something like this:
@@ -73,8 +73,8 @@ The material IDataFile also returns an object that is used in the game code/data
 ```csharp
 public sealed class ExampleMaterial
 {
-    public IDataFile   Shader;
-    public IDataFile[] Textures;
+    public DataFile   Shader;
+    public List<TextureDataFile> Textures;
 }
 ```
 The C++ code will look something like this:
