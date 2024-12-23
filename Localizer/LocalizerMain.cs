@@ -129,7 +129,7 @@ namespace DataBuildSystem
             if (!LocalizerConfig.ConfigFilename.IsEmpty)
             {
                 var configSrcFiles = new List<Filename>();
-                configSrcFiles.Add(new Filename(GameCore.Environment.expandVariables(LocalizerConfig.ConfigFilename)));
+                configSrcFiles.Add(new Filename(GameCore.Environment.ExpandVariables(LocalizerConfig.ConfigFilename)));
                 var configAsmFilename = new Filename("Localizer" + "." + LocalizerConfig.ConfigFilename + ".dll");
                 var configAssemblyFilename = configAsmFilename;
                 configDataAssembly = AssemblyCompiler.Compile(configAssemblyFilename, configSrcFiles.ToArray(), new Filename[0], LocalizerConfig.SrcPath, LocalizerConfig.SubPath, LocalizerConfig.DstPath, LocalizerConfig.DepPath, referencedAssemblies.ToArray());

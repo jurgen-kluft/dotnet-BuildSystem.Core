@@ -18,10 +18,10 @@ namespace GameData
         public static string BigFileFdbExtension { get; set; }
         public static string BigFileHdbExtension { get; set; }
 
-        public const byte GameDataSrcPath = 0;
-        public const byte GameDataGddPath = 1;
-        public const byte GameDataDstPath = 2;
-        public const byte GameDataPubPath = 3;
+        private const byte GameDataSrcPath = 0;
+        private const byte GameDataGddPath = 1;
+        private const byte GameDataDstPath = 2;
+        private const byte GameDataPubPath = 3;
 
         public const byte GameDataScopeUnit = 0;
         public const byte GameDataScopeGlobal = 1;
@@ -35,8 +35,6 @@ namespace GameData
         public const byte GameDataGameDataSignatureDb = 6;
         public const byte GameDataGameDataCppData = 7;
         public const byte GameDataGameDataCppCode = 8;
-        public const byte GameDataSrcData = 9;
-        public const byte GameDataDstData = 10;
 
         public EGameDataPath PathId { get; init; }
         public byte FileId { get; init; }

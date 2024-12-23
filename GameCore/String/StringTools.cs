@@ -140,11 +140,11 @@ namespace GameCore
         {
             return c switch
             {
-                >= '0' and <= '9' => (c - '0'),
-                >= 'a' and <= 'z' => 10 + (c - 'a'),
-                >= 'A' and <= 'Z' => 10 + 26 + (c - 'A'),
-                '.' => 10 + 26 + 26,
-                _ => 63
+                >= '0' and <= '9' => 0 + (c - '0'),
+                >= 'a' and <= 'z' => 2 + (c - 'a'),
+                >= 'A' and <= 'Z' => 3 + (c - 'A'),
+                '.' => 30,
+                _ => 31
             };
         }
 
@@ -154,17 +154,17 @@ namespace GameCore
             foreach (var c in characters)
             {
                 var i = CharToIndex(c);
-                h = (h << 6) | (i & 0x3F);
+                h = (h << 5) | (i & 0x1F);
             }
             return h;
         }
-        public static long Encode_64_10(params char[] characters)
+        public static long Encode_64_13(params char[] characters)
         {
             var h = (long)0;
             foreach (var c in characters)
             {
                 var i = (long)CharToIndex(c);
-                h = (h << 6) | (i & 0x3F);
+                h = (h << 5) | (i & 0x1F);
             }
             return h;
         }

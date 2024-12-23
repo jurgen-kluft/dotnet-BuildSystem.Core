@@ -32,70 +32,72 @@ namespace GameDataCompiler
                 return vars;
             }
 
-            [ValueArgument(typeof(string), 'n', "name", DefaultValue = "Game", Description = "Name of the game")]
-            public string name;
+            [ValueArgument(typeof(string), 'n', "Name", DefaultValue = "Game", Description = "Name of the game")]
+            public string Name { get; set; }
 
-            [ValueArgument(typeof(string), 'p', "platform", DefaultValue = "PC", Description = "Platform (PC/PS4/PS5/XBOXONE/XSX)")]
-            public string platform;
+            [ValueArgument(typeof(string), 'p', "Platform", DefaultValue = "PC", Description = "Platform (PC/Playstation4/Playstation5/XboxOne/XboxSeriesX)")]
+            public string Platform{ get; set; }
 
-            [ValueArgument(typeof(string), 't', "target", DefaultValue = "PC", Description = "Target platform (PC/PS4/PS5/XBOXONE/XSX)")]
-            public string target;
+            [ValueArgument(typeof(string), 't', "Target", DefaultValue = "PC", Description = "Target platform (PC/Playstation4/Playstation5/XboxOne/XboxSeriesX)")]
+            public string Target{ get; set; }
 
-            [ValueArgument(typeof(string), 'r', "territory", DefaultValue = "Europe", Description = "Territory (Europe/USA/Asia/Japan)")]
-            public string territory;
+            [ValueArgument(typeof(string), 'r', "Territory", DefaultValue = "Europe", Description = "Territory (Europe/USA/Asia/Japan)")]
+            public string Territory{ get; set; }
 
-            [ValueArgument(typeof(string), 'b', "basepath", DefaultValue = "", Description = "Base path")]
-            public string basepath;
+            [ValueArgument(typeof(string), 'b', "BasePath", DefaultValue = "", Description = "Base path")]
+            public string BasePath{ get; set; }
 
-            [ValueArgument(typeof(string), 'g', "gddpath", DefaultValue = "", Description = "Gdd path")]
-            public string gddpath;
+            [ValueArgument(typeof(string), 'g', "GddPath", DefaultValue = "", Description = "Gdd path")]
+            public string GddPath{ get; set; }
 
-            [ValueArgument(typeof(string), 's', "srcpath", DefaultValue = "", Description = "Source path")]
-            public string srcpath;
+            [ValueArgument(typeof(string), 's', "SrcPath", DefaultValue = "", Description = "Source path")]
+            public string SrcPath{ get; set; }
 
-            [ValueArgument(typeof(string), 'u', "subpath", DefaultValue = "", Description = "Sub path")]
-            public string subpath;
+            [ValueArgument(typeof(string), 'u', "SubPath", DefaultValue = "", Description = "Sub path")]
+            public string SubPath{ get; set; }
 
-            [ValueArgument(typeof(string), 'd', "dstpath", DefaultValue = "", Description = "Destination path")]
-            public string dstpath;
+            [ValueArgument(typeof(string), 'd', "DstPath", DefaultValue = "", Description = "Destination path")]
+            public string DstPath{ get; set; }
 
-            [ValueArgument(typeof(string), 'l', "pubpath", DefaultValue = "", Description = "Publish path")]
-            public string pubpath;
+            [ValueArgument(typeof(string), 'l', "PubPath", DefaultValue = "", Description = "Publish path")]
+            public string PubPath{ get; set; }
 
-            [ValueArgument(typeof(string), 'o', "toolpath", DefaultValue = "", Description = "Tool path")]
-            public string toolpath;
+            [ValueArgument(typeof(string), 'o', "ToolPath", DefaultValue = "", Description = "Tool path")]
+            public string ToolPath{ get; set; }
         }
 
-        // --name Game --platform PC --territory Europe --basepath E:\Dev.Net\.NET_BuildSystem\Data.Test --srcpath %BASEPATH%\Src.Data --gddpath %BASEPATH%\Gdd.Data --pubPath %BASEPATH%\Publish.%PLATFORM% --dstpath %BASEPATH%\Bin.%PLATFORM% --toolpath %BASEPATH%\Tools
+        // Note: Any command-line option can be used as a %Variable%
+        // --name Game --platform Win64 --territory Europe --BasePath E:\Dev.Net\.NET_BuildSystem\Data.Test --SrcPath %BasePath%\Src.Data --GddPath %BasePath%\Gdd.Data --PubPath %BasePath%\Publish.%Platform% --DstPath %BasePath%\Bin.%Platform% --ToolPath %BasePath%\Tools
         static int Main(string[] args)
         {
             var cmdLine = GameDataCompilerArgs.Parse(args);
 
             // On the command-line we have:
-            // - platform     PC                                            (PS4/PS5/XBOXONE/XSX/PC)
-            // - target       PC                                            (PS4/PS5/XBOXONE/XSX/PC)
-            // - name         Game
-            // - territory    Europe                                        (Europe/USA/Asia/Japan)
-            // - basepath     i:\Data                                       (Can be set and used as %BASEPATH%)
-            // - gddpath      %BASEPATH%\Gdd\Compiled
-            // - srcpath      %BASEPATH%\Assets
-            // - subpath                                                    (AI, Boot, Levels, Menu\FrontEnd)
-            // - dstpath      %BASEPATH%\Bin.%PLATFORM%.%TARGET%
-            // - pubpath      %BASEPATH%\Publish.%PLATFORM%.%TARGET%
-            // - toolpath     %BASEPATH%\Tools
-            if (!BuildSystemConfig.Init(cmdLine.name, cmdLine.platform, cmdLine.target, cmdLine.territory, cmdLine.basepath, cmdLine.srcpath, cmdLine.gddpath, cmdLine.subpath, cmdLine.dstpath, cmdLine.pubpath, cmdLine.toolpath))
+            // - Platform     PC                                            (PC/Playstation4/Playstation5/XboxOne/XboxSeriesX)
+            // - Target       PC                                            (PC/Playstation4/Playstation5/XboxOne/XboxSeriesX)
+            // - Name         Game
+            // - Territory    Europe                                        (Europe/USA/Asia/Japan)
+            // - BasePath     i:\Data                                       (Can be set and used as %BasePath%)
+            // - GddPath      %BasePath%\Gdd\Compiled
+            // - SrcPath      %BasePath%\Assets
+            // - SubPath                                                    (AI, Boot, Levels, Menu\FrontEnd)
+            // - DstPath      %BasePath%\Bin.%Platform%.%Target%
+            // - PubPath      %BasePath%\Publish.%Platform%.%Target%
+            // - ToolPath     %BasePath%\Tools
+            //
+            if (!BuildSystemConfig.Init(cmdLine.Name, cmdLine.Platform, cmdLine.Target, cmdLine.Territory, cmdLine.BasePath, cmdLine.SrcPath, cmdLine.GddPath, cmdLine.SubPath, cmdLine.DstPath, cmdLine.PubPath, cmdLine.ToolPath))
             {
-                Console.WriteLine("Usage: -name [NAME]");
-                Console.WriteLine("       -platform [PLATFORM]");
-                Console.WriteLine("       -target [PLATFORM]");
-                Console.WriteLine("       -territory [Europe/USA/Asia/Japan]");
-                Console.WriteLine("       -basepath [BASEPATH]");
-                Console.WriteLine("       -gddpath [GDDPATH]");
-                Console.WriteLine("       -srcpath [SRCPATH]");
-                Console.WriteLine("       -subpath [SUBPATH]");
-                Console.WriteLine("       -dstpath [DSTPATH]");
-                Console.WriteLine("       -pubpath [PUBLISHPATH]");
-                Console.WriteLine("       -toolpath [TOOLPATH]");
+                Console.WriteLine("Usage: -Name [Name]");
+                Console.WriteLine("       -Platform [Platform]");
+                Console.WriteLine("       -Target [Target]");
+                Console.WriteLine("       -Territory [Europe/USA/Asia/Japan]");
+                Console.WriteLine("       -BasePath [BasePath]");
+                Console.WriteLine("       -GddPath [GddPath]");
+                Console.WriteLine("       -SrcPath [SrcPath]");
+                Console.WriteLine("       -SubPath [SubPath]");
+                Console.WriteLine("       -DstPath [DstPath]");
+                Console.WriteLine("       -PubPath [PubPath]");
+                Console.WriteLine("       -ToolPath [ToolPath]");
                 Console.WriteLine();
                 return 1;
             }

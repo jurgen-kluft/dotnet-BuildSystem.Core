@@ -60,16 +60,16 @@ namespace DataBuildSystem
 
         public static bool Init(string name, string platform, string target, string territory, string basePath, string srcPath, string gddPath, string subPath, string dstPath, string pubPath, string toolPath)
         {
-            Console.WriteLine("name: " + name);
-            Console.WriteLine("platform: " + platform);
-            Console.WriteLine("target: " + target);
-            Console.WriteLine("territory: " + territory);
-            Console.WriteLine("base path: " + basePath);
-            Console.WriteLine("src path: " + srcPath);
-            Console.WriteLine("gdd path: " + gddPath);
-            Console.WriteLine("sub path: " + subPath);
-            Console.WriteLine("dst path: " + dstPath);
-            Console.WriteLine("tool path: " + toolPath);
+            Console.WriteLine("Name: " + name);
+            Console.WriteLine("Platform: " + platform);
+            Console.WriteLine("Target: " + target);
+            Console.WriteLine("Territory: " + territory);
+            Console.WriteLine("Base Path: " + basePath);
+            Console.WriteLine("Src Path: " + srcPath);
+            Console.WriteLine("Gdd Path: " + gddPath);
+            Console.WriteLine("Sub Path: " + subPath);
+            Console.WriteLine("Dst Path: " + dstPath);
+            Console.WriteLine("Tool Path: " + toolPath);
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(platform) || string.IsNullOrEmpty(territory))
                 return false;
@@ -88,24 +88,24 @@ namespace DataBuildSystem
                 target = platform;
 
 
-            GameCore.Environment.addVariable("NAME", name);
-            GameCore.Environment.addVariable("PLATFORM", platform);
-            GameCore.Environment.addVariable("TARGET", target);
-            GameCore.Environment.addVariable("TERRITORY", territory);
-            GameCore.Environment.addVariable("BASEPATH", GameCore.Environment.expandVariables(basePath));
+            GameCore.Environment.AddVariable("Name", name);
+            GameCore.Environment.AddVariable("Platform", platform);
+            GameCore.Environment.AddVariable("Target", target);
+            GameCore.Environment.AddVariable("Territory", territory);
+            GameCore.Environment.AddVariable("BasePath", GameCore.Environment.ExpandVariables(basePath));
 
             Platform = EnumFromString(platform, EPlatform.Win64);
             Target = EnumFromString(target, EPlatform.Win64);
             Territory = EnumFromString(territory, ETerritory.USA);
 
             Name = name;
-            BasePath = GameCore.Environment.expandVariables(basePath);
-            SrcPath = GameCore.Environment.expandVariables(srcPath);
-            GddPath = GameCore.Environment.expandVariables(gddPath);
-            SubPath = GameCore.Environment.expandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath);
-            DstPath = GameCore.Environment.expandVariables(dstPath);
-            PubPath = GameCore.Environment.expandVariables(pubPath);
-            ToolPath = GameCore.Environment.expandVariables(toolPath);
+            BasePath = GameCore.Environment.ExpandVariables(basePath);
+            SrcPath = GameCore.Environment.ExpandVariables(srcPath);
+            GddPath = GameCore.Environment.ExpandVariables(gddPath);
+            SubPath = GameCore.Environment.ExpandVariables(string.IsNullOrEmpty(subPath) ? string.Empty : subPath);
+            DstPath = GameCore.Environment.ExpandVariables(dstPath);
+            PubPath = GameCore.Environment.ExpandVariables(pubPath);
+            ToolPath = GameCore.Environment.ExpandVariables(toolPath);
 
             return true;
         }

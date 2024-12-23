@@ -14,8 +14,8 @@ namespace DataBuildSystem
 
     public class GameDataUnits
     {
-        private IDataUnit RootDataUnit { get; set; }
-        private List<GameDataUnit> DataUnits { get; set; }
+        private IRootDataUnit RootDataUnit { get; set; }
+        private Dictionary<uint, GameDataUnit> DataUnits { get; set; }
         private SignatureDataBase SignatureDatabase { get; set; }
 
         private Assembly GameDataAssembly { get; set; }
@@ -27,7 +27,7 @@ namespace DataBuildSystem
             // Instantiate the data root (which is the root DataUnit)
             GameDataAssembly = LoadAssembly(gameDataDllFilename);
             var rootDataUnit = GameDataUnit.FindRoot(GameDataAssembly);
-            RootDataUnit = rootDataUnit as IDataUnit;
+            RootDataUnit = rootDataUnit;
             return GameDataAssembly;
         }
 
@@ -58,7 +58,7 @@ namespace DataBuildSystem
             DirUtils.DuplicateFolderStructure(BuildSystemConfig.SrcPath, BuildSystemConfig.DstPath);
 
             // Determine the state of each DataUnit and load their compiler log
-            foreach (var gdu in DataUnits)
+            foreach ((uint index, GameDataUnit gdu) in DataUnits)
             {
                 gdu.DetermineState();
             }
@@ -71,10 +71,10 @@ namespace DataBuildSystem
             //List<List<IDataFile>> dataFileLogs = [];
 
             // Collect the data units that need to be rebuilt
-            var dataUnitsOod = new List<GameDataUnit>();
-            var dataFileLogsOod = new List<List<IDataFile>>();
+            var dataUnitsOod = new Dictionary<uint, GameDataUnit>();
+            var dataFileLogsOod = new Dictionary<uint, List<IDataFile>>();
 
-            foreach (var gdu in DataUnits)
+            foreach ((uint index, GameDataUnit gdu) in DataUnits)
             {
                 // Collect the data compilers and build their signatures
                 var gduCurrentLog = GameDataUnit.CollectDataFiles(gdu.DataUnit);
@@ -89,9 +89,9 @@ namespace DataBuildSystem
                 var cookResult = GameDataFileLog.Cook(mergedLog, out var finalDataFiles);
                 if (cookResult != 0 || gduMergeResult != 0 || gdu.OutOfDate)
                 {
-                    SignatureDatabase.RemovePrimary(gdu.Index);
-                    dataUnitsOod.Add(gdu);
-                    dataFileLogsOod.Add(finalDataFiles);
+                    SignatureDatabase.RemovePrimary(index);
+                    dataUnitsOod.Add(index, gdu);
+                    dataFileLogsOod.Add(index, finalDataFiles);
                 }
 
                 // Save the compiler log ?
@@ -100,18 +100,17 @@ namespace DataBuildSystem
             }
 
             // Save all the out-of-date GameDataUnits, this means saving the DataFileLog and their Bigfile.
-            for (int i = 0; i < dataUnitsOod.Count; ++i)
+            foreach ((uint dataUnitIndex, GameDataUnit dataUnit) in dataUnitsOod)
             {
-                var dataUnit = dataUnitsOod[i];
-                var dataFiles = dataFileLogsOod[i];
-                GameDataUnit.SaveBigfile(dataUnit.Index, dataUnit.Filename, dataFiles, SignatureDatabase);
+                dataFileLogsOod.TryGetValue(dataUnitIndex, out var dataFiles);
+                GameDataUnit.SaveBigfile(dataUnitIndex, dataUnit.Filename, dataFiles, SignatureDatabase);
                 GameDataFileLog.Save(BuildSystemConfig.Platform, GameDataPath.GameDataUnitDataFileLog.GetFilePath(dataUnit.Filename), dataFiles);
             }
 
             // Register the signatures of the DataUnits, their data is written to a Bigfile with
             // index 0.
             var dataUnitFileIndex = (uint)0;
-            foreach (var gdu in DataUnits)
+            foreach ((uint index, GameDataUnit gdu) in DataUnits)
             {
                 var signature = HashUtility.Compute_ASCII(gdu.DataUnit.Signature);
                 SignatureDatabase.Register(signature, 0, dataUnitFileIndex);
@@ -121,6 +120,39 @@ namespace DataBuildSystem
             // Save the SignatureDatabase now that it has been updated by saving the out-of-date Bigfile(s)
             // - Signature = Primary (Bigfile) index, Secondary (file) index
             SignatureDatabase.Save(GameDataPath.GameDataSignatureDb.GetFilePath("GameData"));
+
+            // Build the list of Big-files that we have and give this to the RootDataUnit, so that the
+            // runtime has the full list of filenames.
+            // The indexing of the GameDataUnits might not be contiguous, so the list at some index might
+            // have a NULL pointer.
+            // Note: The index of a GameDataUnit is the index of the Bigfile!
+            var maxDataUnitIndex = (uint)0;
+            foreach ((uint index, GameDataUnit gdu) in DataUnits)
+            {
+                if (index > maxDataUnitIndex)
+                    maxDataUnitIndex = index;
+            }
+
+            var gameDataFiles = new GameDataFile[maxDataUnitIndex + 1];
+            gameDataFiles[0] = new GameDataFile()
+            {
+                BigfileData = GameDataPath.GameDataUnitBigFileData.GetRelativeFilePath("GameData"),
+                BigfileToc = GameDataPath.GameDataUnitBigFileToc.GetRelativeFilePath("GameData"),
+                BigfileFdb = GameDataPath.GameDataUnitBigFileFilenames.GetRelativeFilePath("GameData"),
+                BigfileHdb = GameDataPath.GameDataUnitBigFileHashes.GetRelativeFilePath("GameData"),
+            };
+            foreach ((uint index, GameDataUnit gdu) in DataUnits)
+            {
+                gameDataFiles[index] = new GameDataFile
+                {
+                    BigfileData = GameDataPath.GameDataUnitBigFileData.GetRelativeFilePath(gdu.Filename),
+                    BigfileToc = GameDataPath.GameDataUnitBigFileToc.GetRelativeFilePath(gdu.Filename),
+                    BigfileFdb = GameDataPath.GameDataUnitBigFileFilenames.GetRelativeFilePath(gdu.Filename),
+                    BigfileHdb = GameDataPath.GameDataUnitBigFileHashes.GetRelativeFilePath(gdu.Filename),
+                };
+            }
+            RootDataUnit.GameDataFiles = gameDataFiles.ToList();
+            
 
             // Finally save the
             // - Game Code header file
@@ -161,23 +193,24 @@ namespace DataBuildSystem
                 idToDataUnit.Add(cdu.Signature, cdu);
             }
 
-            var dataUnits = new Dictionary<uint, GameDataUnit>(currentDataUnits.Count + (currentDataUnits.Count / 4));
+            DataUnits = new Dictionary<uint, GameDataUnit>(currentDataUnits.Count);
 
             var reader = new FileStreamReader();
+            var magicConstant = StringTools.Encode_64_13('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S');
             if (reader.Open(Path.Join(dstPath, "GameDataUnits.log")))
             {
                 GameCore.BinaryReader.Read(reader, out long magic);
-                if (magic == StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'))
+                if (magic == magicConstant)
                 {
                     GameCore.BinaryReader.Read(reader, out int numUnits);
                     for (var i = 0; i < numUnits; i++)
                     {
-                        var gdu = GameDataUnit.Load(reader);
+                        var gdu = GameDataUnit.Load(reader, out var index);
                         if (idToDataUnit.TryGetValue(gdu.Id, out IDataUnit du))
                         {
                             gdu.DataUnit = du;
                             idToDataUnit.Remove(gdu.Id);
-                            dataUnits.Add(gdu.Index, gdu);
+                            DataUnits.Add(index, gdu);
                         }
                     }
                 }
@@ -187,24 +220,17 @@ namespace DataBuildSystem
 
             // Any new DataUnit? -> create them with an index that is not used.
             // Reserve index=0 for the bigfile that contains the GameDataUnit(s) data for the code.
-            var index = (uint)1;
+            var findFreeIndex = (uint)1;
             foreach ((string id, IDataUnit du) in idToDataUnit)
             {
-                while (dataUnits.ContainsKey(index))
-                    index++;
+                while (DataUnits.ContainsKey(findFreeIndex))
+                    findFreeIndex++;
 
                 var name = du.GetType().FullName;
-                var gdu = new GameDataUnit { Id = id, Name = name, Index = index, DataUnit = du };
+                var gdu = new GameDataUnit { Id = id, Name = name, DataUnit = du };
                 gdu.SetupState();
-                dataUnits.Add(gdu.Index, gdu);
-                index++;
-            }
-
-            // Finally, build the official list of DataUnits
-            DataUnits = new List<GameDataUnit>(dataUnits.Count);
-            foreach (var item in dataUnits)
-            {
-                DataUnits.Add(item.Value);
+                DataUnits.Add(findFreeIndex, gdu);
+                findFreeIndex++;
             }
         }
 
@@ -213,11 +239,11 @@ namespace DataBuildSystem
             var filepath = Path.Join(dstPath, "GameDataUnits.log");
             var writer = ArchitectureUtils.CreateFileWriter(filepath, LocalizerConfig.Platform);
 
-            GameCore.BinaryWriter.Write(writer, StringTools.Encode_64_10('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
+            GameCore.BinaryWriter.Write(writer, StringTools.Encode_64_13('D', 'A', 'T', 'A', '.', 'U', 'N', 'I', 'T', 'S'));
             GameCore.BinaryWriter.Write(writer, DataUnits.Count);
-            foreach (var gdu in DataUnits)
+            foreach ((uint index, GameDataUnit gdu) in DataUnits)
             {
-                gdu.Save(writer);
+                gdu.Save(index, writer);
             }
 
             writer.Close();
@@ -240,7 +266,6 @@ namespace DataBuildSystem
         public string Name { get; init; }
         public string Id { get; init; }
         public string Filename => Name + "." + Id;
-        public uint Index { get; init; }
         public IDataUnit DataUnit { get; set; }
         private State[] States { get; set; }
         private Dependency Dep { get; set; }
@@ -313,11 +338,11 @@ namespace DataBuildSystem
             return GameDataFileLog.Load(filepath, currentDataFileLog);
         }
 
-        public void Save(IWriter writer)
+        public void Save(uint index, IWriter writer)
         {
+            GameCore.BinaryWriter.Write(writer, index);
             GameCore.BinaryWriter.Write(writer, Name);
             GameCore.BinaryWriter.Write(writer, Id);
-            GameCore.BinaryWriter.Write(writer, Index);
 
             GameCore.BinaryWriter.Write(writer, States.Length);
             foreach (var t in States)
@@ -328,11 +353,11 @@ namespace DataBuildSystem
             Dep.WriteTo(writer);
         }
 
-        public static GameDataUnit Load(IBinaryReader reader)
+        public static GameDataUnit Load(IBinaryReader reader, out uint index)
         {
+            GameCore.BinaryReader.Read(reader, out index);
             GameCore.BinaryReader.Read(reader, out string name);
             GameCore.BinaryReader.Read(reader, out string id);
-            GameCore.BinaryReader.Read(reader, out uint index);
 
             GameCore.BinaryReader.Read(reader, out int numStates);
             var states = new State[numStates];
@@ -349,7 +374,6 @@ namespace DataBuildSystem
                 DataUnit = null,
                 Id = id,
                 Name = name,
-                Index = index,
                 States = states,
                 Dep = dep
             };

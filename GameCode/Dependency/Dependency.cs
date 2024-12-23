@@ -3,7 +3,7 @@ using GameData;
 
 namespace DataBuildSystem
 {
-    public struct State
+    public readonly struct State
     {
         private enum StateEnum : sbyte
         {
@@ -12,7 +12,7 @@ namespace DataBuildSystem
             Missing = 2,
         }
 
-        private sbyte StateValue { get; set; }
+        private sbyte StateValue { get; init; }
         public sbyte AsInt8 => StateValue;
 
         public static readonly State Ok = new() { StateValue = (sbyte)StateEnum.Ok };
@@ -54,6 +54,8 @@ namespace DataBuildSystem
 
     public sealed class Dependency
     {
+        private static readonly long CMagic = StringTools.Encode_64_13('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y');
+        
         public enum EState : byte
         {
             Uninitialized, // Not initialized
@@ -62,7 +64,7 @@ namespace DataBuildSystem
             Unchanged, // File state is identical to previous check
         }
 
-        public enum EMethod : byte
+        private enum EMethod : byte
         {
             TimestampHash,
             ContentHash,
@@ -174,11 +176,11 @@ namespace DataBuildSystem
         public static Dependency Load(GameDataPath path, string relativeFilepath)
         {
             FileStreamReader reader = new();
-            var filepath = Path.Join(path.GetDirPath(), relativeFilepath);
-            if (reader.Open(filepath))
+            var filePath = Path.Join(path.GetDirPath(), relativeFilepath);
+            if (reader.Open(filePath))
             {
                 GameCore.BinaryReader.Read(reader, out long magic);
-                if (magic == StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'))
+                if (magic == CMagic)
                 {
                     var dep = ReadFrom(reader);
                     reader.Close();
@@ -191,12 +193,12 @@ namespace DataBuildSystem
 
         public bool Save()
         {
-            var dirpath = BuildSystemConfig.DstPath;
-            var filepath = Path.Join(dirpath, FilePaths[0] + ".dep");
-            var writer = ArchitectureUtils.CreateFileWriter(filepath, Platform.Current);
+            var dirPath = BuildSystemConfig.DstPath;
+            var filePath = Path.Join(dirPath, FilePaths[0] + ".dep");
+            var writer = ArchitectureUtils.CreateFileWriter(filePath, Platform.Current);
             if (writer != null)
             {
-                GameCore.BinaryWriter.Write(writer, StringTools.Encode_64_10('D', 'E', 'P', 'E', 'N', 'D', 'E', 'N', 'C', 'Y'));
+                GameCore.BinaryWriter.Write(writer, CMagic);
                 WriteTo(writer);
                 writer.Close();
                 return true;

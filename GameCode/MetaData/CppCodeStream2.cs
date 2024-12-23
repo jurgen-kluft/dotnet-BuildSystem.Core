@@ -30,7 +30,7 @@ namespace GameData
         // byte         -> 1 byte
         // bool         -> 1 byte (Note: 8 booleans are packed together in one byte)
 
-        public static void Write2(EPlatform platform, IDataUnit data, StreamWriter codeFileWriter, IStreamWriter bigfileWriter, ISignatureDataBase signatureDb, out List<Hash160> dataUnitsSignatures,  out List<ulong> dataUnitsStreamPositions, out List<ulong> dataUnitsStreamSizes)
+        public static void Write2(EPlatform platform, IDataUnit data, StreamWriter codeFileWriter, IStreamWriter bigfileWriter, IReadOnlySignatureDataBase signatureDb, out List<Hash160> dataUnitsSignatures,  out List<ulong> dataUnitsStreamPositions, out List<ulong> dataUnitsStreamSizes)
         {
             // Use string table in MetaCode
             var metaCode = new MetaCode2(8192);

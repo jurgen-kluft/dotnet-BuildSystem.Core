@@ -82,20 +82,13 @@ namespace GameCore
             }
             sortedHashes.Sort((a, b) => Hash160.Compare(a.Hash, b.Hash));
 
-            // We need to precompute the size of the string table parts
-            var hashesSize = count * sizeof(uint);
-            var offsetsSize = count * sizeof(uint);
-            var runeLengthsSize = count * sizeof(uint);
-            var byteLengthsSize = count * sizeof(uint);
-
-            // u32         mMagic;  // 'STRT'
+            // u32         mMagic;  // S T R T
             // u32         mNumStrings;
             // u32 const*  mHashes;
             // u32 const*  mOffsets;
             // u32 const*  mCharLengths;
             // u32 const*  mByteLengths;
             // const char* mStrings;
-            const int mainSize = sizeof(int) + sizeof(int) + sizeof(ulong) + sizeof(ulong) + sizeof(ulong) + sizeof(ulong) + sizeof(ulong);
 
             // Write StringTable
 
@@ -108,7 +101,7 @@ namespace GameCore
 
             {
                 blockWriter.OpenBlock(Reference);
-                BinaryWriter.Write(blockWriter,StringTools.Encode_32_5('S','T','R','T','B'));
+                BinaryWriter.Write(blockWriter, StringTools.Encode_32_5('S', 'T', 'R', 'T', 'B', 'L'));
                 BinaryWriter.Write(blockWriter,count);
                 blockWriter.WriteDataBlockReference(HashesReference);
                 blockWriter.WriteDataBlockReference(OffsetsReference);

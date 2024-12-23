@@ -11,6 +11,7 @@ namespace GameCore
         Mac = 0x400 | Arch64,
         Win32 = 0x800 | Arch32,
         Win64 = 0x800 | Arch64,
+        Pc = Win64, 
         XboxOne = 0x10000 | Arch64,
         XboxOneX = 0x11000 | Arch64,
         XboxSeriesS = 0x12000 | Arch64,

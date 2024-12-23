@@ -47,6 +47,10 @@ namespace MetaTest
         {
             public string Name => "TestRoot";
             public string Signature => "6e65acae-6ba3-48f9-9ea3-c4194ce3103a";
+            public List<GameDataFile> GameDataFiles
+            {
+                set => m_DataFiles = value;
+            }
 
             public float m_Float = 3.14f;
             public int m_Int = 1;
@@ -60,6 +64,7 @@ namespace MetaTest
 
             public TestHandle? m_Handle = 55; // Pointer
             public TestData m_Data = new();   // Pointer
+            public List<GameDataFile> m_DataFiles;
         }
 
         public class TestArrayElement

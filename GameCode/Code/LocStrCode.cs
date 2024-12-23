@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GameCore;
+using Environment = System.Environment;
 
 namespace GameData
 {
@@ -30,7 +31,7 @@ namespace GameData
                                 const locstr_t INVALID_LOCSTR((u64)-1);
 
                                 """;
-            return code.Split("\n");
+            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

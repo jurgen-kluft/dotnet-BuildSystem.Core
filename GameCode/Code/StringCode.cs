@@ -28,7 +28,7 @@ namespace GameData
                                     char const* m_array;
                                 };
                                 """;
-            return code.Split("\n");
+            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

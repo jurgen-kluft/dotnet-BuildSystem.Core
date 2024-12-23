@@ -29,7 +29,7 @@ namespace GameData
 
                                 const fileid_t INVALID_FILEID((u32)-1, (u32)-1);
                                 """;
-            return code.Split("\n");
+            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

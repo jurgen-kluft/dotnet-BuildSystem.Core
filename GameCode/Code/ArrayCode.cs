@@ -44,7 +44,7 @@ namespace GameData
                                     u32 m_count;
                                 };
                                 """;
-            return code.Split("\n");
+            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

@@ -29,14 +29,14 @@ namespace GameData
             private class WriteContext
             {
                 public MetaCode2 MetaCode2 { get; init; }
-                public ISignatureDataBase SignatureDataBase { get; init; }
+                public IReadOnlySignatureDataBase SignatureDataBase { get; init; }
                 public CppDataBlockStream2 GameDataBlockStream { get; init; }
                 public WriteMemberDelegate[] WriteMemberDelegates { get; init; }
                 public Queue<ProcessObject> ProcessObjectQueue { get; init; }
                 public Queue<ProcessDataUnit> ProcessDataUnitQueue { get; init; }
             }
 
-            public static void Write(MetaCode2 metaCode2, string rootSignature, ISignatureDataBase signatureDb, CppDataBlockStream2 dataBlockStream)
+            public static void Write(MetaCode2 metaCode2, string rootSignature, IReadOnlySignatureDataBase signatureDb, CppDataBlockStream2 dataBlockStream)
             {
                 var ctx = new WriteContext
                 {
@@ -410,11 +410,11 @@ namespace GameData
             private readonly Stack<int> _dataUnitStack;
             private readonly List<DataBlock> _dataBlocks;
             private readonly Dictionary<StreamReference, int> _referenceToDataBlock;
-            private readonly ISignatureDataBase _signatureDb;
+            private readonly IReadOnlySignatureDataBase _signatureDb;
             private readonly MemoryStream _memoryStream;
             private readonly IStreamWriter _dataWriter;
 
-            public CppDataBlockStream2(EPlatform platform, ISignatureDataBase signatureDb)
+            public CppDataBlockStream2(EPlatform platform, IReadOnlySignatureDataBase signatureDb)
             {
                 _current = -1;
                 _dataUnitHashes = new List<Hash160>();
@@ -762,7 +762,6 @@ namespace GameData
                 var dataUnitDataBase = new Dictionary<int, int>(_dataBlocks.Count);
                 foreach (var d in _dataBlocks)
                 {
-                    Dictionary<StreamReference, DataBlock> blockDatabase;
                     if (!dataUnitDataBase.TryGetValue(d.DataUnitIndex, out var blockDatabaseIndex))
                     {
                         blockDatabaseIndex = blockDataBases.Count;
@@ -826,7 +825,8 @@ namespace GameData
                     // We have to also write a 'pointer' at the start of the DataUnit that
                     // serves as the head of the linked list.
                     // So here we are writing a 16 bytes header, where we currently only use the first 4 bytes.
-                    var linkedListHeadPtr = (streamPointers.Count > 0) ? (streamPointers[0].PositionInDestinationStream+16) : 0;
+                    const int dataUnitHeaderSize = 16;
+                    var linkedListHeadPtr = (streamPointers.Count > 0) ? (streamPointers[0].PositionInDestinationStream+dataUnitHeaderSize) : 0;
                     BinaryWriter.Write(dataWriter, linkedListHeadPtr);
                     BinaryWriter.Write(dataWriter, 0);
                     BinaryWriter.Write(dataWriter, 0);
@@ -835,7 +835,7 @@ namespace GameData
                     // Write all DataBlocks
                     foreach ((_, DataBlock db) in blockDataBase)
                     {
-                        DataBlock.WriteDataBlock(dataUnitBeginPos, db, memoryBlock, dataWriter, streamReferenceToStreamPositionDataBase, readWriteBuffer);
+                        DataBlock.WriteDataBlock(dataUnitBeginPos+dataUnitHeaderSize, db, memoryBlock, dataWriter, streamReferenceToStreamPositionDataBase, readWriteBuffer);
                     }
 
                     // Remember the current location

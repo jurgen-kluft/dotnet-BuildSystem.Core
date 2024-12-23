@@ -414,7 +414,7 @@ namespace GameData
             private static string GetClassMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
                 var typeName = metaCode2.MemberTypeName[memberIndex];
-                return $"{typeName} const*";
+                return $"{typeName} *";
             }
 
             private static string GetArrayMemberTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
@@ -494,18 +494,14 @@ namespace GameData
 
             private static string GetStructReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                //var mi = metaCode2.MembersStart[memberIndex];
-                //var ios = metaCode2.MembersObject[mi] as IStruct;
-                //return ios != null ? ios.StructName : "?";
                 var typeName = metaCode2.MemberTypeName[memberIndex];
                 return typeName;
             }
 
             private static string GetClassReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
             {
-                //var className = metaCode2.MembersObject[memberIndex].GetType().Name;
                 var className = metaCode2.MemberTypeName[memberIndex];
-                return $"{className} const *";
+                return $"{className}*";
             }
 
             private static string GetArrayReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
@@ -513,7 +509,7 @@ namespace GameData
                 var msi = metaCode2.MembersStart[memberIndex];
                 var fet = metaCode2.MembersType[msi];
                 var elementTypeString = s_getMemberTypeString[fet.Index](msi, metaCode2, option); // recursive call
-                return $"raw_array_t<{elementTypeString}>";
+                return $"array_t<{elementTypeString}>";
             }
 
             private static string GetDictReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
@@ -524,7 +520,7 @@ namespace GameData
                 var fvt = metaCode2.MembersType[msi + count]; // first value element
                 var keyTypeString = s_getMemberTypeString[fkt.Index](msi, metaCode2, option); // recursive call
                 var valueTypeString = s_getMemberTypeString[fvt.Index](msi + count, metaCode2, option); // recursive call
-                return $"raw_dict_t<{keyTypeString}, {valueTypeString}>";
+                return $"dict_t<{keyTypeString}, {valueTypeString}>";
             }
 
             private static string GetDataUnitReturnTypeName(int memberIndex, MetaCode2 metaCode2, EOption option)
@@ -683,7 +679,6 @@ namespace GameData
             {
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
-                //var ios = metaCode2.MembersObject[memberIndex] as IStruct;
                 var className = metaCode2.MemberTypeName[memberIndex];
 
                 writer.WriteLine($"    inline {className} const& get{memberName}() const {{ return m_{memberName}; }}");
@@ -701,7 +696,6 @@ namespace GameData
             {
                 var mni = metaCode2.MembersName[memberIndex];
                 var memberName = metaCode2.MemberStrings[mni];
-                //var memberObject = metaCode2.MembersObject[memberIndex];
                 var className = metaCode2.MemberTypeName[memberIndex];
                 writer.WriteLine($"    inline {className} const* get{memberName}() const {{ return m_{memberName}; }}");
             }
@@ -712,7 +706,7 @@ namespace GameData
                 var memberName = metaCode2.MemberStrings[mni];
                 //var memberObject = metaCode2.MembersObject[memberIndex];
                 var className = metaCode2.MemberTypeName[memberIndex];
-                writer.WriteLine("    " + className + " const* m_" + memberName + ";");
+                writer.WriteLine("    " + className + " * m_" + memberName + ";");
             }
 
             private static void WriteArrayGetter(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option)

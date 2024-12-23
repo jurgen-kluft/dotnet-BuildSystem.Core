@@ -5,6 +5,11 @@ namespace GameData
 	public class GameRoot : IRootDataUnit, IDataUnit
     {
         public string Signature => "cb379735-a255-4b31-95e3-2a24eccbe2d2";
+        public List<GameDataFile> GameDataFiles
+        {
+	        set => GameData = value;
+        }
+        
 		public SoundDataFile BootSound = new ("Sound/BootChime.wav");
 
 		public AI AI = new AI();
@@ -14,5 +19,7 @@ namespace GameData
 
 		public Cars Cars = new Cars();
 		public Tracks Tracks = new Tracks();
-	}
+
+		public List<GameDataFile> GameData;
+    }
 }

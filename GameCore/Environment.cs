@@ -5,22 +5,23 @@ using System.Runtime.InteropServices;
 
 namespace GameCore
 {
-    public partial class Environment
+    public static partial class Environment
     {
         static Environment()
         {
             HomeDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+            Variables = new Dictionary<string, string>();
         }
 
-        private static Dictionary<string, string> sVariables = new Dictionary<string, string>();
-		public static void addVariable(string var, string value)
+        private static Dictionary<string, string> Variables { get; set; }
+		public static void AddVariable(string var, string value)
         {
-            sVariables.Add(var, value);
+            Variables.Add(var, value);
         }
-        public static string expandVariables(string str)
+        public static string ExpandVariables(string str)
         {
-            foreach(var v in sVariables)
-			    str = str.Replace(String.Format("%{0}%", v.Key), v.Value);
+            foreach(var (variable, value) in Variables)
+			    str = str.Replace(string.Format("%{0}%", variable), value, StringComparison.OrdinalIgnoreCase);
             return str;
         }
 

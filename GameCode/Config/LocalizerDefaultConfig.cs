@@ -89,27 +89,27 @@ namespace DataBuildSystem
                 string.IsNullOrEmpty(depPath))
                 return false;
 
-            GameCore.Environment.addVariable("NAME", name);
-            GameCore.Environment.addVariable("PLATFORM", platform);
-            GameCore.Environment.addVariable("TARGET", platform);
-            GameCore.Environment.addVariable("TERRITORY", territory);
-            GameCore.Environment.addVariable("SRCPATH", GameCore.Environment.expandVariables(srcPath));
+            GameCore.Environment.AddVariable("NAME", name);
+            GameCore.Environment.AddVariable("PLATFORM", platform);
+            GameCore.Environment.AddVariable("TARGET", platform);
+            GameCore.Environment.AddVariable("TERRITORY", territory);
+            GameCore.Environment.AddVariable("SRCPATH", GameCore.Environment.ExpandVariables(srcPath));
 
             Name = name;
             Platform = FromString(platform, EPlatform.Win64);
             Target = FromString(platform, EPlatform.Win32);
             Territory = FromString(territory, ETerritory.Europe);
 
-            ConfigFilename = new Filename(GameCore.Environment.expandVariables(configFilename));
+            ConfigFilename = new Filename(GameCore.Environment.ExpandVariables(configFilename));
 
-            Excel0 = new Filename(GameCore.Environment.expandVariables(excel0));
+            Excel0 = new Filename(GameCore.Environment.ExpandVariables(excel0));
 
-            SrcPath = new Dirname(GameCore.Environment.expandVariables(srcPath));
+            SrcPath = new Dirname(GameCore.Environment.ExpandVariables(srcPath));
             SubPath = Dirname.Empty;
-            DstPath = new Dirname(GameCore.Environment.expandVariables(dstPath));
-            DepPath = new Dirname(GameCore.Environment.expandVariables(depPath));
-            ToolPath = new Dirname(GameCore.Environment.expandVariables(toolPath));
-            PublishPath = new Dirname(GameCore.Environment.expandVariables(publishPath));
+            DstPath = new Dirname(GameCore.Environment.ExpandVariables(dstPath));
+            DepPath = new Dirname(GameCore.Environment.ExpandVariables(depPath));
+            ToolPath = new Dirname(GameCore.Environment.ExpandVariables(toolPath));
+            PublishPath = new Dirname(GameCore.Environment.ExpandVariables(publishPath));
 
             return true;
         }

@@ -8,8 +8,6 @@ namespace GameData
 
     public interface IGameDataWriter : IWriter
     {
-        void Write(byte[] data, int index, int count);
-
         void WriteFileId(Hash160 signature);
     }
 }
