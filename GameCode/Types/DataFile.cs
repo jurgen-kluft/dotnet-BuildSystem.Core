@@ -21,8 +21,8 @@ namespace GameData
 
         public Hash160 Signature { get { return _signature.Signature; } }
 
-        public int StructAlign => 8; // This is the required memory alignment of the struct
-        public int StructSize => 16; // This is the memory size of the struct
+        public int StructAlign => 4; // This is the required memory alignment of the struct
+        public int StructSize => 8; // This is the memory size of the struct
         public string StructMember { get; set; }
 
         public string[] StructCode()
@@ -31,17 +31,16 @@ namespace GameData
                                 template <typename T>
                                 struct datafile_t
                                 {
-                                    T*             m_ptr;
-                                    const fileid_t m_fileid;
+                                    T*                 get()                  { return (T*)g_gamedata->get_datafile_ptr(m_fileid); }
+                                    void               load(loader_t &loader) { g_gamedata->load_datafile(loader, m_fileid); }
+                                    fileid_t           m_fileid;
                                 };
-
                                 """;
             return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public void StructWrite(IGameDataWriter writer)
         {
-            GameCore.BinaryWriter.Write(writer, (ulong)0);
             writer.WriteFileId(Signature);
         }
     }

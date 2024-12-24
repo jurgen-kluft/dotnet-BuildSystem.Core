@@ -34,7 +34,7 @@ namespace GameData
         {
             // Use string table in MetaCode
             var metaCode = new MetaCode2(8192);
-            var metaMemberFactory = new MetaMemberFactory(metaCode);
+            var metaMemberFactory = new MetaMemberFactory2(metaCode);
             var typeInformation = new TypeInfo2();
 
             var reflector = new Reflector2(metaCode, metaMemberFactory, typeInformation);
@@ -65,8 +65,8 @@ namespace GameData
             }
 
             // Write out every underlying member 'data' of the code to a DataStream
-            var dataStream = new CppDataBlockStream2(platform, signatureDb);
-            CppDataStreamWriter2.Write(metaCode, data.Signature, signatureDb, dataStream);
+            var dataStream = new CppDataStream2(platform, signatureDb);
+            CppDataWriter2.Write(metaCode, data.Signature, signatureDb, dataStream);
 
             // Finalize the DataStream by writing to a (Bigfile) data file
             dataStream.Finalize(bigfileWriter, out dataUnitsSignatures, out dataUnitsStreamPositions, out dataUnitsStreamSizes);
