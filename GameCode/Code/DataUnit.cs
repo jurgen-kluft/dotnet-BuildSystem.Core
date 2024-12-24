@@ -17,6 +17,15 @@ namespace GameData
                                     u32                m_dataunit_index;
                                 };
 
+
+                                struct dataunit_header_t
+                                {
+                                    u32           m_patch_offset;
+                                    u32           m_patch_count;
+                                    u32           m_dummy0;
+                                    u32           m_dummy1;
+                                };
+
                                 """;
             return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         }

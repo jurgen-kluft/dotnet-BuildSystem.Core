@@ -5,12 +5,12 @@ namespace GameData
     public class Car
     {
         public CarConfiguration Configuration;
-        public ModelDataFile ModelPath;
+        public ModelFileCooker ModelPath;
 
         public Car(CarConfiguration config, string modelPath)
         {
             Configuration = config;
-            ModelPath = new ModelDataFile(modelPath);
+            ModelPath = new ModelFileCooker(modelPath);
         }
     }
 

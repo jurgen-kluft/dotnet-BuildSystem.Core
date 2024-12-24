@@ -2,48 +2,65 @@ using System.Collections.Generic;
 
 using GameCore;
 using DataBuildSystem;
+using Environment = System.Environment;
 
 namespace GameData
 {
-    public sealed class ModelData
+    public class TextureDataFile : IStruct, ISignature
     {
-        public DataFile StaticMesh;
-        public List<TextureDataFile> Textures;
+        private readonly ISignature _signature;
 
-        public ModelData(DataFile staticMesh, List<TextureDataFile> textures)
+        public TextureDataFile() : this(new NullSignature())
         {
-            StaticMesh = staticMesh;
-            Textures = textures;
+        }
+
+        public TextureDataFile(ISignature signature)
+        {
+            _signature = signature;
+            StructMember = "datafile_t<texture_t>";
+        }
+
+        public Hash160 Signature { get { return _signature.Signature; } }
+
+        public int StructAlign => 4; // This is the required memory alignment of the struct
+        public int StructSize => 8; // This is the memory size of the struct
+        public string StructMember { get; set; }
+
+        public string[] StructCode()
+        {
+            return Array.Empty<string>();
+        }
+
+        public void StructWrite(IGameDataWriter writer)
+        {
+            writer.WriteFileId(Signature);
         }
     }
 
-    // e.g. new FileId(new ModelCompiler("Models/Teapot.glTF"));
-    public sealed class ModelDataFile : IDataFile, ISignature
+
+    public sealed class TextureFileCooker : IDataFile, ISignature
     {
         private string _srcFilename;
         private string _dstFilename;
-        private readonly TextureFile[] _textures;
         private Dependency _dependency;
 
-        public ModelDataFile() : this(string.Empty, string.Empty)
+        public TextureFileCooker() : this(string.Empty, string.Empty)
         {
         }
-        public ModelDataFile(string filename) : this(filename, filename)
+        public TextureFileCooker(string filename) : this(filename, filename)
         {
         }
-
-        private ModelDataFile(string srcFilename, string dstFilename)
+        public TextureFileCooker(string srcFilename, string dstFilename)
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            _textures = new TextureFile[0];
         }
 
         public Hash160 Signature { get; set; }
 
         public void BuildSignature(IWriter stream)
         {
-            GameCore.BinaryWriter.Write(stream,"ModelCompiler");
+            GameCore.BinaryWriter.Write(stream,"TextureFileCooker");
             GameCore.BinaryWriter.Write(stream,_srcFilename);
         }
 
@@ -63,7 +80,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not ModelDataFile cc) return;
+            if (dc is not TextureFileCooker cc) return;
 
             _srcFilename = cc._srcFilename;
             _dstFilename = cc._dstFilename;
@@ -71,19 +88,7 @@ namespace GameData
         }
 
         public string CookedFilename => _dstFilename;
-        public object CookedObject
-        {
-            get
-            {
-                var textures = new List<TextureDataFile>(_textures.Length);
-                foreach (var t in _textures)
-                {
-                    textures.Add(new TextureDataFile(t));
-                }
-
-                return new ModelData(new DataFile(this, "staticmesh_t"), textures);
-            }
-        }
+        public object CookedObject => new TextureDataFile(this);
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
@@ -132,8 +137,6 @@ namespace GameData
             {
                 // Execute the actual purpose of this compiler
                 File.Copy(Path.Join(BuildSystemConfig.SrcPath, _srcFilename), Path.Join(BuildSystemConfig.DstPath, _dstFilename), true);
-
-                // Generate the texture data files (these textures need to be cooked)
 
                 // Execution is done, update the dependency to reflect the new state
                 result = _dependency.Update(null);

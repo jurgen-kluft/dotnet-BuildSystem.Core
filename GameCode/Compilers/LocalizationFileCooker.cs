@@ -37,7 +37,7 @@ namespace GameData
         public LanguageDataFile[] LanguageArray = new LanguageDataFile[(int)ELanguage.LanguageCount];
     }
 
-    public sealed class LocalizationDataFile : IDataFile, ISignature
+    public sealed class LocalizationFileCooker : IDataFile, ISignature
     {
         private string _srcFilename;
         private readonly List<string> _srcFilenames;
@@ -45,10 +45,10 @@ namespace GameData
         private readonly LanguageDataFile[] _languageDataFiles;
         private Dependency _dependency;
 
-        public LocalizationDataFile() : this("Localization.loc")
+        public LocalizationFileCooker() : this("Localization.loc")
         {
         }
-        public LocalizationDataFile(string localizationFile)
+        public LocalizationFileCooker(string localizationFile)
         {
             _srcFilename = Path.ChangeExtension(localizationFile, ".loc") + ".ids" + ".lst";
             _srcFilenames = new List<string>();
@@ -60,7 +60,7 @@ namespace GameData
 
         public void BuildSignature(IWriter stream)
         {
-            BinaryWriter.Write(stream, "LocalizationCompiler");
+            BinaryWriter.Write(stream, "LocalizationFileCooker");
             BinaryWriter.Write(stream, _srcFilename);
         }
 
@@ -110,7 +110,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is LocalizationDataFile lc)
+            if (dc is LocalizationFileCooker lc)
             {
                 _srcFilename = lc._srcFilename;
                 _srcFilenames.Clear();

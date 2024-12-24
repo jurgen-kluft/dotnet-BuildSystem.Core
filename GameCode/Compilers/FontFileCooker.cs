@@ -5,70 +5,72 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class SoundDataFile : IDataFile, ISignature
+    public sealed class FontFileCooker : IDataFile, ISignature
     {
-        private string mSrcFilename;
-        private string mDstFilename;
-        private Dependency mDependency;
+        private string _srcFilename;
+        private string _dstFilename;
+        private Dependency _dependency;
 
-        public SoundDataFile() : this(string.Empty, string.Empty)
+        public FontFileCooker() : this(string.Empty, string.Empty)
         {
         }
-        public SoundDataFile(string filename) : this(filename, filename)
+        public FontFileCooker(string filename) : this(filename, filename)
         {
         }
-        public SoundDataFile(string srcFilename, string dstFilename)
+
+        private FontFileCooker(string srcFilename, string dstFilename)
         {
-            mSrcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            mDstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
         public Hash160 Signature { get; set; }
 
         public void BuildSignature(IWriter stream)
         {
-            GameCore.BinaryWriter.Write(stream,"SoundDataFile");
-            GameCore.BinaryWriter.Write(stream,mDstFilename);
+            GameCore.BinaryWriter.Write(stream,"FontFileCooker");
+            GameCore.BinaryWriter.Write(stream,_srcFilename);
         }
 
         public void SaveState(IWriter stream)
         {
-            GameCore.BinaryWriter.Write(stream,mSrcFilename);
-            GameCore.BinaryWriter.Write(stream,mDstFilename);
-            mDependency.WriteTo(stream);
+            GameCore.BinaryWriter.Write(stream,_srcFilename);
+            GameCore.BinaryWriter.Write(stream,_dstFilename);
+            _dependency.WriteTo(stream);
         }
 
         public void LoadState(IBinaryReader stream)
         {
-            GameCore.BinaryReader.Read(stream, out mSrcFilename);
-            GameCore.BinaryReader.Read(stream, out mDstFilename);
-            mDependency = Dependency.ReadFrom(stream);
+            GameCore.BinaryReader.Read(stream, out _srcFilename);
+            GameCore.BinaryReader.Read(stream, out _dstFilename);
+            _dependency = Dependency.ReadFrom(stream);
         }
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not SoundDataFile cc) return;
+            if (dc is not FontFileCooker cc) return;
 
-            mSrcFilename = cc.mSrcFilename;
-            mDstFilename = cc.mDstFilename;
-            mDependency = cc.mDependency;
+            _srcFilename = cc._srcFilename;
+            _dstFilename = cc._dstFilename;
+            _dependency = cc._dependency;
         }
 
-        public string CookedFilename => mDstFilename;
-        public object CookedObject=> new DataFile(this, "audio_t");
+        public string CookedFilename => _dstFilename;
+
+        public object CookedObject => new DataFile(this, "font_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
             var result = DataCookResult.None;
-            if (mDependency == null)
+            if (_dependency == null)
             {
-                mDependency = new Dependency(EGameDataPath.GameDataSrcPath, mSrcFilename);
-                mDependency.Add(1, EGameDataPath.GameDataDstPath, mDstFilename);
+                _dependency = new Dependency(EGameDataPath.GameDataSrcPath, _srcFilename);
+                _dependency.Add(1, EGameDataPath.GameDataDstPath, _dstFilename);
                 result = DataCookResult.DstMissing;
             }
             else
             {
-                var result3 = mDependency.Update(delegate(ushort id, State state)
+                var result3 = _dependency.Update(delegate(ushort id, State state)
                 {
                     var result2 = DataCookResult.None;
                     if (state == State.Missing)
@@ -103,10 +105,10 @@ namespace GameData
             try
             {
                 // Execute the actual purpose of this compiler
-                File.Copy(Path.Join(BuildSystemConfig.SrcPath, mSrcFilename), Path.Join(BuildSystemConfig.DstPath, mDstFilename), true);
+                File.Copy(Path.Join(BuildSystemConfig.SrcPath, _srcFilename), Path.Join(BuildSystemConfig.DstPath, _dstFilename), true);
 
                 // Execution is done, update the dependency to reflect the new state
-                mDependency.Update(null);
+                result = _dependency.Update(null);
             }
             catch (Exception)
             {

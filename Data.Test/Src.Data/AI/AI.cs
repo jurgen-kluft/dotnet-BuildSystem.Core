@@ -13,7 +13,7 @@ namespace GameData
     public class AI : IDataUnit
     {
         public string Signature => "55b3e56b-9803-4a45-ab6b-1e739e9162cd";
-        public CurveDataFile ReactionCurve = new("AI\\ReactionCurve.curve");
+        public CurveFileCooker ReactionCurve = new("AI\\ReactionCurve.curve");
         public string Description = "This is AI data";
 
         public Enemy[] BlueprintsAsArray = { new Enemy(), new Enemy() };

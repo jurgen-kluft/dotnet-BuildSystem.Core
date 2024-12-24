@@ -10,7 +10,7 @@ namespace GameData
 	        set => GameData = value;
         }
         
-		public SoundDataFile BootSound = new ("Sound/BootChime.wav");
+		public SoundFileCooker BootSound = new ("Sound/BootChime.wav");
 
 		public AI AI = new AI();
 		public Fonts Fonts = new Fonts();

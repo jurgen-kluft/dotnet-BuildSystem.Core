@@ -5,19 +5,19 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public sealed class CopyDataFile : IDataFile, ISignature
+    public sealed class ShaderFileCooker : IDataFile, ISignature
     {
         private string _srcFilename;
         private string _dstFilename;
         private Dependency _dependency;
 
-        public CopyDataFile() : this(string.Empty, string.Empty)
+        public ShaderFileCooker() : this(string.Empty, string.Empty)
         {
         }
-        public CopyDataFile(string filename) : this(filename, filename)
+        public ShaderFileCooker(string filename) : this(filename, filename)
         {
         }
-        public CopyDataFile(string srcFilename, string dstFilename)
+        public ShaderFileCooker(string srcFilename, string dstFilename)
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -25,29 +25,29 @@ namespace GameData
 
         public Hash160 Signature { get; set; }
 
-        public void BuildSignature(IWriter stream)
+        public void BuildSignature(IWriter writer)
         {
-            GameCore.BinaryWriter.Write(stream,"CopyCompiler");
-            GameCore.BinaryWriter.Write(stream,_srcFilename);
+            GameCore.BinaryWriter.Write(writer,"ShaderFileCooker");
+            GameCore.BinaryWriter.Write(writer,_srcFilename);
         }
 
-        public void SaveState(IWriter stream)
+        public void SaveState(IWriter writer)
         {
-            GameCore.BinaryWriter.Write(stream,_srcFilename);
-            GameCore.BinaryWriter.Write(stream,_dstFilename);
-            _dependency.WriteTo(stream);
+            GameCore.BinaryWriter.Write(writer,_srcFilename);
+            GameCore.BinaryWriter.Write(writer,_dstFilename);
+            _dependency.WriteTo(writer);
         }
 
-        public void LoadState(IBinaryReader stream)
+        public void LoadState(IBinaryReader reader)
         {
-            GameCore.BinaryReader.Read(stream, out _srcFilename);
-            GameCore.BinaryReader.Read(stream, out _dstFilename);
-            _dependency = Dependency.ReadFrom(stream);
+            GameCore.BinaryReader.Read(reader, out _srcFilename);
+            GameCore.BinaryReader.Read(reader, out _dstFilename);
+            _dependency = Dependency.ReadFrom(reader);
         }
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not CopyDataFile cc) return;
+            if (dc is not ShaderFileCooker cc) return;
 
             _srcFilename = cc._srcFilename;
             _dstFilename = cc._dstFilename;
@@ -55,7 +55,7 @@ namespace GameData
         }
 
         public string CookedFilename => _dstFilename;
-        public object CookedObject => new DataFile(this, "void");
+        public object CookedObject => new DataFile(this, "shader_t");
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
@@ -104,6 +104,9 @@ namespace GameData
             {
                 // Execute the actual purpose of this compiler
                 File.Copy(Path.Join(BuildSystemConfig.SrcPath, _srcFilename), Path.Join(BuildSystemConfig.DstPath, _dstFilename), true);
+
+                // Note: On Windows we have different tools than on Mac/Linux
+                // Note: Shaders are in HLSL and for Mac (Metal) need to be compiled
 
                 // Execution is done, update the dependency to reflect the new state
                 result = _dependency.Update(null);

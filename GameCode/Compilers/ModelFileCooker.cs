@@ -5,42 +5,45 @@ using DataBuildSystem;
 
 namespace GameData
 {
-    public class TextureDataFile : DataFile
+    public sealed class ModelDataFile
     {
-        public TextureDataFile() : base(new NullSignature(), "texture_t")
-        {
-            
-        }
+        public DataFile StaticMesh;
+        public List<TextureDataFile> Textures;
 
-        public TextureDataFile(ISignature signature) : base(signature, "texture_t")
+        public ModelDataFile(DataFile staticMesh, List<TextureDataFile> textures)
         {
-            
+            StaticMesh = staticMesh;
+            Textures = textures;
         }
     }
-    
-    public sealed class TextureFile : IDataFile, ISignature
+
+    // e.g. new FileId(new ModelCompiler("Models/Teapot.glTF"));
+    public sealed class ModelFileCooker : IDataFile, ISignature
     {
         private string _srcFilename;
         private string _dstFilename;
+        private readonly TextureFileCooker[] _textures;
         private Dependency _dependency;
 
-        public TextureFile() : this(string.Empty, string.Empty)
+        public ModelFileCooker() : this(string.Empty, string.Empty)
         {
         }
-        public TextureFile(string filename) : this(filename, filename)
+        public ModelFileCooker(string filename) : this(filename, filename)
         {
         }
-        public TextureFile(string srcFilename, string dstFilename)
+
+        private ModelFileCooker(string srcFilename, string dstFilename)
         {
             _srcFilename = srcFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             _dstFilename = dstFilename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            _textures = new TextureFileCooker[0];
         }
 
         public Hash160 Signature { get; set; }
 
         public void BuildSignature(IWriter stream)
         {
-            GameCore.BinaryWriter.Write(stream,"TextureCompiler");
+            GameCore.BinaryWriter.Write(stream,"ModelFileCooker");
             GameCore.BinaryWriter.Write(stream,_srcFilename);
         }
 
@@ -60,7 +63,7 @@ namespace GameData
 
         public void CopyConstruct(IDataFile dc)
         {
-            if (dc is not TextureFile cc) return;
+            if (dc is not ModelFileCooker cc) return;
 
             _srcFilename = cc._srcFilename;
             _dstFilename = cc._dstFilename;
@@ -68,7 +71,19 @@ namespace GameData
         }
 
         public string CookedFilename => _dstFilename;
-        public object CookedObject => new TextureDataFile(this);
+        public object CookedObject
+        {
+            get
+            {
+                var textures = new List<TextureDataFile>(_textures.Length);
+                foreach (var t in _textures)
+                {
+                    textures.Add(new TextureDataFile(t));
+                }
+
+                return new ModelDataFile(new DataFile(this, "staticmesh_t"), textures);
+            }
+        }
 
         public DataCookResult Cook(List<IDataFile> additionalDataFiles)
         {
@@ -117,6 +132,8 @@ namespace GameData
             {
                 // Execute the actual purpose of this compiler
                 File.Copy(Path.Join(BuildSystemConfig.SrcPath, _srcFilename), Path.Join(BuildSystemConfig.DstPath, _dstFilename), true);
+
+                // Generate the texture data files (these textures need to be cooked)
 
                 // Execution is done, update the dependency to reflect the new state
                 result = _dependency.Update(null);
