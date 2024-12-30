@@ -18,11 +18,11 @@ namespace GameData
     {
         public string Signature => "918ca960-1ceb-45f8-96df-c29690bb8619";
 
-        public Car[] cars;
+        public Car[] Array;
 
         public Cars()
         {
-            cars = new Car[]
+            Array = new Car[]
             {
                 new(GetBMWConfig(), "Cars\\BMW\\BMW.glTF"), // BMW
                 new(GetLexusConfig(), "Cars\\Lexus\\Lexus.glTF"), // Lexus

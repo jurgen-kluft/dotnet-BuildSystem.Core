@@ -17,7 +17,6 @@ namespace GameData
                                     u32                m_dataunit_index;
                                 };
 
-
                                 struct dataunit_header_t
                                 {
                                     u32           m_patch_offset;
