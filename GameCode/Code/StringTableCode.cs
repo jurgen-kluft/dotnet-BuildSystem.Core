@@ -2,9 +2,13 @@ namespace GameData
 {
     public struct StringTableCode : ICode
     {
-        public string[] GetCode()
+        public ICode[] CodeDependency => new ICode[1] { new StringCode() };
+
+        public string[] CodeLines
         {
-            const string code = """
+            get
+            {
+                const string code = """
                                 struct strtable_t
                                 {
                                     inline strtable_t(u32 numStrings, u32 const* byteLengths, u32 const* charLengths, u32 const* offsets, const char* strings)
@@ -29,7 +33,8 @@ namespace GameData
                                     const char* mStrings;
                                 };
                                 """;
-            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            }
         }
     }
 }

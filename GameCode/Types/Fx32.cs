@@ -63,10 +63,7 @@ namespace GameData
         public int StructSize => sizeof(uint);
         public int StructAlign => 4;
         public string StructMember => "fx32_t";
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode =>new Fx32Code();
 
         public void StructWrite(IGameDataWriter writer)
         {

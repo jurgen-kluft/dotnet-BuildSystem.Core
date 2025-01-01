@@ -4,6 +4,7 @@ namespace GameData
 {
     public interface ICode
     {
-        string[] GetCode();
+        ICode[] CodeDependency { get; }
+        string[] CodeLines { get; }
     }
 }

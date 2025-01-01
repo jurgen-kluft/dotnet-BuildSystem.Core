@@ -22,10 +22,7 @@ namespace GameData
         public int StructSize => 4 * sizeof(int);
         public int StructAlign => 4;
         public string StructMember => "rect_t";
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode => new RectCode();
 
         public void StructWrite(IGameDataWriter writer)
         {

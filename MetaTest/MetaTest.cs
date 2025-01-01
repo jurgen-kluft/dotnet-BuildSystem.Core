@@ -51,6 +51,7 @@ namespace MetaTest
             {
                 set => m_DataFiles = value;
             }
+            public List<ICode> CodeDependency { get { return new List<ICode>(); } }
 
             public float m_Float = 3.14f;
             public int m_Int = 1;

@@ -6,15 +6,19 @@ namespace GameData
     /// </summary>
     public struct DataUnitCode : ICode
     {
-        public string[] GetCode()
+        public ICode[] CodeDependency => Array.Empty<ICode>();
+
+        public string[] CodeLines
         {
-            const string code = """
+            get
+            {
+                const string code = """
                                 template <typename T>
                                 struct dataunit_t
                                 {
-                                    T*                 get()                  { return (T*)g_gamedata->get_dataunit_ptr(m_dataunit_index); }
-                                    void               load(loader_t &loader) { g_gamedata->load_dataunit(loader, m_dataunit_index); }
-                                    u32                m_dataunit_index;
+                                    T*   get() { return g_loader->get_dataunit_ptr<T>(m_dataunit_index); }
+                                    void load() { g_loader->load_dataunit(m_dataunit_index); }
+                                    u32  m_dataunit_index;
                                 };
 
                                 struct dataunit_header_t
@@ -26,7 +30,8 @@ namespace GameData
                                 };
 
                                 """;
-            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            }
         }
     }
 }

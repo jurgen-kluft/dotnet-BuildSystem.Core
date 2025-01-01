@@ -8,9 +8,13 @@ namespace GameData
     /// </summary>
     public struct FileIdCode : ICode
     {
-        public string[] GetCode()
+        public ICode[] CodeDependency => Array.Empty<ICode>();
+
+        public string[] CodeLines
         {
-            const string code = """
+            get
+            {
+                const string code = """
                                 struct fileid_t
                                 {
                                     explicit fileid_t(u32 archiveIndex, u32 fileIndex)
@@ -29,7 +33,8 @@ namespace GameData
 
                                 const fileid_t INVALID_FILEID((u32)-1, (u32)-1);
                                 """;
-            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            }
         }
     }
 }

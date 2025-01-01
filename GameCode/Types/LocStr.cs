@@ -25,10 +25,7 @@ namespace GameData
         public int StructAlign => 8;
         public string StructMember => "locstr_t";
 
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode => new LocStrCode();
 
         public void StructWrite(IGameDataWriter writer)
         {

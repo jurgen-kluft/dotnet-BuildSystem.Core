@@ -18,10 +18,7 @@ namespace GameData
         public int StructSize => 2 * sizeof(int);
         public int StructAlign => 4;
         public string StructMember => "size_t";
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode => new SizeCode();
 
         public void StructWrite(IGameDataWriter writer)
         {

@@ -26,10 +26,7 @@ namespace GameData
         public int StructSize => 8; // This is the memory size of the struct
         public string StructMember { get; set; }
 
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode => new NullCode();
 
         public void StructWrite(IGameDataWriter writer)
         {

@@ -63,10 +63,7 @@ namespace GameData
         public int StructSize => sizeof(short);
         public int StructAlign => 2;
         public string StructMember => "fx16_t";
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode => new Fx16Code();
 
         public void StructWrite(IGameDataWriter writer)
         {

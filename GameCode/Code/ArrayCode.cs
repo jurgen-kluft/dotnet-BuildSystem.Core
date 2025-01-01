@@ -2,9 +2,13 @@ namespace GameData
 {
     public struct ArrayCode : ICode
     {
-        public string[] GetCode()
+        public ICode[] CodeDependency => Array.Empty<ICode>();
+
+        public string[] CodeLines
         {
-            const string code = """
+            get
+            {
+                const string code = """
                                 template <class T>
                                 struct array_t
                                 {
@@ -44,7 +48,8 @@ namespace GameData
                                     u32 m_count;
                                 };
                                 """;
-            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            }
         }
     }
 }

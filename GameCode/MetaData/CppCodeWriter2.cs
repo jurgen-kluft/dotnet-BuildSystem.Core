@@ -1,6 +1,4 @@
-using System.Reflection;
 using TextStreamWriter = System.IO.StreamWriter;
-using GameCore;
 
 namespace GameData
 {
@@ -76,21 +74,8 @@ namespace GameData
 
             private static readonly GetMemberTypeStringDelegate[] s_getMemberTypeString = new GetMemberTypeStringDelegate[MetaInfo.Count]
             {
-                null,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetMemberTypeName,
-                GetEnumMemberTypeName, // enum
+                null, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName, GetMemberTypeName,
+                GetMemberTypeName, GetEnumMemberTypeName, // enum
                 GetStructMemberTypeName, // struct
                 GetClassMemberTypeName, // class
                 GetArrayMemberTypeName, // array
@@ -152,78 +137,28 @@ namespace GameData
             private static readonly GetReturnTypeStringDelegate[] s_getReturnTypeString =
                 new GetReturnTypeStringDelegate[(int)MetaInfo.Count]
                 {
-                    null,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
-                    GetReturnTypeName,
+                    null, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName, GetReturnTypeName,
                     GetReturnTypeName, // f64
                     GetReturnTypeName, // string_t
-                    GetEnumReturnTypeName,
-                    GetStructReturnTypeName, // class
+                    GetEnumReturnTypeName, GetStructReturnTypeName, // class
                     GetClassReturnTypeName, // class
-                    GetArrayReturnTypeName,
-                    GetDictReturnTypeName,
-                    GetDataUnitReturnTypeName,
+                    GetArrayReturnTypeName, GetDictReturnTypeName, GetDataUnitReturnTypeName,
                 };
 
             private delegate void WriteGetterDelegate(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option);
 
             private static readonly WriteGetterDelegate[] s_writeGetterDelegates = new WriteGetterDelegate[(int)MetaInfo.Count]
             {
-                null,
-                WritePrimitiveGetter,
-                WriteBitsetGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WritePrimitiveGetter,
-                WriteStringGetter,
-                WriteEnumGetter,
-                WriteStructGetter,
-                WriteClassGetter,
-                WriteArrayGetter,
-                WriteDictionaryGetter,
-                WriteDataUnitGetter
+                null, WritePrimitiveGetter, WriteBitsetGetter, WritePrimitiveGetter, WritePrimitiveGetter, WritePrimitiveGetter, WritePrimitiveGetter, WritePrimitiveGetter, WritePrimitiveGetter, WritePrimitiveGetter, WritePrimitiveGetter,
+                WritePrimitiveGetter, WritePrimitiveGetter, WriteStringGetter, WriteEnumGetter, WriteStructGetter, WriteClassGetter, WriteArrayGetter, WriteDictionaryGetter, WriteDataUnitGetter
             };
 
             private delegate void WriteMemberDelegate(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option);
 
             private static readonly WriteMemberDelegate[] s_writeMemberDelegates = new WriteMemberDelegate[(int)MetaInfo.Count]
             {
-                null,
-                WritePrimitiveMember,
-                WriteBitsetMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WritePrimitiveMember,
-                WriteEnumMember,
-                WriteStructMember,
-                WriteClassMember,
-                WriteArrayMember,
-                WriteDictionaryMember,
-                WriteDataUnitMember
+                null, WritePrimitiveMember, WriteBitsetMember, WritePrimitiveMember, WritePrimitiveMember, WritePrimitiveMember, WritePrimitiveMember, WritePrimitiveMember, WritePrimitiveMember, WritePrimitiveMember, WritePrimitiveMember,
+                WritePrimitiveMember, WritePrimitiveMember, WritePrimitiveMember, WriteEnumMember, WriteStructMember, WriteClassMember, WriteArrayMember, WriteDictionaryMember, WriteDataUnitMember
             };
 
             private static void WriteBitsetGetter(int memberIndex, TextStreamWriter writer, MetaCode2 metaCode2, EOption option)
@@ -467,7 +402,124 @@ namespace GameData
                 writer.WriteLine();
             }
 
-            public void WriteStructs(TextStreamWriter writer)
+            struct Edge
+            {
+                public int S { get; set; }
+                public int D { get; set; }
+            }
+
+            private static List<int> TopoSort(List<Edge> edges)
+            {
+                var g = new Dictionary<int, List<int>>();
+                foreach (var edge in edges)
+                {
+                    var u = edge.S;
+                    var v = edge.D;
+                    if (u == v) throw new System.Exception("nodes in edge cannot be the same");
+                    if (u == -1)
+                    {
+                        if (!g.ContainsKey(v)) g[v] = new List<int>();
+                    }
+                    else if (v == -1)
+                    {
+                        if (!g.ContainsKey(u)) g[u] = new List<int>();
+                    }
+                    else
+                    {
+                        if (!g.ContainsKey(u)) g[u] = new List<int>();
+                        g[u].Add(v);
+                    }
+                }
+
+                var sorted = new List<int>();
+
+                // Create map of vertices to incoming edge count, and set counts to 0
+                var inDegree = new Dictionary<int, int>();
+                foreach (var n in g.Keys) inDegree[n] = 0;
+
+                foreach (var adjacent in g.Values) // For each vertex u, get adjacent list
+                {
+                    foreach (var v in adjacent) // For each vertex v adjacent to u
+                    {
+                        inDegree[v]++; // Increment inDegree[v]
+                    }
+                }
+
+                // Make a list next consisting of all vertices u such that inDegree[u] = 0
+                var next = new Stack<int>();
+                foreach (var u in inDegree.Keys)
+                {
+                    if (inDegree[u] == 0) next.Push(u);
+                }
+
+                while (next.Count > 0) // While next is not empty...
+                {
+                    // Pop a vertex from next and call it vertex u
+                    var u = next.Pop();
+                    sorted.Add(u); // Add u to the end sorted list
+
+                    // For each vertex v adjacent to sorted vertex u
+                    if (g.TryGetValue(u, out var adjacent))
+                    {
+                        foreach (var v in adjacent)
+                        {
+                            inDegree[v]--;         // Decrement count of incoming edges
+                            if (inDegree[v] == 0) // Enqueue nodes with no incoming edges
+                            {
+                                next.Push(v);
+                            }
+                        }
+                    }
+                }
+
+                if (sorted.Count < g.Count) // Check for cycles
+                {
+                    var cycleNodes = new List<int>();
+                    foreach (var u in inDegree.Keys)
+                    {
+                        if (inDegree[u] != 0)
+                        {
+                            cycleNodes.Add(u);
+                        }
+                    }
+                }
+
+                return sorted;
+            }
+
+            private List<ICode> SortCode(List<ICode> code)
+            {
+                // Sort code by dependencies
+                var codeDict = new Dictionary<ICode, int>();
+                for (var i = 0; i < code.Count; ++i) codeDict[code[i]] = i;
+
+                var edges = new List<Edge>();
+                for (var i = 0; i < code.Count; ++i)
+                {
+                    var c = code[i];
+                    if (c.CodeDependency.Length == 0)
+                    {
+                        edges.Add(new Edge { S = i, D = -1 });
+                    }
+                    else
+                    {
+                        foreach (var dep in c.CodeDependency)
+                        {
+                            edges.Add(new Edge { S = i, D = codeDict[dep] });
+                        }
+                    }
+                }
+
+                var sorted = TopoSort(edges);
+                var sortedCode = new List<ICode>();
+                for (var i = sorted.Count - 1; i >= 0; --i)
+                {
+                    sortedCode.Add(code[sorted[i]]);
+                }
+                return sortedCode;
+            }
+
+            public void WriteStructs(IRootDataUnit rootData, TextStreamWriter writer)
             {
                 // Forward declares ?
                 writer.WriteLine("// Forward declares");
@@ -486,26 +538,25 @@ namespace GameData
                 }
                 writer.WriteLine();
 
-                // Emit all the predefined code
-                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+                // Build list of all the predefined code
+                List<ICode> rootCode = rootData.CodeDependency;
+                List<ICode> codeUsed = new List<ICode>();
+                Queue<ICode> codeQueue = new Queue<ICode>();
+                HashSet<ICode> codeDone = new HashSet<ICode>();
+                foreach (var code in rootCode) codeQueue.Enqueue(code);
+                while (codeQueue.Count > 0)
                 {
-                    foreach (Type t in a.GetTypes())
+                    var code = codeQueue.Dequeue();
+                    codeUsed.Add(code);
+
+                    foreach (var c in code.CodeDependency)
                     {
-                        if (TypeInfo2.HasGenericInterface(t, typeof(ICode)))
-                        {
-                            var code = (ICode)Activator.CreateInstance(t);
-                            var lines = code.GetCode();
-                            foreach (var line in lines)
-                            {
-                                writer.WriteLine(line);
-                            }
-                            writer.WriteLine();
-                        }
+                        if (!codeDone.Add(code)) continue;
+                        codeQueue.Enqueue(c);
                     }
                 }
 
-                // Write out any code for IStruct's that we are using
-                var writtenIStructs = new List<Type>();
+                // Collect code for each IStruct
                 for (var i = MetaCode.MembersType.Count - 1; i >= 0; --i)
                 {
                     var mt = MetaCode.MembersType[i];
@@ -513,16 +564,21 @@ namespace GameData
                     var mo = MetaCode.MembersObject[i];
                     if (mo is not IStruct ios) continue;
 
-                    if (writtenIStructs.Contains(ios.GetType())) continue;
+                    if (!codeDone.Add(ios.StructCode)) continue;
+                    codeUsed.Add(ios.StructCode);
+                }
 
-                    var lines = ios.StructCode();
+                // Sort code by dependency and write it out
+                var sortedCode = SortCode(codeUsed);
+                foreach (var code in sortedCode)
+                {
+                    var lines = code.CodeLines;
                     foreach (var line in lines)
                     {
                         writer.WriteLine(line);
                     }
                     writer.WriteLine();
 
-                    writtenIStructs.Add(ios.GetType());
                 }
 
                 // Write out all the structs that are used in the game data

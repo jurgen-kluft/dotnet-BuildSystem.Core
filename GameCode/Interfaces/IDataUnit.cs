@@ -7,7 +7,7 @@ namespace GameData
     {
         string Signature { get; }
     }
-    
+
     public class GameDataFile
     {
         public string BigfileData;
@@ -18,6 +18,7 @@ namespace GameData
 
     public interface IRootDataUnit : IDataUnit
     {
+        List<ICode> CodeDependency { get; }
         List<GameDataFile> GameDataFiles { set; }
     }
 

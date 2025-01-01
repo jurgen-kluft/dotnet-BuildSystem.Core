@@ -28,10 +28,7 @@ namespace GameData
         public int StructSize => 2 * sizeof(float);
         public int StructAlign => 4;
         public string StructMember => "fvec2_t";
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode => new FVec2Code();
 
         public void StructWrite(IGameDataWriter writer)
         {

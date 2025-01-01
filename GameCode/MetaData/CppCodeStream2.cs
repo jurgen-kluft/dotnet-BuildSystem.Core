@@ -30,9 +30,8 @@ namespace GameData
         // byte         -> 1 byte
         // bool         -> 1 byte (Note: 8 booleans are packed together in one byte)
 
-        public static void Write2(EPlatform platform, IDataUnit data, StreamWriter codeFileWriter, IStreamWriter bigfileWriter, IReadOnlySignatureDataBase signatureDb, out List<Hash160> dataUnitsSignatures,  out List<ulong> dataUnitsStreamPositions, out List<ulong> dataUnitsStreamSizes)
+        public static void Write2(EPlatform platform, IRootDataUnit data, StreamWriter codeFileWriter, IStreamWriter bigfileWriter, IReadOnlySignatureDataBase signatureDb, out List<Hash160> dataUnitsSignatures,  out List<ulong> dataUnitsStreamPositions, out List<ulong> dataUnitsStreamSizes)
         {
-            // Use string table in MetaCode
             var metaCode = new MetaCode2(8192);
             var metaMemberFactory = new MetaMemberFactory2(metaCode);
             var typeInformation = new TypeInfo2();
@@ -68,13 +67,13 @@ namespace GameData
             var dataStream = new CppDataStream2(platform, signatureDb);
             CppDataWriter2.Write(metaCode, data.Signature, signatureDb, dataStream);
 
-            // Finalize the DataStream by writing to a (Bigfile) data file
+            // Finalize the DataStream by writing to a Archive data file
             dataStream.Finalize(bigfileWriter, out dataUnitsSignatures, out dataUnitsStreamPositions, out dataUnitsStreamSizes);
 
             // Generate the c++ code using the CppCodeWriter.
             var codeWriter = new CppCodeWriter2() { MetaCode = metaCode };
             codeWriter.WriteEnums(codeFileWriter);
-            codeWriter.WriteStructs(codeFileWriter);
+            codeWriter.WriteStructs(data, codeFileWriter);
         }
     }
 }

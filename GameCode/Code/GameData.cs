@@ -5,9 +5,16 @@ namespace GameData
     /// </summary>
     public struct GameDataCode : ICode
     {
-        public string[] GetCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode[] CodeDependency => new ICode[]
+            {
+                new StringCode(),
+                new FileIdCode(),
+                new ArrayCode(),
+                new ArchiveLoaderCode(),
+                new DataUnitCode(),
+                new DataFileCode(),
+            };
+
+        public string[] CodeLines => Array.Empty<string>();
     }
 }

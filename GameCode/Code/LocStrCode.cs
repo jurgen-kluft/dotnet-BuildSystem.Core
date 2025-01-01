@@ -13,9 +13,13 @@ namespace GameData
     /// </summary>
     public struct LocStrCode : ICode
     {
-        public string[] GetCode()
+        public ICode[] CodeDependency => Array.Empty<ICode>();
+
+        public string[] CodeLines
         {
-            const string code = """
+            get
+            {
+                const string code = """
                                 struct locstr_t
                                 {
                                     explicit locstr_t(u64 id)
@@ -31,7 +35,8 @@ namespace GameData
                                 const locstr_t INVALID_LOCSTR((u64)-1);
 
                                 """;
-            return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            }
         }
     }
 }

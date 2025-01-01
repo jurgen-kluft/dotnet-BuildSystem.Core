@@ -19,10 +19,7 @@ namespace GameData
         public int StructAlign => 4;
         public string StructMember => "fsize_t";
 
-        public string[] StructCode()
-        {
-            return Array.Empty<string>();
-        }
+        public ICode StructCode => new FSizeCode();
 
         public void StructWrite(IGameDataWriter writer)
         {
