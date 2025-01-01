@@ -150,12 +150,15 @@ namespace BigfileBuilder
 
         private sealed class TocSection
         {
+            public uint ArchiveIndex { get; set; } // Archive/Bigfile Index
+            public uint ArchiveDataOffset { get; set; } // When merging Bigfiles, this is the offset of the Bigfile data
             public uint TocOffset { get; set; }
             public List<ITocEntry> Toc { get; }
             public int TocCount => Toc.Count;
 
             public TocSection(int numTocEntries)
             {
+                ArchiveIndex = 0;
                 Toc = new List<ITocEntry>(numTocEntries);
             }
         }
@@ -323,15 +326,23 @@ namespace BigfileBuilder
             {
                 if (outerIter == -1)
                 {
-
-                    // Read the header
+                    // Read the number of sections
                     NumSections = reader.ReadInt32();
                     Debug.Assert(Sections.Count == NumSections);
 
-                    // Read the section offsets
+                    // Read the sections
                     foreach(var section in Sections)
                     {
-                        section.TocOffset = reader.ReadUInt32();
+                        var thisPosition = reader.Position;
+                        var archiveIndex = reader.ReadUInt32();
+                        var archiveDataOffset = reader.ReadUInt32();
+                        var itemArrayCount = reader.ReadInt32();
+                        var itemArrayOffset = (uint)thisPosition + reader.ReadUInt32(); // Section offset, relative to absolute
+
+                        // section.ArchiveIndex = archiveIndex;
+                        // section.ArchiveDataOffset = archiveDataOffset;
+                        // section.Toc.Capacity = itemArrayCount;
+                        // section.TocOffset = itemArrayOffset;
                     }
                 }
                 else
@@ -405,7 +416,16 @@ namespace BigfileBuilder
 
                     foreach (var section in Sections)
                     {
-                        section.TocOffset = reader.ReadUInt32(); // Section offset
+                        var thisPosition = reader.Position;
+                        var archiveIndex = reader.ReadUInt32();
+                        var archiveDataOffset = reader.ReadUInt32();
+                        var itemArrayCount = reader.ReadInt32();
+                        var itemArrayOffset = (uint)thisPosition + reader.ReadUInt32(); // Section offset, relative to absolute
+
+                        section.ArchiveIndex = archiveIndex;
+                        section.ArchiveDataOffset = archiveDataOffset;
+                        section.Toc.Capacity = itemArrayCount;
+                        section.TocOffset = itemArrayOffset;
                     }
                 }
             }
@@ -456,13 +476,13 @@ namespace BigfileBuilder
                 // Simulation:
                 // - Compute the offset of each section
 
-                // Num Sections
-                // sizeof(int) + (sizeof(int) + sizeof(int))[Num Sections]
-                var offset = (uint)tocEntryWriter.CountInBytes + (uint)tocEntryWriter.CountInBytes + (uint)Sections.Count * (uint)(tocEntryWriter.OffsetInBytes + tocEntryWriter.CountInBytes);
+                // Num Sections           => sizeof(int)
+                // Num Sections * Section => Num Sections * (4 * sizeof(int) + sizeof(void*))
+                var offset = (uint)tocEntryWriter.CountInBytes;
+                offset += (uint)Sections.Count * (uint)(4 * tocEntryWriter.CountInBytes + tocEntryWriter.OffsetInBytes);
                 foreach (var section in Sections)
                 {
                     section.TocOffset = offset;
-
                     // The size of TocEntry[]
                     offset += (uint)section.Toc.Count * (uint)(tocEntryWriter.FileOffsetInBytes + tocEntryWriter.FileSizeInBytes);
                 }
@@ -483,9 +503,20 @@ namespace BigfileBuilder
                 {
                     case -1:
                         {
+                            // struct section_t
+                            // {
+                            //     u32         m_ArchiveIndex;
+                            //     u32         m_ArchiveOffset;
+                            //     u32         m_ItemArrayCount;
+                            //     u32         m_ItemArrayOffset;
+                            // };
+
+                            var thisPosition = writer.Position;
                             var section = Sections[innerIter];
-                            TocEntryWriter.WriteOffset(writer, section.TocOffset);
-                            TocEntryWriter.WriteCount(writer, section.Toc.Count);
+                            writer.Write(section.ArchiveIndex);
+                            writer.Write(section.ArchiveDataOffset);
+                            writer.Write(section.Toc.Count);
+                            writer.Write(section.TocOffset - (uint)thisPosition);
                             return (innerIter+1) < Sections.Count;
                         }
                     case >= 0:
@@ -535,12 +566,13 @@ namespace BigfileBuilder
                 // For each section, per TocEntry compute the offset to the filename
                 if (outerIter == -1)
                 {
-                    var offset = (uint)(sizeof(int) + Sections.Count * sizeof(int));
+                    var offset = (uint)(sizeof(int));
+                    offset += (uint)Sections.Count * (4 * sizeof(uint) + sizeof(ulong));
+
                     var maxStrByteLen = (uint)0;
                     foreach (var section in Sections)
                     {
                         section.TocOffset = offset;
-
                         offset += (uint)section.TocCount * sizeof(uint);
 
                         foreach (var e in section.Toc)
@@ -551,19 +583,22 @@ namespace BigfileBuilder
                             // ByteLen(FileName) + StrLen(FileName) + byte[] + alignment
                             var strByteLen = (uint)(Encoding.UTF8.GetByteCount(e.Filename));
                             maxStrByteLen = Math.Max(maxStrByteLen, strByteLen);
-                            offset += sizeof(uint);
-                            offset += sizeof(uint);
-                            offset += strByteLen + 1;
-                            //offset = CMath.AlignUp32(offset, 4);
+                            offset += sizeof(uint); // byte length
+                            offset += sizeof(uint); // rune length
+                            offset += strByteLen + 1; // string
                             offset = (offset + (4 - 1)) & ~(uint)(4 - 1);
                         }
                     }
 
-                    // Header, section count and the array of 'offset to section'
+                    // section count and the array of 'sections'
                     writer.Write(Sections.Count);
                     foreach (var section in Sections)
                     {
-                        writer.Write(section.TocOffset);
+                        var thisPosition = writer.Position;
+                        writer.Write(section.ArchiveIndex);
+                        writer.Write(section.ArchiveDataOffset);
+                        writer.Write(section.Toc.Count);
+                        writer.Write(section.TocOffset - (uint)thisPosition);
                     }
 
                     StringByteBuffer = new byte[(maxStrByteLen + 64 + (256 - 1)) & ~(256 - 1)];
@@ -630,26 +665,28 @@ namespace BigfileBuilder
             {
                 if (outerIter == -1)
                 {
-                    // Header
-
                     // Compute the offset of each section
-                    // Count:Sections.Count + (Section.Count * (Offset:sizeof(uint) + Count:sizeof(uint)))
-                    var offset = (uint)(sizeof(int) + Sections.Count * (sizeof(uint) + sizeof(uint)));
+                    var offset = (uint)(sizeof(int) + Sections.Count * (4 * sizeof(uint) + sizeof(ulong)));
                     foreach (var section in Sections)
                     {
                         section.TocOffset = offset;
-                        // Toc Offset, Toc Count, ulong[Toc Count]
-                        offset += (uint)(sizeof(int) + sizeof(int) + section.TocCount * HashSize); // The size of ulong
+                        offset += (uint)(section.TocCount * HashSize);
                     }
 
                     // Write the section array, containing the offset and count of each section
                     writer.Write(Sections.Count);
                     foreach (var section in Sections)
                     {
-                        writer.Write(section.TocOffset);
-                        writer.Write(section.TocCount);
+                        var thisPosition = writer.Position;
+
+                        writer.Write(section.ArchiveIndex);
+                        writer.Write(section.ArchiveDataOffset);
+                        writer.Write(section.Toc.Count);
+                        // Make the offset relative to the position of this section
+                        writer.Write(section.TocOffset - (uint)thisPosition);
                     }
-                    // Per section, write the hash of each TocEntry
+
+                    // Per section, write Array<hash>
                     foreach (var section in Sections)
                     {
                         foreach (var te in section.Toc)

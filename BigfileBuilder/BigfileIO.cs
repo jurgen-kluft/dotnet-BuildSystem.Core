@@ -71,6 +71,8 @@ namespace BigfileBuilder
 
         void Write(int value);
         void Write(uint value);
+        void Write(long value);
+        void Write(ulong value);
         void Write(byte[] bytes, int index, int count);
     }
 
@@ -116,6 +118,32 @@ namespace BigfileBuilder
             {
                 BitConverter.GetBytes(value).CopyTo(_buffer, 0);
                 _writer.Write(_buffer, 0, 4);
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void Write(long value)
+        {
+            if (!_isLittleEndian)
+            {
+                BitConverter.GetBytes(value).CopyTo(_buffer, 0);
+                _writer.Write(_buffer, 0, sizeof(long));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void Write(ulong value)
+        {
+            if (!_isLittleEndian)
+            {
+                BitConverter.GetBytes(value).CopyTo(_buffer, 0);
+                _writer.Write(_buffer, 0, sizeof(ulong));
             }
             else
             {
