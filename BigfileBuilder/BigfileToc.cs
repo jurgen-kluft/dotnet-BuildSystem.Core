@@ -31,8 +31,8 @@ namespace BigfileBuilder
 
         private interface ITocEntryWriter
         {
-            void WriteCount(IBinaryFileWriter writer, int count);
-            void WriteOffset(IBinaryFileWriter writer, long offset);
+            void WriteU32(IBinaryFileWriter writer, uint u32);
+            void WriteI32(IBinaryFileWriter writer, int i32);
             void WriteFileSize(IBinaryFileWriter writer, ITocEntry entry);
             void WriteFileOffset(IBinaryFileWriter writer, ITocEntry entry);
             int CountInBytes { get; } // Size of this in the data stream
@@ -70,25 +70,25 @@ namespace BigfileBuilder
 
         private sealed class TocEntryWriter32 : ITocEntryWriter
         {
-            public void WriteCount(IBinaryFileWriter writer, int count)
+            public void WriteI32(IBinaryFileWriter writer, int i32)
             {
-                writer.Write(count);
+                writer.WriteI32(i32);
             }
 
-            public void WriteOffset(IBinaryFileWriter writer, long offset)
+            public void WriteU32(IBinaryFileWriter writer, uint u32)
             {
-                writer.Write((int)offset);
+                writer.WriteU32(u32);
             }
 
             public void WriteFileSize(IBinaryFileWriter writer, ITocEntry entry)
             {
                 var fileSize = entry.FileSize;
-                writer.Write(fileSize);
+                writer.WriteU32(fileSize);
             }
 
             public void WriteFileOffset(IBinaryFileWriter writer, ITocEntry entry)
             {
-                writer.Write((uint)(entry.FileOffset >> 6));
+                writer.WriteU32((uint)(entry.FileOffset >> 6));
             }
 
             public int CountInBytes => 4;
@@ -493,7 +493,7 @@ namespace BigfileBuilder
                 if (outerIter == -1)
                 {
                     // Header
-                    writer.Write(Sections.Count);
+                    writer.WriteI32(Sections.Count);
                 }
             }
 
@@ -513,10 +513,10 @@ namespace BigfileBuilder
 
                             var thisPosition = writer.Position;
                             var section = Sections[innerIter];
-                            writer.Write(section.ArchiveIndex);
-                            writer.Write(section.ArchiveDataOffset);
-                            writer.Write(section.Toc.Count);
-                            writer.Write(section.TocOffset - (uint)thisPosition);
+                            writer.WriteU32(section.ArchiveIndex);
+                            writer.WriteU32(section.ArchiveDataOffset);
+                            writer.WriteI32(section.Toc.Count);
+                            writer.WriteU32(section.TocOffset - (uint)thisPosition);
                             return (innerIter+1) < Sections.Count;
                         }
                     case >= 0:
@@ -567,7 +567,7 @@ namespace BigfileBuilder
                 if (outerIter == -1)
                 {
                     var offset = (uint)(sizeof(int));
-                    offset += (uint)Sections.Count * (4 * sizeof(uint) + sizeof(ulong));
+                    offset += (uint)Sections.Count * (4 * sizeof(uint));
 
                     var maxStrByteLen = (uint)0;
                     foreach (var section in Sections)
@@ -591,14 +591,14 @@ namespace BigfileBuilder
                     }
 
                     // section count and the array of 'sections'
-                    writer.Write(Sections.Count);
+                    writer.WriteI32(Sections.Count);
                     foreach (var section in Sections)
                     {
                         var thisPosition = writer.Position;
-                        writer.Write(section.ArchiveIndex);
-                        writer.Write(section.ArchiveDataOffset);
-                        writer.Write(section.Toc.Count);
-                        writer.Write(section.TocOffset - (uint)thisPosition);
+                        writer.WriteU32(section.ArchiveIndex);
+                        writer.WriteU32(section.ArchiveDataOffset);
+                        writer.WriteI32(section.Toc.Count);
+                        writer.WriteU32(section.TocOffset - (uint)thisPosition);
                     }
 
                     StringByteBuffer = new byte[(maxStrByteLen + 64 + (256 - 1)) & ~(256 - 1)];
@@ -611,7 +611,7 @@ namespace BigfileBuilder
                     {
                         // The offset that we actually write is relative to the offset of the section
                         var relOffset = (uint)e.FilenameOffset - (uint)section.TocOffset;
-                        writer.Write(relOffset);
+                        writer.WriteU32(relOffset);
                     }
                 }
             }
@@ -624,7 +624,6 @@ namespace BigfileBuilder
                 var section = Sections[outerIter];
                 if (innerIter < section.TocCount)
                 {
-
                     var filename = section.Toc[innerIter].Filename;
 
                     var strNumEncodedBytes = 1 + Encoding.UTF8.GetBytes(filename, 0, filename.Length, StringByteBuffer, 0);
@@ -634,9 +633,9 @@ namespace BigfileBuilder
 
                     Debug.Assert(writer.Position == section.Toc[innerIter].FilenameOffset);
 
-                    writer.Write((uint)strNumEncodedBytes); // Write the byte length of the filename (includes null terminator)
-                    writer.Write(filename.Length); // Write the character length of the filename
-                    writer.Write(StringByteBuffer, 0, strNumEncodedBytes + numGapBytes); // Write the filename with padding to align to a multiple of 4 bytes
+                    writer.WriteU32((uint)strNumEncodedBytes); // Write the byte length of the filename (includes null terminator)
+                    writer.WriteI32(filename.Length); // Write the character length of the filename
+                    writer.WriteU32(StringByteBuffer, 0, strNumEncodedBytes + numGapBytes); // Write the filename with padding to align to a multiple of 4 bytes
                 }
 
                 return (innerIter+1) < section.TocCount;
@@ -666,7 +665,7 @@ namespace BigfileBuilder
                 if (outerIter == -1)
                 {
                     // Compute the offset of each section
-                    var offset = (uint)(sizeof(int) + Sections.Count * (4 * sizeof(uint) + sizeof(ulong)));
+                    var offset = (uint)(sizeof(int) + Sections.Count * (4 * sizeof(uint)));
                     foreach (var section in Sections)
                     {
                         section.TocOffset = offset;
@@ -674,16 +673,16 @@ namespace BigfileBuilder
                     }
 
                     // Write the section array, containing the offset and count of each section
-                    writer.Write(Sections.Count);
+                    writer.WriteI32(Sections.Count);
                     foreach (var section in Sections)
                     {
                         var thisPosition = writer.Position;
 
-                        writer.Write(section.ArchiveIndex);
-                        writer.Write(section.ArchiveDataOffset);
-                        writer.Write(section.Toc.Count);
+                        writer.WriteU32(section.ArchiveIndex);
+                        writer.WriteU32(section.ArchiveDataOffset);
+                        writer.WriteI32(section.Toc.Count);
                         // Make the offset relative to the position of this section
-                        writer.Write(section.TocOffset - (uint)thisPosition);
+                        writer.WriteU32(section.TocOffset - (uint)thisPosition);
                     }
 
                     // Per section, write Array<hash>
@@ -691,7 +690,7 @@ namespace BigfileBuilder
                     {
                         foreach (var te in section.Toc)
                         {
-                            writer.Write(te.FileContentHash, 0, HashSize);
+                            writer.WriteU32(te.FileContentHash, 0, HashSize);
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 namespace GameData
 {
-    public struct ArchiveLoaderCode : ICode
+    public readonly struct ArchiveLoaderCode : ICode
     {
         public ICode[] CodeDependency =>  new ICode[1] { new FileIdCode() };
 

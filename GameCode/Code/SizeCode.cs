@@ -1,6 +1,6 @@
 namespace GameData
 {
-    public struct SizeCode : ICode
+    public readonly struct SizeCode : ICode
     {
         public ICode[] CodeDependency => Array.Empty<ICode>();
 

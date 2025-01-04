@@ -3,7 +3,7 @@ namespace GameData
     /// <summary>
     ///
     /// </summary>
-    public struct GameDataCode : ICode
+    public readonly struct GameDataCode : ICode
     {
         public ICode[] CodeDependency => new ICode[]
             {

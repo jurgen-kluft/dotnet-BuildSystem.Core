@@ -69,11 +69,9 @@ namespace BigfileBuilder
 
         void Close();
 
-        void Write(int value);
-        void Write(uint value);
-        void Write(long value);
-        void Write(ulong value);
-        void Write(byte[] bytes, int index, int count);
+        void WriteI32(int value);
+        void WriteU32(uint value);
+        void WriteU32(byte[] bytes, int index, int count);
     }
 
     internal class BinaryFileWriter : IBinaryFileWriter
@@ -99,7 +97,7 @@ namespace BigfileBuilder
             _writer.Close();
         }
 
-        public void Write(int value)
+        public void WriteI32(int value)
         {
             if (!_isLittleEndian)
             {
@@ -112,7 +110,7 @@ namespace BigfileBuilder
             }
         }
 
-        public void Write(uint value)
+        public void WriteU32(uint value)
         {
             if (!_isLittleEndian)
             {
@@ -125,33 +123,7 @@ namespace BigfileBuilder
             }
         }
 
-        public void Write(long value)
-        {
-            if (!_isLittleEndian)
-            {
-                BitConverter.GetBytes(value).CopyTo(_buffer, 0);
-                _writer.Write(_buffer, 0, sizeof(long));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void Write(ulong value)
-        {
-            if (!_isLittleEndian)
-            {
-                BitConverter.GetBytes(value).CopyTo(_buffer, 0);
-                _writer.Write(_buffer, 0, sizeof(ulong));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void Write(byte[] bytes, int index, int count)
+        public void WriteU32(byte[] bytes, int index, int count)
         {
             _writer.Write(bytes, index, count);
         }

@@ -1,8 +1,6 @@
-using System;
-
 namespace GameData
 {
-    public struct FRectCode : ICode
+    public readonly struct FRectCode : ICode
     {
         public ICode[] CodeDependency => Array.Empty<ICode>();
 

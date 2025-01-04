@@ -402,121 +402,120 @@ namespace GameData
                 writer.WriteLine();
             }
 
-            struct Edge
+            public static List<int> SortGraph(int vertices, List<Edge> edges)
+            {
+                // 0. Initialize Sorted List
+                List<int> sortedOrder = new List<int>();
+                if (vertices <= 0)
+                {
+                    return sortedOrder;
+                }
+
+                // 1. Initialize the Graph (O(V))
+
+                Dictionary<int, List<int>> graph = new Dictionary<int, List<int>>(); // key = node, values = list of it's adjacent nodes
+                Dictionary<int, int> inDegrees = new Dictionary<int, int>(); // key = vertex, value = number of incoming edges
+
+                for (int i = 0; i < vertices; i++)
+                {
+                    inDegrees.Add(i, 0);
+                    graph.Add(i, new List<int>());
+                }
+
+                // 2. Build the Graph (O(E))
+
+                Queue<int> sources = new Queue<int>();
+
+                foreach(var e in edges)
+                {
+                    int parent = e.S; // left node of directed edge
+                    int child = e.D; // right node of directed edge
+                    if (child >= 0)
+                    {
+                        graph[parent].Add(child); // put the child into it's parent's adjacency list
+                        inDegrees[child] += 1;
+                    }
+                    else
+                    {
+                        sources.Enqueue(parent);
+                    }
+                }
+
+                // 3. Find all Sources and add to Queue
+
+                foreach (var entry in inDegrees)
+                {
+                    if (entry.Value == 0)
+                    {
+                        sources.Enqueue(entry.Key);
+                    }
+                }
+
+                // 4. Sort
+
+                // For each Source, add it to Sorted Order
+                while (sources.Count > 0)
+                {
+                    int source = sources.Dequeue();
+                    sortedOrder.Add(source);
+
+                    // Subtract one from all of its children's inDegrees value
+                    foreach (int child in graph[source])
+                    {
+                        inDegrees[child] -= 1;
+
+                        // If a child's in-degree becomes zero, add to sources queue
+                        if (inDegrees[child] == 0)
+                        {
+                            sources.Enqueue(child);
+                        }
+                    }
+                }
+
+                // 5. Check for Cycles
+                // Check if there is a topological sort by seeing if the graph has a cycle
+                if (sortedOrder.Count != vertices)
+                {
+                    return new List<int>();
+                }
+
+                return sortedOrder;
+            }
+
+            public struct Edge
             {
                 public int S { get; set; }
                 public int D { get; set; }
             }
 
-            private static List<int> TopoSort(List<Edge> edges)
+            private List<ICode> SortCode(List<ICode> codeList)
             {
-                var g = new Dictionary<int, List<int>>();
-                foreach (var edge in edges)
+                Dictionary<ICode, int> codeToIndex = new Dictionary<ICode, int>(codeList.Count());
+                foreach (var code in codeList)
                 {
-                    var u = edge.S;
-                    var v = edge.D;
-                    if (u == v) throw new System.Exception("nodes in edge cannot be the same");
-                    if (u == -1)
+                    codeToIndex.Add(code, codeToIndex.Count);
+                }
+
+                var codeEdges = new List<Edge>(codeList.Count);
+                foreach (var code in codeList)
+                {
+                    foreach (var dep in code.CodeDependency)
                     {
-                        if (!g.ContainsKey(v)) g[v] = new List<int>();
-                    }
-                    else if (v == -1)
-                    {
-                        if (!g.ContainsKey(u)) g[u] = new List<int>();
-                    }
-                    else
-                    {
-                        if (!g.ContainsKey(u)) g[u] = new List<int>();
-                        g[u].Add(v);
+                        codeEdges.Add( new Edge { S = codeToIndex[code], D = codeToIndex[dep] });
                     }
                 }
 
-                var sorted = new List<int>();
+                var sorted = SortGraph(codeList.Count, codeEdges);
+                if (sorted.Count == 0)
+                    return codeList;
 
-                // Create map of vertices to incoming edge count, and set counts to 0
-                var inDegree = new Dictionary<int, int>();
-                foreach (var n in g.Keys) inDegree[n] = 0;
-
-                foreach (var adjacent in g.Values) // For each vertex u, get adjacent list
+                var sortedList = new List<ICode>(codeList.Count);
+                for (var i=sorted.Count-1; i >= 0; --i)
                 {
-                    foreach (var v in adjacent) // For each vertex v adjacent to u
-                    {
-                        inDegree[v]++; // Increment inDegree[v]
-                    }
+                    sortedList.Add(codeList[sorted[i]]);
                 }
 
-                // Make a list next consisting of all vertices u such that inDegree[u] = 0
-                var next = new Stack<int>();
-                foreach (var u in inDegree.Keys)
-                {
-                    if (inDegree[u] == 0) next.Push(u);
-                }
-
-                while (next.Count > 0) // While next is not empty...
-                {
-                    // Pop a vertex from next and call it vertex u
-                    var u = next.Pop();
-                    sorted.Add(u); // Add u to the end sorted list
-
-                    // For each vertex v adjacent to sorted vertex u
-                    if (g.TryGetValue(u, out var adjacent))
-                    {
-                        foreach (var v in adjacent)
-                        {
-                            inDegree[v]--;         // Decrement count of incoming edges
-                            if (inDegree[v] == 0) // Enqueue nodes with no incoming edges
-                            {
-                                next.Push(v);
-                            }
-                        }
-                    }
-                }
-
-                if (sorted.Count < g.Count) // Check for cycles
-                {
-                    var cycleNodes = new List<int>();
-                    foreach (var u in inDegree.Keys)
-                    {
-                        if (inDegree[u] != 0)
-                        {
-                            cycleNodes.Add(u);
-                        }
-                    }
-                }
-
-                return sorted;
-            }
-
-            private List<ICode> SortCode(List<ICode> code)
-            {
-                // Sort code by dependencies
-                var codeDict = new Dictionary<ICode, int>();
-                for (var i = 0; i < code.Count; ++i) codeDict[code[i]] = i;
-
-                var edges = new List<Edge>();
-                for (var i = 0; i < code.Count; ++i)
-                {
-                    var c = code[i];
-                    if (c.CodeDependency.Length == 0)
-                    {
-                        edges.Add(new Edge { S = i, D = -1 });
-                    }
-                    else
-                    {
-                        foreach (var dep in c.CodeDependency)
-                        {
-                            edges.Add(new Edge { S = i, D = codeDict[dep] });
-                        }
-                    }
-                }
-
-                var sorted = TopoSort(edges);
-                var sortedCode = new List<ICode>();
-                for (var i = sorted.Count - 1; i >= 0; --i)
-                {
-                    sortedCode.Add(code[sorted[i]]);
-                }
-                return sortedCode;
+                return sortedList;
             }
 
             public void WriteStructs(IRootDataUnit rootData, TextStreamWriter writer)
@@ -539,20 +538,13 @@ namespace GameData
                 writer.WriteLine();
 
                 // Build list of all the predefined code
-                List<ICode> rootCode = rootData.CodeDependency;
-                List<ICode> codeUsed = new List<ICode>();
                 Queue<ICode> codeQueue = new Queue<ICode>();
                 HashSet<ICode> codeDone = new HashSet<ICode>();
-                foreach (var code in rootCode) codeQueue.Enqueue(code);
-                while (codeQueue.Count > 0)
+                foreach (var code in rootData.CodeDependency)
                 {
-                    var code = codeQueue.Dequeue();
-                    codeUsed.Add(code);
-
-                    foreach (var c in code.CodeDependency)
+                    if (codeDone.Add(code))
                     {
-                        if (!codeDone.Add(code)) continue;
-                        codeQueue.Enqueue(c);
+                        codeQueue.Enqueue(code);
                     }
                 }
 
@@ -563,22 +555,43 @@ namespace GameData
                     if (!mt.IsStruct) continue;
                     var mo = MetaCode.MembersObject[i];
                     if (mo is not IStruct ios) continue;
+                    var code = ios.StructCode;
+                    if (code.GetType() != typeof(NullCode))
+                    {
+                        if (codeDone.Add(code))
+                        {
+                            codeQueue.Enqueue(code);
+                        }
+                    }
+                }
 
-                    if (!codeDone.Add(ios.StructCode)) continue;
-                    codeUsed.Add(ios.StructCode);
+                // For each code, go down the dependency hierarchy
+                var codeActual = new List<ICode>(codeDone.Count);
+                while (codeQueue.Count > 0)
+                {
+                    var code = codeQueue.Dequeue();
+                    codeActual.Add(code);
+
+                    foreach (var c in code.CodeDependency)
+                    {
+                        if (!codeDone.Add(c)) continue;
+                        codeQueue.Enqueue(c);
+                    }
                 }
 
                 // Sort code by dependency and write it out
-                var sortedCode = SortCode(codeUsed);
+                var codeTypeDone = new HashSet<Type>(codeActual.Count);
+                var sortedCode = SortCode(codeActual);
                 foreach (var code in sortedCode)
                 {
+                    if (!codeTypeDone.Add(code.GetType())) continue;
                     var lines = code.CodeLines;
                     foreach (var line in lines)
                     {
                         writer.WriteLine(line);
                     }
-                    writer.WriteLine();
 
+                    writer.WriteLine();
                 }
 
                 // Write out all the structs that are used in the game data
