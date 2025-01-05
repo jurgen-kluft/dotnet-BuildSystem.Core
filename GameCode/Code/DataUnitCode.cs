@@ -19,16 +19,18 @@ namespace GameData
                                     template <typename T>
                                     struct dataunit_t
                                     {
-                                        T*   get() { return g_loader->get_dataunit_ptr<T>(m_dataunit_index); }
-                                        void load() { g_loader->load_dataunit(m_dataunit_index); }
-                                        u32  m_dataunit_index;
+                                        T*    get() { return g_loader->get_dataunit_ptr<T>(m_dataunit_index); }
+                                        void* load() { return g_loader->load_dataunit(m_dataunit_index); }
+                                        void  unload(void*& data) { g_loader->unload_dataunit(m_dataunit_index, data); }
+                                        u32   m_dataunit_index;
                                     };
+
                                     struct dataunit_header_t
                                     {
-                                        u32           m_patch_offset;
-                                        u32           m_patch_count;
-                                        u32           m_dummy0;
-                                        u32           m_dummy1;
+                                        u32 m_patch_offset;
+                                        s32 m_patch_count;
+                                        u32 m_dummy0;
+                                        u32 m_dummy1;
                                     };
                                     """;
                 return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);

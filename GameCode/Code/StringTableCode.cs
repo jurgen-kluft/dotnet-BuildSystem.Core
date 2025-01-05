@@ -2,7 +2,7 @@ namespace GameData
 {
     public readonly struct StringTableCode : ICode
     {
-        public ICode[] CodeDependency => new ICode[1] { new StringCode() };
+        public ICode[] CodeDependency => new ICode[] { new StringCode(), new LocStrCode() };
 
         public string[] CodeLines
         {
@@ -11,6 +11,7 @@ namespace GameData
                 const string code = """
                                     struct strtable_t
                                     {
+                                        inline strtable_t() {}
                                         inline strtable_t(u32 numStrings, u32 const* byteLengths, u32 const* charLengths, u32 const* offsets, const char* strings)
                                             : mMagic(0x36DF5DE5)
                                             , mNumStrings(numStrings)
@@ -21,7 +22,8 @@ namespace GameData
                                         {
                                         }
                                         inline s32      size() const { return mNumStrings; }
-                                        inline string_t str(u32 index) const { return string_t(mByteLengths[index], mCharLengths[index], mStrings + mOffsets[index]); }
+                                        inline string_t str(locstr_t l) const { return string_t(mByteLengths[l.id], mCharLengths[l.id], mStrings + mOffsets[l.id]); }
+                                        DCORE_CLASS_PLACEMENT_NEW_DELETE
                                     protected:
                                         u32         mMagic;  // 'STRT'
                                         u32         mNumStrings;

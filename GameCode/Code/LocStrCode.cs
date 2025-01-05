@@ -19,15 +19,9 @@ namespace GameData
                 const string code = """
                                     struct locstr_t
                                     {
-                                        explicit locstr_t(u64 id)
-                                        : id(id)
-                                        {
-                                        }
-                                        inline u64 getId() const { return id; }
-                                    private:
-                                        u64 id;
+                                        s64 id;
                                     };
-                                    const locstr_t INVALID_LOCSTR((u64)-1);
+                                    const locstr_t INVALID_LOCSTR = {-1};
                                     """;
                 return code.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
             }

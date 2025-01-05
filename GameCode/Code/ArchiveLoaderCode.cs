@@ -28,24 +28,24 @@ namespace GameData
                                         }
 
                                         template <typename T>
-                                        void unload_datafile(T*& object)
+                                        void unload_datafile(fileid_t fileid, T*& object)
                                         {
-                                            v_unload_datafile(object);
+                                            v_unload_datafile(fileid, (void*&)object);
                                         }
 
                                         template <typename T>
-                                        void unload_dataunit(T*& object)
+                                        void unload_dataunit(u32 dataunit_index, T*& object)
                                         {
-                                            v_unload_dataunit(object);
+                                            v_unload_dataunit(dataunit_index, (void*&)object);
                                         }
 
                                     protected:
-                                        virtual void* v_get_datafile_ptr(fileid_t fileid)    = 0;
-                                        virtual void* v_get_dataunit_ptr(u32 dataunit_index) = 0;
-                                        virtual void* v_load_datafile(fileid_t fileid)       = 0;
-                                        virtual void* v_load_dataunit(u32 dataunit_index)    = 0;
-                                        virtual void  v_unload_datafile(fileid_t fileid)     = 0;
-                                        virtual void  v_unload_dataunit(u32 dataunit_index)  = 0;
+                                        virtual void* v_get_datafile_ptr(fileid_t fileid)                = 0;
+                                        virtual void* v_get_dataunit_ptr(u32 dataunit_index)             = 0;
+                                        virtual void* v_load_datafile(fileid_t fileid)                   = 0;
+                                        virtual void* v_load_dataunit(u32 dataunit_index)                = 0;
+                                        virtual void  v_unload_datafile(fileid_t fileid, void*& data)    = 0;
+                                        virtual void  v_unload_dataunit(u32 dataunit_index, void*& data) = 0;
                                     };
 
                                     extern archive_loader_t* g_loader;
